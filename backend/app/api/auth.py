@@ -17,7 +17,7 @@ router = APIRouter()
 @router.post("/auth/register", response_model=UserMeResponse)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
     email = req.email.strip().lower()
-    org_name = req.organization_name.strip() if hasattr(req, "organization_name") else None
+    org_name = req.organization_name.strip() if hasattr(req, "organization_name") and req.organization_name else None
 
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Invalid email")
@@ -25,26 +25,30 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     if not req.password or len(req.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
 
-    if not org_name:
-        raise HTTPException(status_code=400, detail="Organization name is required")
-
     exists = db.query(User).filter(User.email == email).first()
     if exists:
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    org = db.query(Organization).filter(Organization.name == org_name).first()
-    if not org:
-        org = Organization(
-            org_id=new_id("org"),
-            name=org_name
-        )
-        db.add(org)
-        db.flush()
+    final_org_id = None
+
+    if req.role == "hr":
+        if not org_name:
+            raise HTTPException(status_code=400, detail="Organization name is required for HR")
+
+        org = db.query(Organization).filter(Organization.name == org_name).first()
+        if not org:
+            org = Organization(
+                org_id=new_id("org"),
+                name=org_name
+            )
+            db.add(org)
+            db.flush()
+        final_org_id = org.org_id
 
     user = User(
         user_id=new_id("usr"),
         email=email,
-        org_id=org.org_id,
+        org_id=final_org_id,
         password_hash=hash_password(req.password),
         role=req.role,
         is_active=True,

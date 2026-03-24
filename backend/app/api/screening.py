@@ -1,8 +1,9 @@
 import hashlib
 import json
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend.app.schemas import ScreeningRequest, ScreeningResult
@@ -11,6 +12,7 @@ from backend.app.pipeline import run_screening
 from backend.app.services.parsing.pdf import pdf_to_text
 from backend.app.services.parsing.docx import docx_to_text
 from backend.app.services.parsing.clean import clean_text
+from backend.database.models import Job
 
 from backend.database.db import get_db
 from backend.database.models import Document, ScreeningResult as ScreeningResultDB, User
@@ -99,7 +101,6 @@ async def run_file(
     db.commit()
     db.refresh(db_result)
 
-    # Добавляем ID из базы в объект результата перед возвратом
     result_dict = result.model_dump()
     result_dict["result_id"] = db_result.result_id
     result_dict["status"] = db_result.status
@@ -148,3 +149,115 @@ def list_results_by_job(
         .all()
     )
     return results
+
+
+class BulkScreenRequest(BaseModel):
+    document_ids: List[str]
+    job_description: str
+    job_id: str
+
+
+@router.post("/screening/bulk")
+def bulk_screen(
+        req: BulkScreenRequest,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Only HR can run screening")
+
+    documents = db.query(Document).filter(Document.document_id.in_(req.document_ids)).all()
+
+    if not documents:
+        raise HTTPException(status_code=404, detail="No valid documents found")
+
+    results_to_return = []
+
+    for doc in documents:
+        request = ScreeningRequest(cv_text=doc.raw_text, job_description=req.job_description)
+        ai_result = run_screening(request)
+
+        matched_skills = ai_result.matched_skills if ai_result.matched_skills else []
+        missing_skills = ai_result.missing_skills if ai_result.missing_skills else []
+        risks = ai_result.risks if ai_result.risks else []
+        interview_questions = ai_result.interview_questions if ai_result.interview_questions else []
+
+        res = ScreeningResultDB(
+            result_id=new_id("scr"),
+            owner_user_id=current_user.user_id,
+            job_id=req.job_id,
+            document_id=doc.document_id,
+            filename=doc.filename,
+            score=ai_result.score,
+            decision=ai_result.decision,
+            status="New",
+            summary=ai_result.summary,
+            matched_skills_json=json.dumps(matched_skills, ensure_ascii=False),
+            missing_skills_json=json.dumps(missing_skills, ensure_ascii=False),
+            risks_json=json.dumps(risks, ensure_ascii=False),
+            full_result_json=ai_result.model_dump_json(),
+        )
+        db.add(res)
+
+        results_to_return.append({
+            "result_id": res.result_id,
+            "document_id": res.document_id,
+            "filename": res.filename,
+            "status": res.status,
+            "score": res.score,
+            "decision": res.decision,
+            "summary": res.summary,
+            "matched_skills": matched_skills,
+            "missing_skills": missing_skills,
+            "risks": risks,
+            "interview_questions": interview_questions
+        })
+
+    db.commit()
+    return results_to_return
+
+
+@router.get("/results/organization")
+def list_all_organization_results(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Only HR can view all results")
+
+    results = (
+        db.query(ScreeningResultDB, Job.title)
+        .join(User, ScreeningResultDB.owner_user_id == User.user_id)
+        .outerjoin(Job, ScreeningResultDB.job_id == Job.job_id)
+        .filter(User.org_id == current_user.org_id)
+        .order_by(ScreeningResultDB.created_at.desc())
+        .all()
+    )
+
+    out = []
+    for r in results:
+        interview_qs = []
+        if r[0].full_result_json:
+            try:
+                parsed = json.loads(r[0].full_result_json)
+                interview_qs = parsed.get("interview_questions", [])
+            except:
+                pass
+
+        out.append({
+            "result_id": r[0].result_id,
+            "document_id": r[0].document_id,
+            "filename": r[0].filename,
+            "job_id": r[0].job_id,
+            "job_title": r[1] or "Deleted / Unknown Job",
+            "score": r[0].score,
+            "decision": r[0].decision,
+            "status": r[0].status,
+            "summary": r[0].summary,
+            "created_at": r[0].created_at,
+            "matched_skills": json.loads(r[0].matched_skills_json) if r[0].matched_skills_json else [],
+            "missing_skills": json.loads(r[0].missing_skills_json) if r[0].missing_skills_json else [],
+            "risks": json.loads(r[0].risks_json) if r[0].risks_json else [],
+            "interview_questions": interview_qs
+        })
+    return out
