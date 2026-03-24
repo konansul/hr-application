@@ -39,7 +39,7 @@ export function ScreenTab({ jobDescription, globalBatchResults, setGlobalBatchRe
 
   // Инициализируем стейт глобальными данными, если они есть
   const [results, setResults] = useState<any[]>(globalBatchResults || []);
-  const [errors, setErrors] = useState<any[]>([]);
+  const [_errors, setErrors] = useState<any[]>([]);
 
   // Выбираем первый файл из истории при загрузке
   const [selectedFilename, setSelectedFilename] = useState<string>(
