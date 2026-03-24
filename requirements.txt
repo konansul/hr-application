@@ -27,7 +27,6 @@ google-api-core==2.30.0
 google-api-python-client==2.190.0
 google-auth==2.49.0.dev0
 google-auth-httplib2==0.3.0
-google-genai==1.65.0
 googleapis-common-protos==1.72.0
 grpcio==1.78.0
 grpcio-status==1.71.2
@@ -37,6 +36,7 @@ httplib2==0.31.2
 httpx==0.28.1
 idna==3.11
 Jinja2==3.1.6
+jiter==0.13.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 kiwisolver==1.5.0
@@ -45,6 +45,7 @@ MarkupSafe==3.0.3
 matplotlib==3.10.8
 narwhals==2.17.0
 numpy==2.4.2
+openai==2.29.0
 packaging==26.0
 pandas==2.3.3
 passlib==1.7.4
