@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { jobsApi } from '../api';
+import { useStore } from '../store';
 
 interface Job {
   id: string;
@@ -9,18 +10,14 @@ interface Job {
 
 export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (desc: string) => void }) {
   const token = localStorage.getItem('auth_token');
+  const { setGlobalJobId, setGlobalJobTitle } = useStore();
 
-  // Состояния для левой панели (Создание нового черновика)
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
 
-  // Состояния для списков
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
 
-  // ==========================================
-  // УМНОЕ СОХРАНЕНИЕ WORKSPACE ЧЕРЕЗ LOCALSTORAGE
-  // ==========================================
   const [currentJob, setCurrentJob] = useState<Job | null>(() => {
     const saved = localStorage.getItem('job_workspace_current');
     return saved ? JSON.parse(saved) : null;
@@ -34,20 +31,20 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     return localStorage.getItem('job_workspace_desc') || '';
   });
 
-  // Синхронизация изменений: сохраняем в кэш браузера и глобальный стейт при любом изменении
   useEffect(() => {
     if (currentJob) {
       localStorage.setItem('job_workspace_current', JSON.stringify(currentJob));
+      setGlobalJobId(currentJob.id);
     } else {
       localStorage.removeItem('job_workspace_current');
+      setGlobalJobId('');
     }
     localStorage.setItem('job_workspace_title', activeTitle);
     localStorage.setItem('job_workspace_desc', activeDescription);
 
-    // Автоматически отдаем текст в App.tsx, чтобы ScreenTab всегда имел актуальное описание
     setGlobalJobDescription(activeDescription);
-  }, [currentJob, activeTitle, activeDescription, setGlobalJobDescription]);
-  // ==========================================
+    setGlobalJobTitle(activeTitle);
+  }, [currentJob, activeTitle, activeDescription, setGlobalJobDescription, setGlobalJobId, setGlobalJobTitle]);
 
   const fetchJobs = async () => {
     try {
@@ -65,7 +62,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     if (token) fetchJobs();
   }, [token]);
 
-  // Загрузка вакансии в рабочую область (Workspace)
   const handleLoadJob = () => {
     const jobToLoad = jobs.find(j => String(j.id) === String(selectedJobId));
     if (jobToLoad) {
@@ -77,7 +73,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
   };
 
-  // Создание нового черновика (Левая панель)
   const handleCreateJob = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -121,7 +116,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
   };
 
-  // Сохранение отредактированного текста в БД (PUT)
   const handleSaveChanges = async () => {
     if (!currentJob) return;
 
@@ -131,7 +125,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       const updatedJob = await jobsApi.update(currentJob.id, activeTitle, activeDescription);
       setCurrentJob(updatedJob);
       setMessage("Changes saved successfully!");
-      fetchJobs(); // Синхронизируем список слева
+      fetchJobs();
       setTimeout(() => setMessage(null), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Update failed');
@@ -140,7 +134,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
   };
 
-  // Статусы интерфейса
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRefining, setIsRefining] = useState(false);
@@ -156,17 +149,15 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 animate-in fade-in duration-300">
+    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300">
 
-      {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Job Manager</h2>
-          <p className="text-sm text-gray-500 mt-1">Draft, refine with AI, and maintain your job requirements.</p>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Job Manager</h2>
+          <p className="text-sm text-gray-500">Draft, refine with AI, and maintain your job requirements.</p>
         </div>
       </div>
 
-      {/* Notifications */}
       {message && (
         <div className="p-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -182,10 +173,8 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* LEFT PANEL: Management & Drafting */}
         <div className="lg:col-span-4 space-y-6">
 
-          {/* Saved Jobs Selector */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
@@ -214,7 +203,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             )}
           </div>
 
-          {/* New Job Form */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -244,11 +232,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
           </div>
         </div>
 
-        {/* RIGHT PANEL: The Workspace */}
         <div className="lg:col-span-8">
           <div className="bg-white border border-gray-200 rounded-3xl shadow-sm min-h-[650px] flex flex-col overflow-hidden">
 
-            {/* Workspace Header */}
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-2.5 h-2.5 rounded-full ${currentJob ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}></div>
@@ -275,7 +261,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               )}
             </div>
 
-            {/* Editor Area */}
             {currentJob ? (
               <div className="p-6 flex flex-col flex-1 gap-4">
                 <input

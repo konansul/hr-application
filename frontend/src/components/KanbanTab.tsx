@@ -1,12 +1,9 @@
 import { useState, useEffect, type DragEvent } from 'react';
 import { screeningApi } from '../api';
+import { useStore } from '../store';
 
 type Status = 'New' | 'Shortlisted' | 'Selected' | 'Rejected';
 const COLUMNS: Status[] = ['New', 'Shortlisted', 'Selected', 'Rejected'];
-
-interface KanbanTabProps {
-  batchResults: any[];
-}
 
 interface CandidateCard {
   id: string;
@@ -18,32 +15,44 @@ interface CandidateCard {
   matched_skills?: string[];
 }
 
-export function KanbanTab({ batchResults }: KanbanTabProps) {
+export function KanbanTab() {
+  const { globalJobId, globalJobTitle, activeTab } = useStore();
   const [candidates, setCandidates] = useState<CandidateCard[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!batchResults || batchResults.length === 0) return;
+    if (!globalJobId) {
+      setCandidates([]);
+      return;
+    }
 
-    setCandidates(prev => {
-      return batchResults.map(res => {
-        const stableId = String(res.result_id || res.id || res.filename);
-        const existing = prev.find(c => c.id === stableId);
+    if (activeTab === 'kanban') {
+      const fetchResults = async () => {
+        setIsLoading(true);
+        try {
+          const results = await screeningApi.getResultsByJob(globalJobId);
+          const mapped = results.map((res: any) => ({
+            id: String(res.result_id),
+            filename: res.filename || 'Unknown File',
+            score: res.score || 0,
+            status: res.status as Status || 'New',
+            summary: res.summary || '',
+            decision: res.decision || 'maybe',
+            matched_skills: res.matched_skills_json ? JSON.parse(res.matched_skills_json) : []
+          }));
+          setCandidates(mapped);
+        } catch (error) {
+          setCandidates([]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
-        return {
-          id: stableId,
-          filename: res.filename || 'Unknown File',
-          score: res.score || 0,
-          status: res.status || existing?.status || 'New',
-          summary: res.summary || '',
-          decision: res.decision || 'maybe',
-          matched_skills: res.matched_skills || []
-        };
-      });
-    });
-  }, [batchResults]);
+      fetchResults();
+    }
+  }, [globalJobId, activeTab]);
 
-  // --- Drag & Drop Handlers ---
   const handleDragStart = (e: DragEvent<HTMLDivElement>, id: string) => {
     e.dataTransfer.setData('text/plain', id);
     e.dataTransfer.effectAllowed = 'move';
@@ -87,7 +96,6 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
     }
   };
 
-  // --- UI Helpers ---
   const getColumnStyles = (status: Status) => {
     switch (status) {
       case 'New':
@@ -109,7 +117,7 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
 
   const getDecisionTheme = (decision?: string) => {
     const d = decision?.toLowerCase();
-    if (d === 'hire' || d === 'strong_yes') return 'bg-emerald-100 text-emerald-800';
+    if (d === 'hire' || d === 'strong_yes' || d === 'yes') return 'bg-emerald-100 text-emerald-800';
     if (d === 'reject' || d === 'no') return 'bg-red-100 text-red-800';
     return 'bg-gray-100 text-gray-600';
   };
@@ -124,24 +132,46 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
     }
   };
 
+  if (!globalJobId) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 border border-amber-100 rounded-2xl max-w-2xl mx-auto mt-10">
+        <h3 className="text-lg font-medium text-amber-900 mb-1">No Job Selected</h3>
+        <p className="text-sm text-amber-700">Please select an active Job Description in the "Job Descriptions" tab to view the Kanban board.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300 h-[calc(100vh-140px)] flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-end shrink-0 px-2">
+    <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 h-[calc(100vh-140px)] flex flex-col">
+      <div className="flex justify-between items-end shrink-0 px-2 pb-2">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Recruitment Pipeline</h2>
-          <p className="text-sm text-gray-500 mt-1">Drag and drop candidates to update their hiring stage.</p>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Recruitment Pipeline</h2>
+          <p className="text-sm text-gray-500">Drag and drop candidates to update their hiring stage.</p>
         </div>
-        {isSyncing && (
-          <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 animate-pulse tracking-widest uppercase bg-indigo-50 px-3 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
-            Updating...
+
+        <div className="flex flex-col items-end gap-2">
+          {isSyncing && (
+            <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 animate-pulse tracking-widest uppercase bg-indigo-50 px-3 py-1.5 rounded-full">
+              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+              Updating...
+            </div>
+          )}
+          <div className="text-right bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5 block">Active Job</span>
+            <span className="text-sm font-bold text-gray-900">{globalJobTitle || 'Unknown Job'}</span>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Board */}
-      <div className="flex gap-6 h-full min-h-0 overflow-x-auto pb-4 px-2 custom-scrollbar">
+      <div className="flex gap-4 h-full min-h-0 overflow-x-auto pb-4 px-2 custom-scrollbar">
         {COLUMNS.map(columnStatus => {
           const columnCandidates = candidates.filter(c => c.status === columnStatus);
           const styles = getColumnStyles(columnStatus);
@@ -151,9 +181,8 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
               key={columnStatus}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, columnStatus)}
-              className="flex-1 min-w-[320px] max-w-[400px] bg-gray-50/50 border border-gray-100 rounded-[32px] p-6 flex flex-col h-full overflow-hidden shadow-sm"
+              className="flex-1 min-w-[220px] bg-gray-50/50 border border-gray-100 rounded-[32px] p-5 flex flex-col h-full overflow-hidden shadow-sm transition-all"
             >
-              {/* Column Header */}
               <div className="flex justify-between items-center mb-6 shrink-0">
                 <div className="flex items-center gap-2">
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${styles.bg} ${styles.text}`}>
@@ -168,7 +197,6 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
                 </span>
               </div>
 
-              {/* Cards Scroll Area */}
               <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 {columnCandidates.map(candidate => {
                   const scoreTheme = getScoreTheme(candidate.score);
@@ -182,7 +210,6 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
                       onDragEnd={handleDragEnd}
                       className="group bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-300 transition-all cursor-grab active:cursor-grabbing shrink-0 flex flex-col gap-3"
                     >
-                      {/* Top Row: Score & Decision */}
                       <div className="flex justify-between items-center">
                         <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border ${scoreTheme}`}>
                           Match: {candidate.score}%
@@ -192,21 +219,18 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
                         </span>
                       </div>
 
-                      {/* Middle: Candidate Info */}
                       <div>
                         <h4 className="text-sm font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                           {candidate.filename}
                         </h4>
                       </div>
 
-                      {/* Summary */}
                       {candidate.summary && (
                         <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
                           {candidate.summary}
                         </p>
                       )}
 
-                      {/* Bottom: Skills */}
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {candidate.matched_skills?.slice(0, 3).map(skill => (
                           <span key={skill} className="text-[9px] font-bold bg-gray-50 text-gray-400 px-2 py-1 rounded-md border border-gray-100">
@@ -223,7 +247,6 @@ export function KanbanTab({ batchResults }: KanbanTabProps) {
                   );
                 })}
 
-                {/* Empty State */}
                 {columnCandidates.length === 0 && (
                   <div className="h-28 border-2 border-dashed border-gray-200 rounded-[24px] flex items-center justify-center text-[10px] font-black text-gray-300 uppercase tracking-widest bg-white/50">
                     Drop candidate here

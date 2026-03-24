@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://hr-application-grhdhvazdfftbna4.canadacentral-01.azurewebsites.net';
+// const BASE_URL = 'https://hr-application-grhdhvazdfftbna4.canadacentral-01.azurewebsites.net';
+const BASE_URL = 'http://127.0.0.1:8000';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -84,7 +85,6 @@ export const screeningApi = {
     return response.data;
   },
 
-  // 👇 ДОБАВЛЕНА НОВАЯ ФУНКЦИЯ 👇
   improveCvFile: async (file: File, jobDescription: string) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -103,6 +103,42 @@ export const screeningApi = {
 
   getResultsByJob: async (jobId: string) => {
     const response = await apiClient.get(`/results/job/${jobId}`);
+    return response.data;
+  },
+
+  runBulk: async (documentIds: string[], jobDescription: string, jobId: string) => {
+    const response = await apiClient.post('/screening/bulk', {
+      document_ids: documentIds,
+      job_description: jobDescription,
+      job_id: jobId
+    });
+    return response.data;
+  },
+
+    getAllOrganizationResults: async () => {
+    const response = await apiClient.get('/results/organization');
+    return response.data;
+  },
+};
+
+export const documentsApi = {
+  upload: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await apiClient.post('/v1/documents/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  getOrganizationDocuments: async () => {
+    const response = await apiClient.get('/v1/documents/organization');
+    return response.data;
+  },
+
+  getMyDocuments: async () => {
+    const response = await apiClient.get('/v1/documents/me');
     return response.data;
   }
 };

@@ -75,14 +75,16 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
+    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300">
 
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">AI Resume Improver</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Upload your CV to get actionable AI feedback, uncover missing keywords, and automatically rewrite your bullet points.
-        </p>
+      {/* Header — приведен к общему дизайну */}
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">AI Resume Improver</h2>
+          <p className="text-sm text-gray-500">
+            Upload your CV to get actionable AI feedback, uncover missing keywords, and automatically rewrite your bullet points.
+          </p>
+        </div>
       </div>
 
       {/* Control Panel (Form + Stats) */}
