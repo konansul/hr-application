@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from backend.app.api.models import DocumentResponse
@@ -83,6 +83,31 @@ async def upload_document(
         "source_type": doc.source_type
     }
 
+# @router.get("/documents/organization", response_model=List[DocumentResponse])
+# def get_organization_documents(
+#         db: Session = Depends(get_db),
+#         current_user: User = Depends(get_current_user)
+# ):
+#     if current_user.role != "hr":
+#         raise HTTPException(status_code=403, detail="Only HR can view candidates")
+#
+#     candidate_users = db.query(User.user_id).filter(User.role == "candidate").subquery()
+#     documents = db.query(Document).filter(
+#         Document.owner_user_id.in_(candidate_users),
+#         Document.source_type.in_(["uploaded_cv", "public_application"])
+#     ).all()
+#
+#     return [
+#         {
+#             "document_id": d.document_id,
+#             "owner_user_id": d.owner_user_id,
+#             "filename": d.filename,
+#             "content_type": d.content_type,
+#             "source_type": d.source_type
+#         }
+#         for d in documents
+#     ]
+
 @router.get("/documents/organization", response_model=List[DocumentResponse])
 def get_organization_documents(
         db: Session = Depends(get_db),
@@ -91,10 +116,8 @@ def get_organization_documents(
     if current_user.role != "hr":
         raise HTTPException(status_code=403, detail="Only HR can view candidates")
 
-    candidate_users = db.query(User.user_id).filter(User.role == "candidate").subquery()
     documents = db.query(Document).filter(
-        Document.owner_user_id.in_(candidate_users),
-        Document.source_type == "uploaded_cv"
+        Document.source_type.in_(["uploaded_cv", "public_application"])
     ).all()
 
     return [
@@ -107,7 +130,6 @@ def get_organization_documents(
         }
         for d in documents
     ]
-
 @router.get("/documents/me", response_model=List[DocumentResponse])
 def get_my_documents(
         db: Session = Depends(get_db),
@@ -125,3 +147,86 @@ def get_my_documents(
         }
         for d in documents
     ]
+
+
+@router.post("/applications/submit")
+async def submit_public_application(
+        name: str = Form(...),
+        email: str = Form(...),
+        phone: str = Form(None),
+        position: str = Form(...),
+        salary_expectation: str = Form(...),
+        education: str = Form(...),
+        skills: str = Form(...),
+        experience_years: str = Form(...),
+        motivation: str = Form(...),
+        job_id: str = Form(...),
+        file: UploadFile = File(...),
+        db: Session = Depends(get_db)
+):
+    # 1. Читаем файл и достаем сырой текст
+    content = await file.read()
+    try:
+        cv_text, doc_content_type = extract_cv_text(file.filename or "", content)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # 2. Создаем технического пользователя, чтобы БД была довольна
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(
+            user_id=new_id("usr"),
+            email=email,
+            password_hash="no_login_public_user",  # <-- Заглушка пароля для БД
+            role="candidate"
+        )
+        db.add(user)
+        db.flush()  # Получаем ID, но пока не коммитим полностью
+
+    # 3. Формируем обогащенный текст для ИИ
+    enriched_raw_text = f"""
+--- CANDIDATE APPLICATION FORM ---
+Job ID Applied For: {job_id}
+Name: {name}
+Email: {email}
+Phone: {phone or 'Not provided'}
+Target Position: {position}
+Salary Expectation: {salary_expectation}
+Education: {education}
+Years of Experience: {experience_years}
+Self-Reported Skills: {skills}
+Motivation: {motivation}
+
+--- ORIGINAL CV TEXT ---
+{cv_text}
+"""
+
+    # 4. Сохраняем документ в БД
+    file_hash = hashlib.sha256(content).hexdigest()
+
+    # # Защита от спама (ищем по хэшу файла)
+    # existing_doc = db.query(Document).filter(
+    #     Document.file_hash == file_hash
+    # ).first()
+    #
+    # if existing_doc:
+    #     raise HTTPException(status_code=409, detail="This exact CV has already been submitted.")
+
+    doc = Document(
+        document_id=new_id("doc"),
+        owner_user_id=user.user_id,  # <--- Привязываем файл к нашему пользователю!
+        filename=file.filename,
+        content_type=doc_content_type,
+        file_hash=file_hash,
+        raw_text=enriched_raw_text,
+        source_type="public_application"
+    )
+
+    db.add(doc)
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": "Application saved to database successfully",
+        "document_id": doc.document_id
+    }

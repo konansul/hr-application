@@ -7,7 +7,9 @@ app = FastAPI(title="CV Screening API")
 origins = [
     "https://happy-hill-018c19800.4.azurestaticapps.net",
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174"
 ]
 
 app.add_middleware(
