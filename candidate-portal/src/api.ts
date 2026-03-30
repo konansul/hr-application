@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://127.0.0.1:8000';
+const BASE_URL = 'https://hr-application-grhdhvazdfftbna4.canadacentral-01.azurewebsites.net';
 
 export const submitApplication = async (formData: FormData) => {
   const response = await axios.post(`${BASE_URL}/v1/applications/submit`, formData, {

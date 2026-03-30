@@ -118,7 +118,7 @@ export default function App() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">4. Salary Expectation</label>
-              <input required name="salary_expectation" type="text" placeholder="e.g. $80,000 USD" className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:outline-none" />
+              <input required name="salary_expectation" type="text" placeholder="e.g. $800 USD" className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:outline-none" />
             </div>
           </div>
 
