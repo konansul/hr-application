@@ -278,7 +278,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   className={`w-full flex-1 text-sm text-gray-700 leading-relaxed border-none focus:ring-0 p-0 resize-none transition-colors ${isRefining ? 'text-indigo-400' : ''}`}
                 />
                 <div className="text-[10px] text-gray-400 font-mono mt-2 flex justify-end gap-4 uppercase tracking-widest">
-                  <span>ID: {currentJob.id.slice(0, 8)}</span>
+                  <span>ID: {currentJob.id.slice(0, 20)}</span>
                   <span>Length: {activeDescription.length} chars</span>
                 </div>
               </div>
