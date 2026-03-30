@@ -26,7 +26,7 @@ export default function App() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) return alert("Please upload your CV");
-    if (!TARGET_JOB_ID || TARGET_JOB_ID === "твой-job-id-здесь") {
+    if (!TARGET_JOB_ID || TARGET_JOB_ID === "job_bc7d335ee2eb") {
       return alert("Разработчик: Пожалуйста, пропиши TARGET_JOB_ID в коде App.tsx");
     }
 
