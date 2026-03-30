@@ -7,7 +7,7 @@ export default function App() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const TARGET_JOB_ID = "job_bc7d335ee2eb";
+  const TARGET_JOB_ID = "job_b3ab6e7fcb19"; // JOB_B3AB6E7FCB19
   const TARGET_POSITION = "Salesforce Developer";
 
   const availableSkills = [
@@ -26,7 +26,7 @@ export default function App() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) return alert("Please upload your CV");
-    if (!TARGET_JOB_ID || TARGET_JOB_ID === "job_bc7d335ee2eb") {
+    if (!TARGET_JOB_ID || TARGET_JOB_ID === "job_b3ab6e7fcb19") {
       return alert("Разработчик: Пожалуйста, пропиши TARGET_JOB_ID в коде App.tsx");
     }
 
