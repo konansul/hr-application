@@ -46,6 +46,7 @@ class DocumentResponse(BaseModel):
     filename: str
     content_type: Optional[str] = None
     source_type: str
+    raw_text: Optional[str] = None
 
 
 class ScreeningResultResponse(BaseModel):

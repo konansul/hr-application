@@ -126,7 +126,8 @@ def get_organization_documents(
             "owner_user_id": d.owner_user_id,
             "filename": d.filename,
             "content_type": d.content_type,
-            "source_type": d.source_type
+            "source_type": d.source_type,
+            "raw_text": d.raw_text
         }
         for d in documents
     ]

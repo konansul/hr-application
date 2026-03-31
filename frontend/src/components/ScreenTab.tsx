@@ -45,6 +45,9 @@ export function ScreenTab({ jobDescription, globalBatchResults, setGlobalBatchRe
     globalBatchResults?.length > 0 ? globalBatchResults[0].filename : ''
   );
 
+  // --- НОВОЕ СОСТОЯНИЕ ДЛЯ МОДАЛКИ С РЕЗЮМЕ ---
+  const [viewingDoc, setViewingDoc] = useState<any | null>(null);
+
   useEffect(() => {
     documentsApi.getOrganizationDocuments()
       .then(setDocuments)
@@ -185,8 +188,15 @@ export function ScreenTab({ jobDescription, globalBatchResults, setGlobalBatchRe
                 </tr>
               ) : (
                 documents.map((doc) => (
-                  <tr key={doc.document_id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-center">
+                  <tr
+                    key={doc.document_id}
+                    className="hover:bg-blue-50/50 transition-colors cursor-pointer"
+                    onClick={() => setViewingDoc(doc)} // Клик по строке открывает резюме
+                  >
+                    <td
+                      className="p-4 text-center"
+                      onClick={(e) => e.stopPropagation()} // Блокируем открытие модалки, если кликнули именно по чекбоксу
+                    >
                       <input
                         type="checkbox"
                         className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900 cursor-pointer"
@@ -225,6 +235,36 @@ export function ScreenTab({ jobDescription, globalBatchResults, setGlobalBatchRe
         </div>
       </div>
 
+      {/* --- МОДАЛЬНОЕ ОКНО ДЛЯ ПРОСМОТРА РЕЗЮМЕ --- */}
+      {viewingDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">{viewingDoc.filename}</h3>
+                <p className="text-xs text-gray-500 font-medium mt-1">Source: {viewingDoc.source_type}</p>
+              </div>
+              <button
+                onClick={() => setViewingDoc(null)}
+                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white">
+              <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">Candidate Document Content</h4>
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
+                  {viewingDoc.raw_text || "Текст резюме недоступен. Пожалуйста, обновите бэкенд, чтобы он возвращал raw_text."}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Блок с результатами ИИ (оставлен без изменений) */}
       {results.length > 0 && (
         <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
