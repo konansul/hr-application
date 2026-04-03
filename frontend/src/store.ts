@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 interface AppState {
   isLoggedIn: boolean;
   userRole: 'hr' | 'candidate' | null;
-  activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history';
+  activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs';
   globalJobDescription: string;
   globalJobId: string;
   globalJobTitle: string;
@@ -12,7 +12,7 @@ interface AppState {
   isSidebarOpen: boolean;
   setIsLoggedIn: (status: boolean) => void;
   setUserRole: (role: 'hr' | 'candidate' | null) => void;
-  setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history') => void;
+  setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs') => void;
   setGlobalJobDescription: (desc: string) => void;
   setGlobalJobId: (id: string) => void;
   setGlobalJobTitle: (title: string) => void;
@@ -26,7 +26,7 @@ export const useStore = create<AppState>()(
     (set) => ({
       isLoggedIn: false,
       userRole: null,
-      activeTab: 'job',
+      activeTab: 'profile',
       globalJobDescription: '',
       globalJobId: '',
       globalJobTitle: '',
@@ -40,11 +40,21 @@ export const useStore = create<AppState>()(
       setGlobalJobTitle: (title) => set({ globalJobTitle: title }),
       setGlobalBatchResults: (results) => set({ globalBatchResults: results }),
       setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
-      logoutStore: () => set({ isLoggedIn: false, userRole: null, globalJobDescription: '', globalJobId: '', globalJobTitle: '', globalBatchResults: [] }),
+      logoutStore: () => set({
+        isLoggedIn: false,
+        userRole: null,
+        activeTab: 'profile',
+        globalJobDescription: '',
+        globalJobId: '',
+        globalJobTitle: '',
+        globalBatchResults: []
+      }),
     }),
     {
       name: 'app-storage',
       partialize: (state) => ({
+        isLoggedIn: state.isLoggedIn,
+        userRole: state.userRole,
         globalJobDescription: state.globalJobDescription,
         globalJobId: state.globalJobId,
         globalJobTitle: state.globalJobTitle

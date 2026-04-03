@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://hr-application-grhdhvazdfftbna4.canadacentral-01.azurewebsites.net';
-//const BASE_URL = 'http://127.0.0.1:8000';
+const BASE_URL = 'http://127.0.0.1:8000';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -16,10 +15,12 @@ apiClient.interceptors.request.use((config) => {
 });
 
 export const authApi = {
-  register: async (email: string, password: string, organization_name: string, role: string = 'hr') => {
+  register: async (email: string, password: string, first_name: string, last_name: string, organization_name?: string, role: string = 'candidate') => {
     const response = await apiClient.post('/v1/auth/register', {
       email,
       password,
+      first_name,
+      last_name,
       organization_name,
       role
     });
@@ -46,8 +47,13 @@ export const authApi = {
 };
 
 export const jobsApi = {
-  create: async (title: string, description: string) => {
-    const response = await apiClient.post('/jobs', { title, description });
+  create: async (title: string, description: string, region?: string, screening_questions?: string[]) => {
+    const response = await apiClient.post('/jobs', {
+      title,
+      description,
+      region,
+      screening_questions
+    });
     return response.data;
   },
 
@@ -61,25 +67,33 @@ export const jobsApi = {
     return response.data;
   },
 
-  refine: async (title: string, description: string) => {
-    const response = await apiClient.post('/jobs/refine', { title, description });
-    return response.data;
-  },
+  refine: async (title: string, description: string, options: any = {}) => {
+  const response = await apiClient.post('/jobs/refine', {
+    title,
+    description,
+    ...options
+  });
+  return response.data;
+},
 
-  update: async (jobId: string, title: string, description: string) => {
-    const response = await apiClient.put(`/jobs/${jobId}`, { title, description });
+  update: async (jobId: string, title: string, description: string, region?: string, screening_questions?: string[]) => {
+    const response = await apiClient.put(`/jobs/${jobId}`, {
+      title,
+      description,
+      region,
+      screening_questions
+    });
     return response.data;
   },
 };
 
 export const screeningApi = {
-  runFile: async (file: File, jobDescription: string, jobId?: string) => {
+  runFile: async (file: File, jobId: string) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('job_description', jobDescription);
-    if (jobId) formData.append('job_id', jobId);
+    formData.append('job_id', jobId);
 
-    const response = await apiClient.post('/run-file', formData, {
+    const response = await apiClient.post('/screening/run-file', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
@@ -96,27 +110,38 @@ export const screeningApi = {
     return response.data;
   },
 
-  updateStatus: async (resultId: string, status: 'New' | 'Shortlisted' | 'Selected' | 'Rejected') => {
-    const response = await apiClient.patch(`/results/${resultId}/status`, { status });
+  updateStatus: async (applicationId: string, status: string) => {
+    const response = await apiClient.patch(`/applications/${applicationId}/status`, { status });
     return response.data;
   },
 
-  getResultsByJob: async (jobId: string) => {
-    const response = await apiClient.get(`/results/job/${jobId}`);
+  getApplicationsByJob: async (jobId: string) => {
+    const response = await apiClient.get(`/applications/job/${jobId}`);
     return response.data;
   },
 
   runBulk: async (documentIds: string[], jobDescription: string, jobId: string) => {
     const response = await apiClient.post('/screening/bulk', {
       document_ids: documentIds,
-      job_description: jobDescription,
+      job_id: jobId,
+      job_description: jobDescription
+    });
+    return response.data;
+  },
+
+    applyToJob: async (jobId: string) => {
+    const response = await apiClient.post('/applications/apply', {
       job_id: jobId
     });
     return response.data;
   },
 
-    getAllOrganizationResults: async () => {
-    const response = await apiClient.get('/results/organization');
+  getAllOrganizationApplications: async () => {
+    const response = await apiClient.get('/applications/organization');
+    return response.data;
+  },
+    getMyApplications: async () => {
+    const response = await apiClient.get('/applications/my');
     return response.data;
   },
 };
@@ -131,7 +156,6 @@ export const documentsApi = {
     });
     return response.data;
   },
-
   getOrganizationDocuments: async () => {
     const response = await apiClient.get('/v1/documents/organization');
     return response.data;
@@ -139,6 +163,10 @@ export const documentsApi = {
 
   getMyDocuments: async () => {
     const response = await apiClient.get('/v1/documents/me');
+    return response.data;
+  },
+  getLatestResume: async () => {
+    const response = await apiClient.get('/v1/resumes/latest');
     return response.data;
   }
 };

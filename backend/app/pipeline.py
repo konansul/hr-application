@@ -6,6 +6,8 @@ from backend.app.gemini import GeminiClient
 from backend.app.services.llm.schemas import SCREENING_SCHEMA
 from backend.app.schemas import CVImprovementResult, RewrittenBullet
 from backend.app.services.llm.schemas import CV_IMPROVEMENT_SCHEMA
+from backend.app.services.llm.schemas import CV_PARSING_SCHEMA
+from backend.app.services.llm.job_templates import LEGAL_TEMPLATES
 
 logger = logging.getLogger(__name__)
 
@@ -131,11 +133,27 @@ def run_cv_improvement(cv_text: str, job_description: str = "") -> CVImprovement
     )
 
 
-def run_job_refinement(title: str, description: str) -> str:
+# Добавили третий аргумент region с дефолтным значением None
+def run_job_refinement(
+        title: str,
+        description: str,
+        region: str = None,
+        include_di_clause: bool = False,
+        include_anti_scam: bool = False,
+        include_eeo_statement: bool = False,
+        include_pay_transparency: bool = False,
+        include_gdpr_notice: bool = False,
+        include_eu_salary_law: bool = False,
+        include_visa_sponsorship: bool = False
+) -> str:
+
+    location_context = f"- Location/Region: {region}" if region else ""
+
     prompt = f"""You are an expert HR Assistant and Technical Recruiter. Your task is to refine, enhance, and finalize job descriptions to attract top candidates.
 
 Input:
 - Job Title: {title}
+{location_context}
 - Draft Description: {description}
 
 Instructions:
@@ -144,17 +162,70 @@ Instructions:
    - Overview of the role
    - Responsibilities
    - Requirements
-   - Local context and location-specific details if not provided
-3. If it is too long, improve clarity, fix grammar and style, structure it logically, and enhance professionalism, without rewriting the entire content.
+   - Local context and location-specific details (consider the region: {region or 'Remote'})
+3. If it is too long, improve clarity, fix grammar and style, structure it logically, and enhance professionalism.
 4. Add any standard responsibilities or requirements typical for this role if missing.
 5. Make the text clear, professional, and appealing.
-6. Return only the improved job description text. Do not include any formatting examples, instructions, or Markdown symbols. The output should be ready to use as a job posting.
+6. Return only the improved job description text. Do not include any formatting examples, instructions, or Markdown symbols.
 """
 
     try:
-        # Убрали старый fallback-код от Google SDK.
-        # Новый метод generate_text сам прекрасно справится с задачей.
-        return gemini.generate_text(prompt)
+        refined_text = gemini.generate_text(prompt)
+
+        clauses = []
+
+        if include_di_clause:
+            clauses.append(f"Diversity & Inclusion\n{LEGAL_TEMPLATES['DIVERSITY_GLOBAL']}")
+        if include_anti_scam:
+            clauses.append(f"Recruitment Security Alert\n{LEGAL_TEMPLATES['ANTI_SCAM']}")
+
+        if region == "US":
+            if include_eeo_statement:
+                clauses.append(f"Equal Opportunity Employer\n{LEGAL_TEMPLATES['EEO_US']}")
+            if include_pay_transparency:
+                clauses.append(f"Pay Transparency\n{LEGAL_TEMPLATES['PAY_TRANSPARENCY_US']}")
+
+        elif region == "EU":
+            if include_gdpr_notice:
+                clauses.append(f"Data Privacy\n{LEGAL_TEMPLATES['GDPR_EU']}")
+            if include_eu_salary_law:
+                clauses.append(f"Salary Information (KV)\n{LEGAL_TEMPLATES['KV_AUSTRIA']}")
+
+        elif region == "Asia":
+            if include_visa_sponsorship:
+                clauses.append(f"Visa & Work Authorization\n{LEGAL_TEMPLATES['VISA_SPONSORSHIP_ASIA']}")
+
+        if clauses:
+            refined_text += "\n\n---\n\n" + "\n\n".join(clauses)
+
+        return refined_text
+
     except Exception as e:
         logger.error(f"Error refining job description: {e}")
-        return f"{title}\n\n{description}\n\n(AI refinement failed, please edit manually.)"
+        loc_str = f" ({region})" if region else ""
+        return f"{title}{loc_str}\n\n{description}\n\n(AI refinement failed, please edit manually.)"
+
+
+def run_cv_parsing(cv_text: str) -> dict:
+
+    prompt = f"""You are an expert HR data extractor. 
+    Extract all candidate information from the following CV text.
+    If a specific piece of information is missing (like a date, city, or skill level), omit the field or use "UNKNOWN" according to the schema enums.
+
+    CV TEXT:
+    {cv_text}
+    """
+
+    try:
+        parsed_data = gemini.generate_json(prompt, CV_PARSING_SCHEMA)
+        return parsed_data
+    except Exception as e:
+        logger.error(f"Error parsing CV text: {e}")
+        return {
+            "personal_info": {"first_name": "Unknown", "last_name": "Unknown"},
+            "experience": [],
+            "education": [],
+            "skills": [],
+            "languages": [],
+            "certifications": []
+        }

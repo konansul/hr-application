@@ -2,8 +2,8 @@ import { useState, useEffect, type DragEvent } from 'react';
 import { screeningApi } from '../api';
 import { useStore } from '../store';
 
-type Status = 'New' | 'Shortlisted' | 'Selected' | 'Rejected';
-const COLUMNS: Status[] = ['New', 'Shortlisted', 'Selected', 'Rejected'];
+type Status = 'APPLIED' | 'SHORTLISTED' | 'HR_INTERVIEW' | 'TECH_INTERVIEW' | 'OFFER' | 'REJECTED';
+const COLUMNS: Status[] = ['APPLIED', 'SHORTLISTED', 'HR_INTERVIEW', 'TECH_INTERVIEW', 'OFFER', 'REJECTED'];
 
 interface CandidateCard {
   id: string;
@@ -31,16 +31,19 @@ export function KanbanTab() {
       const fetchResults = async () => {
         setIsLoading(true);
         try {
-          const results = await screeningApi.getResultsByJob(globalJobId);
-          const mapped = results.map((res: any) => ({
-            id: String(res.result_id),
-            filename: res.filename || 'Unknown File',
-            score: res.score || 0,
-            status: res.status as Status || 'New',
-            summary: res.summary || '',
-            decision: res.decision || 'maybe',
-            matched_skills: res.matched_skills_json ? JSON.parse(res.matched_skills_json) : []
-          }));
+          const results = await screeningApi.getApplicationsByJob(globalJobId);
+          const mapped = results.map((res: any) => {
+            const rawStatus = res.status?.toUpperCase() || 'APPLIED';
+            return {
+              id: String(res.application_id || res.result_id),
+              filename: res.person ? `${res.person.first_name} ${res.person.last_name}` : (res.filename || 'Unknown Candidate'),
+              score: res.screening?.score || res.score || 0,
+              status: rawStatus as Status,
+              summary: res.screening?.full_result?.summary || res.summary || '',
+              decision: res.screening?.decision || res.decision || 'maybe',
+              matched_skills: res.screening?.full_result?.matched_skills || res.matched_skills || []
+            };
+          });
           setCandidates(mapped);
         } catch (error) {
           setCandidates([]);
@@ -98,14 +101,20 @@ export function KanbanTab() {
 
   const getColumnStyles = (status: Status) => {
     switch (status) {
-      case 'New':
+      case 'APPLIED':
         return { text: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400', border: 'border-gray-200' };
-      case 'Shortlisted':
+      case 'SHORTLISTED':
         return { text: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', border: 'border-blue-100' };
-      case 'Selected':
+      case 'HR_INTERVIEW':
+        return { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', border: 'border-purple-100' };
+      case 'TECH_INTERVIEW':
+        return { text: 'text-indigo-600', bg: 'bg-indigo-50', dot: 'bg-indigo-500', border: 'border-indigo-100' };
+      case 'OFFER':
         return { text: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-500', border: 'border-emerald-100' };
-      case 'Rejected':
+      case 'REJECTED':
         return { text: 'text-red-600', bg: 'bg-red-50', dot: 'bg-red-500', border: 'border-red-100' };
+      default:
+        return { text: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400', border: 'border-gray-200' };
     }
   };
 
@@ -125,10 +134,12 @@ export function KanbanTab() {
   const getColumnIcon = (status: Status) => {
     const p = { className: "w-4 h-4", stroke: "currentColor", strokeWidth: 2.5, fill: "none", viewBox: "0 0 24 24" };
     switch (status) {
-      case 'New': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>;
-      case 'Shortlisted': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>;
-      case 'Selected': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-      case 'Rejected': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+      case 'APPLIED': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>;
+      case 'SHORTLISTED': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>;
+      case 'HR_INTERVIEW': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>;
+      case 'TECH_INTERVIEW': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+      case 'OFFER': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+      case 'REJECTED': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
     }
   };
 
@@ -181,7 +192,7 @@ export function KanbanTab() {
               key={columnStatus}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, columnStatus)}
-              className="flex-1 min-w-[220px] bg-gray-50/50 border border-gray-100 rounded-[32px] p-5 flex flex-col h-full overflow-hidden shadow-sm transition-all"
+              className="flex-1 min-w-[280px] bg-gray-50/50 border border-gray-100 rounded-[32px] p-5 flex flex-col h-full overflow-hidden shadow-sm transition-all"
             >
               <div className="flex justify-between items-center mb-6 shrink-0">
                 <div className="flex items-center gap-2">
@@ -189,7 +200,7 @@ export function KanbanTab() {
                     {getColumnIcon(columnStatus)}
                   </div>
                   <h3 className={`text-xs font-black uppercase tracking-[0.15em] ${styles.text}`}>
-                    {columnStatus}
+                    {columnStatus.replace('_', ' ')}
                   </h3>
                 </div>
                 <span className={`text-[10px] font-black px-3 py-1 rounded-full border bg-white ${styles.text} ${styles.border} shadow-sm`}>
@@ -226,7 +237,7 @@ export function KanbanTab() {
                       </div>
 
                       {candidate.summary && (
-                        <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] text-gray-500 line-clamp-3 leading-relaxed">
                           {candidate.summary}
                         </p>
                       )}

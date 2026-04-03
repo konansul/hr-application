@@ -4,6 +4,8 @@ import { authApi } from '../api';
 interface User {
   email: string;
   role: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface AuthPageProps {
@@ -14,6 +16,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [mode, setMode] = useState<'Login' | 'Register'>('Login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [role, setRole] = useState<'hr' | 'candidate'>('hr');
 
@@ -28,10 +32,12 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     try {
       if (mode === 'Register') {
         const finalOrgName = role === 'hr' ? orgName : '';
-        await authApi.register(email, password, finalOrgName, role);
+        await authApi.register(email, password, firstName, lastName, finalOrgName, role);
         setMessage(`Account for ${email} created. Please login.`);
         setMode('Login');
         setPassword('');
+        setFirstName('');
+        setLastName('');
         setOrgName('');
       } else {
         await authApi.login(email, password);
@@ -45,8 +51,6 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden">
-
-      {/* ЛЕВАЯ ЧАСТЬ: ИНФОРМАЦИЯ В СВЕТЛЫХ ТОНАХ */}
       <div className="hidden lg:flex lg:w-1/2 bg-gray-50 p-16 flex-col justify-between relative overflow-hidden border-r border-gray-100">
         <div className="relative z-10">
           <div className="w-14 h-14 bg-gray-900 rounded-2xl flex items-center justify-center mb-10 shadow-lg shadow-gray-200">
@@ -94,12 +98,10 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <span>ENTERPRISE READY</span>
         </div>
 
-        {/* Мягкий фоновый декор в светлых тонах */}
         <div className="absolute top-[-5%] right-[-5%] w-80 h-80 bg-blue-100/50 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-[10%] left-[-5%] w-64 h-64 bg-indigo-50/80 rounded-full blur-[80px]"></div>
       </div>
 
-      {/* ПРАВАЯ ЧАСТЬ: ФОРМА */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-right-4 duration-700">
           <div className="mb-10">
@@ -130,7 +132,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {message && (
               <div className="p-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-2xl">
                 ✓ {message}
@@ -140,6 +142,33 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             {error && (
               <div className="p-4 text-sm text-red-700 bg-red-50 border border-red-100 rounded-2xl">
                 ✕ {error}
+              </div>
+            )}
+
+            {mode === 'Register' && (
+              <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-gray-400 tracking-wider ml-1">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-gray-900 outline-none transition-all"
+                    placeholder="John"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-gray-400 tracking-wider ml-1">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-gray-900 outline-none transition-all"
+                    placeholder="Doe"
+                  />
+                </div>
               </div>
             )}
 

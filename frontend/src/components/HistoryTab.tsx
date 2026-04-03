@@ -30,17 +30,18 @@ export function HistoryTab() {
   useEffect(() => {
     if (activeTab === 'history') {
       setIsLoading(true);
-      screeningApi.getAllOrganizationResults()
+      screeningApi.getAllOrganizationApplications()
         .then(setResults)
         .catch(() => setError("Failed to load screening history."))
         .finally(() => setIsLoading(false));
     }
   }, [activeTab]);
 
-  const filteredResults = results.filter(r =>
-    r.filename?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.job_title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredResults = results.filter(r => {
+    const name = r.filename || `${r.person?.first_name} ${r.person?.last_name}`;
+    return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           r.job_title?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300">
@@ -60,7 +61,7 @@ export function HistoryTab() {
           </svg>
           <input
             type="text"
-            placeholder="Search by candidate filename or job title..."
+            placeholder="Search by candidate name or job title..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-gray-900 focus:outline-none transition-all"
@@ -78,11 +79,11 @@ export function HistoryTab() {
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10 shadow-sm">
               <tr>
                 <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Date</th>
-                <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Candidate Document</th>
-                <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Screened For (Job)</th>
+                <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Candidate</th>
+                <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Job Title</th>
                 <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Score</th>
                 <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Decision</th>
-                <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Board Status</th>
+                <th className="p-4 font-bold text-gray-500 uppercase tracking-wider text-xs">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
@@ -97,7 +98,7 @@ export function HistoryTab() {
               ) : (
                 filteredResults.map((res) => (
                   <tr
-                    key={res.result_id}
+                    key={res.application_id}
                     onClick={() => setSelectedResult(res)}
                     className="hover:bg-blue-50/50 cursor-pointer transition-colors"
                   >
@@ -105,25 +106,24 @@ export function HistoryTab() {
                       {new Date(res.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-4 font-semibold text-gray-900">
-                      {res.filename}
+                      {res.filename || `${res.person?.first_name} ${res.person?.last_name}`}
                     </td>
                     <td className="p-4 text-gray-700">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-xs font-semibold">
-                        <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         {res.job_title}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={`font-bold ${res.score >= 80 ? 'text-emerald-600' : res.score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                        {res.score}%
+                      <span className={`font-bold ${(res.screening?.score || 0) >= 80 ? 'text-emerald-600' : (res.screening?.score || 0) >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                        {res.screening?.score ?? '—'}%
                       </span>
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        res.decision === 'strong_yes' || res.decision === 'yes' ? 'bg-emerald-100 text-emerald-800' :
-                        res.decision === 'no' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                        res.screening?.decision === 'hire' || res.screening?.decision === 'yes' ? 'bg-emerald-100 text-emerald-800' :
+                        res.screening?.decision === 'no' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
                       }`}>
-                        {res.decision?.replace('_', ' ')}
+                        {res.screening?.decision?.replace('_', ' ') || 'PENDING'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -144,7 +144,7 @@ export function HistoryTab() {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">{selectedResult.filename}</h3>
+                <h3 className="text-lg font-bold text-gray-900">{selectedResult.filename || `${selectedResult.person?.first_name} ${selectedResult.person?.last_name}`}</h3>
                 <p className="text-xs text-gray-500 font-medium mt-1">Screened for: {selectedResult.job_title}</p>
               </div>
               <button
@@ -157,16 +157,16 @@ export function HistoryTab() {
 
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8 bg-white">
               <div className="flex flex-wrap gap-4 border-b border-gray-100 pb-6">
-                <Pill label="Score" value={`${selectedResult.score || 0}%`} color="blue" />
+                <Pill label="Score" value={`${selectedResult.screening?.score || 0}%`} color="blue" />
                 <Pill label="Status" value={selectedResult.status} color="emerald" />
-                <Pill label="Decision" value={selectedResult.decision} color={selectedResult.decision === 'no' ? 'red' : 'emerald'} />
+                <Pill label="Decision" value={selectedResult.screening?.decision} color={selectedResult.screening?.decision === 'no' ? 'red' : 'emerald'} />
                 <Pill label="Date" value={new Date(selectedResult.created_at).toLocaleDateString()} />
               </div>
 
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">AI Executive Summary</h4>
                 <p className="text-sm text-gray-800 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  {selectedResult.summary || "No summary available."}
+                  {selectedResult.screening?.full_result?.summary || "No summary available."}
                 </p>
               </div>
 
@@ -174,28 +174,28 @@ export function HistoryTab() {
                 <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5">
                   <h4 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">Matched Skills</h4>
                   <ul className="space-y-2">
-                    {selectedResult.matched_skills?.map((skill: string, i: number) => (
+                    {selectedResult.screening?.full_result?.matched_skills?.map((skill: string, i: number) => (
                       <li key={i} className="text-sm text-emerald-900 flex items-start gap-2">• {skill}</li>
                     ))}
-                    {(!selectedResult.matched_skills || selectedResult.matched_skills.length === 0) && <li className="text-sm text-emerald-700 italic">No data</li>}
+                    {(!selectedResult.screening?.full_result?.matched_skills || selectedResult.screening?.full_result?.matched_skills.length === 0) && <li className="text-sm text-emerald-700 italic">No data</li>}
                   </ul>
                 </div>
                 <div className="bg-red-50/50 border border-red-100 rounded-xl p-5">
                   <h4 className="text-sm font-bold text-red-800 mb-3 flex items-center gap-2">Missing Skills</h4>
                   <ul className="space-y-2">
-                    {selectedResult.missing_skills?.map((skill: string, i: number) => (
+                    {selectedResult.screening?.full_result?.missing_skills?.map((skill: string, i: number) => (
                       <li key={i} className="text-sm text-red-900 flex items-start gap-2">• {skill}</li>
                     ))}
-                    {(!selectedResult.missing_skills || selectedResult.missing_skills.length === 0) && <li className="text-sm text-red-700 italic">No data</li>}
+                    {(!selectedResult.screening?.full_result?.missing_skills || selectedResult.screening?.full_result?.missing_skills.length === 0) && <li className="text-sm text-red-700 italic">No data</li>}
                   </ul>
                 </div>
               </div>
 
-              {selectedResult.risks?.length > 0 && (
+              {selectedResult.screening?.full_result?.risks?.length > 0 && (
                 <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-5">
                   <h4 className="text-sm font-bold text-amber-800 mb-3">Identified Risks & Concerns</h4>
                   <ul className="space-y-3">
-                    {selectedResult.risks.map((risk: string, i: number) => (
+                    {selectedResult.screening.full_result.risks.map((risk: string, i: number) => (
                       <li key={i} className="text-sm text-amber-900 flex items-start gap-2">
                         <span className="text-amber-500 font-bold">!</span> {risk}
                       </li>
@@ -204,11 +204,11 @@ export function HistoryTab() {
                 </div>
               )}
 
-              {selectedResult.interview_questions?.length > 0 && (
+              {selectedResult.screening?.full_result?.interview_questions?.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">Recommended Interview Questions</h4>
                   <div className="space-y-0 border-t border-gray-100">
-                    {selectedResult.interview_questions.map((q: string, i: number) => (
+                    {selectedResult.screening.full_result.interview_questions.map((q: string, i: number) => (
                       <div key={i} className="flex gap-4 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors px-2 rounded-lg">
                         <span className="flex-shrink-0 text-sm font-bold text-gray-400">{i + 1}.</span>
                         <p className="text-sm text-gray-700 leading-relaxed font-medium">{q}</p>

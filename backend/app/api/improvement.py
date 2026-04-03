@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import json
 
@@ -21,7 +23,6 @@ from backend.app.api.helpers.ownership import get_current_user
 
 router = APIRouter()
 
-
 def extract_cv_text(filename: str, data: bytes) -> tuple[str, str]:
     filename = (filename or "").lower()
 
@@ -44,10 +45,8 @@ def extract_cv_text(filename: str, data: bytes) -> tuple[str, str]:
 
     return cv_text, content_type
 
-
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
 
 @router.post("/improve-cv-file", response_model=CVImprovementResult)
 async def improve_cv_file(
@@ -75,28 +74,12 @@ async def improve_cv_file(
         source_type="improve_cv",
     )
     db.add(db_document)
-    db.commit()
-    db.refresh(db_document)
+    db.flush()
 
     result = run_cv_improvement(
         cv_text=cv_text,
         job_description=job_description,
     )
-
-    strengths = result.strengths if result.strengths else []
-    weaknesses = result.weaknesses if result.weaknesses else []
-    missing_keywords = result.missing_keywords if result.missing_keywords else []
-    improvements = result.improvements if result.improvements else []
-
-    rewritten_bullets = []
-    if result.rewritten_bullets:
-        rewritten_bullets = [
-            {
-                "original": item.original,
-                "improved": item.improved,
-            }
-            for item in result.rewritten_bullets
-        ]
 
     db_result = CVImprovementResultDB(
         improvement_id=new_id("imp"),
@@ -104,13 +87,6 @@ async def improve_cv_file(
         document_id=db_document.document_id,
         filename=file.filename or "unknown",
         overall_score=result.overall_score,
-        summary=result.summary,
-        strengths_json=json.dumps(strengths, ensure_ascii=False),
-        weaknesses_json=json.dumps(weaknesses, ensure_ascii=False),
-        missing_keywords_json=json.dumps(missing_keywords, ensure_ascii=False),
-        improvements_json=json.dumps(improvements, ensure_ascii=False),
-        improved_summary=result.improved_summary,
-        rewritten_bullets_json=json.dumps(rewritten_bullets, ensure_ascii=False),
         full_result_json=result.model_dump_json(),
     )
 

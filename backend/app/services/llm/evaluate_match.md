@@ -12,7 +12,7 @@ Given a Job Description (JD) and a CV text, produce:
 - candidate profile skills list
 
 Rules:
-- Today is 5 march of 2026, consider it.
+- Today is 1 april of 2026, consider it.
 - Return ONLY valid JSON following the provided schema.
 - Do NOT invent experience. If something is not clearly in the CV, mark as missing/uncertain and mention in risks.
 - Evidence: for each requirement include a short evidence snippet copied from CV (if met/partial).

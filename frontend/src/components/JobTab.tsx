@@ -31,6 +31,19 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     return localStorage.getItem('job_workspace_desc') || '';
   });
 
+  // --- НОВЫЕ СОСТОЯНИЯ ДЛЯ ШАБЛОНОВ ---
+  const [region, setRegion] = useState('Global');
+  const [clauses, setClauses] = useState({
+    di: false,
+    antiScam: false,
+    eeo: false,
+    payTransparency: false,
+    gdpr: false,
+    euSalary: false,
+    visaSponsorship: false,
+  });
+  // ------------------------------------
+
   useEffect(() => {
     if (currentJob) {
       localStorage.setItem('job_workspace_current', JSON.stringify(currentJob));
@@ -104,7 +117,20 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setIsRefining(true);
     setError(null);
     try {
-      const data = await jobsApi.refine(activeTitle, activeDescription);
+      // ПЕРЕДАЕМ В API НАШИ ФЛАГИ И РЕГИОН
+      const options = {
+        region,
+        include_di_clause: clauses.di,
+        include_anti_scam: clauses.antiScam,
+        include_eeo_statement: clauses.eeo,
+        include_pay_transparency: clauses.payTransparency,
+        include_gdpr_notice: clauses.gdpr,
+        include_eu_salary_law: clauses.euSalary,
+        include_visa_sponsorship: clauses.visaSponsorship
+      };
+
+      const data = await jobsApi.refine(activeTitle, activeDescription, options);
+
       if (data.improved_description) {
         setActiveDescription(data.improved_description);
         setMessage("✨ AI has polished the description. Review and save changes.");
@@ -230,6 +256,77 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               </button>
             </form>
           </div>
+
+          {/* НОВЫЙ БЛОК ДЛЯ ГАЛОЧЕК И РЕГИОНОВ */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              Legal & AI Templates
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Target Region</label>
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 focus:bg-white focus:outline-none transition-all"
+                >
+                  <option value="Global">Global / Remote</option>
+                  <option value="US">United States (US)</option>
+                  <option value="EU">Europe (EU)</option>
+                  <option value="Asia">Asia Pacific (APAC)</option>
+                </select>
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-gray-100">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={clauses.di} onChange={e => setClauses(c => ({...c, di: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                  <span className="text-sm text-gray-700 font-medium">Diversity & Inclusion</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={clauses.antiScam} onChange={e => setClauses(c => ({...c, antiScam: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                  <span className="text-sm text-gray-700 font-medium">Anti-Scam Warning</span>
+                </label>
+
+                {region === 'US' && (
+                  <div className="pl-1 pt-2 space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={clauses.eeo} onChange={e => setClauses(c => ({...c, eeo: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                      <span className="text-sm text-gray-700 font-medium">EEO Statement</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={clauses.payTransparency} onChange={e => setClauses(c => ({...c, payTransparency: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                      <span className="text-sm text-gray-700 font-medium">Pay Transparency</span>
+                    </label>
+                  </div>
+                )}
+
+                {region === 'EU' && (
+                  <div className="pl-1 pt-2 space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={clauses.gdpr} onChange={e => setClauses(c => ({...c, gdpr: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                      <span className="text-sm text-gray-700 font-medium">GDPR Privacy Notice</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={clauses.euSalary} onChange={e => setClauses(c => ({...c, euSalary: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                      <span className="text-sm text-gray-700 font-medium">Mandatory Salary Info</span>
+                    </label>
+                  </div>
+                )}
+
+                {region === 'Asia' && (
+                  <div className="pl-1 pt-2 space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={clauses.visaSponsorship} onChange={e => setClauses(c => ({...c, visaSponsorship: e.target.checked}))} className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900" />
+                      <span className="text-sm text-gray-700 font-medium">Visa Sponsorship Info</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <div className="lg:col-span-8">

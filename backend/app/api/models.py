@@ -1,14 +1,26 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal, Optional, Dict, Any, List
 from pydantic import BaseModel, EmailStr
 
 
 class RegisterRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
-    organization_name: str
-    role: Literal["hr", "candidate"] = "candidate"
+    role: str = "candidate"
+    organization_name: Optional[str] = None
+    first_name: str
+    last_name: str
+
+
+class UserMeResponse(BaseModel):
+    user_id: str
+    email: str
+    role: str
+    org_id: Optional[str] = None
+    person_id: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
@@ -21,16 +33,11 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
-class UserMeResponse(BaseModel):
-    user_id: str
-    email: EmailStr
-    role: str
-    org_id: Optional[str] = None
-
-
 class JobCreateRequest(BaseModel):
     title: str
     description: str
+    region: Optional[str] = None
+    screening_questions: Optional[List[str]] = None
 
 
 class JobResponse(BaseModel):
@@ -38,6 +45,8 @@ class JobResponse(BaseModel):
     owner_user_id: str
     title: str
     description: str
+    region: Optional[str] = None
+    screening_questions: Optional[List[str]] = None
 
 
 class DocumentResponse(BaseModel):
@@ -46,6 +55,8 @@ class DocumentResponse(BaseModel):
     filename: str
     content_type: Optional[str] = None
     source_type: str
+    resume_id: Optional[str] = None
+    parsed_data: Optional[Dict[str, Any]] = None
     raw_text: Optional[str] = None
 
 
@@ -57,19 +68,32 @@ class ScreeningResultResponse(BaseModel):
     summary: str
 
 
+from pydantic import BaseModel
+from typing import Optional
+
+
 class JobRefineRequest(BaseModel):
     title: str
     description: str
+    region: Optional[str] = None
+    include_di_clause: bool = False
+    include_anti_scam: bool = False
+    include_eeo_statement: bool = False
+    include_pay_transparency: bool = False
+    include_gdpr_notice: bool = False
+    include_eu_salary_law: bool = False
+    include_visa_sponsorship: bool = False
 
 
 class JobRefineResponse(BaseModel):
     improved_description: str
 
-
 class JobUpdate(BaseModel):
     title: str
     description: str
+    region: Optional[str] = None
+    screening_questions: Optional[List[str]] = None
 
 
-class ScreeningStatusUpdate(BaseModel):
-    status: Literal["New", "Shortlisted", "Selected", "Rejected"]
+class ApplicationStatusUpdate(BaseModel):
+    status: Literal["Applied", "Shortlisted", "HR Interview", "Tech Interview", "Offer", "Rejected"]

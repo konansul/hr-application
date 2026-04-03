@@ -1,5 +1,6 @@
 import { ResumeUploadTab } from './ResumeUploadTab';
 import { ImproveCvTab } from './ImproveCvTab';
+import { JobsTab } from './CanditateJobsTab';
 import { useStore } from '../store';
 import { authApi } from '../api';
 
@@ -21,7 +22,7 @@ export function CandidateDashboard() {
     logoutStore();
   };
 
-  const NavItem = ({ id, label, icon }: { id: typeof activeTab, label: string, icon: React.ReactNode }) => {
+  const NavItem = ({ id, label, icon }: { id: any, label: string, icon: React.ReactNode }) => {
     const isActive = activeTab === id;
     return (
       <button
@@ -58,6 +59,13 @@ export function CandidateDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
             </svg>
           } />
+
+          <NavItem id="jobs" label="Explore Jobs" icon={
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          } />
+
           <NavItem id="improve" label="Improve CV" icon={
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -85,10 +93,12 @@ export function CandidateDashboard() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
-          {/* Контейнер теперь растягивается на всю ширину (max-w-none) */}
           <div className="max-w-none mx-auto w-full transition-all duration-300">
             <div className={activeTab === 'upload-cv' ? 'block' : 'hidden'}>
               <ResumeUploadTab />
+            </div>
+            <div className={activeTab === 'jobs' ? 'block' : 'hidden'}>
+              <JobsTab />
             </div>
             <div className={activeTab === 'improve' ? 'block' : 'hidden'}>
               <ImproveCvTab initialJobDescription={globalJobDescription} />
