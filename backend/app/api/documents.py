@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import hashlib
+from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.app.api.models import DocumentResponse
@@ -18,6 +20,9 @@ from backend.app.services.parsing.clean import clean_text
 from backend.app.pipeline import run_cv_parsing
 
 router = APIRouter()
+
+STORAGE_DIR = Path(__file__).parent.parent.parent.parent / "storage" / "resumes"
+STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def extract_cv_text(filename: str, data: bytes) -> tuple[str, str]:
@@ -52,15 +57,6 @@ async def upload_document(
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
 
-    existing = db.query(Document).filter(
-        Document.file_hash == file_hash,
-        Document.owner_user_id == current_user.user_id
-    ).first()
-
-    if existing:
-        raise HTTPException(status_code=409, detail="Document already uploaded")
-
-    from backend.app.api.documents import extract_cv_text
     try:
         cv_text, doc_content_type = extract_cv_text(file.filename or "", content)
     except ValueError as e:
@@ -75,33 +71,34 @@ async def upload_document(
         )
 
     person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
-    personal_info = parsed_data.get("personal_info", {})
-
     if not person:
+        personal_info = parsed_data.get("personal_info", {})
         person = Person(
             person_id=new_id("prs"),
             user_id=current_user.user_id,
             first_name=personal_info.get("first_name", "Unknown"),
             last_name=personal_info.get("last_name", "Unknown"),
-            phone=personal_info.get("phone"),
-            city=personal_info.get("city"),
-            country=personal_info.get("country")
         )
         db.add(person)
-    else:
-        if not person.phone and personal_info.get("phone"):
-            person.phone = personal_info.get("phone")
-        if not person.city and personal_info.get("city"):
-            person.city = personal_info.get("city")
+        db.flush()
 
-    db.flush()
+    doc_id = new_id("doc")
+
+    # Сохраняем файл на диск (только PDF — остальные форматы не нужно показывать)
+    suffix = Path(file.filename or "file").suffix.lower()
+    saved_file_path: str | None = None
+    if suffix == ".pdf":
+        file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
+        file_on_disk.write_bytes(content)
+        saved_file_path = str(file_on_disk)
 
     doc = Document(
-        document_id=new_id("doc"),
+        document_id=doc_id,
         owner_user_id=current_user.user_id,
         filename=file.filename,
         content_type=doc_content_type,
         file_hash=file_hash,
+        file_path=saved_file_path,
         raw_text=cv_text,
         source_type="uploaded_cv"
     )
@@ -128,6 +125,7 @@ async def upload_document(
         "parsed_data": parsed_data
     }
 
+
 @router.get("/documents/organization", response_model=List[DocumentResponse])
 def get_organization_documents(
         db: Session = Depends(get_db),
@@ -140,17 +138,20 @@ def get_organization_documents(
         Document.source_type.in_(["uploaded_cv", "public_application"])
     ).all()
 
-    return [
-        {
+    result = []
+    for d in documents:
+        person = db.query(Person).filter(Person.user_id == d.owner_user_id).first()
+        candidate_name = f"{person.first_name} {person.last_name}".strip() if person else None
+        result.append({
             "document_id": d.document_id,
             "owner_user_id": d.owner_user_id,
             "filename": d.filename,
             "content_type": d.content_type,
             "source_type": d.source_type,
-            "raw_text": d.raw_text
-        }
-        for d in documents
-    ]
+            "raw_text": d.raw_text,
+            "candidate_name": candidate_name,
+        })
+    return result
 
 
 @router.get("/documents/me", response_model=List[DocumentResponse])
@@ -170,6 +171,47 @@ def get_my_documents(
         }
         for d in documents
     ]
+
+
+@router.get("/documents/{document_id}/file")
+def get_document_file(
+        document_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    doc = db.query(Document).filter(Document.document_id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not doc.file_path or not Path(doc.file_path).exists():
+        raise HTTPException(status_code=404, detail="File not found on server")
+
+    return FileResponse(
+        path=doc.file_path,
+        media_type=doc.content_type or "application/pdf",
+        filename=doc.filename,
+    )
+
+
+@router.delete("/documents/{document_id}", status_code=204)
+def delete_document(
+        document_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    doc = db.query(Document).filter(Document.document_id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # HR может удалять любой документ в орге; кандидат — только свой
+    if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db.delete(doc)
+    db.commit()
 
 
 @router.post("/applications/submit")

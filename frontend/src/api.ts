@@ -39,7 +39,16 @@ export const authApi = {
     const response = await apiClient.get('/v1/auth/me');
     return response.data;
   },
-
+    getProfile: async () => {
+    const response = await apiClient.get('/users/me/profile');
+    return response.data; // Ожидаем { profile_data: { ... } }
+  },
+  updateProfile: async (profileData: any) => {
+    const response = await apiClient.put('/users/me/profile', {
+      profile_data: profileData
+    });
+    return response.data;
+  },
   logout: async () => {
     localStorage.removeItem('auth_token');
     return { ok: true };
@@ -76,14 +85,13 @@ export const jobsApi = {
   return response.data;
 },
 
-  update: async (jobId: string, title: string, description: string, region?: string, screening_questions?: string[]) => {
-    const response = await apiClient.put(`/jobs/${jobId}`, {
-      title,
-      description,
-      region,
-      screening_questions
-    });
+  update: async (jobId: string, data: { title: string, description: string, region?: string, screening_questions?: any }) => {
+    const response = await apiClient.put(`/jobs/${jobId}`, data);
     return response.data;
+  },
+
+  delete: async (jobId: string) => {
+    await apiClient.delete(`/jobs/${jobId}`);
   },
 };
 
@@ -129,9 +137,17 @@ export const screeningApi = {
     return response.data;
   },
 
-    applyToJob: async (jobId: string) => {
+    applyToJob: async (jobId: string, answers?: Record<string, string> | null) => {
     const response = await apiClient.post('/applications/apply', {
-      job_id: jobId
+      job_id: jobId,
+      answers: answers ?? null
+    });
+    return response.data;
+  },
+
+  getCandidateAnswers: async (ownerUserId: string, jobId: string) => {
+    const response = await apiClient.get('/applications/answers', {
+      params: { owner_user_id: ownerUserId, job_id: jobId }
     });
     return response.data;
   },
@@ -165,6 +181,17 @@ export const documentsApi = {
     const response = await apiClient.get('/v1/documents/me');
     return response.data;
   },
+  deleteDocument: async (documentId: string) => {
+    await apiClient.delete(`/v1/documents/${documentId}`);
+  },
+
+  getDocumentFileUrl: async (documentId: string): Promise<string> => {
+    const response = await apiClient.get(`/v1/documents/${documentId}/file`, {
+      responseType: 'blob',
+    });
+    return URL.createObjectURL(response.data);
+  },
+
   getLatestResume: async () => {
     const response = await apiClient.get('/v1/resumes/latest');
     return response.data;

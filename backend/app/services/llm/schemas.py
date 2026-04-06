@@ -1,3 +1,28 @@
+DEFAULT_PROFILE_JSON = {
+    "personal_info": {
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "phone": "",
+        "city": "",
+        "country": "",
+        "nationality": "",
+        "visa_status": "UNKNOWN",
+        "work_preference": "UNKNOWN",
+        "open_to_remote": False,
+        "open_to_relocation": False,
+        "linkedin_url": "",
+        "github_url": "",
+        "portfolio_url": "",
+        "summary": ""
+    },
+    "experience": [],
+    "education": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+}
+
 CV_PARSING_SCHEMA = {
     "type": "object",
     "properties": {
@@ -13,8 +38,11 @@ CV_PARSING_SCHEMA = {
                 "nationality": {"type": "string"},
                 "visa_status": {
                     "type": "string",
-                    "enum": ["CITIZEN", "PERMANENT_RESIDENT", "WORK_PERMIT", "STUDENT_VISA", "SPONSORED_VISA",
-                             "NO_WORK_AUTHORIZATION", "OTHER", "UNKNOWN"]
+                    "enum": [
+                        "CITIZEN", "PERMANENT_RESIDENT", "WORK_PERMIT",
+                        "STUDENT_VISA", "SPONSORED_VISA", "NO_WORK_AUTHORIZATION",
+                        "OTHER", "UNKNOWN"
+                    ]
                 },
                 "work_preference": {
                     "type": "string",
@@ -39,8 +67,7 @@ CV_PARSING_SCHEMA = {
                     "employment_type": {"type": "string"},
                     "location": {"type": "string"},
                     "start_date": {"type": "string", "description": "Format: YYYY-MM or YYYY-MM-DD"},
-                    "end_date": {"type": "string",
-                                 "description": "Format: YYYY-MM or YYYY-MM-DD. Leave empty if current."},
+                    "end_date": {"type": "string", "description": "Format: YYYY-MM or YYYY-MM-DD. Leave empty if current."},
                     "is_current": {"type": "boolean"},
                     "description": {"type": "string"}
                 },

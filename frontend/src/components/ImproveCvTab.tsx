@@ -75,9 +75,10 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   };
 
   return (
-    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300">
+    // Этот компонент тянется на 100%. Если он зажат - проверь родительский контейнер!
+    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
-      {/* Header — приведен к общему дизайну */}
+      {/* Header */}
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">AI Resume Improver</h2>
@@ -89,10 +90,11 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
       {/* Control Panel (Form + Stats) */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Переведено на 12-колоночную сетку для унификации с остальными табами */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
 
           {/* Inputs */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-8 space-y-4">
             <div className="space-y-1.5">
               <label className="block text-sm font-semibold text-gray-700">Upload CV Document</label>
               <input
@@ -122,7 +124,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
           </div>
 
           {/* Stats & Submit */}
-          <div className="flex flex-col gap-4">
+          <div className="lg:col-span-4 flex flex-col gap-4">
             <Pill label="File Selected" value={file ? file.name : "None"} color={file ? 'emerald' : 'gray'} />
             <Pill label="Job Desc. Length" value={`${jobDescription.length} chars`} color={jobDescription.length > 0 ? 'blue' : 'gray'} />
 

@@ -68,12 +68,20 @@ def create_job(
     db.commit()
     db.refresh(db_job)
 
+    # Принудительно парсим вопросы для ответа фронтенду
+    qs = []
+    if db_job.screening_questions_json:
+        try:
+            qs = json.loads(db_job.screening_questions_json)
+        except:
+            qs = []
+
     return JobOut(
         id=db_job.job_id,
         title=db_job.title,
         description=db_job.description,
         region=db_job.region,
-        screening_questions=json.loads(db_job.screening_questions_json) if db_job.screening_questions_json else []
+        screening_questions=qs
     )
 
 
@@ -82,7 +90,6 @@ def list_jobs(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    # Если зашел HR — фильтруем по его организации
     if current_user.role == "hr":
         if not current_user.org_id:
             return []
@@ -95,16 +102,24 @@ def list_jobs(
     else:
         jobs = db.query(Job).order_by(Job.created_at.desc()).all()
 
-    return [
-        JobOut(
+    results = []
+    for job in jobs:
+        # Критически важно: парсим JSON здесь
+        qs = []
+        if job.screening_questions_json:
+            try:
+                qs = json.loads(job.screening_questions_json)
+            except:
+                qs = []
+
+        results.append(JobOut(
             id=job.job_id,
             title=job.title,
             description=job.description,
             region=job.region,
-            screening_questions=json.loads(job.screening_questions_json) if job.screening_questions_json else []
-        )
-        for job in jobs
-    ]
+            screening_questions=qs
+        ))
+    return results
 
 
 @router.get("/jobs/{job_id}", response_model=JobOut)
@@ -113,25 +128,51 @@ def get_job(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    job = (
-        db.query(Job)
-        .filter(
-            Job.job_id == job_id,
-            Job.org_id == current_user.org_id,
-        )
-        .first()
-    )
+    # Убираем фильтр по org_id для кандидатов, оставляем только для HR
+    query = db.query(Job).filter(Job.job_id == job_id)
+    if current_user.role == "hr":
+        query = query.filter(Job.org_id == current_user.org_id)
+
+    job = query.first()
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+
+    qs = []
+    if job.screening_questions_json:
+        try:
+            qs = json.loads(job.screening_questions_json)
+        except:
+            qs = []
 
     return JobOut(
         id=job.job_id,
         title=job.title,
         description=job.description,
         region=job.region,
-        screening_questions=json.loads(job.screening_questions_json) if job.screening_questions_json else []
+        screening_questions=qs
     )
+
+
+@router.delete("/jobs/{job_id}", status_code=204)
+def delete_job(
+        job_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Only HR can delete jobs")
+
+    job = db.query(Job).filter(
+        Job.job_id == job_id,
+        Job.org_id == current_user.org_id,
+    ).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    db.delete(job)
+    db.commit()
 
 
 @router.put("/jobs/{job_id}", response_model=JobOut)
@@ -156,20 +197,31 @@ def update_job(
     job.title = job_update.title
     job.description = job_update.description
 
-    if hasattr(job_update, "region"):
+    if job_update.region is not None:
         job.region = job_update.region
 
-    if hasattr(job_update, "screening_questions"):
-        job.screening_questions_json = json.dumps(job_update.screening_questions,
-                                                  ensure_ascii=False) if job_update.screening_questions else None
+    # Обновляем вопросы только если они пришли в запросе
+    if job_update.screening_questions is not None:
+        job.screening_questions_json = json.dumps(
+            job_update.screening_questions,
+            ensure_ascii=False
+        )
 
     db.commit()
     db.refresh(job)
+
+    # Возвращаем актуальные данные
+    qs = []
+    if job.screening_questions_json:
+        try:
+            qs = json.loads(job.screening_questions_json)
+        except:
+            qs = []
 
     return JobOut(
         id=job.job_id,
         title=job.title,
         description=job.description,
         region=job.region,
-        screening_questions=json.loads(job.screening_questions_json) if job.screening_questions_json else []
+        screening_questions=qs
     )

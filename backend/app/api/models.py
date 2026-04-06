@@ -58,6 +58,7 @@ class DocumentResponse(BaseModel):
     resume_id: Optional[str] = None
     parsed_data: Optional[Dict[str, Any]] = None
     raw_text: Optional[str] = None
+    candidate_name: Optional[str] = None
 
 
 class ScreeningResultResponse(BaseModel):
@@ -67,9 +68,6 @@ class ScreeningResultResponse(BaseModel):
     status: str
     summary: str
 
-
-from pydantic import BaseModel
-from typing import Optional
 
 
 class JobRefineRequest(BaseModel):
@@ -92,8 +90,11 @@ class JobUpdate(BaseModel):
     title: str
     description: str
     region: Optional[str] = None
-    screening_questions: Optional[List[str]] = None
+    screening_questions: Optional[List[Any]] = None
 
 
 class ApplicationStatusUpdate(BaseModel):
     status: Literal["Applied", "Shortlisted", "HR Interview", "Tech Interview", "Offer", "Rejected"]
+
+class ProfileUpdateRequest(BaseModel):
+    profile_data: Dict[str, Any]

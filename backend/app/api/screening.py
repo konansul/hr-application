@@ -306,6 +306,7 @@ def list_all_organization_applications(
 
 class ApplyRequest(BaseModel):
     job_id: str
+    answers: Optional[dict] = None
 
 @router.post("/applications/apply")
 def apply_to_job(
@@ -342,7 +343,8 @@ def apply_to_job(
         job_id=req.job_id,
         person_id=person.person_id,
         resume_id=resume.resume_id,
-        status="APPLIED"
+        status="APPLIED",
+        answers_to_screening_json=json.dumps(req.answers, ensure_ascii=False) if req.answers else None
     )
 
     db.add(new_application)
@@ -354,6 +356,35 @@ def apply_to_job(
         "application_id": new_application.application_id,
         "message": "Application submitted successfully"
     }
+
+
+@router.get("/applications/answers")
+def get_candidate_answers(
+        owner_user_id: str,
+        job_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Only HR can view answers")
+
+    job = db.query(Job).filter(Job.job_id == job_id).first()
+    questions = json.loads(job.screening_questions_json) if job and job.screening_questions_json else []
+
+    person = db.query(Person).filter(Person.user_id == owner_user_id).first()
+    if not person:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    app = db.query(Application).filter(
+        Application.person_id == person.person_id,
+        Application.job_id == job_id
+    ).first()
+
+    if not app:
+        return {"answers": None, "questions": questions}
+
+    answers = json.loads(app.answers_to_screening_json) if app.answers_to_screening_json else None
+    return {"answers": answers, "questions": questions}
 
 
 @router.get("/applications/my")

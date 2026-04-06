@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Any
+
 
 class JobCreate(BaseModel):
     title: str
@@ -10,7 +11,11 @@ class JobOut(BaseModel):
     id: str
     title: str
     description: str
+    region: Optional[str] = None
+    screening_questions: List[Any] = []
 
+    class Config:
+        from_attributes = True
 class Candidate(BaseModel):
     name: str
     cv_text: str

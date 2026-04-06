@@ -58,15 +58,12 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         is_active=True,
     )
     db.add(user)
-    db.flush()  # Фиксируем пользователя, чтобы использовать его user_id
+    db.flush()
 
-    # 2. СРАЗУ создаем базовый профиль Person
-    # Это избавит нас от проверок "if not person:" в других эндпоинтах
-    # Предполагается, что req.first_name и req.last_name добавлены в RegisterRequest
     person = Person(
         person_id=new_id("prs"),
         user_id=user.user_id,
-        first_name=getattr(req, "first_name", "User"),  # Fallback, если не передали
+        first_name=getattr(req, "first_name", "User"),
         last_name=getattr(req, "last_name", "")
     )
     db.add(person)
@@ -102,7 +99,6 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 
 @router.get("/auth/me", response_model=UserMeResponse)
 def me(current: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    # Вытягиваем профиль Person, чтобы отдать имя и фамилию на фронтенд
     person = db.query(Person).filter(Person.user_id == current.user_id).first()
 
     return {

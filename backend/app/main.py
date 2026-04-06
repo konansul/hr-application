@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import auth, jobs, screening, improvement, documents
+from backend.app.api import auth, users, jobs, screening, improvement, documents
 
 app = FastAPI(title="CV Screening API")
 
@@ -26,6 +26,7 @@ app.include_router(jobs.router, tags=["Jobs"])
 app.include_router(screening.router, tags=["Screening"])
 app.include_router(improvement.router, tags=["Improvement"])
 app.include_router(documents.router, prefix="/v1", tags=["Documents"])
+app.include_router(users.router, tags=["Users"])
 
 @app.get("/health")
 def health():

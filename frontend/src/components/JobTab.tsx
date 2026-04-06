@@ -2,10 +2,17 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { jobsApi } from '../api';
 import { useStore } from '../store';
 
+interface ScreeningQuestion {
+  id: string;
+  label: string;
+  placeholder: string;
+}
+
 interface Job {
   id: string;
   title: string;
   description: string;
+  screening_questions?: ScreeningQuestion[];
 }
 
 export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (desc: string) => void }) {
@@ -18,20 +25,11 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
 
-  const [currentJob, setCurrentJob] = useState<Job | null>(() => {
-    const saved = localStorage.getItem('job_workspace_current');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [currentJob, setCurrentJob] = useState<Job | null>(null);
+  const [activeTitle, setActiveTitle] = useState('');
+  const [activeDescription, setActiveDescription] = useState('');
+  const [activeQuestions, setActiveQuestions] = useState<ScreeningQuestion[]>([]);
 
-  const [activeTitle, setActiveTitle] = useState(() => {
-    return localStorage.getItem('job_workspace_title') || '';
-  });
-
-  const [activeDescription, setActiveDescription] = useState(() => {
-    return localStorage.getItem('job_workspace_desc') || '';
-  });
-
-  // --- НОВЫЕ СОСТОЯНИЯ ДЛЯ ШАБЛОНОВ ---
   const [region, setRegion] = useState('Global');
   const [clauses, setClauses] = useState({
     di: false,
@@ -42,19 +40,18 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     euSalary: false,
     visaSponsorship: false,
   });
-  // ------------------------------------
+
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isRefining, setIsRefining] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (currentJob) {
-      localStorage.setItem('job_workspace_current', JSON.stringify(currentJob));
       setGlobalJobId(currentJob.id);
     } else {
-      localStorage.removeItem('job_workspace_current');
       setGlobalJobId('');
     }
-    localStorage.setItem('job_workspace_title', activeTitle);
-    localStorage.setItem('job_workspace_desc', activeDescription);
-
     setGlobalJobDescription(activeDescription);
     setGlobalJobTitle(activeTitle);
   }, [currentJob, activeTitle, activeDescription, setGlobalJobDescription, setGlobalJobId, setGlobalJobTitle]);
@@ -63,11 +60,11 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     try {
       const data = await jobsApi.list();
       setJobs(data);
-      if (data.length > 0 && !selectedJobId) {
+      if (data.length > 0 && !selectedJobId && !currentJob) {
         setSelectedJobId(data[0].id);
       }
     } catch (err: any) {
-      console.error("Could not load jobs", err);
+      console.error(err);
     }
   };
 
@@ -81,6 +78,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setCurrentJob(jobToLoad);
       setActiveTitle(jobToLoad.title);
       setActiveDescription(jobToLoad.description);
+
+      setActiveQuestions(jobToLoad.screening_questions ?? []);
+
       setMessage("Job loaded to workspace.");
       setTimeout(() => setMessage(null), 3000);
     }
@@ -101,6 +101,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setCurrentJob(newJob);
       setActiveTitle(newJob.title);
       setActiveDescription(newJob.description);
+      setActiveQuestions([]);
 
       setMessage("Draft created and loaded to workspace.");
       setDraftTitle('');
@@ -111,13 +112,29 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
   };
 
+  const handleAddQuestion = () => {
+    const newQ: ScreeningQuestion = {
+      id: `q_${Date.now()}`,
+      label: '',
+      placeholder: 'e.g. Do you have 3+ years of experience with React?'
+    };
+    setActiveQuestions([...activeQuestions, newQ]);
+  };
+
+  const handleUpdateQuestion = (id: string, field: keyof ScreeningQuestion, value: string) => {
+    setActiveQuestions(activeQuestions.map(q => q.id === id ? { ...q, [field]: value } : q));
+  };
+
+  const handleRemoveQuestion = (id: string) => {
+    setActiveQuestions(activeQuestions.filter(q => q.id !== id));
+  };
+
   const handleRefineWithAI = async () => {
     if (!activeTitle || !activeDescription) return;
 
     setIsRefining(true);
     setError(null);
     try {
-      // ПЕРЕДАЕМ В API НАШИ ФЛАГИ И РЕГИОН
       const options = {
         region,
         include_di_clause: clauses.di,
@@ -142,13 +159,34 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
   };
 
+  const handleDeleteJob = async () => {
+    if (!currentJob) return;
+    if (!window.confirm(`Delete "${currentJob.title}"? This will also remove all applications. This action cannot be undone.`)) return;
+    try {
+      await jobsApi.delete(currentJob.id);
+      setCurrentJob(null);
+      setActiveTitle('');
+      setActiveDescription('');
+      setActiveQuestions([]);
+      setJobs(prev => prev.filter(j => j.id !== currentJob.id));
+      setSelectedJobId('');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Delete failed');
+    }
+  };
+
   const handleSaveChanges = async () => {
     if (!currentJob) return;
 
     setIsSaving(true);
     setError(null);
     try {
-      const updatedJob = await jobsApi.update(currentJob.id, activeTitle, activeDescription);
+      const updatedJob = await jobsApi.update(currentJob.id, {
+         title: activeTitle,
+          description: activeDescription,
+         region: region,
+         screening_questions: activeQuestions
+});
       setCurrentJob(updatedJob);
       setMessage("Changes saved successfully!");
       fetchJobs();
@@ -159,11 +197,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setIsSaving(false);
     }
   };
-
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isRefining, setIsRefining] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   if (!token) {
     return (
@@ -176,7 +209,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300">
-
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Job Manager</h2>
@@ -198,9 +230,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
         <div className="lg:col-span-4 space-y-6">
-
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
@@ -257,13 +287,11 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             </form>
           </div>
 
-          {/* НОВЫЙ БЛОК ДЛЯ ГАЛОЧЕК И РЕГИОНОВ */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
               Legal & AI Templates
             </h3>
-
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Target Region</label>
@@ -326,12 +354,10 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               </div>
             </div>
           </div>
-
         </div>
 
-        <div className="lg:col-span-8">
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm min-h-[650px] flex flex-col overflow-hidden">
-
+        <div className="lg:col-span-8 space-y-6">
+          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm min-h-[730px] flex flex-col overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-2.5 h-2.5 rounded-full ${currentJob ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}></div>
@@ -353,6 +379,13 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                     className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                   >
                     {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={handleDeleteJob}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    title="Delete job"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </button>
                 </div>
               )}
@@ -389,8 +422,58 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               </div>
             )}
           </div>
-        </div>
 
+        </div>
+      </div>
+
+      {/* SCREENING QUESTIONS — full width below the grid */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Screening Questions
+              </h3>
+              {currentJob && (
+                <button onClick={handleAddQuestion} className="p-1 hover:bg-gray-100 rounded-lg text-gray-900 transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                </button>
+              )}
+            </div>
+
+            {currentJob ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeQuestions.length > 0 ? (
+                  activeQuestions.map((q) => (
+                    <div key={q.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100 relative group">
+                      <button
+                        onClick={() => handleRemoveQuestion(q.id)}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-100 shadow-sm opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                      <input
+                        type="text"
+                        placeholder="Label (e.g. Years of Python)"
+                        value={q.label}
+                        onChange={(e) => handleUpdateQuestion(q.id, 'label', e.target.value)}
+                        className="w-full bg-transparent text-[11px] font-bold text-gray-900 placeholder-gray-400 border-none focus:ring-0 p-0 mb-1 uppercase tracking-wider"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Placeholder for candidate"
+                        value={q.placeholder}
+                        onChange={(e) => handleUpdateQuestion(q.id, 'placeholder', e.target.value)}
+                        className="w-full bg-transparent text-xs text-gray-500 placeholder-gray-300 border-none focus:ring-0 p-0 italic"
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-gray-400 py-2 col-span-full">No screening questions. Click + to add.</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-[10px] text-gray-400 text-center py-2 italic">Load a job to manage questions.</p>
+            )}
       </div>
     </div>
   );

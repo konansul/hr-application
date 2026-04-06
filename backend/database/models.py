@@ -54,6 +54,7 @@ class Person(Base):
     phone = Column(String(64), nullable=True)
     city = Column(String(128), nullable=True)
     country = Column(String(128), nullable=True)
+    profile_json = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
@@ -96,7 +97,7 @@ class Job(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     organization = relationship("Organization", back_populates="jobs")
-    applications = relationship("Application", back_populates="job")
+    applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
 
 
 class Application(Base):
@@ -118,7 +119,7 @@ class Application(Base):
     job = relationship("Job", back_populates="applications")
     person = relationship("Person", back_populates="applications")
     resume = relationship("Resume", back_populates="applications")
-    screening_result = relationship("ScreeningResult", back_populates="application", uselist=False)
+    screening_result = relationship("ScreeningResult", back_populates="application", uselist=False, cascade="all, delete-orphan")
 
 
 class Document(Base):
@@ -130,12 +131,13 @@ class Document(Base):
     filename = Column(String(255), nullable=False)
     content_type = Column(String(128), nullable=True)
     file_hash = Column(String(128), nullable=False, index=True)
+    file_path = Column(String(512), nullable=True)
     raw_text = Column(Text, nullable=False)
     source_type = Column(String(32), nullable=False, default="uploaded_cv")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     owner = relationship("User", back_populates="documents")
-    cv_improvements = relationship("CVImprovementResult", back_populates="document")
+    cv_improvements = relationship("CVImprovementResult", back_populates="document", cascade="all, delete-orphan")
 
 
 class ScreeningResult(Base):

@@ -1,24 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { jobsApi, screeningApi, authApi, documentsApi } from '../api';
 
-const HIRING_STAGES = [
-  'APPLIED',
-  'SHORTLISTED',
-  'HR_INTERVIEW',
-  'TECH_INTERVIEW',
-  'OFFER',
-  'REJECTED'
-];
+const HIRING_STAGES = ['APPLIED', 'SHORTLISTED', 'HR_INTERVIEW', 'TECH_INTERVIEW', 'OFFER', 'REJECTED'];
 
 export function JobsTab() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [applyingId, setApplyingId] = useState<string | null>(null);
+  const [applyingJob, setApplyingJob] = useState<any>(null);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
-  // Реф для скрытого инпута загрузки файла
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,14 +20,14 @@ export function JobsTab() {
       try {
         const [jobsData, myAppsData, userData] = await Promise.all([
           jobsApi.list(),
-          screeningApi.getMyApplications(), // Твой новый эндпоинт для статусов
+          screeningApi.getMyApplications(),
           authApi.getMe()
         ]);
         setJobs(jobsData);
         setApplications(myAppsData);
         setUser(userData);
       } catch (err) {
-        console.error("Failed to load career data", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -41,183 +35,212 @@ export function JobsTab() {
     loadData();
   }, []);
 
-  const handleApplyClick = async (jobId: string) => {
-    setApplyingId(jobId);
+  const handleApplyClick = (job: any) => {
+    const jid = job.id || job.job_id;
+    setApplyingJob(job);
+    setAnswers({});
 
+    const rawData = job.screening_questions || job.screening_questions_json;
+    let questionsArray: any[] = [];
+
+    if (rawData) {
+      if (typeof rawData === 'string') {
+        try {
+          const parsed = JSON.parse(rawData);
+          questionsArray = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          questionsArray = [];
+        }
+      } else if (Array.isArray(rawData)) {
+        questionsArray = rawData;
+      }
+    }
+
+    if (questionsArray.length > 0) {
+      setApplyingJob({ ...job, questions_to_render: questionsArray });
+      setShowQuestionnaire(true);
+      return;
+    }
+
+    proceedWithApplication(jid);
+  };
+
+  const handleQuestionnaireSubmit = () => {
+    if (!applyingJob) return;
+    const jid = applyingJob.id || applyingJob.job_id;
+    setShowQuestionnaire(false);
+    proceedWithApplication(jid, answers);
+  };
+
+  const proceedWithApplication = async (jobId: string, finalAnswers: any = null) => {
     try {
-      // Проверяем, есть ли уже загруженные документы
       const myDocs = await documentsApi.getMyDocuments();
-
       if (myDocs.length > 0) {
-        // Если резюме уже есть, просто подаем заявку
-        await screeningApi.applyToJob(jobId);
+        await screeningApi.applyToJob(jobId, finalAnswers);
         completeApplication();
       } else {
-        // Если документов нет, открываем окно выбора файла
         fileInputRef.current?.click();
       }
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Error checking profile");
-      setApplyingId(null);
+      alert(err.response?.data?.detail || "Error processing application");
     }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !applyingId) return;
+    if (!file || !applyingJob) return;
+    const jid = applyingJob.id || applyingJob.job_id;
 
     try {
-      // 1. Загружаем и парсим CV (это создаст Document, Person и Resume на бэкенде)
       await documentsApi.upload(file);
-
-      // 2. Теперь, когда профиль создан, подаем заявку на выбранную вакансию
-      await screeningApi.applyToJob(applyingId);
-
+      await screeningApi.applyToJob(jid, answers);
       completeApplication();
     } catch (err) {
-      alert("Failed to process CV. Please try again.");
+      alert("Failed to process CV.");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const completeApplication = async () => {
-    alert("Success! Your CV has been processed and sent to HR.");
     const updatedApps = await screeningApi.getMyApplications();
     setApplications(updatedApps);
-    setApplyingId(null);
+    setApplyingJob(null);
+    setAnswers({});
+    alert("Application submitted successfully!");
   };
 
-  const getStatusIndex = (status: string) => {
-    const s = status?.toUpperCase();
-    return HIRING_STAGES.indexOf(s);
-  };
+  const getStatusIndex = (status: string) => HIRING_STAGES.indexOf(status?.toUpperCase());
 
   const getStatusStyles = (status: string) => {
     const s = status?.toUpperCase();
     switch (s) {
-      case 'APPLIED': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case 'SHORTLISTED': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
-      case 'HR_INTERVIEW': return 'bg-purple-50 text-purple-600 border-purple-100';
-      case 'TECH_INTERVIEW': return 'bg-cyan-50 text-cyan-600 border-cyan-100';
-      case 'OFFER': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      case 'REJECTED': return 'bg-red-50 text-red-600 border-red-100';
-      default: return 'bg-gray-50 text-gray-500 border-gray-100';
+      case 'APPLIED': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'OFFER': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'REJECTED': return 'bg-red-50 text-red-700 border-red-100';
+      default: return 'bg-indigo-50 text-indigo-700 border-indigo-100';
     }
   };
 
-  if (loading) return <div className="p-20 text-center font-black uppercase tracking-widest text-gray-300 animate-pulse">Loading Opportunities...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 border border-gray-100 rounded-2xl max-w-2xl mx-auto mt-10">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+        <h3 className="text-lg font-medium text-gray-900 mb-1">Loading Opportunities...</h3>
+        <p className="text-sm text-gray-500">Please wait while we fetch the latest jobs.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-500 pb-20 px-4">
-      {/* Скрытый инпут для мгновенной загрузки при подаче */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept=".pdf,.docx,.txt"
-        onChange={handleFileUpload}
-      />
+    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
+      <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.docx,.txt" onChange={handleFileUpload} />
 
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-2">Career Hub</h2>
-          <p className="text-sm text-gray-500 font-medium italic">Hello, {user?.email}. Track your status below.</p>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Explore Jobs </h2>
+          <p className="text-sm text-gray-500">Hello, {user?.email}. Discover your next challenge.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-6">
         {jobs.map((job) => {
-          // Важно: сравниваем ID вакансии из списка и из заявок
-          const userApp = applications.find(a => a.job_id === (job.id || job.job_id));
-          const isExpanded = expandedJobId === (job.id || job.job_id);
+          const jid = job.id || job.job_id;
+          const userApp = applications.find(a => a.job_id === jid);
+          const isExpanded = expandedJobId === jid;
           const currentStageIdx = userApp ? getStatusIndex(userApp.status) : -1;
           const isRejected = userApp?.status?.toUpperCase() === 'REJECTED';
 
           return (
-            <div key={job.id || job.job_id} className="bg-white rounded-[45px] border border-gray-100 shadow-sm hover:shadow-xl transition-all overflow-hidden flex flex-col">
-              <div className="p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div key={jid} className="bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-md transition-all overflow-hidden">
+              <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="space-y-4 flex-1">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <h3 className="text-3xl font-black text-gray-900 leading-none">{job.title}</h3>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
                     {userApp && (
-                      <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusStyles(userApp.status)}`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusStyles(userApp.status)}`}>
                         {userApp.status.replace('_', ' ')}
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-6 text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                    <span>📍 {job.region || 'Remote'}</span>
-                    <span>⏱️ Full-time</span>
+
+                  <div className="flex gap-4 text-xs font-medium text-gray-500">
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      {job.region || 'Remote'}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Full-time
+                    </span>
                   </div>
-                  <p className={`text-sm text-gray-500 leading-relaxed max-w-3xl ${isExpanded ? '' : 'line-clamp-2'}`}>
+
+                  <p className={`text-sm text-gray-600 leading-relaxed max-w-3xl ${isExpanded ? '' : 'line-clamp-2'}`}>
                     {job.description}
                   </p>
-                  <button onClick={() => setExpandedJobId(isExpanded ? null : (job.id || job.job_id))} className="text-[10px] font-black uppercase text-blue-600">
-                    {isExpanded ? '↑ Less' : '↓ Details'}
+
+                  <button onClick={() => setExpandedJobId(isExpanded ? null : jid)} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+                    {isExpanded ? 'Show Less' : 'View Details'}
                   </button>
                 </div>
 
                 <div className="shrink-0 w-full md:w-auto">
                   {userApp ? (
-                    <div className="flex flex-col items-center md:items-end gap-3">
-                      <div className="bg-emerald-50 text-emerald-600 px-8 py-4 rounded-[24px] font-black text-xs uppercase tracking-widest border border-emerald-100">
-                        Applied
+                    <div className="flex flex-col items-center md:items-end gap-2">
+                      <div className="bg-gray-50 text-gray-700 px-6 py-2.5 rounded-xl text-sm font-semibold border border-gray-200">
+                        Application Submitted
                       </div>
-                      <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                         Match Score: {userApp.screening?.score || '0'}%
-                      </p>
+                      </span>
                     </div>
                   ) : (
                     <button
-                      onClick={() => handleApplyClick(job.id || job.job_id)}
-                      disabled={applyingId === (job.id || job.job_id)}
-                      className="px-12 py-5 bg-gray-900 hover:bg-blue-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-[24px] shadow-2xl transition-all active:scale-95 w-full md:w-auto"
+                      onClick={() => handleApplyClick(job)}
+                      className="w-full md:w-auto px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98]"
                     >
-                      {applyingId === (job.id || job.job_id) ? "Processing..." : "Quick Apply"}
+                      Quick Apply
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* ROADMAP / STEPPER */}
               {userApp && (
-                <div className="px-10 pb-12 pt-6 border-t border-gray-50 bg-gray-50/30 relative">
-                  <div className="flex justify-between items-center relative">
-                    <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
+                <div className="px-6 md:px-12 py-8 border-t border-gray-100 bg-gray-50/50 relative">
+                  <div className="flex justify-between items-center relative max-w-2xl mx-auto">
+                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0 rounded-full"></div>
                     {!isRejected && (
                       <div
-                        className="absolute top-1/2 left-0 h-0.5 bg-blue-500 -translate-y-1/2 z-0 transition-all duration-1000"
+                        className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 z-0 transition-all duration-1000 rounded-full"
                         style={{ width: `${(currentStageIdx / (HIRING_STAGES.length - 2)) * 100}%` }}
                       ></div>
                     )}
-
                     {HIRING_STAGES.filter(s => s !== 'REJECTED').map((stage, idx) => {
                       const isActive = idx <= currentStageIdx;
                       const isCurrent = idx === currentStageIdx;
                       return (
                         <div key={stage} className="relative z-10 flex flex-col items-center">
-                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 border-4 ${
-                            isCurrent ? 'bg-blue-600 border-white scale-125 shadow-xl' : 
-                            isActive ? 'bg-blue-500 border-white' : 'bg-white border-gray-200'
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${
+                            isCurrent ? 'bg-white border-indigo-500 shadow-sm' : 
+                            isActive ? 'bg-indigo-500 border-indigo-500' : 'bg-white border-gray-300'
                           }`}>
-                            {isActive ? (
-                              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : <span className="text-[10px] font-bold text-gray-400">{idx + 1}</span>}
+                            {isActive && !isCurrent ? (
+                              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                            ) : <span className={`text-xs font-bold ${isCurrent ? 'text-indigo-600' : 'text-gray-400'}`}>{idx + 1}</span>}
                           </div>
-                          <span className={`absolute -bottom-8 text-[9px] font-black uppercase whitespace-nowrap ${isCurrent ? 'text-blue-600' : 'text-gray-400'}`}>
+                          <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? 'text-gray-900' : 'text-gray-400'}`}>
                             {stage.replace('_', ' ')}
                           </span>
                         </div>
                       );
                     })}
                   </div>
+
                   {isRejected && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
-                      <div className="bg-red-600 text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-2xl">
-                        Application Rejected
+                    <div className="absolute inset-0 bg-gray-50/80 backdrop-blur-sm flex items-center justify-center z-20">
+                      <div className="bg-white text-red-600 border border-red-100 px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2">
+                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                         Application Rejected
                       </div>
                     </div>
                   )}
@@ -227,6 +250,61 @@ export function JobsTab() {
           );
         })}
       </div>
+
+      {showQuestionnaire && applyingJob && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+
+            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Application Form</h3>
+                <p className="text-xs text-gray-500 font-medium mt-1">For {applyingJob.title}</p>
+              </div>
+              <button
+                onClick={() => {setShowQuestionnaire(false); setApplyingJob(null);}}
+                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[60vh] space-y-4 bg-white">
+              {applyingJob.questions_to_render?.map((q: any, idx: number) => (
+                <div key={q.id} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 transition-colors hover:border-gray-200 focus-within:border-gray-300 focus-within:bg-white focus-within:shadow-sm">
+                  <label className="flex items-center gap-2 mb-3">
+                     <span className="w-5 h-5 rounded-md bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {idx + 1}
+                     </span>
+                     <span className="text-sm font-semibold text-gray-700">{q.label}</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Type your answer here..."
+                    onChange={(e) => setAnswers(prev => ({...prev, [q.id]: e.target.value}))}
+                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:outline-none transition-all"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 shrink-0 flex gap-3">
+              <button
+                onClick={() => {setShowQuestionnaire(false); setApplyingJob(null);}}
+                className="flex-1 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                 Cancel
+              </button>
+              <button
+                onClick={handleQuestionnaireSubmit}
+                className="flex-[2] py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 shadow-sm transition-all active:scale-[0.98]"
+              >
+                 Submit Answers
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
