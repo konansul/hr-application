@@ -68,7 +68,6 @@ def create_job(
     db.commit()
     db.refresh(db_job)
 
-    # Принудительно парсим вопросы для ответа фронтенду
     qs = []
     if db_job.screening_questions_json:
         try:
@@ -104,7 +103,6 @@ def list_jobs(
 
     results = []
     for job in jobs:
-        # Критически важно: парсим JSON здесь
         qs = []
         if job.screening_questions_json:
             try:
@@ -128,7 +126,6 @@ def get_job(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    # Убираем фильтр по org_id для кандидатов, оставляем только для HR
     query = db.query(Job).filter(Job.job_id == job_id)
     if current_user.role == "hr":
         query = query.filter(Job.org_id == current_user.org_id)
@@ -200,7 +197,6 @@ def update_job(
     if job_update.region is not None:
         job.region = job_update.region
 
-    # Обновляем вопросы только если они пришли в запросе
     if job_update.screening_questions is not None:
         job.screening_questions_json = json.dumps(
             job_update.screening_questions,
@@ -210,7 +206,6 @@ def update_job(
     db.commit()
     db.refresh(job)
 
-    # Возвращаем актуальные данные
     qs = []
     if job.screening_questions_json:
         try:

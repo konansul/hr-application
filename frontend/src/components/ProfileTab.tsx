@@ -204,10 +204,8 @@ export function ProfileTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* MAIN CONTENT AREA */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* PERSONAL INFO */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -328,7 +326,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* WORK EXPERIENCE */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -390,7 +387,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* EDUCATION */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -451,7 +447,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* SKILLS */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -471,7 +466,6 @@ export function ProfileTab() {
           </div>
         </div>
 
-        {/* SIDEBAR */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 border border-indigo-100 shadow-sm">

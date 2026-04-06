@@ -170,9 +170,9 @@ def list_applications_by_job(
 
 
 class BulkScreenRequest(BaseModel):
-    document_ids: List[str]      # Проверь: на фронте это document_ids
-    job_id: str                 # Проверь: на фронте это job_id
-    job_description: str        # Проверь: на фронте это job_description
+    document_ids: List[str]
+    job_id: str
+    job_description: str
 
 
 @router.post("/screening/bulk")
@@ -184,12 +184,10 @@ def bulk_screen(
     if current_user.role != "hr":
         raise HTTPException(status_code=403, detail="Only HR can run screening")
 
-    # 1. Проверка существования вакансии
     job = db.query(Job).filter(Job.job_id == req.job_id, Job.org_id == current_user.org_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found in your organization")
 
-    # 2. Получение документов
     docs = db.query(Document).filter(Document.document_id.in_(req.document_ids)).all()
     if not docs:
         raise HTTPException(status_code=404, detail="No documents found")
@@ -197,17 +195,13 @@ def bulk_screen(
     results_to_return = []
 
     for doc in docs:
-        # Ищем владельца документа (кандидата)
         person = db.query(Person).filter(Person.user_id == doc.owner_user_id).first()
 
-        # Ищем последнее распарсенное резюме, если оно есть
         resume = db.query(Resume).filter(Resume.person_id == person.person_id).order_by(
             Resume.created_at.desc()).first() if person else None
 
-        # Определяем текст для AI (приоритет у распарсенного резюме, иначе берем raw_text документа)
         cv_text_for_ai = resume.payload if resume else doc.raw_text
 
-        # Ищем или создаем Application (отклик)
         app = db.query(Application).filter(
             Application.job_id == job.job_id,
             Application.person_id == (person.person_id if person else None)
@@ -224,22 +218,17 @@ def bulk_screen(
             db.add(app)
             db.flush()
 
-        # Удаляем старые результаты скрининга для этого отклика, чтобы не плодить дубликаты
         db.query(ScreeningResult).filter(ScreeningResult.application_id == app.application_id).delete()
         db.flush()
 
-        # 3. Запуск AI скрининга
         request = ScreeningRequest(cv_text=cv_text_for_ai, job_description=req.job_description)
         try:
             ai_result = run_screening(request)
-            # Превращаем результат Pydantic в обычный Python словарь
             ai_data = ai_result.model_dump() if hasattr(ai_result, 'model_dump') else ai_result
         except Exception as e:
             print(f"AI Screening failed for {doc.filename}: {e}")
             continue
 
-        # 4. Сохранение результата в базу данных
-        # Используем json.dumps для корректного хранения в текстовом поле full_result_json
         db_res = ScreeningResult(
             result_id=new_id("scr"),
             application_id=app.application_id,
@@ -250,7 +239,6 @@ def bulk_screen(
         db.add(db_res)
         db.flush()
 
-        # 5. Формируем чистый объект ответа для фронтенда
         results_to_return.append({
             "application_id": app.application_id,
             "result_id": db_res.result_id,
@@ -276,9 +264,6 @@ def list_all_organization_applications(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    # if current_user.role != "hr":
-    #     raise HTTPException(status_code=403, detail="Only HR can view all applications")
-
     apps = db.query(Application).join(Job).filter(
         Job.org_id == current_user.org_id
     ).order_by(Application.created_at.desc()).all()

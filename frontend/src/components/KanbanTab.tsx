@@ -33,14 +33,13 @@ export function KanbanTab() {
         try {
           const results = await screeningApi.getApplicationsByJob(globalJobId);
           const mapped = results.map((res: any) => {
-            // ФИКС: Заменяем пробелы на _, чтобы "HR Interview" стало "HR_INTERVIEW"
             const rawStatus = (res.status || 'APPLIED').toUpperCase().replace(/\s+/g, '_') as Status;
 
             return {
               id: String(res.application_id || res.result_id),
               filename: res.person ? `${res.person.first_name} ${res.person.last_name}` : (res.filename || 'Unknown Candidate'),
               score: res.screening?.score || res.score || 0,
-              status: COLUMNS.includes(rawStatus) ? rawStatus : 'APPLIED', // Защита от неизвестных статусов
+              status: COLUMNS.includes(rawStatus) ? rawStatus : 'APPLIED',
               summary: res.screening?.full_result?.summary || res.summary || '',
               decision: res.screening?.decision || res.decision || 'maybe',
               matched_skills: res.screening?.full_result?.matched_skills || res.matched_skills || []
@@ -161,7 +160,6 @@ export function KanbanTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 h-[calc(100vh-140px)] flex flex-col">
 
-      {/* HEADER */}
       <div className="flex justify-between items-end shrink-0">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Recruitment Pipeline</h2>
@@ -182,7 +180,6 @@ export function KanbanTab() {
         </div>
       </div>
 
-      {/* KANBAN BOARD */}
       <div className="flex gap-4 h-full min-h-0 overflow-x-auto pb-4 custom-scrollbar">
         {COLUMNS.map(columnStatus => {
           const columnCandidates = candidates.filter(c => c.status === columnStatus);
@@ -195,7 +192,6 @@ export function KanbanTab() {
               onDrop={(e) => handleDrop(e, columnStatus)}
               className="flex-1 min-w-[280px] bg-white border border-gray-200 rounded-2xl p-5 flex flex-col h-full overflow-hidden shadow-sm transition-all"
             >
-              {/* Column Header */}
               <div className="flex justify-between items-center mb-5 shrink-0">
                 <div className="flex items-center gap-2">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${accent.bg} ${accent.text}`}>
@@ -210,7 +206,6 @@ export function KanbanTab() {
                 </span>
               </div>
 
-              {/* Cards */}
               <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
                 {columnCandidates.map(candidate => (
                   <div
@@ -220,7 +215,6 @@ export function KanbanTab() {
                     onDragEnd={handleDragEnd}
                     className="group bg-white p-4 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all cursor-grab active:cursor-grabbing shrink-0 flex flex-col gap-3"
                   >
-                    {/* Score + Decision row */}
                     <div className="flex justify-between items-center gap-2">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getScoreBadge(candidate.score)}`}>
                         {candidate.score}% match
@@ -230,19 +224,16 @@ export function KanbanTab() {
                       </span>
                     </div>
 
-                    {/* Name */}
                     <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                       {candidate.filename}
                     </h4>
 
-                    {/* Summary */}
                     {candidate.summary && (
                       <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
                         {candidate.summary}
                       </p>
                     )}
 
-                    {/* Skills */}
                     {candidate.matched_skills && candidate.matched_skills.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {candidate.matched_skills.slice(0, 3).map(skill => (

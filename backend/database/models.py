@@ -34,7 +34,7 @@ class User(Base):
     org_id = Column(String(64), ForeignKey("organizations.org_id"), nullable=True, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
-    role = Column(String(32), nullable=False, default="candidate")  # "candidate" или "hr"
+    role = Column(String(32), nullable=False, default="candidate")
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -90,9 +90,8 @@ class Job(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
 
-    # Новые фичи для HR
-    region = Column(String(64), nullable=True)  # Для подтягивания нужных legal-шаблонов
-    screening_questions_json = Column(Text, nullable=True)  # Вопросы для кандидатов (JSON)
+    region = Column(String(64), nullable=True)
+    screening_questions_json = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -111,7 +110,7 @@ class Application(Base):
     resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=False, index=True)
 
     status = Column(Enum(ApplicationStatus), nullable=False, default=ApplicationStatus.APPLIED)
-    answers_to_screening_json = Column(Text, nullable=True)  # Ответы на вопросы HR
+    answers_to_screening_json = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

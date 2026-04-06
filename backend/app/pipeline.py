@@ -52,16 +52,13 @@ def _score(profile: CandidateProfile, must: List[str], nice: List[str]) -> Tuple
 
 
 def run_screening(request: ScreeningRequest) -> ScreeningResult:
-    # Безопасное чтение файла шаблона
     with open("backend/app/services/llm/evaluate_match.md", "r", encoding="utf-8") as f:
         template = f.read()
 
     prompt = template.replace("{{JD_TEXT}}", request.job_description).replace("{{CV_TEXT}}", request.cv_text)
 
-    # Вызываем наш обновленный метод generate_json
     data = gemini.generate_json(prompt, SCREENING_SCHEMA)
 
-    # profile (добавлена безопасная проверка .get("profile", {}), чтобы избежать KeyError)
     profile_data = data.get("profile", {})
     skills = [Skill(name=s.get("name"), years=s.get("years")) for s in profile_data.get("skills", [])]
 
@@ -133,7 +130,6 @@ def run_cv_improvement(cv_text: str, job_description: str = "") -> CVImprovement
     )
 
 
-# Добавили третий аргумент region с дефолтным значением None
 def run_job_refinement(
         title: str,
         description: str,

@@ -41,7 +41,7 @@ export const authApi = {
   },
     getProfile: async () => {
     const response = await apiClient.get('/users/me/profile');
-    return response.data; // Ожидаем { profile_data: { ... } }
+    return response.data;
   },
   updateProfile: async (profileData: any) => {
     const response = await apiClient.put('/users/me/profile', {

@@ -58,7 +58,6 @@ export function HistoryTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
-      {/* HEADER */}
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Screening History</h2>
@@ -68,7 +67,6 @@ export function HistoryTab() {
         </div>
       </div>
 
-      {/* MAIN CONTAINER */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col min-h-[600px]">
 
         <div className="mb-6 relative">

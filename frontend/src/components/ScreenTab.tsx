@@ -137,7 +137,6 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                 const url = await documentsApi.getDocumentFileUrl(doc.document_id);
                 setPdfBlobUrl(url);
             } catch {
-                // fallback to raw text
             } finally {
                 setPdfLoading(false);
             }
@@ -200,7 +199,6 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
     return (
         <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
-            {/* HEADER */}
             <div className="flex justify-between items-end">
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Candidate Pool</h2>
@@ -243,7 +241,6 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                 </div>
             )}
 
-            {/* CANDIDATE POOL TABLE */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-6">
                 <div className="border border-gray-200 rounded-2xl overflow-hidden max-h-[400px] overflow-y-auto">
                     <table className="w-full text-left border-collapse">
@@ -340,7 +337,6 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                 </div>
             </div>
 
-            {/* --- МОДАЛЬНОЕ ОКНО ДЛЯ ПРОСМОТРА РЕЗЮМЕ --- */}
             {viewingDoc && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in">
@@ -403,7 +399,6 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                 </div>
             )}
 
-            {/* --- МОДАЛЬНОЕ ОКНО ОТВЕТОВ --- */}
             {showAnswers && (
                 <div
                     className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in">
@@ -463,7 +458,6 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                 </div>
             )}
 
-            {/* --- БЛОК С РЕЗУЛЬТАТАМИ ИИ --- */}
             {results.length > 0 && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                     <div

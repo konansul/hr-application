@@ -154,13 +154,11 @@ export function HrProfileTab() {
   return (
     <div className="w-full max-w-none mx-auto animate-in fade-in duration-300 pb-32">
 
-      {/* HEADER */}
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">HR Profile</h2>
         <p className="text-sm text-gray-500">Manage your recruiter profile and workspace settings.</p>
       </div>
 
-      {/* TOAST */}
       {message && (
         <div className={`mb-6 p-4 text-sm rounded-xl border flex items-center gap-2 ${
           message.type === 'success'
@@ -179,10 +177,8 @@ export function HrProfileTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* MAIN CONTENT */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* BASIC INFO */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <SectionHeader
               label="Basic Information"
@@ -226,7 +222,6 @@ export function HrProfileTab() {
             </div>
           </div>
 
-          {/* CONTACT & NETWORK */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <SectionHeader
               label="Contact & Network"
@@ -259,7 +254,6 @@ export function HrProfileTab() {
             </div>
           </div>
 
-          {/* WORK & LOCATION */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <SectionHeader
               label="Work & Location"
@@ -310,10 +304,8 @@ export function HrProfileTab() {
           </div>
         </div>
 
-        {/* SIDEBAR */}
         <div className="lg:col-span-4 space-y-6">
 
-          {/* AVATAR CARD */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center relative overflow-hidden">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center border border-indigo-100 shadow-sm mb-5 z-10">
               <span className="text-2xl font-bold">
@@ -355,7 +347,6 @@ export function HrProfileTab() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full blur-3xl -mr-16 -mt-16"></div>
           </div>
 
-          {/* STATS CARD */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workspace Stats</h4>
 

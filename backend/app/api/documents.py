@@ -84,7 +84,6 @@ async def upload_document(
 
     doc_id = new_id("doc")
 
-    # Сохраняем файл на диск (только PDF — остальные форматы не нужно показывать)
     suffix = Path(file.filename or "file").suffix.lower()
     saved_file_path: str | None = None
     if suffix == ".pdf":
@@ -206,7 +205,6 @@ def delete_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    # HR может удалять любой документ в орге; кандидат — только свой
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 

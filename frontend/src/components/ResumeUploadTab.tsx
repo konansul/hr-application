@@ -80,7 +80,6 @@ export function ResumeUploadTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* SIDEBAR */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center text-center relative overflow-hidden">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center border border-indigo-100 shadow-sm mb-5 z-10">
@@ -118,7 +117,6 @@ export function ResumeUploadTab() {
           </div>
         </div>
 
-        {/* MAIN CONTENT */}
         <div className="lg:col-span-8 space-y-6">
 
           <div className="bg-white shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">

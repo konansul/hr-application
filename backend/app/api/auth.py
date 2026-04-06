@@ -31,7 +31,6 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
     final_org_id = None
 
-    # Обработка организации для HR
     if req.role == "hr":
         if not org_name:
             raise HTTPException(status_code=400, detail="Organization name is required for HR")
@@ -43,10 +42,9 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
                 name=org_name
             )
             db.add(org)
-            db.flush()  # Получаем ID организации до коммита
+            db.flush()
         final_org_id = org.org_id
 
-    # 1. Создаем пользователя (учетную запись для логина)
     user = User(
         user_id=new_id("usr"),
         email=email,

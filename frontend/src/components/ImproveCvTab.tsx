@@ -1,7 +1,6 @@
 import { useState, type ChangeEvent } from 'react';
 import { screeningApi } from '../api';
 
-// Обновленная плашка с поддержкой цветовых тем
 const Pill = ({
   label,
   value,
@@ -75,10 +74,8 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   };
 
   return (
-    // Этот компонент тянется на 100%. Если он зажат - проверь родительский контейнер!
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
-      {/* Header */}
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">AI Resume Improver</h2>
@@ -88,12 +85,9 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
         </div>
       </div>
 
-      {/* Control Panel (Form + Stats) */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-        {/* Переведено на 12-колоночную сетку для унификации с остальными табами */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
 
-          {/* Inputs */}
           <div className="lg:col-span-8 space-y-4">
             <div className="space-y-1.5">
               <label className="block text-sm font-semibold text-gray-700">Upload CV Document</label>
@@ -123,7 +117,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* Stats & Submit */}
           <div className="lg:col-span-4 flex flex-col gap-4">
             <Pill label="File Selected" value={file ? file.name : "None"} color={file ? 'emerald' : 'gray'} />
             <Pill label="Job Desc. Length" value={`${jobDescription.length} chars`} color={jobDescription.length > 0 ? 'blue' : 'gray'} />
@@ -156,11 +149,9 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
         )}
       </div>
 
-      {/* Analysis Results */}
       {result && (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
 
-          {/* Summary & Score */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start">
             <div className="w-full md:w-48 shrink-0">
               <Pill label="Overall Score" value={result.overall_score || '—'} color="blue" />
@@ -171,7 +162,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* Strengths & Weaknesses Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-6">
               <h3 className="text-sm font-semibold text-emerald-800 mb-4 flex items-center gap-2">
@@ -212,7 +202,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* Keywords & Actionable Improvements */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
@@ -247,7 +236,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* AI Improved Summary */}
           {result.improved_summary && (
             <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
@@ -259,7 +247,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           )}
 
-          {/* Rewritten Bullets (Side-by-side comparison) */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
             <h3 className="text-base font-semibold text-gray-900 mb-6">Bullet Point Rewrites</h3>
 
@@ -288,7 +275,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             )}
           </div>
 
-          {/* Raw CV Preview */}
           {result.cv_text_preview && (
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Parsed Document Text</h3>
