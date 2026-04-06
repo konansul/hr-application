@@ -4,8 +4,6 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-# Обрати внимание: тебе нужно будет добавить first_name и last_name в Pydantic-модели
-# RegisterRequest и UserMeResponse в файле backend/app/api/models.py
 from backend.app.api.models import RegisterRequest, LoginRequest, TokenResponse, UserMeResponse
 from backend.database.storage import new_id
 from backend.database.db import get_db
