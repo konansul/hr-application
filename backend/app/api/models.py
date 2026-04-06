@@ -98,3 +98,17 @@ class ApplicationStatusUpdate(BaseModel):
 
 class ProfileUpdateRequest(BaseModel):
     profile_data: Dict[str, Any]
+
+
+class HRProfileUpdate(BaseModel):
+    first_name: str = ""
+    last_name: str = ""
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    bio: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    company_name: Optional[str] = None
+    department: Optional[str] = None
+    hr_role_title: Optional[str] = None
+    timezone: Optional[str] = None

@@ -46,7 +46,7 @@ class ScreeningResult(BaseModel):
 
     result_id: Optional[str] = None
     filename: Optional[str] = None
-    status: Optional[str] = "New"
+    status: Optional[str] = "APPLIED"
 
     score: int
     decision: Literal["strong_yes", "yes", "maybe", "no"]

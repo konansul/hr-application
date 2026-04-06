@@ -208,7 +208,7 @@ export function ProfileTab() {
         <div className="lg:col-span-8 space-y-6">
 
           {/* PERSONAL INFO */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
@@ -329,7 +329,7 @@ export function ProfileTab() {
           </div>
 
           {/* WORK EXPERIENCE */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
@@ -391,7 +391,7 @@ export function ProfileTab() {
           </div>
 
           {/* EDUCATION */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
@@ -452,7 +452,7 @@ export function ProfileTab() {
           </div>
 
           {/* SKILLS */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
@@ -473,7 +473,7 @@ export function ProfileTab() {
 
         {/* SIDEBAR */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 border border-indigo-100 shadow-sm">
               <span className="text-2xl font-bold">
                 {profileData.personal_info.first_name?.[0] || user?.email?.[0]?.toUpperCase() || '?'}
@@ -496,7 +496,7 @@ export function ProfileTab() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Resume Library</h3>
               <div className="flex items-center gap-3">
@@ -568,7 +568,7 @@ export function ProfileTab() {
 
       {isUploading && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
-          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
             <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             <p className="font-semibold text-sm text-gray-900">Processing Document...</p>
           </div>

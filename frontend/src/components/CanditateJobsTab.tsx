@@ -27,7 +27,6 @@ export function JobsTab() {
         setApplications(myAppsData);
         setUser(userData);
       } catch (err) {
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -110,15 +109,17 @@ export function JobsTab() {
     alert("Application submitted successfully!");
   };
 
-  const getStatusIndex = (status: string) => HIRING_STAGES.indexOf(status?.toUpperCase());
+  const getStatusNormalized = (status: string) => status?.toUpperCase().replace(/ /g, '_') || '';
+
+  const getStatusIndex = (status: string) => HIRING_STAGES.indexOf(getStatusNormalized(status));
 
   const getStatusStyles = (status: string) => {
-    const s = status?.toUpperCase();
+    const s = getStatusNormalized(status);
     switch (s) {
       case 'APPLIED': return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'OFFER': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'REJECTED': return 'bg-red-50 text-red-700 border-red-100';
-      default: return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+      case 'REJECTED': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-indigo-50 text-indigo-800 border-indigo-200';
     }
   };
 
@@ -148,11 +149,14 @@ export function JobsTab() {
           const jid = job.id || job.job_id;
           const userApp = applications.find(a => a.job_id === jid);
           const isExpanded = expandedJobId === jid;
+
+          const normalizedStatus = userApp ? getStatusNormalized(userApp.status) : '';
           const currentStageIdx = userApp ? getStatusIndex(userApp.status) : -1;
-          const isRejected = userApp?.status?.toUpperCase() === 'REJECTED';
+          const isRejected = normalizedStatus === 'REJECTED';
+          const isOffer = normalizedStatus === 'OFFER';
 
           return (
-            <div key={jid} className="bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-md transition-all overflow-hidden">
+            <div key={jid} className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
               <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="space-y-4 flex-1">
                   <div className="flex flex-wrap items-center gap-3">
@@ -175,7 +179,7 @@ export function JobsTab() {
                     </span>
                   </div>
 
-                  <p className={`text-sm text-gray-600 leading-relaxed max-w-3xl ${isExpanded ? '' : 'line-clamp-2'}`}>
+                  <p className={`text-sm text-gray-600 leading-relaxed max-w-3xl whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-2'}`}>
                     {job.description}
                   </p>
 
@@ -209,26 +213,33 @@ export function JobsTab() {
                 <div className="px-6 md:px-12 py-8 border-t border-gray-100 bg-gray-50/50 relative">
                   <div className="flex justify-between items-center relative max-w-2xl mx-auto">
                     <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0 rounded-full"></div>
-                    {!isRejected && (
-                      <div
-                        className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 z-0 transition-all duration-1000 rounded-full"
-                        style={{ width: `${(currentStageIdx / (HIRING_STAGES.length - 2)) * 100}%` }}
-                      ></div>
-                    )}
+                    <div
+                      className={`absolute top-1/2 left-0 h-1 ${isRejected ? 'bg-red-500' : isOffer ? 'bg-emerald-500' : 'bg-indigo-500'} -translate-y-1/2 z-0 transition-all duration-1000 rounded-full`}
+                      style={{ width: `${Math.min(100, Math.max(0, (currentStageIdx / (HIRING_STAGES.length - 2)) * 100))}%` }}
+                    ></div>
                     {HIRING_STAGES.filter(s => s !== 'REJECTED').map((stage, idx) => {
                       const isActive = idx <= currentStageIdx;
                       const isCurrent = idx === currentStageIdx;
+
+                      let dotClass = 'bg-white border-gray-300';
+                      let textClass = 'text-gray-400';
+
+                      if (isCurrent) {
+                        dotClass = isRejected ? 'bg-white border-red-500 shadow-sm' : isOffer ? 'bg-white border-emerald-500 shadow-sm' : 'bg-white border-indigo-500 shadow-sm';
+                        textClass = isRejected ? 'text-red-600' : isOffer ? 'text-emerald-600' : 'text-indigo-600';
+                      } else if (isActive) {
+                        dotClass = isRejected ? 'bg-red-500 border-red-500' : isOffer ? 'bg-emerald-500 border-emerald-500' : 'bg-indigo-500 border-indigo-500';
+                        textClass = 'text-white';
+                      }
+
                       return (
                         <div key={stage} className="relative z-10 flex flex-col items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${
-                            isCurrent ? 'bg-white border-indigo-500 shadow-sm' : 
-                            isActive ? 'bg-indigo-500 border-indigo-500' : 'bg-white border-gray-300'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${dotClass}`}>
                             {isActive && !isCurrent ? (
                               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                            ) : <span className={`text-xs font-bold ${isCurrent ? 'text-indigo-600' : 'text-gray-400'}`}>{idx + 1}</span>}
+                            ) : <span className={`text-xs font-bold ${textClass}`}>{idx + 1}</span>}
                           </div>
-                          <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? 'text-gray-900' : 'text-gray-400'}`}>
+                          <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isRejected ? 'text-red-700' : isOffer ? 'text-emerald-700' : 'text-gray-900') : 'text-gray-400'}`}>
                             {stage.replace('_', ' ')}
                           </span>
                         </div>
@@ -237,8 +248,8 @@ export function JobsTab() {
                   </div>
 
                   {isRejected && (
-                    <div className="absolute inset-0 bg-gray-50/80 backdrop-blur-sm flex items-center justify-center z-20">
-                      <div className="bg-white text-red-600 border border-red-100 px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2">
+                    <div className="absolute inset-0 bg-red-50/80 backdrop-blur-sm flex items-center justify-center z-20">
+                      <div className="bg-white text-red-600 border border-red-500 px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2">
                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                          Application Rejected
                       </div>

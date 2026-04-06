@@ -215,3 +215,5 @@ __marimo__/
 .venv/
 
 backend/test_cv/
+
+storage/

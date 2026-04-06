@@ -33,12 +33,14 @@ export function KanbanTab() {
         try {
           const results = await screeningApi.getApplicationsByJob(globalJobId);
           const mapped = results.map((res: any) => {
-            const rawStatus = res.status?.toUpperCase() || 'APPLIED';
+            // ФИКС: Заменяем пробелы на _, чтобы "HR Interview" стало "HR_INTERVIEW"
+            const rawStatus = (res.status || 'APPLIED').toUpperCase().replace(/\s+/g, '_') as Status;
+
             return {
               id: String(res.application_id || res.result_id),
               filename: res.person ? `${res.person.first_name} ${res.person.last_name}` : (res.filename || 'Unknown Candidate'),
               score: res.screening?.score || res.score || 0,
-              status: rawStatus as Status,
+              status: COLUMNS.includes(rawStatus) ? rawStatus : 'APPLIED', // Защита от неизвестных статусов
               summary: res.screening?.full_result?.summary || res.summary || '',
               decision: res.screening?.decision || res.decision || 'maybe',
               matched_skills: res.screening?.full_result?.matched_skills || res.matched_skills || []
@@ -99,53 +101,49 @@ export function KanbanTab() {
     }
   };
 
-  const getColumnStyles = (status: Status) => {
+  const getColumnAccent = (status: Status) => {
     switch (status) {
-      case 'APPLIED':
-        return { text: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400', border: 'border-gray-200' };
-      case 'SHORTLISTED':
-        return { text: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', border: 'border-blue-100' };
-      case 'HR_INTERVIEW':
-        return { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', border: 'border-purple-100' };
-      case 'TECH_INTERVIEW':
-        return { text: 'text-indigo-600', bg: 'bg-indigo-50', dot: 'bg-indigo-500', border: 'border-indigo-100' };
-      case 'OFFER':
-        return { text: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-500', border: 'border-emerald-100' };
-      case 'REJECTED':
-        return { text: 'text-red-600', bg: 'bg-red-50', dot: 'bg-red-500', border: 'border-red-100' };
-      default:
-        return { text: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400', border: 'border-gray-200' };
+      case 'APPLIED':      return { text: 'text-gray-500',   bg: 'bg-gray-100',    dot: 'bg-gray-400',    badge: 'bg-gray-100 text-gray-600 border-gray-200' };
+      case 'SHORTLISTED':  return { text: 'text-blue-600',   bg: 'bg-blue-50',     dot: 'bg-blue-500',    badge: 'bg-blue-50 text-blue-700 border-blue-200' };
+      case 'HR_INTERVIEW': return { text: 'text-purple-600', bg: 'bg-purple-50',   dot: 'bg-purple-500',  badge: 'bg-purple-50 text-purple-700 border-purple-200' };
+      case 'TECH_INTERVIEW':return { text: 'text-indigo-600',bg: 'bg-indigo-50',   dot: 'bg-indigo-500',  badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      case 'OFFER':        return { text: 'text-emerald-600',bg: 'bg-emerald-50',  dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      case 'REJECTED':     return { text: 'text-red-600',    bg: 'bg-red-50',      dot: 'bg-red-500',     badge: 'bg-red-50 text-red-700 border-red-200' };
+      default:             return { text: 'text-gray-500',   bg: 'bg-gray-100',    dot: 'bg-gray-400',    badge: 'bg-gray-100 text-gray-600 border-gray-200' };
     }
   };
 
-  const getScoreTheme = (score: number) => {
-    if (score >= 80) return 'bg-emerald-50 border-emerald-100 text-emerald-700';
-    if (score >= 50) return 'bg-amber-50 border-amber-100 text-amber-700';
-    return 'bg-red-50 border-red-100 text-red-700';
+  const getScoreBadge = (score: number) => {
+    if (score >= 80) return 'bg-emerald-50 border-emerald-200 text-emerald-700';
+    if (score >= 50) return 'bg-amber-50 border-amber-200 text-amber-700';
+    return 'bg-red-50 border-red-200 text-red-700';
   };
 
-  const getDecisionTheme = (decision?: string) => {
+  const getDecisionBadge = (decision?: string) => {
     const d = decision?.toLowerCase();
-    if (d === 'hire' || d === 'strong_yes' || d === 'yes') return 'bg-emerald-100 text-emerald-800';
-    if (d === 'reject' || d === 'no') return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-600';
+    if (d === 'hire' || d === 'strong_yes' || d === 'yes') return 'bg-emerald-50 border-emerald-200 text-emerald-700';
+    if (d === 'reject' || d === 'no') return 'bg-red-50 border-red-200 text-red-700';
+    return 'bg-gray-100 border-gray-200 text-gray-600';
   };
 
   const getColumnIcon = (status: Status) => {
-    const p = { className: "w-4 h-4", stroke: "currentColor", strokeWidth: 2.5, fill: "none", viewBox: "0 0 24 24" };
+    const p = { className: "w-4 h-4", stroke: "currentColor", strokeWidth: 2, fill: "none", viewBox: "0 0 24 24" };
     switch (status) {
-      case 'APPLIED': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>;
-      case 'SHORTLISTED': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>;
-      case 'HR_INTERVIEW': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>;
-      case 'TECH_INTERVIEW': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
-      case 'OFFER': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-      case 'REJECTED': return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+      case 'APPLIED':       return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>;
+      case 'SHORTLISTED':   return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>;
+      case 'HR_INTERVIEW':  return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>;
+      case 'TECH_INTERVIEW':return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>;
+      case 'OFFER':         return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+      case 'REJECTED':      return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
     }
   };
 
   if (!globalJobId) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 border border-amber-100 rounded-2xl max-w-2xl mx-auto mt-10">
+        <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        </div>
         <h3 className="text-lg font-medium text-amber-900 mb-1">No Job Selected</h3>
         <p className="text-sm text-amber-700">Please select an active Job Description in the "Job Descriptions" tab to view the Kanban board.</p>
       </div>
@@ -155,111 +153,118 @@ export function KanbanTab() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 h-[calc(100vh-140px)] flex flex-col">
-      <div className="flex justify-between items-end shrink-0 px-2 pb-2">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-end shrink-0">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Recruitment Pipeline</h2>
           <p className="text-sm text-gray-500">Drag and drop candidates to update their hiring stage.</p>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex items-center gap-3">
           {isSyncing && (
-            <div className="flex items-center gap-2 text-[10px] font-black text-indigo-500 animate-pulse tracking-widest uppercase bg-indigo-50 px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl animate-pulse">
               <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
               Updating...
             </div>
           )}
-          <div className="text-right bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5 block">Active Job</span>
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2.5 text-right">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-0.5">Active Job</span>
             <span className="text-sm font-bold text-gray-900">{globalJobTitle || 'Unknown Job'}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-4 h-full min-h-0 overflow-x-auto pb-4 px-2 custom-scrollbar">
+      {/* KANBAN BOARD */}
+      <div className="flex gap-4 h-full min-h-0 overflow-x-auto pb-4 custom-scrollbar">
         {COLUMNS.map(columnStatus => {
           const columnCandidates = candidates.filter(c => c.status === columnStatus);
-          const styles = getColumnStyles(columnStatus);
+          const accent = getColumnAccent(columnStatus);
 
           return (
             <div
               key={columnStatus}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, columnStatus)}
-              className="flex-1 min-w-[280px] bg-gray-50/50 border border-gray-100 rounded-[32px] p-5 flex flex-col h-full overflow-hidden shadow-sm transition-all"
+              className="flex-1 min-w-[280px] bg-white border border-gray-200 rounded-2xl p-5 flex flex-col h-full overflow-hidden shadow-sm transition-all"
             >
-              <div className="flex justify-between items-center mb-6 shrink-0">
+              {/* Column Header */}
+              <div className="flex justify-between items-center mb-5 shrink-0">
                 <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${styles.bg} ${styles.text}`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${accent.bg} ${accent.text}`}>
                     {getColumnIcon(columnStatus)}
                   </div>
-                  <h3 className={`text-xs font-black uppercase tracking-[0.15em] ${styles.text}`}>
-                    {columnStatus.replace('_', ' ')}
+                  <h3 className={`text-[11px] font-bold uppercase tracking-widest ${accent.text}`}>
+                    {columnStatus.replace(/_/g, ' ')}
                   </h3>
                 </div>
-                <span className={`text-[10px] font-black px-3 py-1 rounded-full border bg-white ${styles.text} ${styles.border} shadow-sm`}>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold border ${accent.badge}`}>
                   {columnCandidates.length}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                {columnCandidates.map(candidate => {
-                  const scoreTheme = getScoreTheme(candidate.score);
-                  const decisionTheme = getDecisionTheme(candidate.decision);
+              {/* Cards */}
+              <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                {columnCandidates.map(candidate => (
+                  <div
+                    key={candidate.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, candidate.id)}
+                    onDragEnd={handleDragEnd}
+                    className="group bg-white p-4 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all cursor-grab active:cursor-grabbing shrink-0 flex flex-col gap-3"
+                  >
+                    {/* Score + Decision row */}
+                    <div className="flex justify-between items-center gap-2">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getScoreBadge(candidate.score)}`}>
+                        {candidate.score}% match
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getDecisionBadge(candidate.decision)}`}>
+                        {candidate.decision?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
 
-                  return (
-                    <div
-                      key={candidate.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, candidate.id)}
-                      onDragEnd={handleDragEnd}
-                      className="group bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-300 transition-all cursor-grab active:cursor-grabbing shrink-0 flex flex-col gap-3"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border ${scoreTheme}`}>
-                          Match: {candidate.score}%
-                        </span>
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${decisionTheme}`}>
-                          {candidate.decision?.replace('_', ' ')}
-                        </span>
-                      </div>
+                    {/* Name */}
+                    <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                      {candidate.filename}
+                    </h4>
 
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                          {candidate.filename}
-                        </h4>
-                      </div>
+                    {/* Summary */}
+                    {candidate.summary && (
+                      <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
+                        {candidate.summary}
+                      </p>
+                    )}
 
-                      {candidate.summary && (
-                        <p className="text-[11px] text-gray-500 line-clamp-3 leading-relaxed">
-                          {candidate.summary}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {candidate.matched_skills?.slice(0, 3).map(skill => (
-                          <span key={skill} className="text-[9px] font-bold bg-gray-50 text-gray-400 px-2 py-1 rounded-md border border-gray-100">
+                    {/* Skills */}
+                    {candidate.matched_skills && candidate.matched_skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {candidate.matched_skills.slice(0, 3).map(skill => (
+                          <span
+                            key={skill}
+                            className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200"
+                          >
                             {skill}
                           </span>
                         ))}
-                        {candidate.matched_skills && candidate.matched_skills.length > 3 && (
-                          <span className="text-[9px] font-bold text-gray-300 px-1 py-1">
+                        {candidate.matched_skills.length > 3 && (
+                          <span className="text-[10px] font-semibold text-gray-400 px-1 py-1">
                             +{candidate.matched_skills.length - 3}
                           </span>
                         )}
                       </div>
-                    </div>
-                  );
-                })}
+                    )}
+                  </div>
+                ))}
 
                 {columnCandidates.length === 0 && (
-                  <div className="h-28 border-2 border-dashed border-gray-200 rounded-[24px] flex items-center justify-center text-[10px] font-black text-gray-300 uppercase tracking-widest bg-white/50">
+                  <div className="h-24 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/50">
                     Drop candidate here
                   </div>
                 )}

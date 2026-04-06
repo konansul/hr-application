@@ -49,6 +49,14 @@ export const authApi = {
     });
     return response.data;
   },
+  getHrProfile: async () => {
+    const response = await apiClient.get('/users/me/hr-profile');
+    return response.data;
+  },
+  updateHrProfile: async (data: any) => {
+    const response = await apiClient.put('/users/me/hr-profile', data);
+    return response.data;
+  },
   logout: async () => {
     localStorage.removeItem('auth_token');
     return { ok: true };
@@ -159,6 +167,10 @@ export const screeningApi = {
     getMyApplications: async () => {
     const response = await apiClient.get('/applications/my');
     return response.data;
+  },
+
+  deleteApplication: async (applicationId: string) => {
+    await apiClient.delete(`/applications/${applicationId}`);
   },
 };
 

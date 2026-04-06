@@ -304,6 +304,28 @@ def list_all_organization_applications(
         })
     return out
 
+@router.delete("/applications/{application_id}")
+def delete_application(
+        application_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Only HR can delete applications")
+
+    app = db.query(Application).join(Job).filter(
+        Application.application_id == application_id,
+        Job.org_id == current_user.org_id
+    ).first()
+
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    db.delete(app)
+    db.commit()
+    return {"ok": True}
+
+
 class ApplyRequest(BaseModel):
     job_id: str
     answers: Optional[dict] = None

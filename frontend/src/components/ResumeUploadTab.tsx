@@ -82,7 +82,7 @@ export function ResumeUploadTab() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* SIDEBAR */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 flex flex-col items-center text-center relative overflow-hidden">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center text-center relative overflow-hidden">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center border border-indigo-100 shadow-sm mb-5 z-10">
               <span className="text-2xl font-bold">
                 {parsedResume?.personal_info?.first_name?.[0] || user?.email?.[0].toUpperCase() || '?'}
@@ -103,7 +103,7 @@ export function ResumeUploadTab() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
             <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               Quick Actions
@@ -121,9 +121,9 @@ export function ResumeUploadTab() {
         {/* MAIN CONTENT */}
         <div className="lg:col-span-8 space-y-6">
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
+          <div className="bg-white shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+              <div className="w-2.5 h-2.5 rounde2d-full bg-indigo-500"></div>
               <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">AI Profile Content</h3>
             </div>
 
@@ -191,7 +191,7 @@ export function ResumeUploadTab() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Open Jobs</h3>
@@ -224,7 +224,7 @@ export function ResumeUploadTab() {
 
       {isUploading && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
-          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
             <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             <p className="font-semibold text-sm text-gray-900">AI Analysis in Progress...</p>
           </div>
