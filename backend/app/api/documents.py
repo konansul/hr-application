@@ -99,16 +99,28 @@ async def upload_document(
         file_hash=file_hash,
         file_path=saved_file_path,
         raw_text=cv_text,
-        source_type="uploaded_cv"
+        source_type="uploaded_cv",
+        document_role="source_cv"
     )
     db.add(doc)
+    db.flush()
 
+    profile_snapshot = person.profile_json
     resume = Resume(
         resume_id=new_id("res"),
         person_id=person.person_id,
-        payload=json.dumps(parsed_data, ensure_ascii=False)
+        language=parsed_data.get("language") or parsed_data.get("personal_info", {}).get("language") or "en",
+        title=file.filename,
+        payload=json.dumps(parsed_data, ensure_ascii=False),
+        source_type="cv_upload",
+        source_document_id=doc.document_id,
+        generated_document_id=doc.document_id if saved_file_path else None,
+        profile_snapshot_json=profile_snapshot,
+        generation_status="generated" if saved_file_path else "ready"
     )
     db.add(resume)
+    db.flush()
+    doc.resume_id = resume.resume_id
 
     db.commit()
     db.refresh(doc)
@@ -149,6 +161,8 @@ def get_organization_documents(
             "source_type": d.source_type,
             "raw_text": d.raw_text,
             "candidate_name": candidate_name,
+            "resume_id": d.resume_id,
+            "document_role": d.document_role,
         })
     return result
 
@@ -166,7 +180,9 @@ def get_my_documents(
             "owner_user_id": d.owner_user_id,
             "filename": d.filename,
             "content_type": d.content_type,
-            "source_type": d.source_type
+            "source_type": d.source_type,
+            "resume_id": d.resume_id,
+            "document_role": d.document_role
         }
         for d in documents
     ]
@@ -294,16 +310,27 @@ ORIGINAL CV TEXT
         content_type=doc_content_type,
         file_hash=file_hash,
         raw_text=enriched_raw_text,
-        source_type="public_application"
+        source_type="public_application",
+        document_role="source_cv"
     )
     db.add(doc)
+    db.flush()
 
     resume = Resume(
         resume_id=new_id("res"),
         person_id=person.person_id,
-        payload=json.dumps(parsed_data, ensure_ascii=False)
+        language=parsed_data.get("language") or "en",
+        title=file.filename,
+        payload=json.dumps(parsed_data, ensure_ascii=False),
+        source_type="public_application",
+        source_document_id=doc.document_id,
+        generated_document_id=doc.document_id,
+        profile_snapshot_json=person.profile_json,
+        generation_status="generated"
     )
     db.add(resume)
+    db.flush()
+    doc.resume_id = resume.resume_id
 
     db.commit()
 
@@ -313,18 +340,3 @@ ORIGINAL CV TEXT
         "document_id": doc.document_id,
         "resume_id": resume.resume_id
     }
-
-@router.get("/resumes/latest")
-def get_latest_resume(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
-    if not person:
-        raise HTTPException(status_code=404, detail="Profile not found")
-
-    resume = db.query(Resume).filter(Resume.person_id == person.person_id).order_by(Resume.created_at.desc()).first()
-    if not resume:
-        return None
-
-    return json.loads(resume.payload)
