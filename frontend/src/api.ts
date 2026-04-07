@@ -39,16 +39,19 @@ export const authApi = {
     const response = await apiClient.get('/v1/auth/me');
     return response.data;
   },
-    getProfile: async () => {
+
+  getProfile: async () => {
     const response = await apiClient.get('/users/me/profile');
-    return response.data; // Ожидаем { profile_data: { ... } }
+    return response.data;
   },
+
   updateProfile: async (profileData: any) => {
     const response = await apiClient.put('/users/me/profile', {
       profile_data: profileData
     });
     return response.data;
   },
+
   logout: async () => {
     localStorage.removeItem('auth_token');
     return { ok: true };
@@ -77,13 +80,13 @@ export const jobsApi = {
   },
 
   refine: async (title: string, description: string, options: any = {}) => {
-  const response = await apiClient.post('/jobs/refine', {
-    title,
-    description,
-    ...options
-  });
-  return response.data;
-},
+    const response = await apiClient.post('/jobs/refine', {
+      title,
+      description,
+      ...options
+    });
+    return response.data;
+  },
 
   update: async (jobId: string, data: { title: string, description: string, region?: string, screening_questions?: any }) => {
     const response = await apiClient.put(`/jobs/${jobId}`, data);
@@ -137,7 +140,7 @@ export const screeningApi = {
     return response.data;
   },
 
-    applyToJob: async (jobId: string, answers?: Record<string, string> | null) => {
+  applyToJob: async (jobId: string, answers?: Record<string, string> | null) => {
     const response = await apiClient.post('/applications/apply', {
       job_id: jobId,
       answers: answers ?? null
@@ -156,7 +159,8 @@ export const screeningApi = {
     const response = await apiClient.get('/applications/organization');
     return response.data;
   },
-    getMyApplications: async () => {
+
+  getMyApplications: async () => {
     const response = await apiClient.get('/applications/my');
     return response.data;
   },
@@ -172,6 +176,7 @@ export const documentsApi = {
     });
     return response.data;
   },
+
   getOrganizationDocuments: async () => {
     const response = await apiClient.get('/v1/documents/organization');
     return response.data;
@@ -181,6 +186,7 @@ export const documentsApi = {
     const response = await apiClient.get('/v1/documents/me');
     return response.data;
   },
+
   deleteDocument: async (documentId: string) => {
     await apiClient.delete(`/v1/documents/${documentId}`);
   },
@@ -194,6 +200,70 @@ export const documentsApi = {
 
   getLatestResume: async () => {
     const response = await apiClient.get('/v1/resumes/latest');
+    return response.data;
+  }
+};
+
+export const resumesApi = {
+  list: async () => {
+    const response = await apiClient.get('/v1/resumes');
+    return response.data;
+  },
+
+  latest: async () => {
+    const response = await apiClient.get('/v1/resumes/latest');
+    return response.data;
+  },
+
+  createFromProfile: async (payload: {
+    language?: string;
+    title?: string;
+    resume_data?: any;
+    attach_document_id?: string | null;
+    generate_from_profile_if_empty?: boolean;
+    valid_until?: string | null;
+    removed_sections?: string[];
+  } = {}) => {
+    const response = await apiClient.post('/v1/resumes/from-profile', payload);
+    return response.data;
+  },
+
+  createFromJobDescription: async (payload: {
+    job_description: string;
+    language?: string;
+    title?: string;
+    valid_until?: string | null;
+    removed_sections?: string[];
+    job_id?: string | null;
+    source_resume_id?: string | null;
+  }) => {
+    const response = await apiClient.post('/v1/resumes/from-job-description', payload);
+    return response.data;
+  },
+
+  fetchJobUrl: async (url: string): Promise<{ job_title: string; job_description: string }> => {
+    const response = await apiClient.post('/v1/resumes/fetch-job-url', { url });
+    return response.data;
+  },
+
+  duplicate: async (resumeId: string, payload: {
+    language?: string;
+    title?: string;
+    resume_data?: any;
+    removed_sections?: string[];
+    valid_until?: string | null;
+  } = {}) => {
+    const response = await apiClient.post(`/v1/resumes/${resumeId}/duplicate`, payload);
+    return response.data;
+  },
+
+  update: async (resumeId: string, payload: {
+    language?: string;
+    title?: string;
+    resume_data: any;
+    generated_document_id?: string | null;
+  }) => {
+    const response = await apiClient.put(`/v1/resumes/${resumeId}`, payload);
     return response.data;
   }
 };

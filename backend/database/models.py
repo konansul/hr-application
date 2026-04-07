@@ -14,6 +14,21 @@ class ApplicationStatus(enum.Enum):
     REJECTED = "Rejected"
 
 
+class ResumeSourceType(enum.Enum):
+    PROFILE = "profile"
+    CV_UPLOAD = "cv_upload"
+    PROFILE_EXTRACT = "profile_extract"
+    DUPLICATE = "duplicate"
+    PUBLIC_APPLICATION = "public_application"
+    JOB_DESCRIPTION = "job_description"
+
+
+class ResumeGenerationStatus(enum.Enum):
+    DRAFT = "draft"
+    READY = "ready"
+    GENERATED = "generated"
+
+
 class Organization(Base):
     __tablename__ = "organizations"
 
@@ -34,7 +49,7 @@ class User(Base):
     org_id = Column(String(64), ForeignKey("organizations.org_id"), nullable=True, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
-    role = Column(String(32), nullable=False, default="candidate")  # "candidate" или "hr"
+    role = Column(String(32), nullable=False, default="candidate")
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -68,15 +83,29 @@ class Resume(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     resume_id = Column(String(64), unique=True, nullable=False, index=True)
-    person_id = Column(String(64), ForeignKey("persons.person_id"), nullable=False)
+    person_id = Column(String(64), ForeignKey("persons.person_id"), nullable=False, index=True)
 
+    language = Column(String(16), nullable=False, default="en")
+    title = Column(String(255), nullable=True)
     payload = Column(Text, nullable=False)
+    source_type = Column(String(32), nullable=False, default=ResumeSourceType.CV_UPLOAD.value)
+    source_document_id = Column(String(64), ForeignKey("documents.document_id"), nullable=True, index=True)
+    generated_document_id = Column(String(64), ForeignKey("documents.document_id"), nullable=True, index=True)
+    source_resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=True, index=True)
+    profile_snapshot_json = Column(Text, nullable=True)
+    generation_status = Column(String(32), nullable=False, default=ResumeGenerationStatus.READY.value)
+    valid_until = Column(String(20), nullable=True)
+    job_description = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     person = relationship("Person", back_populates="resumes")
     applications = relationship("Application", back_populates="resume")
+    source_document = relationship("Document", foreign_keys=[source_document_id], back_populates="source_for_resumes")
+    generated_document = relationship("Document", foreign_keys=[generated_document_id], back_populates="generated_for_resumes")
+    source_resume = relationship("Resume", remote_side=[resume_id], back_populates="derived_resumes")
+    derived_resumes = relationship("Resume", back_populates="source_resume")
 
 
 class Job(Base):
@@ -89,10 +118,8 @@ class Job(Base):
 
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
-
-    # Новые фичи для HR
-    region = Column(String(64), nullable=True)  # Для подтягивания нужных legal-шаблонов
-    screening_questions_json = Column(Text, nullable=True)  # Вопросы для кандидатов (JSON)
+    region = Column(String(64), nullable=True)
+    screening_questions_json = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -111,7 +138,7 @@ class Application(Base):
     resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=False, index=True)
 
     status = Column(Enum(ApplicationStatus), nullable=False, default=ApplicationStatus.APPLIED)
-    answers_to_screening_json = Column(Text, nullable=True)  # Ответы на вопросы HR
+    answers_to_screening_json = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -128,16 +155,20 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     document_id = Column(String(64), unique=True, nullable=False, index=True)
     owner_user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
+    resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=True, index=True)
     filename = Column(String(255), nullable=False)
     content_type = Column(String(128), nullable=True)
     file_hash = Column(String(128), nullable=False, index=True)
     file_path = Column(String(512), nullable=True)
     raw_text = Column(Text, nullable=False)
     source_type = Column(String(32), nullable=False, default="uploaded_cv")
+    document_role = Column(String(32), nullable=False, default="source_cv")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     owner = relationship("User", back_populates="documents")
     cv_improvements = relationship("CVImprovementResult", back_populates="document", cascade="all, delete-orphan")
+    source_for_resumes = relationship("Resume", foreign_keys=[Resume.source_document_id], back_populates="source_document")
+    generated_for_resumes = relationship("Resume", foreign_keys=[Resume.generated_document_id], back_populates="generated_document")
 
 
 class ScreeningResult(Base):
@@ -158,7 +189,6 @@ class ScreeningResult(Base):
 
 
 class CVImprovementResult(Base):
-
     __tablename__ = "cv_improvement_results"
 
     id = Column(Integer, primary_key=True, index=True)

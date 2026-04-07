@@ -1,5 +1,7 @@
+import json
 import logging
-from typing import List, Tuple
+import re
+from typing import Any, Dict, List, Tuple
 
 from backend.app.schemas import ScreeningRequest, ScreeningResult, RequirementCheck, CandidateProfile, Skill
 from backend.app.gemini import GeminiClient
@@ -204,6 +206,153 @@ Instructions:
         logger.error(f"Error refining job description: {e}")
         loc_str = f" ({region})" if region else ""
         return f"{title}{loc_str}\n\n{description}\n\n(AI refinement failed, please edit manually.)"
+
+
+LANGUAGE_NAMES: dict = {
+    "en": "English",
+    "ru": "Russian",
+    "de": "German",
+    "fr": "French",
+    "es": "Spanish",
+    "tr": "Turkish",
+    "pl": "Polish",
+    "pt": "Portuguese",
+    "it": "Italian",
+    "ar": "Arabic",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "nl": "Dutch",
+    "sv": "Swedish",
+}
+
+
+def translate_resume_data(resume_data: dict, language_code: str) -> dict:
+    """Translate all text content in resume_data into the target language using the LLM."""
+    language_name = LANGUAGE_NAMES.get(language_code, language_code)
+
+    prompt = f"""You are a professional CV/resume translator.
+
+Translate the following resume data JSON into {language_name}.
+
+Rules:
+- Translate all free-text content: summaries, descriptions, job titles, degree names, skill names, certification names.
+- Keep proper nouns UNCHANGED: company names, institution names, people's names, URLs, email addresses, phone numbers, programming language names, software/tool names, and technology names.
+- Keep all date strings UNCHANGED (e.g. "2020-01", "Present", "2019").
+- Keep all JSON field/key names UNCHANGED (keys must stay in English).
+- Do NOT add or remove any fields.
+- Output ONLY the translated JSON object. No markdown, no explanation.
+
+Resume JSON:
+{json.dumps(resume_data, ensure_ascii=False, indent=2)}
+"""
+
+    result_text = gemini.generate_text(prompt, temperature=0.1, max_output_tokens=8192)
+    result_text = result_text.strip()
+    # Strip markdown code fences if model wraps output
+    if result_text.startswith("```"):
+        lines = result_text.splitlines()
+        inner = lines[1:-1] if lines and lines[-1].strip() == "```" else lines[1:]
+        result_text = "\n".join(inner)
+    return json.loads(result_text)
+
+
+def _strip_json_fences(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        inner = lines[1:-1] if lines and lines[-1].strip() == "```" else lines[1:]
+        text = "\n".join(inner)
+    return text
+
+
+def fetch_job_from_url(url: str) -> Dict[str, str]:
+    """Fetch a job posting URL and extract the title and description using LLM."""
+    import httpx
+    from lxml import html as lhtml
+
+    try:
+        response = httpx.get(
+            url,
+            timeout=15,
+            follow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; HRBot/1.0; +https://hrai.app)"},
+        )
+        response.raise_for_status()
+    except Exception as e:
+        raise RuntimeError(f"Could not fetch URL: {e}")
+
+    try:
+        tree = lhtml.fromstring(response.content)
+        for tag in tree.xpath("//script|//style|//nav|//footer|//header|//aside"):
+            parent = tag.getparent()
+            if parent is not None:
+                parent.remove(tag)
+        raw_text = tree.text_content()
+    except Exception:
+        raw_text = response.text
+
+    # Collapse whitespace and cap length for the LLM
+    raw_text = re.sub(r"\n{3,}", "\n\n", re.sub(r"[ \t]+", " ", raw_text)).strip()
+    raw_text = raw_text[:10000]
+
+    prompt = f"""You are an HR data extraction assistant.
+
+Extract the job title and full job description from the web page text below.
+
+Return a JSON object with exactly two keys:
+- "job_title": the position/role name (string)
+- "job_description": the complete job description including responsibilities, requirements, and qualifications (string)
+
+If the page is not a job posting, set both to empty strings.
+Output ONLY the JSON object — no markdown, no explanation.
+
+Page text:
+{raw_text}
+"""
+    result = gemini.generate_json(prompt, {
+        "type": "object",
+        "properties": {
+            "job_title": {"type": "string"},
+            "job_description": {"type": "string"},
+        },
+        "required": ["job_title", "job_description"],
+    })
+    return result
+
+
+def adapt_resume_for_job(
+    resume_data: Dict[str, Any],
+    job_description: str,
+    language_code: str,
+) -> Dict[str, Any]:
+    """Use the LLM to tailor an existing resume for a specific job description."""
+    language_name = LANGUAGE_NAMES.get(language_code, language_code)
+
+    prompt = f"""You are an expert CV writer and career coach.
+
+Adapt the candidate's resume below to make it maximally suitable for the job description provided.
+
+Rules:
+1. Rewrite personal_info.summary to directly address the job's requirements and value proposition.
+2. Keep all experience entries but enhance each description to emphasise aspects most relevant to the job. Do NOT invent new jobs or dates.
+3. Reorder skills so job-relevant ones appear first.
+4. If certifications or education are relevant to the job, briefly highlight them in the summary.
+5. Keep all factual data unchanged: company names, institution names, dates, URLs, email, phone.
+6. Keep all JSON field names unchanged (keys stay in English).
+7. Write all text content in {language_name}.
+8. Output ONLY the adapted resume as a valid JSON object. No markdown, no explanation.
+
+Job Description:
+{job_description}
+
+Candidate Resume JSON:
+{json.dumps(resume_data, ensure_ascii=False, indent=2)}
+"""
+
+    result_text = gemini.generate_text(prompt, temperature=0.3, max_output_tokens=8192)
+    result_text = _strip_json_fences(result_text)
+    return json.loads(result_text)
 
 
 def run_cv_parsing(cv_text: str) -> dict:
