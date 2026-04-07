@@ -40,6 +40,7 @@ export function ProfileTab() {
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingEducation, setIsEditingEducation] = useState(false);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -133,7 +134,7 @@ export function ProfileTab() {
     }));
   };
 
-  const handleArrayChange = (section: 'experience' | 'education', index: number, field: string, value: any) => {
+  const handleArrayChange = (section: 'experience' | 'education' | 'skills', index: number, field: string, value: any) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray[index] = { ...newArray[index], [field]: value };
@@ -141,14 +142,14 @@ export function ProfileTab() {
     });
   };
 
-  const addArrayItem = (section: 'experience' | 'education', template: any) => {
+  const addArrayItem = (section: 'experience' | 'education' | 'skills', template: any) => {
     setProfileData((prev: any) => ({
       ...prev,
       [section]: [...prev[section], template]
     }));
   };
 
-  const removeArrayItem = (section: 'experience' | 'education', index: number) => {
+  const removeArrayItem = (section: 'experience' | 'education' | 'skills', index: number) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray.splice(index, 1);
@@ -164,6 +165,7 @@ export function ProfileTab() {
       setIsEditingPersonalInfo(false);
       setIsEditingExperience(false);
       setIsEditingEducation(false);
+      setIsEditingSkills(false);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       setMessage({ text: 'Error saving profile to database', type: 'error' });
@@ -204,8 +206,10 @@ export function ProfileTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
+        {/* LEFT COLUMN: Profile Sections */}
         <div className="lg:col-span-8 space-y-6">
 
+          {/* PERSONAL INFO */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -326,6 +330,7 @@ export function ProfileTab() {
             </div>
           </div>
 
+          {/* WORK EXPERIENCE */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -334,7 +339,7 @@ export function ProfileTab() {
               </div>
               {!isEditingExperience ? (
                 <button onClick={() => setIsEditingExperience(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all">
-                   Edit Section
+                  Edit Section
                 </button>
               ) : (
                 <div className="flex items-center gap-2">
@@ -351,8 +356,8 @@ export function ProfileTab() {
                       <div key={i} className="relative">
                         <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 ring-4 ring-white" />
                         <h4 className="text-base font-bold text-gray-900">{exp.title}</h4>
-                        <p className="text-xs font-semibold text-gray-500 mt-1">{exp.company} • {exp.start_date} - {exp.is_current ? 'Present' : exp.end_date}</p>
-                        {exp.description && <p className="text-sm text-gray-600 mt-3 leading-relaxed">{exp.description}</p>}
+                        <p className="text-xs font-semibold text-gray-500 mt-1">{exp.company} • {exp.start_date || 'N/A'} - {exp.is_current ? 'Present' : (exp.end_date || 'N/A')}</p>
+                        {exp.description && <p className="text-sm text-gray-600 mt-3 leading-relaxed whitespace-pre-wrap">{exp.description}</p>}
                       </div>
                     ))}
                   </div>
@@ -362,15 +367,35 @@ export function ProfileTab() {
               ) : (
                 <div className="space-y-4">
                   {profileData.experience.map((exp: any, i: number) => (
-                    <div key={i} className="p-5 border border-gray-200 rounded-2xl relative space-y-4 bg-gray-50/30">
+                    <div key={i} className="p-5 border border-gray-200 rounded-xl relative space-y-4 bg-gray-50/30">
                       <button onClick={() => removeArrayItem('experience', i)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
                         <input type="text" placeholder="Job Title" value={exp.title || ''} onChange={(e) => handleArrayChange('experience', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
                         <input type="text" placeholder="Company" value={exp.company || ''} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
-                        <input type="text" placeholder="Start Date (e.g. 2021-01)" value={exp.start_date || ''} onChange={(e) => handleArrayChange('experience', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
-                        <input type="text" placeholder="End Date or empty" value={exp.end_date || ''} onChange={(e) => handleArrayChange('experience', i, 'end_date', e.target.value)} disabled={exp.is_current} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none disabled:bg-gray-100 disabled:text-gray-400" />
+
+                        {/* МАГИЯ ТУТ: чистый CSS трюк для DatePicker вместо глючного showPicker() */}
+                        <div className="relative">
+                          <input
+                            type="date"
+                            placeholder="Start Date"
+                            value={exp.start_date || ''}
+                            onChange={(e) => handleArrayChange('experience', i, 'start_date', e.target.value)}
+                            className="relative w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                          />
+                        </div>
+
+                        <div className="relative">
+                          <input
+                            type="date"
+                            placeholder="End Date"
+                            value={exp.end_date || ''}
+                            onChange={(e) => handleArrayChange('experience', i, 'end_date', e.target.value)}
+                            disabled={exp.is_current}
+                            className="relative w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none disabled:bg-gray-100 disabled:text-gray-400 cursor-pointer disabled:cursor-not-allowed [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&:disabled::-webkit-calendar-picker-indicator]:hidden"
+                          />
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <input type="checkbox" checked={exp.is_current || false} onChange={(e) => handleArrayChange('experience', i, 'is_current', e.target.checked)} className="w-4 h-4 text-gray-900 rounded border-gray-300 focus:ring-gray-900" />
@@ -387,6 +412,7 @@ export function ProfileTab() {
             </div>
           </div>
 
+          {/* EDUCATION */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -412,8 +438,8 @@ export function ProfileTab() {
                       <div key={i} className="relative">
                         <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 ring-4 ring-white" />
                         <h4 className="text-base font-bold text-gray-900">{edu.institution}</h4>
-                        <p className="text-xs font-semibold text-gray-500 mt-1">{edu.degree} in {edu.field_of_study} • {edu.start_date} - {edu.end_date}</p>
-                        {edu.description && <p className="text-sm text-gray-600 mt-3 leading-relaxed">{edu.description}</p>}
+                        <p className="text-xs font-semibold text-gray-500 mt-1">{edu.degree} in {edu.field_of_study} • {edu.start_date || 'N/A'} - {edu.end_date || 'N/A'}</p>
+                        {edu.description && <p className="text-sm text-gray-600 mt-3 leading-relaxed whitespace-pre-wrap">{edu.description}</p>}
                       </div>
                     ))}
                   </div>
@@ -423,7 +449,7 @@ export function ProfileTab() {
               ) : (
                 <div className="space-y-4">
                   {profileData.education.map((edu: any, i: number) => (
-                    <div key={i} className="p-5 border border-gray-200 rounded-2xl relative space-y-4 bg-gray-50/30">
+                    <div key={i} className="p-5 border border-gray-200 rounded-xl relative space-y-4 bg-gray-50/30">
                       <button onClick={() => removeArrayItem('education', i)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
@@ -432,8 +458,26 @@ export function ProfileTab() {
                         <input type="text" placeholder="Degree (e.g. Bachelor)" value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
                         <input type="text" placeholder="Field of Study" value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
                         <div className="flex gap-2">
-                          <input type="text" placeholder="Start" value={edu.start_date || ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
-                          <input type="text" placeholder="End" value={edu.end_date || ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+
+                          <div className="relative w-full">
+                            <input
+                              type="date"
+                              placeholder="Start"
+                              value={edu.start_date || ''}
+                              onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)}
+                              className="relative w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                            />
+                          </div>
+
+                          <div className="relative w-full">
+                            <input
+                              type="date"
+                              placeholder="End"
+                              value={edu.end_date || ''}
+                              onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)}
+                              className="relative w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                            />
+                          </div>
                         </div>
                       </div>
                       <textarea placeholder="Description or Achievements" value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={2} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none resize-none" />
@@ -447,25 +491,61 @@ export function ProfileTab() {
             </div>
           </div>
 
+          {/* SKILLS & EXPERTISE */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                 <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Skills & Expertise</h3>
               </div>
+              {!isEditingSkills ? (
+                <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all">
+                  Edit Section
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setIsEditingSkills(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">Cancel</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-all">Save Changes</button>
+                </div>
+              )}
             </div>
             <div className="p-6">
-              <div className="flex flex-wrap gap-2">
-                {profileData.skills?.length > 0 ? profileData.skills.map((s: any, i: number) => (
-                  <span key={i} className="px-3 py-1.5 bg-gray-50 text-gray-900 border border-gray-200 rounded-lg text-xs font-semibold shadow-sm">
-                    {s.name} <span className="text-gray-400 text-[10px] ml-1">{s.level}</span>
-                  </span>
-                )) : <span className="text-sm text-gray-400 italic">No skills added yet.</span>}
-              </div>
+              {!isEditingSkills ? (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.skills?.length > 0 ? profileData.skills.map((s: any, i: number) => (
+                    <span key={i} className="px-3 py-1.5 bg-gray-50 text-gray-900 border border-gray-200 rounded-lg text-xs font-semibold shadow-sm">
+                      {s.name} {s.level && <span className="text-gray-400 text-[10px] ml-1">{s.level}</span>}
+                    </span>
+                  )) : <span className="text-sm text-gray-400 italic">No skills added yet.</span>}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {profileData.skills.map((s: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-gray-50/30 relative">
+                      <input type="text" placeholder="Skill name" value={s.name || ''} onChange={(e) => handleArrayChange('skills', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+                      <select value={s.level || ''} onChange={(e) => handleArrayChange('skills', i, 'level', e.target.value)} className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none">
+                        <option value="">Level</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Expert">Expert</option>
+                      </select>
+                      <button onClick={() => removeArrayItem('skills', i)} className="text-gray-400 hover:text-red-500 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={() => addArrayItem('skills', { name: '', level: '' })} className="w-full py-3 border border-dashed border-gray-300 text-gray-500 text-xs font-semibold rounded-xl hover:border-gray-900 hover:text-gray-900 transition-colors">
+                    + Add Skill
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
         </div>
 
+        {/* RIGHT COLUMN: Summary & Resume Library */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 border border-indigo-100 shadow-sm">
@@ -483,9 +563,10 @@ export function ProfileTab() {
               <p className="text-xs text-gray-600 mb-3">Fill your profile to increase your chances of getting invited to interviews.</p>
               <button
                 onClick={() => handleUploadClick('profile')}
-                className="w-full py-2.5 bg-white border border-gray-200 hover:border-gray-900 text-gray-900 text-xs font-semibold rounded-xl transition-all shadow-sm"
+                className="w-full py-2.5 bg-white border border-gray-200 hover:border-gray-900 text-gray-900 text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
               >
-                Auto-fill with AI
+                Autofill with CV upload
+                <span className="text-[10px] font-bold bg-gray-900 text-white rounded px-1 py-0.5 leading-none">AI</span>
               </button>
             </div>
           </div>
