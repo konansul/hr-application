@@ -7,6 +7,7 @@ app = FastAPI(title="CV Screening API")
 origins = [
     "https://happy-hill-018c19800.4.azurestaticapps.net",
     "https://kind-glacier-0e6a06100.6.azurestaticapps.net",
+    "https://orange-forest-05793170f.7.azurestaticapps.net",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
