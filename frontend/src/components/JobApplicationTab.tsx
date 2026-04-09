@@ -297,7 +297,7 @@ export function JobApplicationTab() {
           Click a stage to mark your progress
         </p>
 
-        <div className="flex items-stretch gap-2 overflow-x-auto pb-1">
+        <div className="flex items-stretch gap-2 overflow-x-auto pb-2 -mx-1 px-1">
           {STAGES.map((stage, idx) => {
             const sNorm     = normalizeStatus(stage.value);
             const isCurrent = !isRejected && idx === currentIdx;
@@ -402,7 +402,7 @@ export function JobApplicationTab() {
     <div className="w-full max-w-none mx-auto space-y-5 animate-in fade-in duration-300 pb-20">
 
       {/* ── Header ── */}
-      <div className="flex justify-between items-end gap-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">Job Applications</h2>
           <p className="text-sm text-gray-500">
@@ -461,8 +461,8 @@ export function JobApplicationTab() {
 
       {/* ── Search + Stage filter bar ── */}
       {totalCount > 0 && (
-        <div className="flex gap-3 items-center">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative flex-1 min-w-[200px]">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
             </svg>
