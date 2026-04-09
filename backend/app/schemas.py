@@ -13,6 +13,7 @@ class JobOut(BaseModel):
     description: str
     region: Optional[str] = None
     screening_questions: List[Any] = []
+    owner_user_id: Optional[str] = None
 
     class Config:
         from_attributes = True

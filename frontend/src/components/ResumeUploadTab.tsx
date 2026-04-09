@@ -484,7 +484,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
                 </button>
               </div>
               {!fetchError && !hasFetched && (
-                <p className="text-[11px] text-gray-400">Works on static job pages only — LinkedIn, Indeed, and similar sites won't work.</p>
+                <p className="text-[11px] text-gray-400">Works on static job pages only — for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
               )}
               {fetchError && <p className="text-xs text-red-500">{fetchError} — paste the description below instead.</p>}
               {hasFetched && !description && !fetchError && (

@@ -125,10 +125,19 @@ def update_application_status(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    app = db.query(Application).join(Job).filter(
-        Application.application_id == application_id,
-        Job.org_id == current_user.org_id
-    ).first()
+    if current_user.role == "hr":
+        app = db.query(Application).join(Job).filter(
+            Application.application_id == application_id,
+            Job.org_id == current_user.org_id
+        ).first()
+    else:
+        # Candidates can only update status on applications for jobs they personally created
+        person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+        app = db.query(Application).join(Job).filter(
+            Application.application_id == application_id,
+            Job.owner_user_id == current_user.user_id,
+            Application.person_id == (person.person_id if person else None)
+        ).first()
 
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
@@ -412,6 +421,9 @@ def get_my_applications(
         out.append({
             "application_id": app.application_id,
             "job_id": app.job_id,
+            "job_title": app.job.title if app.job else None,
+            "job_region": app.job.region if app.job else None,
+            "job_owner_user_id": app.job.owner_user_id if app.job else None,
             "status": app.status,
             "created_at": app.created_at,
             "screening": {

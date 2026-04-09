@@ -111,7 +111,7 @@ class Job(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     job_id = Column(String(64), unique=True, nullable=False, index=True)
-    org_id = Column(String(64), ForeignKey("organizations.org_id"), nullable=False, index=True)
+    org_id = Column(String(64), ForeignKey("organizations.org_id"), nullable=True, index=True)
     owner_user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
 
     title = Column(String(255), nullable=False)
@@ -134,7 +134,7 @@ class Application(Base):
 
     job_id = Column(String(64), ForeignKey("jobs.job_id"), nullable=False, index=True)
     person_id = Column(String(64), ForeignKey("persons.person_id"), nullable=False, index=True)
-    resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=False, index=True)
+    resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=True, index=True)
 
     status = Column(Enum(ApplicationStatus), nullable=False, default=ApplicationStatus.APPLIED)
     answers_to_screening_json = Column(Text, nullable=True)

@@ -3,6 +3,7 @@ import { ProfileTab } from './ProfileTab';
 import { ResumeUploadTab } from './ResumeUploadTab';
 import { ImproveCvTab } from './ImproveCvTab';
 import { JobsTab } from './CanditateJobsTab';
+import { JobApplicationTab } from './JobApplicationTab';
 import { useStore } from '../store';
 import { authApi } from '../api';
 
@@ -78,6 +79,12 @@ export function CandidateDashboard() {
             </svg>
           } />
 
+          <NavItem id="applications" label="Job Applications" icon={
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          } />
+
           <NavItem id="improve" label="Improve CV" icon={
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -114,6 +121,9 @@ export function CandidateDashboard() {
             </div>
             <div className={activeTab === 'jobs' ? 'block' : 'hidden'}>
               <JobsTab />
+            </div>
+            <div className={activeTab === 'applications' ? 'block' : 'hidden'}>
+              <JobApplicationTab />
             </div>
             <div className={activeTab === 'improve' ? 'block' : 'hidden'}>
               <ImproveCvTab initialJobDescription={globalJobDescription} />

@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 interface AppState {
   isLoggedIn: boolean;
   userRole: 'hr' | 'candidate' | null;
-  activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs';
+  activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications';
   globalJobDescription: string;
   globalJobId: string;
   globalJobTitle: string;
@@ -12,7 +12,7 @@ interface AppState {
   isSidebarOpen: boolean;
   setIsLoggedIn: (status: boolean) => void;
   setUserRole: (role: 'hr' | 'candidate' | null) => void;
-  setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs') => void;
+  setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications') => void;
   setGlobalJobDescription: (desc: string) => void;
   setGlobalJobId: (id: string) => void;
   setGlobalJobTitle: (title: string) => void;

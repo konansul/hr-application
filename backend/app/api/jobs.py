@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from backend.app.schemas import JobCreate, JobOut
 from backend.app.api.models import JobRefineRequest, JobRefineResponse, JobUpdate
 from backend.database.db import get_db
-from backend.database.models import Job, User
+from backend.database.models import Job, User, Person, Resume, Application
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 
@@ -47,8 +47,13 @@ def create_job(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    if not current_user.org_id:
-        raise HTTPException(status_code=403, detail="User does not belong to an organization")
+    if current_user.role == "hr":
+        if not current_user.org_id:
+            raise HTTPException(status_code=403, detail="User does not belong to an organization")
+        org_id = current_user.org_id
+    else:
+        # Candidates create personal tracking entries with no organization
+        org_id = None
 
     screening_questions_str = None
     if hasattr(job, "screening_questions") and job.screening_questions:
@@ -56,7 +61,7 @@ def create_job(
 
     db_job = Job(
         job_id=new_id("job"),
-        org_id=current_user.org_id,
+        org_id=org_id,
         owner_user_id=current_user.user_id,
         title=job.title,
         description=job.description,
@@ -65,6 +70,25 @@ def create_job(
     )
 
     db.add(db_job)
+    db.flush()
+
+    # For candidates, auto-create an application so they can track stages
+    if current_user.role == "candidate":
+        person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+        if not person:
+            raise HTTPException(status_code=400, detail="Please complete your profile first")
+        resume = db.query(Resume).filter(
+            Resume.person_id == person.person_id
+        ).order_by(Resume.created_at.desc()).first()
+        new_app = Application(
+            application_id=new_id("app"),
+            job_id=db_job.job_id,
+            person_id=person.person_id,
+            resume_id=resume.resume_id if resume else None,
+            status="Applied"
+        )
+        db.add(new_app)
+
     db.commit()
     db.refresh(db_job)
 
@@ -80,7 +104,8 @@ def create_job(
         title=db_job.title,
         description=db_job.description,
         region=db_job.region,
-        screening_questions=qs
+        screening_questions=qs,
+        owner_user_id=db_job.owner_user_id
     )
 
 
@@ -99,7 +124,13 @@ def list_jobs(
             .all()
         )
     else:
-        jobs = db.query(Job).order_by(Job.created_at.desc()).all()
+        # Candidates only see HR-published jobs (org_id is set); candidate-tracked jobs live in Job Applications tab
+        jobs = (
+            db.query(Job)
+            .filter(Job.org_id.isnot(None))
+            .order_by(Job.created_at.desc())
+            .all()
+        )
 
     results = []
     for job in jobs:
@@ -115,7 +146,8 @@ def list_jobs(
             title=job.title,
             description=job.description,
             region=job.region,
-            screening_questions=qs
+            screening_questions=qs,
+            owner_user_id=job.owner_user_id
         ))
     return results
 
@@ -147,7 +179,8 @@ def get_job(
         title=job.title,
         description=job.description,
         region=job.region,
-        screening_questions=qs
+        screening_questions=qs,
+        owner_user_id=job.owner_user_id
     )
 
 
@@ -218,5 +251,6 @@ def update_job(
         title=job.title,
         description=job.description,
         region=job.region,
-        screening_questions=qs
+        screening_questions=qs,
+        owner_user_id=job.owner_user_id
     )
