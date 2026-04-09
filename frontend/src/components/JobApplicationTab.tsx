@@ -12,15 +12,6 @@ const STAGES = [
 const REJECTED_VALUE = 'Rejected';
 const ALL_STAGE_VALUES = [...STAGES.map(s => s.value), REJECTED_VALUE];
 
-// Matches the colour palette from the HR Kanban board
-const STAGE_ACCENT: Record<string, { bg: string; border: string; text: string; iconBg: string; bar: string }> = {
-  APPLIED:        { bg: 'bg-gray-100',    border: 'border-gray-300',   text: 'text-gray-600',    iconBg: 'bg-gray-200',    bar: 'bg-gray-400' },
-  SHORTLISTED:    { bg: 'bg-blue-50',     border: 'border-blue-300',   text: 'text-blue-700',    iconBg: 'bg-blue-100',    bar: 'bg-blue-500' },
-  HR_INTERVIEW:   { bg: 'bg-purple-50',   border: 'border-purple-300', text: 'text-purple-700',  iconBg: 'bg-purple-100',  bar: 'bg-purple-500' },
-  TECH_INTERVIEW: { bg: 'bg-indigo-50',   border: 'border-indigo-300', text: 'text-indigo-700',  iconBg: 'bg-indigo-100',  bar: 'bg-indigo-500' },
-  OFFER:          { bg: 'bg-emerald-50',  border: 'border-emerald-300',text: 'text-emerald-700', iconBg: 'bg-emerald-100', bar: 'bg-emerald-500' },
-  REJECTED:       { bg: 'bg-red-50',      border: 'border-red-300',    text: 'text-red-600',     iconBg: 'bg-red-100',     bar: 'bg-red-500' },
-};
 
 function stageIcon(norm: string, size = 'w-4 h-4') {
   const p = { className: size, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', strokeWidth: 1.8 } as any;
@@ -82,6 +73,7 @@ export function JobApplicationTab() {
   const [newJobTitle, setNewJobTitle]         = useState('');
   const [newJobDescription, setNewJobDescription] = useState('');
   const [submitting, setSubmitting]           = useState(false);
+  const [expandedId, setExpandedId]           = useState<string | null>(null);
 
   // filters
   const [typeFilter, setTypeFilter]     = useState<'all' | 'hr' | 'self'>('all');
@@ -113,8 +105,9 @@ export function JobApplicationTab() {
         if (app) {
           return {
             ...app,
-            job_title:  app.job_title  || job.title,
-            job_region: app.job_region || job.region,
+            job_title:       app.job_title  || job.title,
+            job_region:      app.job_region || job.region,
+            job_description: job.description ?? null,
           };
         }
         // No application record yet — show as "Not Applied"
@@ -123,6 +116,7 @@ export function JobApplicationTab() {
           job_id: jobId,
           job_title: job.title,
           job_region: job.region,
+          job_description: job.description ?? null,
           status: 'Not Applied',
           created_at: null,
           screening: null,
@@ -292,49 +286,43 @@ export function JobApplicationTab() {
     const currentIdx = getStageIndex(job.status);
     const isRejected = norm === 'REJECTED';
 
-    const handleClick = (idx: number, stageValue: string) => {
-      const isCurrent = !isRejected && idx === currentIdx;
-      if (isCurrent) {
-        if (idx < STAGES.length - 1) {
-          handleTrackedStageUpdate(job.id, STAGES[idx + 1].value);
-        }
-      } else {
-        handleTrackedStageUpdate(job.id, stageValue);
-      }
+    // Clicking any tile sets that stage exactly — no auto-advance
+    const handleClick = (stageValue: string) => {
+      handleTrackedStageUpdate(job.id, stageValue);
     };
 
     return (
       <div>
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-          Click a stage to update your progress
+          Click a stage to mark your progress
         </p>
 
         <div className="flex items-stretch gap-2 overflow-x-auto pb-1">
           {STAGES.map((stage, idx) => {
             const sNorm     = normalizeStatus(stage.value);
-            const accent    = STAGE_ACCENT[sNorm];
             const isCurrent = !isRejected && idx === currentIdx;
             const isPast    = !isRejected && idx < currentIdx;
+            // Current stage is also shown green (reached), past stages are green too
+            const isDone    = isCurrent || isPast;
 
             return (
               <button
                 key={stage.value}
-                onClick={() => handleClick(idx, stage.value)}
-                title={isCurrent ? `Current stage — click to advance to ${STAGES[idx + 1]?.label ?? 'Offer'}` : `Move to ${stage.label}`}
+                onClick={() => handleClick(stage.value)}
+                title={isCurrent ? `Current stage: ${stage.label}` : `Move to ${stage.label}`}
                 className={`
                   flex flex-col items-center justify-between gap-2 px-3 py-4 rounded-xl border-2
                   min-w-[96px] flex-1 transition-all duration-150 select-none cursor-pointer
                   active:scale-95
-                  ${isCurrent
-                    ? `${accent.bg} ${accent.border} ${accent.text} shadow-sm ring-2 ring-offset-1 ring-current`
-                    : isPast
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-white border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                  ${isDone
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
+                    : 'bg-white border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
                   }
+                  ${isCurrent ? 'ring-2 ring-offset-1 ring-emerald-400 shadow-sm' : ''}
                 `}
               >
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-                  ${isCurrent ? accent.iconBg : isPast ? 'bg-emerald-100' : 'bg-gray-100'}`}
+                  ${isDone ? 'bg-emerald-100' : 'bg-gray-100'}`}
                 >
                   {isPast ? <CheckIcon /> : stageIcon(sNorm)}
                 </div>
@@ -622,6 +610,19 @@ export function JobApplicationTab() {
                       )}
                     </div>
                   </div>
+                  {app.job_description && (
+                    <div className="mb-4">
+                      <p className={`text-sm text-gray-600 leading-relaxed whitespace-pre-wrap ${expandedId === app.job_id ? '' : 'line-clamp-2'}`}>
+                        {app.job_description}
+                      </p>
+                      <button
+                        onClick={() => setExpandedId(expandedId === app.job_id ? null : app.job_id)}
+                        className="mt-1 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                      >
+                        {expandedId === app.job_id ? 'Show Less' : 'View Details'}
+                      </button>
+                    </div>
+                  )}
                   {renderHrPipeline(app)}
                 </div>
               </div>
@@ -655,6 +656,19 @@ export function JobApplicationTab() {
                       <div className="text-xs text-gray-400 font-medium">
                         Added {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </div>
+                      {job.description && (
+                        <div className="mt-2">
+                          <p className={`text-sm text-gray-600 leading-relaxed whitespace-pre-wrap ${expandedId === job.id ? '' : 'line-clamp-2'}`}>
+                            {job.description}
+                          </p>
+                          <button
+                            onClick={() => setExpandedId(expandedId === job.id ? null : job.id)}
+                            className="mt-1 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                          >
+                            {expandedId === job.id ? 'Show Less' : 'View Details'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {isOffer && (
