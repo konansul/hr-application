@@ -186,6 +186,19 @@ export function JobApplicationTab() {
 
   // ── Filtered lists ────────────────────────────────────────────────────────
 
+  // Returns true if jobStatus satisfies the stage filter.
+  // For Rejected: exact match only.
+  // For any other stage: show the job if its stage index >= the filter's stage index
+  // (i.e. "Applied" filter shows Applied, Shortlisted, HR Interview, etc.)
+  const matchesStageFilter = (jobStatus: string) => {
+    if (stageFilter === 'all') return true;
+    const filterNorm = normalizeStatus(stageFilter);
+    const jobNorm    = normalizeStatus(jobStatus);
+    if (filterNorm === 'REJECTED') return jobNorm === 'REJECTED';
+    if (jobNorm    === 'REJECTED') return false;  // don't show Rejected in non-Rejected filters
+    return getStageIndex(jobStatus) >= getStageIndex(stageFilter);
+  };
+
   const filteredApi = useMemo(() => {
     return apiApplications.filter(app => {
       if (typeFilter === 'self') return false;
@@ -194,19 +207,21 @@ export function JobApplicationTab() {
       // 'Not Applied' jobs only show when no specific stage filter is active
       if (stageFilter !== 'all') {
         if (app._notApplied) return false;
-        if (normalizeStatus(app.status) !== normalizeStatus(stageFilter)) return false;
+        if (!matchesStageFilter(app.status)) return false;
       }
       return true;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiApplications, typeFilter, searchQuery, stageFilter]);
 
   const filteredTracked = useMemo(() => {
     return trackedJobs.filter(job => {
       if (typeFilter === 'hr') return false;
       if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      if (stageFilter !== 'all' && normalizeStatus(job.status) !== normalizeStatus(stageFilter)) return false;
+      if (!matchesStageFilter(job.status)) return false;
       return true;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackedJobs, typeFilter, searchQuery, stageFilter]);
 
   const hrCount      = apiApplications.length;

@@ -277,5 +277,10 @@ export const resumesApi = {
   }) => {
     const response = await apiClient.put(`/v1/resumes/${resumeId}`, payload);
     return response.data;
-  }
+  },
+
+  delete: async (resumeId: string) => {
+    const response = await apiClient.delete(`/v1/resumes/${resumeId}`);
+    return response.data;
+  },
 };

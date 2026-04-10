@@ -6,6 +6,7 @@ import logging
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from backend.app.api.helpers.ownership import get_current_user
@@ -276,6 +277,35 @@ def update_resume_version(
     db.commit()
     db.refresh(resume)
     return _resume_response(resume)
+
+
+@router.delete("/{resume_id}")
+def delete_resume_version(
+    resume_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    person = _ensure_person(db, current_user)
+    resume = (
+        db.query(Resume)
+        .filter(Resume.resume_id == resume_id, Resume.person_id == person.person_id)
+        .first()
+    )
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume version not found")
+
+    try:
+        # Use raw SQL to NULL out all FK references and delete — bypasses ORM session ordering issues
+        db.execute(text("UPDATE applications SET resume_id = NULL WHERE resume_id = :rid"), {"rid": resume_id})
+        db.execute(text("UPDATE documents SET resume_id = NULL WHERE resume_id = :rid"), {"rid": resume_id})
+        db.execute(text("UPDATE resumes SET source_resume_id = NULL WHERE source_resume_id = :rid"), {"rid": resume_id})
+        db.execute(text("DELETE FROM resumes WHERE resume_id = :rid"), {"rid": resume_id})
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error("Failed to delete resume %s: %s", resume_id, e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Could not delete resume version")
+    return {"deleted": resume_id}
 
 
 @router.post("/fetch-job-url")

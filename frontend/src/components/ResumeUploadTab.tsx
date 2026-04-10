@@ -610,6 +610,11 @@ export function ResumeUploadTab() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
   const [isSavingTitle, setIsSavingTitle] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [editDraft, setEditDraft] = useState<ResumeVersion | null>(null);
+  const [isSavingContent, setIsSavingContent] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -722,6 +727,64 @@ export function ResumeUploadTab() {
     finally { setIsSavingTitle(false); }
   };
 
+  const handleDeleteResume = async (resumeId: string) => {
+    setIsDeleting(true);
+    try {
+      await resumesApi.delete(resumeId);
+      setConfirmDeleteId(null);
+      if (selectedResumeId === resumeId) setSelectedResumeId(null);
+      await loadData();
+      setMessage({ text: 'Resume version deleted.', type: 'success' });
+    } catch { setMessage({ text: 'Could not delete this version.', type: 'error' }); }
+    finally { setIsDeleting(false); }
+  };
+
+  const startEditingContent = () => {
+    if (!selectedResume) return;
+    setEditDraft({ ...selectedResume });
+    setIsEditingContent(true);
+  };
+
+  const cancelEditingContent = () => {
+    setIsEditingContent(false);
+    setEditDraft(null);
+  };
+
+  const handleSaveContent = async () => {
+    if (!editDraft || !selectedResume) return;
+    setIsSavingContent(true);
+    try {
+      const resume_data = {
+        personal_info: { ...(editDraft.personal_info ?? {}), summary: editDraft.personal_info?.summary ?? '' },
+        experience:     editDraft.experience     ?? [],
+        education:      editDraft.education      ?? [],
+        skills:         editDraft.skills         ?? [],
+        languages:      editDraft.languages      ?? [],
+        certifications: editDraft.certifications ?? [],
+      };
+      await resumesApi.update(selectedResume.resume_id, {
+        title: editDraft.title ?? selectedResume.title ?? undefined,
+        language: editDraft.language ?? selectedResume.language ?? undefined,
+        resume_data,
+      });
+      await loadData(selectedResume.resume_id);
+      setIsEditingContent(false);
+      setEditDraft(null);
+      setMessage({ text: 'Resume saved successfully.', type: 'success' });
+    } catch { setMessage({ text: 'Could not save changes.', type: 'error' }); }
+    finally { setIsSavingContent(false); }
+  };
+
+  const updateExpField = (i: number, field: string, value: string) =>
+    setEditDraft(d => { if (!d) return d; const a = [...(d.experience ?? [])]; a[i] = { ...a[i], [field]: value }; return { ...d, experience: a }; });
+  const addExpEntry = () => setEditDraft(d => d ? { ...d, experience: [...(d.experience ?? []), { title: '', company: '', start_date: '', end_date: '', description: '' }] } : d);
+  const removeExpEntry = (i: number) => setEditDraft(d => d ? { ...d, experience: (d.experience ?? []).filter((_: any, j: number) => j !== i) } : d);
+
+  const updateEduField = (i: number, field: string, value: string) =>
+    setEditDraft(d => { if (!d) return d; const a = [...(d.education ?? [])]; a[i] = { ...a[i], [field]: value }; return { ...d, education: a }; });
+  const addEduEntry = () => setEditDraft(d => d ? { ...d, education: [...(d.education ?? []), { degree: '', institution: '' }] } : d);
+  const removeEduEntry = (i: number) => setEditDraft(d => d ? { ...d, education: (d.education ?? []).filter((_: any, j: number) => j !== i) } : d);
+
   const InfoTag = ({ label, value }: { label: string; value: any }) => (
     <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
@@ -804,25 +867,65 @@ export function ResumeUploadTab() {
             <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
               {resumeVersions.map((resume, index) => {
                 const isActive = resume.resume_id === selectedResume?.resume_id;
+                const isPendingDelete = confirmDeleteId === resume.resume_id;
                 return (
-                  <button
+                  <div
                     key={resume.resume_id}
-                    onClick={() => setSelectedResumeId(resume.resume_id)}
-                    className={`w-full text-left rounded-2xl border p-4 transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'}`}
+                    className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <div>
-                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>Version {resumeVersions.length - index}</p>
-                        <h4 className="text-sm font-semibold">{resume.title || 'Untitled Resume'}</h4>
+                    {/* Selectable area */}
+                    <button
+                      onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); }}
+                      className="w-full text-left p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-1">
+                        <div>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>Version {resumeVersions.length - index}</p>
+                          <h4 className="text-sm font-semibold">{resume.title || 'Untitled Resume'}</h4>
+                        </div>
+                        <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-500'}`}>
+                          {langLabel(resume.language)}
+                        </span>
                       </div>
-                      <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-500'}`}>
-                        {langLabel(resume.language)}
-                      </span>
-                    </div>
-                    <p className={`text-xs ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(resume.source_type)}</p>
-                    {resume.valid_until && <p className={`text-xs mt-0.5 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>Valid until: {resume.valid_until}</p>}
-                    <p className={`text-xs mt-1 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>{formatDate(resume.created_at)}</p>
-                  </button>
+                      <p className={`text-xs ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(resume.source_type)}</p>
+                      {resume.valid_until && <p className={`text-xs mt-0.5 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>Valid until: {resume.valid_until}</p>}
+                      <p className={`text-xs mt-1 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>{formatDate(resume.created_at)}</p>
+                    </button>
+                    {/* Delete row */}
+                    {isPendingDelete ? (
+                      <div className={`flex items-center justify-between gap-2 px-4 pb-3 pt-0`}>
+                        <span className={`text-xs font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>Delete this version?</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleDeleteResume(resume.resume_id)}
+                            disabled={isDeleting}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center gap-1"
+                          >
+                            {isDeleting && <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="px-4 pb-3 pt-0 flex justify-end">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(resume.resume_id); }}
+                          className={`text-xs px-2 py-1 rounded-lg transition-colors ${isActive ? 'text-red-300 hover:bg-white/10' : 'text-gray-300 hover:text-red-400 hover:bg-red-50'}`}
+                          title="Delete this version"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
               {resumeVersions.length === 0 && (
@@ -857,9 +960,36 @@ export function ResumeUploadTab() {
               {selectedResume && (
                 <div className="flex items-center gap-2 text-xs flex-wrap justify-end">
                   <span className="px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 font-semibold text-gray-500">{sourceTypeLabel(selectedResume.source_type)}</span>
-                  <span className="px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 font-semibold text-gray-500">{selectedResume.generation_status || 'ready'}</span>
                   {selectedResume.valid_until && (
                     <span className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold">Valid until {selectedResume.valid_until}</span>
+                  )}
+                  {isEditingContent ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={cancelEditingContent}
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveContent}
+                        disabled={isSavingContent}
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                        {isSavingContent ? 'Saving…' : 'Save Changes'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={startEditingContent}
+                      className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
+                      </svg>
+                      Edit
+                    </button>
                   )}
                 </div>
               )}
@@ -941,9 +1071,19 @@ export function ResumeUploadTab() {
 
                   <div className="space-y-3">
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Summary</p>
-                    <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl p-5">
-                      {selectedResume.personal_info?.summary || 'No summary stored for this version.'}
-                    </p>
+                    {isEditingContent ? (
+                      <textarea
+                        className="w-full text-sm text-gray-700 leading-relaxed bg-white border border-gray-300 rounded-2xl p-5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none"
+                        rows={4}
+                        value={editDraft?.personal_info?.summary ?? ''}
+                        onChange={e => setEditDraft(d => d ? { ...d, personal_info: { ...(d.personal_info ?? {}), summary: e.target.value } } : d)}
+                        placeholder="Professional summary..."
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl p-5">
+                        {selectedResume.personal_info?.summary || 'No summary stored for this version.'}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -951,57 +1091,129 @@ export function ResumeUploadTab() {
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                       Experience
                     </p>
-                    {selectedResume.experience?.length ? selectedResume.experience.map((exp: any, i: number) => (
-                      <div key={i} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/50">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">{exp.title || 'Untitled role'}{exp.company ? ` @ ${exp.company}` : ''}</h4>
-                        <p className="text-xs font-medium text-gray-500 mb-3">{exp.start_date || '—'} — {exp.end_date || 'Present'}</p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{exp.description || 'No description.'}</p>
-                      </div>
-                    )) : <p className="text-sm text-gray-400 italic">No experience included in this version.</p>}
+                    {isEditingContent ? (
+                      <>
+                        {(editDraft?.experience ?? []).map((exp: any, i: number) => (
+                          <div key={i} className="p-4 border border-gray-200 rounded-2xl bg-white space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-semibold text-gray-400">Entry {i + 1}</span>
+                              <button type="button" onClick={() => removeExpEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Remove</button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input value={exp.title ?? ''} onChange={e => updateExpField(i, 'title', e.target.value)} placeholder="Job title" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                              <input value={exp.company ?? ''} onChange={e => updateExpField(i, 'company', e.target.value)} placeholder="Company" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                              <input value={exp.start_date ?? ''} onChange={e => updateExpField(i, 'start_date', e.target.value)} placeholder="Start date" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                              <input value={exp.end_date ?? ''} onChange={e => updateExpField(i, 'end_date', e.target.value)} placeholder="End date / Present" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                            </div>
+                            <textarea value={exp.description ?? ''} onChange={e => updateExpField(i, 'description', e.target.value)} placeholder="Job description..." rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                          </div>
+                        ))}
+                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 rounded-2xl transition-all">+ Add Experience</button>
+                      </>
+                    ) : (
+                      <>
+                        {selectedResume.experience?.length ? selectedResume.experience.map((exp: any, i: number) => (
+                          <div key={i} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/50">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">{exp.title || 'Untitled role'}{exp.company ? ` @ ${exp.company}` : ''}</h4>
+                            <p className="text-xs font-medium text-gray-500 mb-3">{exp.start_date || '—'} — {exp.end_date || 'Present'}</p>
+                            <p className="text-sm text-gray-700 leading-relaxed">{exp.description || 'No description.'}</p>
+                          </div>
+                        )) : <p className="text-sm text-gray-400 italic">No experience included in this version.</p>}
+                      </>
+                    )}
                   </div>
 
                   <div className="space-y-3 border-t border-gray-100 pt-6">
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Skills</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => (
-                        <span key={i} className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-900 shadow-sm">
-                          {typeof skill === 'string' ? skill : skill.name || 'Skill'}
-                          {typeof skill === 'object' && skill.level ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
-                        </span>
-                      )) : <span className="text-sm text-gray-400 italic">No skills listed.</span>}
-                    </div>
+                    {isEditingContent ? (
+                      <div className="space-y-1">
+                        <textarea
+                          className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none"
+                          rows={3}
+                          value={(editDraft?.skills ?? []).map((s: any) => typeof s === 'string' ? s : s.name || '').join(', ')}
+                          onChange={e => setEditDraft(d => d ? { ...d, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
+                          placeholder="Skill 1, Skill 2, Skill 3..."
+                        />
+                        <p className="text-xs text-gray-400">Separate skills with commas</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => (
+                          <span key={i} className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-900 shadow-sm">
+                            {typeof skill === 'string' ? skill : skill.name || 'Skill'}
+                            {typeof skill === 'object' && skill.level ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
+                          </span>
+                        )) : <span className="text-sm text-gray-400 italic">No skills listed.</span>}
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-6">
                     <div>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Education</p>
-                      <div className="space-y-3">
-                        {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
-                          <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                            <p className="text-sm font-semibold text-gray-900">{edu.degree || 'Degree'}</p>
-                            <p className="text-xs text-gray-500">{edu.institution || 'Institution'}</p>
-                          </div>
-                        )) : <p className="text-sm text-gray-400 italic">No education included.</p>}
-                      </div>
+                      {isEditingContent ? (
+                        <div className="space-y-3">
+                          {(editDraft?.education ?? []).map((edu: any, i: number) => (
+                            <div key={i} className="p-3 bg-white border border-gray-200 rounded-2xl space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-semibold text-gray-400">Entry {i + 1}</span>
+                                <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Remove</button>
+                              </div>
+                              <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                              <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                            </div>
+                          ))}
+                          <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 rounded-2xl transition-all">+ Add Education</button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
+                            <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                              <p className="text-sm font-semibold text-gray-900">{edu.degree || 'Degree'}</p>
+                              <p className="text-xs text-gray-500">{edu.institution || 'Institution'}</p>
+                            </div>
+                          )) : <p className="text-sm text-gray-400 italic">No education included.</p>}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Languages & Certifications</p>
                       <div className="space-y-3">
                         <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Languages</p>
-                          <p className="text-sm text-gray-700">
-                            {selectedResume.languages?.length
-                              ? selectedResume.languages.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')
-                              : 'No languages listed.'}
-                          </p>
+                          {isEditingContent ? (
+                            <textarea
+                              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none bg-white"
+                              rows={2}
+                              value={(editDraft?.languages ?? []).map((l: any) => typeof l === 'string' ? l : l.name || l.language || '').join(', ')}
+                              onChange={e => setEditDraft(d => d ? { ...d, languages: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
+                              placeholder="English, Spanish..."
+                            />
+                          ) : (
+                            <p className="text-sm text-gray-700">
+                              {selectedResume.languages?.length
+                                ? selectedResume.languages.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')
+                                : 'No languages listed.'}
+                            </p>
+                          )}
                         </div>
                         <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Certifications</p>
-                          <p className="text-sm text-gray-700">
-                            {selectedResume.certifications?.length
-                              ? selectedResume.certifications.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')
-                              : 'No certifications listed.'}
-                          </p>
+                          {isEditingContent ? (
+                            <textarea
+                              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none bg-white"
+                              rows={2}
+                              value={(editDraft?.certifications ?? []).map((c: any) => typeof c === 'string' ? c : c.name || c.title || '').join(', ')}
+                              onChange={e => setEditDraft(d => d ? { ...d, certifications: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
+                              placeholder="AWS Certified, PMP..."
+                            />
+                          ) : (
+                            <p className="text-sm text-gray-700">
+                              {selectedResume.certifications?.length
+                                ? selectedResume.certifications.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')
+                                : 'No certifications listed.'}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
