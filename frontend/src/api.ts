@@ -60,6 +60,16 @@ export const authApi = {
     return response.data;
   },
 
+  listCandidates: async () => {
+    const response = await apiClient.get('/hr/candidates');
+    return response.data;
+  },
+
+  getCandidateProfile: async (personId: string) => {
+    const response = await apiClient.get(`/hr/candidates/${personId}/profile`);
+    return response.data;
+  },
+
   logout: async () => {
     localStorage.removeItem('auth_token');
     return { ok: true };

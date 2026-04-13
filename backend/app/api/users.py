@@ -1,5 +1,5 @@
 import json
-
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -7,7 +7,6 @@ from backend.app.api.helpers.ownership import get_current_user
 from backend.app.api.models import ProfileUpdateRequest, HRProfileUpdate
 from backend.database.db import get_db
 from backend.database.models import User, Person
-
 
 router = APIRouter()
 
@@ -47,7 +46,8 @@ def get_profile(
         "education": [],
         "skills": [],
         "languages": [],
-        "certifications": []
+        "certifications": [],
+        "references": []
     }
 
     return {"profile_data": default_profile_data}
@@ -139,3 +139,67 @@ def update_hr_profile(
 
     db.commit()
     return {"message": "HR profile updated successfully"}
+
+@router.get("/hr/candidates")
+def list_candidates_for_hr(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Access denied. Only HR can view candidates.")
+
+    candidates_users = db.query(User).filter(User.role == "candidate").all()
+
+    results = []
+    for u in candidates_users:
+        person = db.query(Person).filter(Person.user_id == u.user_id).first()
+        if not person:
+            continue
+
+        profile_data = {}
+        if person.profile_json:
+            try:
+                profile_data = json.loads(person.profile_json)
+            except:
+                pass
+
+        p_info = profile_data.get("personal_info", {})
+        skills = profile_data.get("skills", [])
+        top_skills = [s.get("name") for s in skills[:3]] if skills else []  # Берем топ-3 навыка
+
+        results.append({
+            "user_id": u.user_id,
+            "person_id": person.person_id,
+            "first_name": p_info.get("first_name", person.first_name),
+            "last_name": p_info.get("last_name", person.last_name),
+            "email": p_info.get("email", u.email),
+            "city": p_info.get("city", person.city),
+            "country": p_info.get("country", person.country),
+            "top_skills": top_skills,
+            "work_preference": p_info.get("work_preference", "UNKNOWN")
+        })
+
+    return results
+
+
+@router.get("/hr/candidates/{person_id}/profile")
+def get_candidate_profile_for_hr(
+        person_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "hr":
+        raise HTTPException(status_code=403, detail="Access denied. Only HR can view profiles.")
+
+    person = db.query(Person).filter(Person.person_id == person_id).first()
+    if not person:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    profile_data = {}
+    if person.profile_json:
+        try:
+            profile_data = json.loads(person.profile_json)
+        except:
+            pass
+
+    return {"profile_data": profile_data}

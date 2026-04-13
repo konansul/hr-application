@@ -4,17 +4,16 @@ import { persist } from 'zustand/middleware';
 interface AppState {
   isLoggedIn: boolean;
   userRole: 'hr' | 'candidate' | null;
-  activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications';
+  activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications' | 'talent';
   globalJobDescription: string;
   globalJobId: string;
   globalJobTitle: string;
-  // ИСПРАВЛЕНО: теперь это массив строк, а не просто пустой массив
   globalJobStages: string[];
   globalBatchResults: any[];
   isSidebarOpen: boolean;
   setIsLoggedIn: (status: boolean) => void;
   setUserRole: (role: 'hr' | 'candidate' | null) => void;
-  setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications') => void;
+  setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications' | 'talent') => void;
   setGlobalJobDescription: (desc: string) => void;
   setGlobalJobId: (id: string) => void;
   setGlobalJobTitle: (title: string) => void;
@@ -42,7 +41,6 @@ export const useStore = create<AppState>()(
       setGlobalJobDescription: (desc) => set({ globalJobDescription: desc }),
       setGlobalJobId: (id) => set({ globalJobId: id }),
       setGlobalJobTitle: (title) => set({ globalJobTitle: title }),
-      // ИСПРАВЛЕНО: добавлена реализация сеттера
       setGlobalJobStages: (stages) => set({ globalJobStages: stages }),
       setGlobalBatchResults: (results) => set({ globalBatchResults: results }),
       setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
