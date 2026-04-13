@@ -2,12 +2,18 @@ import { useEffect, useState } from 'react';
 import { AuthPage } from './components/AuthTab';
 import { HrDashboard } from './components/HrDashboard';
 import { CandidateDashboard } from './components/CandidateDashboard';
+import { PublicCvView } from './components/PublicCvView';
 import { authApi } from './api';
 import { useStore } from './store';
+
+// Check for public CV share link before anything else
+const cvToken = new URLSearchParams(window.location.search).get('cv');
 
 function App() {
   const { isLoggedIn, userRole, setIsLoggedIn, setUserRole, setActiveTab } = useStore();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  if (cvToken) return <PublicCvView token={cvToken} />;
 
   useEffect(() => {
     const checkAuth = async () => {
