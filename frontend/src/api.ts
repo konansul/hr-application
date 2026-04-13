@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-//const BASE_URL =  'http://127.0.0.1:8000'
 const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
 
 export const apiClient = axios.create({

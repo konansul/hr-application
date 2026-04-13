@@ -34,13 +34,15 @@ export function ProfileTab() {
     education: [],
     skills: [],
     languages: [],
-    certifications: []
+    certifications: [],
+    references: [] // <-- ДОБАВЛЕН МАССИВ ДЛЯ РЕКОМЕНДАЦИЙ
   });
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [isEditingReferences, setIsEditingReferences] = useState(false); // <-- СТЕЙТ ДЛЯ РЕДАКТИРОВАНИЯ
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -56,7 +58,11 @@ export function ProfileTab() {
         setResumeVersions(docs);
 
         if (savedProfile && savedProfile.profile_data && Object.keys(savedProfile.profile_data).length > 0) {
-          setProfileData(savedProfile.profile_data);
+          // Убедимся, что массив references существует, даже если его не было в старом профиле
+          setProfileData({
+            ...savedProfile.profile_data,
+            references: savedProfile.profile_data.references || []
+          });
         } else if (userData) {
           setProfileData((prev: any) => ({
             ...prev,
@@ -99,7 +105,8 @@ export function ProfileTab() {
           experience: response.parsed_data.experience || profileData.experience,
           education: response.parsed_data.education || profileData.education,
           languages: response.parsed_data.languages || profileData.languages,
-          certifications: response.parsed_data.certifications || profileData.certifications
+          certifications: response.parsed_data.certifications || profileData.certifications,
+          references: profileData.references // Оставляем старые рекомендации, так как из резюме они обычно не парсятся
         };
 
         setProfileData(updatedProfile);
@@ -134,7 +141,7 @@ export function ProfileTab() {
     }));
   };
 
-  const handleArrayChange = (section: 'experience' | 'education' | 'skills', index: number, field: string, value: any) => {
+  const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'references', index: number, field: string, value: any) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray[index] = { ...newArray[index], [field]: value };
@@ -142,14 +149,14 @@ export function ProfileTab() {
     });
   };
 
-  const addArrayItem = (section: 'experience' | 'education' | 'skills', template: any) => {
+  const addArrayItem = (section: 'experience' | 'education' | 'skills' | 'references', template: any) => {
     setProfileData((prev: any) => ({
       ...prev,
-      [section]: [...prev[section], template]
+      [section]: [...(prev[section] || []), template]
     }));
   };
 
-  const removeArrayItem = (section: 'experience' | 'education' | 'skills', index: number) => {
+  const removeArrayItem = (section: 'experience' | 'education' | 'skills' | 'references', index: number) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray.splice(index, 1);
@@ -166,6 +173,7 @@ export function ProfileTab() {
       setIsEditingExperience(false);
       setIsEditingEducation(false);
       setIsEditingSkills(false);
+      setIsEditingReferences(false);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       setMessage({ text: 'Error saving profile to database', type: 'error' });
@@ -375,7 +383,6 @@ export function ProfileTab() {
                         <input type="text" placeholder="Job Title" value={exp.title || ''} onChange={(e) => handleArrayChange('experience', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
                         <input type="text" placeholder="Company" value={exp.company || ''} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
 
-                        {/* МАГИЯ ТУТ: чистый CSS трюк для DatePicker вместо глючного showPicker() */}
                         <div className="relative">
                           <input
                             type="date"
@@ -458,7 +465,6 @@ export function ProfileTab() {
                         <input type="text" placeholder="Degree (e.g. Bachelor)" value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
                         <input type="text" placeholder="Field of Study" value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
                         <div className="flex gap-2">
-
                           <div className="relative w-full">
                             <input
                               type="date"
@@ -468,7 +474,6 @@ export function ProfileTab() {
                               className="relative w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                             />
                           </div>
-
                           <div className="relative w-full">
                             <input
                               type="date"
@@ -485,6 +490,81 @@ export function ProfileTab() {
                   ))}
                   <button onClick={() => addArrayItem('education', { institution: '', degree: '', field_of_study: '', start_date: '', end_date: '', description: '' })} className="w-full py-3 border border-dashed border-gray-300 text-gray-500 text-xs font-semibold rounded-xl hover:border-gray-900 hover:text-gray-900 transition-colors">
                     + Add Education
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* WORK REFERENCES (НОВЫЙ БЛОК) */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Work References</h3>
+              </div>
+              {!isEditingReferences ? (
+                <button onClick={() => setIsEditingReferences(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all">
+                  Edit Section
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setIsEditingReferences(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">Cancel</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-all">Save Changes</button>
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              {!isEditingReferences ? (
+                profileData.references?.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profileData.references.map((ref: any, i: number) => (
+                      <div key={i} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50">
+                        <h4 className="text-sm font-bold text-gray-900">{ref.name}</h4>
+                        <p className="text-xs text-gray-600 mt-0.5">{ref.title} at <span className="font-semibold text-gray-800">{ref.company}</span></p>
+                        <div className="mt-3 pt-3 border-t border-gray-200/60 space-y-1">
+                          {ref.email && <p className="text-[11px] text-gray-500 flex items-center gap-2"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> {ref.email}</p>}
+                          {ref.phone && <p className="text-[11px] text-gray-500 flex items-center gap-2"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg> {ref.phone}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 italic">No professional references added yet.</p>
+                )
+              ) : (
+                <div className="space-y-4">
+                  {profileData.references?.map((ref: any, i: number) => (
+                    <div key={i} className="p-5 border border-gray-200 rounded-xl relative space-y-4 bg-gray-50/30">
+                      <button onClick={() => removeArrayItem('references', i)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
+                          <input type="text" placeholder="e.g. Jane Doe" value={ref.name || ''} onChange={(e) => handleArrayChange('references', i, 'name', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Company</label>
+                          <input type="text" placeholder="e.g. Google" value={ref.company || ''} onChange={(e) => handleArrayChange('references', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Job Title / Relationship</label>
+                          <input type="text" placeholder="e.g. Former Manager" value={ref.title || ''} onChange={(e) => handleArrayChange('references', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Contact Email</label>
+                          <input type="email" placeholder="jane@example.com" value={ref.email || ''} onChange={(e) => handleArrayChange('references', i, 'email', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Contact Phone (Optional)</label>
+                          <input type="tel" placeholder="+1 234 567 8900" value={ref.phone || ''} onChange={(e) => handleArrayChange('references', i, 'phone', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={() => addArrayItem('references', { name: '', title: '', company: '', email: '', phone: '' })} className="w-full py-3 border border-dashed border-gray-300 text-gray-500 text-xs font-semibold rounded-xl hover:border-gray-900 hover:text-gray-900 transition-colors">
+                    + Add Reference
                   </button>
                 </div>
               )}
