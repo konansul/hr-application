@@ -283,4 +283,9 @@ export const resumesApi = {
     const response = await apiClient.delete(`/v1/resumes/${resumeId}`);
     return response.data;
   },
+
+  getPublicResume: async (resumeId: string) => {
+    const response = await apiClient.get(`/v1/resumes/public/${resumeId}`);
+    return response.data;
+  },
 };

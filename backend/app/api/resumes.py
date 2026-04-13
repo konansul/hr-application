@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import logging
+from datetime import date
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -122,6 +123,23 @@ def list_my_resume_versions(
         .order_by(Resume.created_at.desc())
         .all()
     )
+
+    # Delete any resumes whose valid_until date has passed
+    today = date.today().isoformat()  # e.g. "2026-04-13"
+    expired_ids = [
+        r.resume_id for r in resumes
+        if r.valid_until and r.valid_until < today
+    ]
+    if expired_ids:
+        for rid in expired_ids:
+            db.execute(text("UPDATE applications SET resume_id = NULL WHERE resume_id = :rid"), {"rid": rid})
+            db.execute(text("UPDATE documents SET resume_id = NULL WHERE resume_id = :rid"), {"rid": rid})
+            db.execute(text("UPDATE resumes SET source_resume_id = NULL WHERE source_resume_id = :rid"), {"rid": rid})
+            db.execute(text("DELETE FROM resumes WHERE resume_id = :rid"), {"rid": rid})
+        db.commit()
+        logger.info("Auto-deleted %d expired resume(s): %s", len(expired_ids), expired_ids)
+        resumes = [r for r in resumes if r.resume_id not in expired_ids]
+
     return [_resume_response(resume) for resume in resumes]
 
 
@@ -277,6 +295,18 @@ def update_resume_version(
     db.commit()
     db.refresh(resume)
     return _resume_response(resume)
+
+
+@router.get("/public/{resume_id}")
+def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
+    resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    return {
+        "title": resume.title,
+        "language": resume.language,
+        "resume_data": _resume_payload(resume),
+    }
 
 
 @router.delete("/{resume_id}")

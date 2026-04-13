@@ -615,6 +615,10 @@ export function ResumeUploadTab() {
   const [isSavingContent, setIsSavingContent] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [shareEmailTo, setShareEmailTo] = useState('');
+  const [shareEmailRecipientName, setShareEmailRecipientName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -737,6 +741,20 @@ export function ResumeUploadTab() {
       setMessage({ text: 'Resume version deleted.', type: 'success' });
     } catch { setMessage({ text: 'Could not delete this version.', type: 'error' }); }
     finally { setIsDeleting(false); }
+  };
+
+  const openShareModal = () => {
+    setLinkCopied(false);
+    setShareEmailTo('');
+    setShareEmailRecipientName('');
+    setShowShareModal(true);
+  };
+
+  const handleCopyLink = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
   };
 
   const startEditingContent = () => {
@@ -981,15 +999,26 @@ export function ResumeUploadTab() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={startEditingContent}
-                      className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
-                      </svg>
-                      Edit
-                    </button>
+                    <>
+                      <button
+                        onClick={openShareModal}
+                        className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        Share
+                      </button>
+                      <button
+                        onClick={startEditingContent}
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
+                        </svg>
+                        Edit
+                      </button>
+                    </>
                   )}
                 </div>
               )}
@@ -1296,6 +1325,122 @@ export function ResumeUploadTab() {
       {showJobDescModal && (
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
       )}
+
+      {/* Share modal */}
+      {showShareModal && selectedResume && (() => {
+        const publicUrl = `${window.location.origin}${window.location.pathname}?cv=${selectedResume.resume_id}`;
+        return (
+          <div
+            className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+            onClick={() => setShowShareModal(false)}
+            onKeyDown={e => { if (e.key === 'Escape') setShowShareModal(false); }}
+          >
+            <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Share Resume</h3>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[280px]">{selectedResume.title || 'Untitled Resume'}</p>
+                </div>
+                <button onClick={() => setShowShareModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Public link */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
+                  <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+                    <p className="text-xs text-indigo-700 font-mono break-all">{publicUrl}</p>
+                  </div>
+                  <button
+                    onClick={() => handleCopyLink(publicUrl)}
+                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    {linkCopied ? (
+                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Copied!</>
+                    ) : (
+                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy Link</>
+                    )}
+                  </button>
+                  <p className="text-[11px] text-gray-400">Anyone with this link can view your CV without logging in.</p>
+                </div>
+
+                {/* Email */}
+                {(() => {
+                  const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
+                  const senderName = [info.first_name, info.last_name].filter(Boolean).join(' ') || 'Your Name';
+                  const recipientGreeting = shareEmailRecipientName.trim() || "Recipient's Name";
+                  const emailBody = `Dear ${recipientGreeting},\n\nI hope this message finds you well.\n\nI would like to share my curriculum vitae with you for your consideration. You can access it using the link below:\n${publicUrl}\n\nPlease feel free to reach out if you require any additional information.\n\nThank you for your time and consideration.\n\nKind regards,\n${senderName}`;
+                  const subject = `CV: ${selectedResume.title || 'My Resume'}`;
+                  return (
+                    <div className="space-y-3 border-t border-gray-100 pt-5">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Share via Email</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">Recipient's name</label>
+                          <input
+                            type="text"
+                            value={shareEmailRecipientName}
+                            onChange={e => setShareEmailRecipientName(e.target.value)}
+                            placeholder="e.g. John Smith"
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">Recipient's email</label>
+                          <input
+                            type="email"
+                            value={shareEmailTo}
+                            onChange={e => setShareEmailTo(e.target.value)}
+                            placeholder="email@example.com"
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          />
+                        </div>
+                      </div>
+                      <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                        <p className="text-[11px] text-gray-500 whitespace-pre-wrap leading-relaxed">{emailBody}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <a
+                          href={`https://mail.google.com/mail/?view=cm${shareEmailTo ? `&to=${encodeURIComponent(shareEmailTo)}` : ''}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M22 6c0-1.1-.9-2-2-2H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 6l10 7 10-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          Gmail
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const full = `Subject: ${subject}\n\n${emailBody}`;
+                            navigator.clipboard.writeText(full).then(() => {
+                              setLinkCopied(true);
+                              setTimeout(() => setLinkCopied(false), 2000);
+                            });
+                          }}
+                          className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
+                        >
+                          {linkCopied ? (
+                            <><svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-emerald-600">Copied!</span></>
+                          ) : (
+                            <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy email</>
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-gray-400">Gmail opens a compose window directly. "Copy email" copies the full text — paste it into Outlook, Yahoo, or any other client.</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
