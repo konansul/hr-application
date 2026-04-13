@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite' // <-- импорт
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(), // <-- вызов плагина
+    tailwindcss(),
   ],
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
 })
