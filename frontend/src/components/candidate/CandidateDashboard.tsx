@@ -4,8 +4,8 @@ import { ResumeUploadTab } from './ResumeUploadTab';
 import { ImproveCvTab } from './ImproveCvTab';
 import { JobsTab } from './CanditateJobsTab';
 import { JobApplicationTab } from './JobApplicationTab';
-import { useStore } from '../store';
-import { authApi } from '../api';
+import { useStore } from '../../store';
+import { authApi } from '../../api';
 
 const NAV_ITEMS = [
   {
@@ -75,7 +75,6 @@ export function CandidateDashboard() {
     logoutStore();
   };
 
-  // ── Desktop sidebar nav item ──────────────────────────────────────────────
   const SideNavItem = ({ id, label, icon }: { id: any; label: string; icon: React.ReactNode }) => {
     const isActive = activeTab === id;
     return (
@@ -96,7 +95,6 @@ export function CandidateDashboard() {
   return (
     <div className="flex h-screen w-full bg-white text-gray-900 overflow-hidden">
 
-      {/* ── Desktop sidebar (hidden on mobile) ── */}
       <aside className={`
         hidden md:flex flex-col
         ${isSidebarOpen ? 'w-64 px-3' : 'w-0 px-0'}
@@ -128,10 +126,8 @@ export function CandidateDashboard() {
         </div>
       </aside>
 
-      {/* ── Main content ── */}
       <main className="flex-1 flex flex-col min-w-0 bg-white transition-all duration-300">
 
-        {/* Desktop header with sidebar toggle */}
         <header className="hidden md:flex h-14 items-center px-4 shrink-0 border-b border-gray-100">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -143,7 +139,6 @@ export function CandidateDashboard() {
           </button>
         </header>
 
-        {/* Mobile header */}
         <header className="md:hidden h-14 flex items-center justify-between px-4 shrink-0 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shadow-sm">
@@ -166,7 +161,6 @@ export function CandidateDashboard() {
           </button>
         </header>
 
-        {/* Tab content — extra bottom padding on mobile for the bottom nav bar */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-24 md:pb-8">
           <div className="max-w-none mx-auto w-full transition-all duration-300">
             <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
@@ -188,7 +182,6 @@ export function CandidateDashboard() {
         </div>
       </main>
 
-      {/* ── Mobile bottom navigation bar (hidden on desktop) ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-inset-bottom">
         <div className="flex items-stretch">
           {NAV_ITEMS.map(item => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { documentsApi, jobsApi, resumesApi } from '../api';
+import { documentsApi, jobsApi, resumesApi } from '../../api';
 import { TEMPLATES, downloadResumePdf, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
@@ -102,8 +102,6 @@ const normalizeResume = (resume: ResumeVersion | null): ResumeVersion | null => 
   };
 };
 
-// ---- Shared sub-components ----
-
 function LanguageSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <select
@@ -185,8 +183,6 @@ function ModalActions({ onClose, onSubmit, disabled, submitLabel, submitClass }:
   );
 }
 
-// ---- Modals ----
-
 function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
   onClose: () => void;
   onSubmit: (data: { title: string; language: string; validUntil: string; removedSections: ResumeSectionKey[] }) => void;
@@ -240,25 +236,21 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
 
   const sourceResume = resumeVersions.find((r) => r.resume_id === sourceId);
 
-  // Sync defaults when source changes
   const prevSourceIdRef = useRef('');
   if (prevSourceIdRef.current !== sourceId) {
     prevSourceIdRef.current = sourceId;
     if (sourceResume) {
       if (!title || title === resumeVersions.find((r) => r.resume_id === prevSourceIdRef.current)?.title + ' Copy') {
-        // will re-render with new defaults on next cycle — just set directly
       }
     }
   }
 
-  // Use effect to update title/language when source changes
   const [autoTitle, setAutoTitle] = useState(true);
   useEffect(() => {
     if (sourceResume && autoTitle) {
       setTitle(`${sourceResume.title || 'Resume'} Copy`);
       setLanguage(sourceResume.language || 'en');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceId]);
 
   const canSubmit = !isWorking && !!sourceId && title.trim();
@@ -345,7 +337,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const [sourceResumeId, setSourceResumeId] = useState<string>(resumeVersions[0]?.resume_id ?? '');
 
-  // Job description input mode
   type JDMode = 'jobs' | 'manual';
   const [mode, setMode] = useState<JDMode>(activeJobs.length > 0 ? 'jobs' : 'manual');
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -372,7 +363,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         setDescription(result.job_description);
         if (result.job_title && !title) setTitle(`Resume for ${result.job_title}`);
       } else {
-        // Auto-fill got nothing — focus the textarea so user can paste
         setTimeout(() => descriptionRef.current?.focus(), 50);
       }
     } catch (e: any) {
@@ -389,7 +379,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const effectiveDescription = mode === 'jobs' ? (selectedJob?.description ?? '') : description;
   const effectiveJobId = mode === 'jobs' ? (selectedJobId || null) : null;
 
-  // Title can be left blank — it falls back to the fetched job title or a generic label at submit time
   const effectiveTitle = title.trim() || (fetchedTitle ? `Resume for ${fetchedTitle}` : '');
   const canSubmit = !isWorking && !isFetching && !!effectiveDescription.trim() && !!sourceResumeId;
 
@@ -408,7 +397,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   return (
     <ModalShell title="Create Resume from Job Description" subtitle="AI will adapt your existing resume to fit the role" onClose={onClose}>
 
-      {/* Source resume picker */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Base Resume to Adapt</label>
         {resumeVersions.length === 0 ? (
@@ -440,11 +428,9 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         )}
       </div>
 
-      {/* Job description source */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Job Description</label>
 
-        {/* Mode tabs */}
         {activeJobs.length > 0 && (
           <div className="flex rounded-xl border border-gray-200 overflow-hidden mb-3">
             <ModeTab id="jobs" label="Open Jobs" />
@@ -499,7 +485,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
               )}
             </div>
 
-            {/* Textarea — paste fallback, always visible */}
             <textarea
               ref={descriptionRef}
               value={description}
@@ -513,7 +498,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         )}
       </div>
 
-      {/* Meta fields */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Version Name</label>
         <input
@@ -559,7 +543,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   );
 }
 
-// ---- Job description accordion (reference-only, not part of CV) ----
 function JobDescriptionAccordion({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   return (
@@ -594,7 +577,6 @@ function JobDescriptionAccordion({ text }: { text: string }) {
   );
 }
 
-// ---- Main component ----
 
 export function ResumeUploadTab() {
   const [file, setFile] = useState<File | null>(null);
@@ -649,7 +631,6 @@ export function ResumeUploadTab() {
 
   useEffect(() => {
     loadData().catch(() => setMessage({ text: 'Failed to load resume data', type: 'error' }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedResume = useMemo(
@@ -844,10 +825,8 @@ export function ResumeUploadTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* ---- Left column ---- */}
         <div className="lg:col-span-4 space-y-6">
 
-          {/* Quick Actions */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 space-y-2.5">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-1">
               <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -894,7 +873,6 @@ export function ResumeUploadTab() {
             </p>
           </div>
 
-          {/* Versions */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-gray-900">Versions</h3>
@@ -909,7 +887,6 @@ export function ResumeUploadTab() {
                     key={resume.resume_id}
                     className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}
                   >
-                    {/* Selectable area */}
                     <button
                       onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); }}
                       className="w-full text-left p-4"
@@ -927,7 +904,6 @@ export function ResumeUploadTab() {
                       {resume.valid_until && <p className={`text-xs mt-0.5 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>Valid until: {resume.valid_until}</p>}
                       <p className={`text-xs mt-1 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>{formatDate(resume.created_at)}</p>
                     </button>
-                    {/* Delete row */}
                     {isPendingDelete ? (
                       <div className={`flex items-center justify-between gap-2 px-4 pb-3 pt-0`}>
                         <span className={`text-xs font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>Delete this version?</span>
@@ -973,7 +949,6 @@ export function ResumeUploadTab() {
           </div>
         </div>
 
-        {/* ---- Right column ---- */}
         <div className="lg:col-span-8 space-y-6">
           {message && (
             <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
@@ -986,7 +961,6 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          {/* Selected resume detail */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
@@ -1064,7 +1038,6 @@ export function ResumeUploadTab() {
               ) : (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Editable title */}
                     <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</span>
                       {editingTitle ? (
@@ -1099,7 +1072,6 @@ export function ResumeUploadTab() {
 
                     <InfoTag label="Created" value={formatDate(selectedResume.created_at)} />
 
-                    {/* Source resume — resolved to title + language */}
                     {(() => {
                       const src = selectedResume.source_resume_id
                         ? resumeVersions.find((r) => r.resume_id === selectedResume.source_resume_id)
@@ -1122,7 +1094,6 @@ export function ResumeUploadTab() {
                     })()}
                   </div>
 
-                  {/* Photo */}
                   <div className="flex items-center gap-5 py-1">
                     {(isEditingContent ? editDraft?.personal_info?.photo : selectedResume.personal_info?.photo) ? (
                       <img
@@ -1322,7 +1293,6 @@ export function ResumeUploadTab() {
             </div>
           </div>
 
-          {/* Open Jobs */}
           {activeJobs.length > 0 && (
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
@@ -1353,10 +1323,8 @@ export function ResumeUploadTab() {
         </div>
       </div>
 
-      {/* Hidden file input */}
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx,.txt" />
 
-      {/* Global loading overlay (only when no modal is open) */}
       {(isUploading || isWorking) && noModals && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
           <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
@@ -1366,7 +1334,6 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Upload confirm bar */}
       {file && !isUploading && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white border border-gray-200 px-6 py-4 rounded-2xl shadow-xl flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-8">
           <div className="flex items-center gap-4">
@@ -1385,7 +1352,6 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Modals */}
       {showProfileModal && (
         <CreateFromProfileModal onClose={() => setShowProfileModal(false)} onSubmit={handleCreateFromProfile} isWorking={isWorking} />
       )}
@@ -1396,7 +1362,6 @@ export function ResumeUploadTab() {
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
       )}
 
-      {/* PDF template picker modal */}
       {showPdfModal && selectedResume && (
         <div
           className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
@@ -1471,7 +1436,6 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Share modal */}
       {showShareModal && selectedResume && (() => {
         const publicUrl = `${window.location.origin}${window.location.pathname}?cv=${selectedResume.resume_id}`;
         return (
@@ -1492,7 +1456,6 @@ export function ResumeUploadTab() {
               </div>
 
               <div className="p-6 space-y-5">
-                {/* Public link */}
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
                   <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
@@ -1511,7 +1474,6 @@ export function ResumeUploadTab() {
                   <p className="text-[11px] text-gray-400">Anyone with this link can view your CV without logging in.</p>
                 </div>
 
-                {/* Email */}
                 {(() => {
                   const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
                   const senderName = [info.first_name, info.last_name].filter(Boolean).join(' ') || 'Your Name';

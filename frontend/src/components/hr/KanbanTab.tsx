@@ -1,6 +1,6 @@
 import { useState, useEffect, type DragEvent } from 'react';
-import { screeningApi, jobsApi } from '../api';
-import { useStore } from '../store';
+import { screeningApi, jobsApi } from '../../api';
+import { useStore } from '../../store';
 
 interface CandidateCard {
   id: string;
@@ -33,7 +33,6 @@ export function KanbanTab() {
   const [newStageName, setNewStageName] = useState('');
   const [isSavingStages, setIsSavingStages] = useState(false);
 
-  // Загрузка данных
   useEffect(() => {
     if (!globalJobId || activeTab !== 'kanban') {
       if (!globalJobId) setCandidates([]);
@@ -43,16 +42,13 @@ export function KanbanTab() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Запрашиваем детали вакансии, чтобы получить актуальные этапы
         const jobData = await jobsApi.getById(globalJobId);
         if (jobData.pipeline_stages && jobData.pipeline_stages.length > 0) {
           setGlobalJobStages(jobData.pipeline_stages);
         } else {
-           // Фолбэк на дефолтные, если по какой-то причине с бэка пришел пустой массив
           setGlobalJobStages(["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJECTED"]);
         }
 
-        // Запрашиваем кандидатов
         const results = await screeningApi.getApplicationsByJob(globalJobId);
         const mapped = results.map((res: any) => {
           const rawStatus = (res.status || 'APPLIED').toUpperCase().replace(/\s+/g, '_');
@@ -78,7 +74,6 @@ export function KanbanTab() {
     fetchData();
   }, [globalJobId, activeTab, setGlobalJobStages]);
 
-  // Драг-энд-дроп логика
   const handleDragStart = (e: DragEvent<HTMLDivElement>, id: string) => {
     e.dataTransfer.setData('text/plain', id);
     e.dataTransfer.effectAllowed = 'move';
@@ -122,7 +117,6 @@ export function KanbanTab() {
     }
   };
 
-  // Логика настройки колонок
   const openSettings = () => {
     setEditedStages([...globalJobStages]);
     setNewStageName('');
@@ -155,7 +149,6 @@ export function KanbanTab() {
     }
   };
 
-  // Перемещение этапа вверх по списку
   const moveStageUp = (index: number) => {
     if (index === 0) return;
     const newStages = [...editedStages];
@@ -165,7 +158,6 @@ export function KanbanTab() {
     setEditedStages(newStages);
   };
 
-  // Перемещение этапа вниз по списку
   const moveStageDown = (index: number) => {
     if (index === editedStages.length - 1) return;
     const newStages = [...editedStages];
@@ -175,14 +167,12 @@ export function KanbanTab() {
     setEditedStages(newStages);
   };
 
-  // Умная раскраска динамических колонок с явно заданным цветом точки (dot)
   const getColumnAccent = (status: string, index: number) => {
     const s = status.toUpperCase();
     if (s.includes('APPL')) return { text: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400', badge: 'bg-gray-100 text-gray-600 border-gray-200' };
     if (s.includes('REJECT') || s.includes('FAIL')) return { text: 'text-red-600', bg: 'bg-red-50', dot: 'bg-red-500', badge: 'bg-red-50 text-red-700 border-red-200' };
     if (s.includes('OFFER') || s.includes('HIRE') || s.includes('ACCEPT')) return { text: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
 
-    // Циклическая палитра для кастомных колонок
     const palettes = [
       { text: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500', badge: 'bg-blue-50 text-blue-700 border-blue-200' },
       { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500', badge: 'bg-purple-50 text-purple-700 border-purple-200' },
@@ -207,7 +197,6 @@ export function KanbanTab() {
     return 'bg-gray-100 border-gray-200 text-gray-600';
   };
 
-  // Экраны загрузки и отсутствия вакансии
   if (!globalJobId) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 border border-amber-100 rounded-2xl max-w-2xl mx-auto mt-10">
@@ -228,7 +217,6 @@ export function KanbanTab() {
     );
   }
 
-  // Если у кандидата статус, которого больше нет в колонках, кидаем его в первую колонку для безопасности отображения
   const safeCandidates = candidates.map(c =>
     globalJobStages.includes(c.status) ? c : { ...c, status: globalJobStages[0] || 'APPLIED' }
   );
@@ -236,7 +224,6 @@ export function KanbanTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 h-[calc(100vh-140px)] flex flex-col relative">
 
-      {/* --- МОДАЛЬНОЕ ОКНО НАСТРОЙКИ КОЛОНОК --- */}
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm px-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -320,7 +307,6 @@ export function KanbanTab() {
         </div>
       )}
 
-      {/* --- ШАПКА ДОСКИ --- */}
       <div className="flex justify-between items-end shrink-0">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Recruitment Pipeline</h2>
@@ -351,7 +337,6 @@ export function KanbanTab() {
         </div>
       </div>
 
-      {/* --- САМА ДОСКА --- */}
       <div className="flex gap-4 h-full min-h-0 overflow-x-auto pb-4 custom-scrollbar items-start">
         {globalJobStages.map((columnStatus, index) => {
           const columnCandidates = safeCandidates.filter(c => c.status === columnStatus);

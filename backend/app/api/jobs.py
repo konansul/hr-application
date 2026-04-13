@@ -55,14 +55,12 @@ def create_job(
             raise HTTPException(status_code=403, detail="User does not belong to an organization")
         org_id = current_user.org_id
     else:
-        # Candidates create personal tracking entries with no organization
         org_id = None
 
     screening_questions_str = None
     if hasattr(job, "screening_questions") and job.screening_questions:
         screening_questions_str = json.dumps(job.screening_questions, ensure_ascii=False)
 
-    # Определяем этапы воронки (если не переданы - берем дефолтные)
     stages = getattr(job, "pipeline_stages", None)
     if not stages:
         stages = DEFAULT_PIPELINE_STAGES
@@ -83,7 +81,6 @@ def create_job(
     db.add(db_job)
     db.flush()
 
-    # For candidates, auto-create an application so they can track stages
     if current_user.role == "candidate":
         person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
         if not person:
@@ -135,10 +132,8 @@ def list_jobs(
             return []
         query = query.filter(Job.org_id == current_user.org_id)
     else:
-        # Candidates only see HR-published jobs
         query = query.filter(Job.org_id.isnot(None))
 
-    # Фильтруем по грейду, если параметр передан
     if level and level != 'All':
         query = query.filter(Job.level == level)
 
@@ -254,7 +249,6 @@ def update_job(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # ИСПОЛЬЗУЕМ БЕЗОПАСНОЕ ИЗВЛЕЧЕНИЕ ДАННЫХ ИЗ PYDANTIC
     update_data = job_update.model_dump(exclude_unset=True)
 
     if "title" in update_data:

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { jobsApi, screeningApi, authApi, documentsApi } from '../api';
+import { jobsApi, screeningApi, authApi, documentsApi } from '../../api';
 
 const LEVELS = ['All', 'Junior', 'Middle', 'Senior', 'Lead'];
 
@@ -123,7 +123,6 @@ export function JobsTab() {
     return 'bg-indigo-50 text-indigo-800 border-indigo-200';
   };
 
-  // Фильтруем вакансии по грейду (уровню)
   const displayedJobs = jobs.filter(job => {
     if (selectedLevel === 'All') return true;
     return job.level === selectedLevel;
@@ -149,7 +148,6 @@ export function JobsTab() {
           <p className="text-sm text-gray-500">Hello, {user?.email}. Discover your next challenge.</p>
         </div>
 
-        {/* --- ФИЛЬТРЫ ПО УРОВНЯМ (JOB LEVELING) --- */}
         <div className="flex flex-wrap gap-2">
           {LEVELS.map(level => (
             <button
@@ -178,20 +176,17 @@ export function JobsTab() {
             const userApp = applications.find(a => a.job_id === jid);
             const isExpanded = expandedJobId === jid;
 
-            // ДИНАМИЧЕСКИЕ ЭТАПЫ (Извлекаем из вакансии, либо дефолтные)
             const jobStages = job.pipeline_stages && job.pipeline_stages.length > 0
               ? job.pipeline_stages
               : ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED'];
 
             const normalizedStatus = userApp ? getStatusNormalized(userApp.status) : '';
-            // Находим индекс текущего статуса в массиве этапов вакансии
             const stageIndex = jobStages.indexOf(normalizedStatus);
             const currentStageIdx = stageIndex >= 0 ? stageIndex : 0;
 
             const isRejected = normalizedStatus.includes('REJECT') || normalizedStatus.includes('FAIL');
             const isOffer = normalizedStatus.includes('OFFER') || normalizedStatus.includes('HIRE') || normalizedStatus.includes('ACCEPT');
 
-            // Убираем этап отказа из визуального прогресс-бара, чтобы он не рисовался как последняя "успешная" точка
             const displayStages = jobStages.filter((s: string) => !s.includes('REJECT') && !s.includes('FAIL'));
 
             return (
@@ -216,7 +211,6 @@ export function JobsTab() {
                         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Full-time
                       </span>
-                      {/* БЕЙДЖ ГРЕЙДА */}
                       {job.level && (
                         <span className="flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md font-bold uppercase tracking-widest text-[9px]">
                           {job.level}
@@ -251,7 +245,6 @@ export function JobsTab() {
                   </div>
                 </div>
 
-                {/* --- ДИНАМИЧЕСКИЙ ПРОГРЕСС-БАР --- */}
                 {userApp && (
                   <div className="px-6 md:px-12 py-8 border-t border-gray-100 bg-gray-50/50 relative overflow-x-auto custom-scrollbar">
                     <div className="flex justify-between items-center relative min-w-[500px] max-w-3xl mx-auto">

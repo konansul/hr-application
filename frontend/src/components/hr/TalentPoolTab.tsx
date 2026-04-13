@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authApi } from '../api';
+import { authApi } from '../../api';
 
 interface CandidateBasic {
   user_id: string;
@@ -13,7 +13,6 @@ interface CandidateBasic {
   work_preference: string;
 }
 
-// Компонент Pill (как в HistoryTab) для красивых плашек в модалке
 const Pill = ({ label, value, color = 'gray' }: { label: string; value: string | number; color?: 'gray' | 'emerald' | 'blue' | 'purple' }) => {
   const colorStyles = {
     gray: 'bg-gray-50 border-gray-200 text-gray-700',
@@ -42,7 +41,6 @@ export function TalentPoolTab() {
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Загрузка списка кандидатов
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
@@ -59,7 +57,6 @@ export function TalentPoolTab() {
     fetchCandidates();
   }, []);
 
-  // 2. Логика поиска
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredCandidates(candidates);
@@ -74,7 +71,6 @@ export function TalentPoolTab() {
     setFilteredCandidates(filtered);
   }, [searchQuery, candidates]);
 
-  // 3. Загрузка детального профиля для модального окна
   useEffect(() => {
     if (!selectedCandidateId) {
       setSelectedProfile(null);
@@ -96,13 +92,11 @@ export function TalentPoolTab() {
     fetchProfile();
   }, [selectedCandidateId]);
 
-  // Закрытие модалки
   const closeModal = () => setSelectedCandidateId(null);
 
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
-      {/* Шапка */}
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Talent Pool Explorer</h2>
@@ -118,10 +112,8 @@ export function TalentPoolTab() {
         </div>
       )}
 
-      {/* Основной контейнер со списком */}
       <div className="bg-white border border-gray-200 rounded-3xl shadow-sm flex flex-col overflow-hidden">
 
-        {/* Поиск */}
         <div className="p-6 border-b border-gray-100 bg-gray-50/50">
           <div className="relative">
             <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,7 +129,6 @@ export function TalentPoolTab() {
           </div>
         </div>
 
-        {/* Список кандидатов */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-3">
           {isLoading ? (
             <div className="p-12 text-center flex flex-col items-center justify-center gap-3 text-gray-400">
@@ -151,12 +142,10 @@ export function TalentPoolTab() {
                 onClick={() => setSelectedCandidateId(c.person_id)}
                 className="w-full text-left p-5 rounded-2xl transition-all duration-200 border bg-white border-gray-200 hover:border-gray-400 hover:shadow-md flex items-center gap-6 group"
               >
-                {/* Аватарка (инициалы) */}
                 <div className="w-14 h-14 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                   {c.first_name?.[0] || '?'}
                 </div>
 
-                {/* Инфо */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
                     {c.first_name || c.last_name ? `${c.first_name} ${c.last_name}` : 'Unknown Candidate'}
@@ -172,7 +161,6 @@ export function TalentPoolTab() {
                   </div>
                 </div>
 
-                {/* Скиллы */}
                 <div className="hidden md:flex flex-wrap gap-2 justify-end w-1/3 shrink-0">
                   {c.top_skills?.map((skill, idx) => (
                     <span key={idx} className="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-semibold tracking-wide border border-gray-200">
@@ -191,7 +179,6 @@ export function TalentPoolTab() {
         </div>
       </div>
 
-      {/* МОДАЛЬНОЕ ОКНО ПРОФИЛЯ */}
       {selectedCandidateId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in" onClick={closeModal}>
           <div
@@ -199,7 +186,6 @@ export function TalentPoolTab() {
             onClick={e => e.stopPropagation()} // Предотвращаем закрытие при клике внутри модалки
           >
 
-            {/* Header модалки */}
             <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center font-bold shadow-sm">
@@ -220,7 +206,6 @@ export function TalentPoolTab() {
               </button>
             </div>
 
-            {/* Тело модалки */}
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white space-y-8">
               {isProfileLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
@@ -229,7 +214,6 @@ export function TalentPoolTab() {
                 </div>
               ) : selectedProfile ? (
                 <>
-                  {/* Плашки с контактами */}
                   <div className="flex flex-wrap gap-4 border-b border-gray-100 pb-6">
                     {selectedProfile.personal_info?.email && <Pill label="Email" value={selectedProfile.personal_info.email} color="gray" />}
                     {selectedProfile.personal_info?.phone && <Pill label="Phone" value={selectedProfile.personal_info.phone} color="gray" />}
@@ -237,7 +221,6 @@ export function TalentPoolTab() {
                     {selectedProfile.personal_info?.work_preference && <Pill label="Preference" value={selectedProfile.personal_info.work_preference} color="emerald" />}
                   </div>
 
-                  {/* Summary */}
                   {selectedProfile.personal_info?.summary && (
                     <div>
                       <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -250,9 +233,7 @@ export function TalentPoolTab() {
                     </div>
                   )}
 
-                  {/* Секция Experience и Skills */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Experience */}
                     {selectedProfile.experience?.length > 0 && (
                       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                         <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -272,7 +253,6 @@ export function TalentPoolTab() {
                       </div>
                     )}
 
-                    {/* Skills */}
                     {selectedProfile.skills?.length > 0 && (
                       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                         <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -290,7 +270,6 @@ export function TalentPoolTab() {
                     )}
                   </div>
 
-                  {/* WORK REFERENCES (Рекомендации) */}
                   {selectedProfile.references?.length > 0 && (
                     <div className="bg-purple-50/50 p-6 rounded-2xl border border-purple-100">
                       <h4 className="text-[11px] font-bold text-purple-600 uppercase tracking-widest mb-4 flex items-center gap-2">

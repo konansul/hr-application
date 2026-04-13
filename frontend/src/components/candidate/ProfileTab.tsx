@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { documentsApi, authApi } from '../api';
+import { documentsApi, authApi } from '../../api';
 
 export function ProfileTab() {
   const [file, setFile] = useState<File | null>(null);
@@ -35,14 +35,14 @@ export function ProfileTab() {
     skills: [],
     languages: [],
     certifications: [],
-    references: [] // <-- ДОБАВЛЕН МАССИВ ДЛЯ РЕКОМЕНДАЦИЙ
+    references: []
   });
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
-  const [isEditingReferences, setIsEditingReferences] = useState(false); // <-- СТЕЙТ ДЛЯ РЕДАКТИРОВАНИЯ
+  const [isEditingReferences, setIsEditingReferences] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,7 +58,6 @@ export function ProfileTab() {
         setResumeVersions(docs);
 
         if (savedProfile && savedProfile.profile_data && Object.keys(savedProfile.profile_data).length > 0) {
-          // Убедимся, что массив references существует, даже если его не было в старом профиле
           setProfileData({
             ...savedProfile.profile_data,
             references: savedProfile.profile_data.references || []
@@ -106,7 +105,7 @@ export function ProfileTab() {
           education: response.parsed_data.education || profileData.education,
           languages: response.parsed_data.languages || profileData.languages,
           certifications: response.parsed_data.certifications || profileData.certifications,
-          references: profileData.references // Оставляем старые рекомендации, так как из резюме они обычно не парсятся
+          references: profileData.references
         };
 
         setProfileData(updatedProfile);
@@ -214,10 +213,8 @@ export function ProfileTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-        {/* LEFT COLUMN: Profile Sections */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* PERSONAL INFO */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -338,7 +335,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* WORK EXPERIENCE */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -419,7 +415,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* EDUCATION */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -496,7 +491,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* WORK REFERENCES (НОВЫЙ БЛОК) */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -571,7 +565,6 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* SKILLS & EXPERTISE */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50 min-h-[64px]">
               <div className="flex items-center gap-3">
@@ -625,7 +618,6 @@ export function ProfileTab() {
 
         </div>
 
-        {/* RIGHT COLUMN: Summary & Resume Library */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 border border-indigo-100 shadow-sm">

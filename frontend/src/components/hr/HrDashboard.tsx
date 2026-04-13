@@ -5,8 +5,8 @@ import { KanbanTab } from './KanbanTab';
 import { HistoryTab } from './HistoryTab';
 import { HrProfileTab } from './HrProfileTab';
 import { TalentPoolTab } from './TalentPoolTab';
-import { useStore } from '../store';
-import { authApi } from '../api';
+import { useStore } from '../../store';
+import { authApi } from '../../api';
 
 export function HrDashboard() {
   const {

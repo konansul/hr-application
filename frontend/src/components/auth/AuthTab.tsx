@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { authApi } from '../api';
+import { authApi } from '../../api';
 
 interface User {
   email: string;

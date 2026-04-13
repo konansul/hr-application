@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { jobsApi } from '../api';
-import { useStore } from '../store';
+import { jobsApi } from '../../api';
+import { useStore } from '../../store';
 
 interface ScreeningQuestion {
   id: string;
@@ -25,7 +25,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
-  const [draftLevel, setDraftLevel] = useState('Middle'); // <-- Стейт для нового драфта
+  const [draftLevel, setDraftLevel] = useState('Middle');
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
@@ -104,7 +104,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
 
     try {
-      // Отправляем level при создании
       const newJob = await jobsApi.create(draftTitle, draftDescription, 'Global', draftLevel);
       setCurrentJob(newJob);
       setActiveTitle(newJob.title);
@@ -191,12 +190,11 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setIsSaving(true);
     setError(null);
     try {
-      // Отправляем level при обновлении
       const updatedJob = await jobsApi.update(currentJob.id, {
          title: activeTitle,
          description: activeDescription,
          region: region,
-         level: activeLevel, // <-- СОХРАНЯЕМ LEVEL
+         level: activeLevel,
          screening_questions: activeQuestions
       });
       setCurrentJob(updatedJob);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authApi, jobsApi, screeningApi } from '../api';
+import { authApi, jobsApi, screeningApi } from '../../api';
 
 const TIMEZONES = [
   'UTC', 'UTC+1', 'UTC+2', 'UTC+3', 'UTC+4', 'UTC+5', 'UTC+6',

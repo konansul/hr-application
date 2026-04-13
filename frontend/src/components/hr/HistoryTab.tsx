@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { screeningApi } from '../api';
-import { useStore } from '../store';
+import { screeningApi } from '../../api';
+import { useStore } from '../../store';
 
 const Pill = ({ label, value, color = 'gray' }: { label: string; value: string | number; color?: 'gray' | 'emerald' | 'red' | 'amber' | 'blue' }) => {
   const colorStyles = {
