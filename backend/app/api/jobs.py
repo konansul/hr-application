@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -14,6 +15,8 @@ from backend.app.api.helpers.ownership import get_current_user
 from backend.app.pipeline import run_job_refinement
 
 router = APIRouter()
+
+DEFAULT_PIPELINE_STAGES = ["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJECTED"]
 
 
 @router.post("/jobs/refine", response_model=JobRefineResponse)
@@ -59,6 +62,12 @@ def create_job(
     if hasattr(job, "screening_questions") and job.screening_questions:
         screening_questions_str = json.dumps(job.screening_questions, ensure_ascii=False)
 
+    # Определяем этапы воронки (если не переданы - берем дефолтные)
+    stages = getattr(job, "pipeline_stages", None)
+    if not stages:
+        stages = DEFAULT_PIPELINE_STAGES
+    pipeline_stages_str = json.dumps(stages, ensure_ascii=False)
+
     db_job = Job(
         job_id=new_id("job"),
         org_id=org_id,
@@ -66,7 +75,9 @@ def create_job(
         title=job.title,
         description=job.description,
         region=getattr(job, "region", None),
-        screening_questions_json=screening_questions_str
+        level=getattr(job, "level", None), # Сохраняем level
+        screening_questions_json=screening_questions_str,
+        pipeline_stages_json=pipeline_stages_str
     )
 
     db.add(db_job)
@@ -85,7 +96,7 @@ def create_job(
             job_id=db_job.job_id,
             person_id=person.person_id,
             resume_id=resume.resume_id if resume else None,
-            status="Applied"
+            status=stages[0] if stages else "APPLIED"
         )
         db.add(new_app)
 
@@ -104,33 +115,34 @@ def create_job(
         title=db_job.title,
         description=db_job.description,
         region=db_job.region,
+        level=db_job.level, # Отдаем level
         screening_questions=qs,
+        pipeline_stages=stages,
         owner_user_id=db_job.owner_user_id
     )
 
 
 @router.get("/jobs", response_model=list[JobOut])
 def list_jobs(
+        level: Optional[str] = None, # Добавлена фильтрация
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
+    query = db.query(Job)
+
     if current_user.role == "hr":
         if not current_user.org_id:
             return []
-        jobs = (
-            db.query(Job)
-            .filter(Job.org_id == current_user.org_id)
-            .order_by(Job.created_at.desc())
-            .all()
-        )
+        query = query.filter(Job.org_id == current_user.org_id)
     else:
-        # Candidates only see HR-published jobs (org_id is set); candidate-tracked jobs live in Job Applications tab
-        jobs = (
-            db.query(Job)
-            .filter(Job.org_id.isnot(None))
-            .order_by(Job.created_at.desc())
-            .all()
-        )
+        # Candidates only see HR-published jobs
+        query = query.filter(Job.org_id.isnot(None))
+
+    # Фильтруем по грейду, если параметр передан
+    if level and level != 'All':
+        query = query.filter(Job.level == level)
+
+    jobs = query.order_by(Job.created_at.desc()).all()
 
     results = []
     for job in jobs:
@@ -141,12 +153,21 @@ def list_jobs(
             except:
                 qs = []
 
+        stages = DEFAULT_PIPELINE_STAGES
+        if job.pipeline_stages_json:
+            try:
+                stages = json.loads(job.pipeline_stages_json)
+            except:
+                pass
+
         results.append(JobOut(
             id=job.job_id,
             title=job.title,
             description=job.description,
             region=job.region,
+            level=job.level, # Отдаем level
             screening_questions=qs,
+            pipeline_stages=stages,
             owner_user_id=job.owner_user_id
         ))
     return results
@@ -174,12 +195,21 @@ def get_job(
         except:
             qs = []
 
+    stages = DEFAULT_PIPELINE_STAGES
+    if job.pipeline_stages_json:
+        try:
+            stages = json.loads(job.pipeline_stages_json)
+        except:
+            pass
+
     return JobOut(
         id=job.job_id,
         title=job.title,
         description=job.description,
         region=job.region,
+        level=job.level, # Отдаем level
         screening_questions=qs,
+        pipeline_stages=stages,
         owner_user_id=job.owner_user_id
     )
 
@@ -224,15 +254,27 @@ def update_job(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    job.title = job_update.title
-    job.description = job_update.description
+    # ИСПОЛЬЗУЕМ БЕЗОПАСНОЕ ИЗВЛЕЧЕНИЕ ДАННЫХ ИЗ PYDANTIC
+    update_data = job_update.model_dump(exclude_unset=True)
 
-    if job_update.region is not None:
-        job.region = job_update.region
+    if "title" in update_data:
+        job.title = update_data["title"]
+    if "description" in update_data:
+        job.description = update_data["description"]
+    if "region" in update_data:
+        job.region = update_data["region"]
+    if "level" in update_data:
+        job.level = update_data["level"]
 
-    if job_update.screening_questions is not None:
+    if "screening_questions" in update_data and update_data["screening_questions"] is not None:
         job.screening_questions_json = json.dumps(
-            job_update.screening_questions,
+            update_data["screening_questions"],
+            ensure_ascii=False
+        )
+
+    if "pipeline_stages" in update_data and update_data["pipeline_stages"] is not None:
+        job.pipeline_stages_json = json.dumps(
+            update_data["pipeline_stages"],
             ensure_ascii=False
         )
 
@@ -246,11 +288,20 @@ def update_job(
         except:
             qs = []
 
+    stages = DEFAULT_PIPELINE_STAGES
+    if job.pipeline_stages_json:
+        try:
+            stages = json.loads(job.pipeline_stages_json)
+        except:
+            pass
+
     return JobOut(
         id=job.job_id,
         title=job.title,
         description=job.description,
         region=job.region,
+        level=job.level,
         screening_questions=qs,
+        pipeline_stages=stages,
         owner_user_id=job.owner_user_id
     )

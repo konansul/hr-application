@@ -55,6 +55,25 @@ export function HistoryTab() {
            r.job_title?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  // --- ВЫЧИСЛЕНИЕ СТАТИСТИКИ ---
+  const totalCandidates = results.length;
+
+  const totalOffers = results.filter(r => {
+    const decision = r.screening?.decision?.toLowerCase();
+    const status = r.status?.toUpperCase() || '';
+    return ['hire', 'yes', 'strong_yes'].includes(decision) || status.includes('OFFER');
+  }).length;
+
+  const totalRejections = results.filter(r => {
+    const decision = r.screening?.decision?.toLowerCase();
+    const status = r.status?.toUpperCase() || '';
+    return decision === 'no' || status.includes('REJECT');
+  }).length;
+
+  const averageScore = totalCandidates > 0
+    ? Math.round(results.reduce((acc, r) => acc + (r.screening?.score || 0), 0) / totalCandidates)
+    : 0;
+
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
@@ -64,6 +83,32 @@ export function HistoryTab() {
           <p className="text-sm text-gray-500">
             A complete log of all candidates screened against your organization's job descriptions.
           </p>
+        </div>
+      </div>
+
+      {/* --- ВИДЖЕТЫ СТАТИСТИКИ --- */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-center">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1">Total Candidates</span>
+          <span className="text-3xl font-bold text-gray-900">{totalCandidates}</span>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-center">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1">Average Score</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-blue-600">{averageScore}</span>
+            <span className="text-sm font-semibold text-blue-600/50">/ 100</span>
+          </div>
+        </div>
+
+        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Offers / Hired</span>
+          <span className="text-3xl font-bold text-emerald-700">{totalOffers}</span>
+        </div>
+
+        <div className="bg-red-50 border border-red-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-red-600 mb-1">Rejected</span>
+          <span className="text-3xl font-bold text-red-700">{totalRejections}</span>
         </div>
       </div>
 
@@ -171,7 +216,6 @@ export function HistoryTab() {
         </div>
       </div>
 
-      { }
       {selectedResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">

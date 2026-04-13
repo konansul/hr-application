@@ -8,6 +8,8 @@ interface AppState {
   globalJobDescription: string;
   globalJobId: string;
   globalJobTitle: string;
+  // ИСПРАВЛЕНО: теперь это массив строк, а не просто пустой массив
+  globalJobStages: string[];
   globalBatchResults: any[];
   isSidebarOpen: boolean;
   setIsLoggedIn: (status: boolean) => void;
@@ -16,6 +18,7 @@ interface AppState {
   setGlobalJobDescription: (desc: string) => void;
   setGlobalJobId: (id: string) => void;
   setGlobalJobTitle: (title: string) => void;
+  setGlobalJobStages: (stages: string[]) => void;
   setGlobalBatchResults: (results: any[]) => void;
   setIsSidebarOpen: (isOpen: boolean) => void;
   logoutStore: () => void;
@@ -30,6 +33,7 @@ export const useStore = create<AppState>()(
       globalJobDescription: '',
       globalJobId: '',
       globalJobTitle: '',
+      globalJobStages: [],
       globalBatchResults: [],
       isSidebarOpen: true,
       setIsLoggedIn: (status) => set({ isLoggedIn: status }),
@@ -38,6 +42,8 @@ export const useStore = create<AppState>()(
       setGlobalJobDescription: (desc) => set({ globalJobDescription: desc }),
       setGlobalJobId: (id) => set({ globalJobId: id }),
       setGlobalJobTitle: (title) => set({ globalJobTitle: title }),
+      // ИСПРАВЛЕНО: добавлена реализация сеттера
+      setGlobalJobStages: (stages) => set({ globalJobStages: stages }),
       setGlobalBatchResults: (results) => set({ globalBatchResults: results }),
       setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
       logoutStore: () => set({
@@ -47,6 +53,7 @@ export const useStore = create<AppState>()(
         globalJobDescription: '',
         globalJobId: '',
         globalJobTitle: '',
+        globalJobStages: [], // Сброс при выходе
         globalBatchResults: []
       }),
     }),
@@ -57,7 +64,8 @@ export const useStore = create<AppState>()(
         userRole: state.userRole,
         globalJobDescription: state.globalJobDescription,
         globalJobId: state.globalJobId,
-        globalJobTitle: state.globalJobTitle
+        globalJobTitle: state.globalJobTitle,
+        globalJobStages: state.globalJobStages
       }),
     }
   )

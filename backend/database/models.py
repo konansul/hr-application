@@ -5,15 +5,6 @@ from sqlalchemy.sql import func
 from backend.database.db import Base
 
 
-class ApplicationStatus(enum.Enum):
-    APPLIED = "Applied"
-    SHORTLISTED = "Shortlisted"
-    HR_INTERVIEW = "HR Interview"
-    TECH_INTERVIEW = "Tech Interview"
-    OFFER = "Offer"
-    REJECTED = "Rejected"
-
-
 class ResumeSourceType(enum.Enum):
     PROFILE = "profile"
     CV_UPLOAD = "cv_upload"
@@ -116,9 +107,11 @@ class Job(Base):
 
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
+    level = Column(String(32), nullable=True, index=True)
 
     region = Column(String(64), nullable=True)
     screening_questions_json = Column(Text, nullable=True)
+    pipeline_stages_json = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -136,7 +129,7 @@ class Application(Base):
     person_id = Column(String(64), ForeignKey("persons.person_id"), nullable=False, index=True)
     resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=True, index=True)
 
-    status = Column(Enum(ApplicationStatus), nullable=False, default=ApplicationStatus.APPLIED)
+    status = Column(String(64), nullable=False, default="APPLIED")
     answers_to_screening_json = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

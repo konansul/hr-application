@@ -92,6 +92,8 @@ class JobUpdate(BaseModel):
     description: str
     region: Optional[str] = None
     screening_questions: Optional[List[Any]] = None
+    level: Optional[str] = None
+    pipeline_stages: Optional[List[str]] = None
 
 
 class ApplicationStatusUpdate(BaseModel):

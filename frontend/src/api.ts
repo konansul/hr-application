@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+//const BASE_URL =  'http://127.0.0.1:8000'
 const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
 
 export const apiClient = axios.create({
@@ -67,11 +68,12 @@ export const authApi = {
 };
 
 export const jobsApi = {
-  create: async (title: string, description: string, region?: string, screening_questions?: string[]) => {
+  create: async (title: string, description: string, region?: string, level?: string, screening_questions?: string[]) => {
     const response = await apiClient.post('/jobs', {
       title,
       description,
       region,
+      level,
       screening_questions
     });
     return response.data;
@@ -96,7 +98,7 @@ export const jobsApi = {
     return response.data;
   },
 
-  update: async (jobId: string, data: { title: string, description: string, region?: string, screening_questions?: any }) => {
+  update: async (jobId: string, data: { title: string, description: string, region?: string, level?: string, screening_questions?: any, pipeline_stages?: string[] }) => {
     const response = await apiClient.put(`/jobs/${jobId}`, data);
     return response.data;
   },
