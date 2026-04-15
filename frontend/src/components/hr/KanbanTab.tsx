@@ -16,23 +16,37 @@ export function KanbanTab() {
   const {
     globalJobId,
     globalJobTitle,
-    globalJobDescription,
     activeTab,
     globalJobStages,
     setGlobalJobStages,
-    userRole
+    setGlobalJobId,
+    setGlobalJobTitle, // <-- нужно для смены вакансии
   } = useStore();
 
   const [candidates, setCandidates] = useState<CandidateCard[]>([]);
+  const [jobsList, setJobsList] = useState<{id: string, title: string}[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Стейт для модалки редактирования колонок
-  const [showSettings, setShowSettings] = useState(false);
-  const [editedStages, setEditedStages] = useState<string[]>([]);
-  const [newStageName, setNewStageName] = useState('');
-  const [isSavingStages, setIsSavingStages] = useState(false);
+  // Стейты фильтрации (пока UI заглушки, но можно привязать к массиву)
+  const [filterDecision, setFilterDecision] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // 1. Загрузка списка всех вакансий для выпадающего списка в шапке
+  useEffect(() => {
+    if (activeTab !== 'kanban') return;
+    const fetchJobsList = async () => {
+      try {
+        const jobs = await jobsApi.list();
+        setJobsList(jobs.map((j: any) => ({ id: j.id, title: j.title })));
+      } catch (err) {
+        console.error("Failed to load jobs list", err);
+      }
+    };
+    fetchJobsList();
+  }, [activeTab]);
+
+  // 2. Оригинальная логика загрузки карточек для активной вакансии
   useEffect(() => {
     if (!globalJobId || activeTab !== 'kanban') {
       if (!globalJobId) setCandidates([]);
@@ -73,6 +87,16 @@ export function KanbanTab() {
 
     fetchData();
   }, [globalJobId, activeTab, setGlobalJobStages]);
+
+  // 3. Обработчик смены вакансии из селектора
+  const handleJobChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    const selectedJob = jobsList.find(j => j.id === selectedId);
+    if (selectedJob) {
+      setGlobalJobId(selectedId);
+      setGlobalJobTitle(selectedJob.title);
+    }
+  };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, id: string) => {
     e.dataTransfer.setData('text/plain', id);
@@ -117,56 +141,7 @@ export function KanbanTab() {
     }
   };
 
-  const openSettings = () => {
-    setEditedStages([...globalJobStages]);
-    setNewStageName('');
-    setShowSettings(true);
-  };
-
-  const saveSettings = async () => {
-    if (editedStages.length === 0) return;
-    setIsSavingStages(true);
-    try {
-      await jobsApi.update(globalJobId, {
-        title: globalJobTitle,
-        description: globalJobDescription,
-        pipeline_stages: editedStages
-      });
-      setGlobalJobStages(editedStages);
-      setShowSettings(false);
-    } catch (err) {
-      console.error("Failed to update stages", err);
-    } finally {
-      setIsSavingStages(false);
-    }
-  };
-
-  const addStage = () => {
-    const formatted = newStageName.trim().toUpperCase().replace(/\s+/g, '_');
-    if (formatted && !editedStages.includes(formatted)) {
-      setEditedStages([...editedStages, formatted]);
-      setNewStageName('');
-    }
-  };
-
-  const moveStageUp = (index: number) => {
-    if (index === 0) return;
-    const newStages = [...editedStages];
-    const temp = newStages[index - 1];
-    newStages[index - 1] = newStages[index];
-    newStages[index] = temp;
-    setEditedStages(newStages);
-  };
-
-  const moveStageDown = (index: number) => {
-    if (index === editedStages.length - 1) return;
-    const newStages = [...editedStages];
-    const temp = newStages[index + 1];
-    newStages[index + 1] = newStages[index];
-    newStages[index] = temp;
-    setEditedStages(newStages);
-  };
-
+  // ОРИГИНАЛЬНЫЙ ДИЗАЙН КОЛОНОК
   const getColumnAccent = (status: string, index: number) => {
     const s = status.toUpperCase();
     if (s.includes('APPL')) return { text: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400', badge: 'bg-gray-100 text-gray-600 border-gray-200' };
@@ -184,6 +159,7 @@ export function KanbanTab() {
     return palettes[index % palettes.length];
   };
 
+  // ОРИГИНАЛЬНЫЙ ДИЗАЙН БЕЙДЖЕЙ
   const getScoreBadge = (score: number) => {
     if (score >= 80) return 'bg-emerald-50 border-emerald-200 text-emerald-700';
     if (score >= 50) return 'bg-amber-50 border-amber-200 text-amber-700';
@@ -197,14 +173,43 @@ export function KanbanTab() {
     return 'bg-gray-100 border-gray-200 text-gray-600';
   };
 
-  if (!globalJobId) {
+  // Простая фильтрация (чтобы UI элементы работали)
+  const filteredCandidates = candidates.filter(c => {
+    if (filterDecision !== 'All') {
+      const isYes = c.decision?.toLowerCase() === 'hire' || c.decision?.toLowerCase() === 'yes' || c.decision?.toLowerCase() === 'strong_yes';
+      const isNo = c.decision?.toLowerCase() === 'reject' || c.decision?.toLowerCase() === 'no';
+      if (filterDecision === 'Yes' && !isYes) return false;
+      if (filterDecision === 'No' && !isNo) return false;
+      if (filterDecision === 'Maybe' && (isYes || isNo)) return false;
+    }
+    if (searchQuery && !c.filename.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  });
+
+  const safeCandidates = filteredCandidates.map(c =>
+    globalJobStages.includes(c.status) ? c : { ...c, status: globalJobStages[0] || 'APPLIED' }
+  );
+
+  // Состояние, если ни одна работа не выбрана (но теперь с селектором, чтобы ее выбрать прямо тут!)
+  if (!globalJobId && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 border border-amber-100 rounded-2xl max-w-2xl mx-auto mt-10">
         <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
         <h3 className="text-lg font-medium text-amber-900 mb-1">No Job Selected</h3>
-        <p className="text-sm text-amber-700">Please select an active Job Description in the "Job Descriptions" tab to view the Kanban board.</p>
+        <p className="text-sm text-amber-700 mb-6">Select a job from the dropdown below to view its Kanban board.</p>
+
+        <select
+          onChange={handleJobChange}
+          value={globalJobId || ''}
+          className="w-full max-w-xs px-4 py-2.5 text-sm bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none shadow-sm cursor-pointer"
+        >
+          <option value="" disabled>-- Select a Job --</option>
+          {jobsList.map(job => (
+             <option key={job.id} value={job.id}>{job.title}</option>
+          ))}
+        </select>
       </div>
     );
   }
@@ -217,126 +222,72 @@ export function KanbanTab() {
     );
   }
 
-  const safeCandidates = candidates.map(c =>
-    globalJobStages.includes(c.status) ? c : { ...c, status: globalJobStages[0] || 'APPLIED' }
-  );
-
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 h-[calc(100vh-140px)] flex flex-col relative">
 
-      {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm px-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-900">Configure Pipeline Stages</h3>
-              <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newStageName}
-                  onChange={(e) => setNewStageName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addStage()}
-                  placeholder="e.g. TEST TASK"
-                  className="flex-1 rounded-xl border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                />
-                <button
-                  onClick={addStage}
-                  disabled={!newStageName.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-
-              <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                {editedStages.map((stage, idx) => (
-                  <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 border border-gray-200 rounded-xl group">
-                    <span className="text-xs font-bold text-gray-700 tracking-wider uppercase">{stage.replace(/_/g, ' ')}</span>
-                    <div className="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => moveStageUp(idx)}
-                        disabled={idx === 0}
-                        className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30"
-                        title="Move Up"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                      </button>
-                      <button
-                        onClick={() => moveStageDown(idx)}
-                        disabled={idx === editedStages.length - 1}
-                        className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30"
-                        title="Move Down"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                      <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                      <button
-                        onClick={() => setEditedStages(editedStages.filter((_, i) => i !== idx))}
-                        className="text-red-400 hover:text-red-600 p-1"
-                        title="Remove stage"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {editedStages.length === 0 && (
-                  <p className="text-xs text-red-500 text-center py-4">Pipeline must have at least one stage.</p>
-                )}
-              </div>
-            </div>
-
-            <div className="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-              <button onClick={() => setShowSettings(false)} className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-                Cancel
-              </button>
-              <button
-                onClick={saveSettings}
-                disabled={editedStages.length === 0 || isSavingStages}
-                className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all"
-              >
-                {isSavingStages ? 'Saving...' : 'Save Pipeline'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex justify-between items-end shrink-0">
+      {/* --- НОВАЯ ВЕРХНЯЯ ЧАСТЬ: ЗАГОЛОВОК, ФИЛЬТРЫ, СЕЛЕКТОР ВАКАНСИИ --- */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-gray-100 pb-4 shrink-0">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Recruitment Pipeline</h2>
-          <p className="text-sm text-gray-500">Drag and drop candidates to update their hiring stage.</p>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-3">Recruitment Pipeline</h2>
+
+          {/* НОВЫЕ ФИЛЬТРЫ ИЗ ТВОЕГО ТРЕБОВАНИЯ */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-1">Filter Candidates:</span>
+
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none w-48"
+            />
+
+            <select
+              value={filterDecision}
+              onChange={e => setFilterDecision(e.target.value)}
+              className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none cursor-pointer"
+            >
+              <option value="All">All Decisions</option>
+              <option value="Yes">Hire / Yes</option>
+              <option value="No">Reject / No</option>
+              <option value="Maybe">Maybe</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {userRole === 'hr' && (
-            <button
-              onClick={openSettings}
-              className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl shadow-sm px-4 py-2.5 transition-colors text-sm font-semibold"
-            >
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              Configure Stages
-            </button>
-          )}
-
           {isSyncing && (
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl animate-pulse">
               <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
               Updating...
             </div>
           )}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2.5 text-right">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-0.5">Active Job</span>
-            <span className="text-sm font-bold text-gray-900 truncate max-w-[200px] block">{globalJobTitle || 'Unknown Job'}</span>
+
+          {/* НОВЫЙ СЕЛЕКТОР АКТИВНОЙ ВАКАНСИИ (Явный вид кнопки/селектора) */}
+          <div className="flex items-center bg-white border border-gray-200 hover:border-gray-300 rounded-xl shadow-sm px-3 py-2 transition-colors focus-within:ring-2 focus-within:ring-gray-900">
+             <div className="flex flex-col mr-2">
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">Active Job Board</span>
+                 <select
+                   value={globalJobId || ''}
+                   onChange={handleJobChange}
+                   className="text-sm font-bold text-gray-900 bg-transparent border-none outline-none cursor-pointer appearance-none p-0 min-w-[200px] focus:ring-0"
+                 >
+                   {jobsList.map(job => (
+                     <option key={job.id} value={job.id}>{job.title}</option>
+                   ))}
+                 </select>
+             </div>
+             {/* Иконка шеврона (стрелочки вниз), чтобы было понятно, что это выпадающий список */}
+             <div className="pointer-events-none text-gray-400 pl-2 border-l border-gray-100">
+               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+               </svg>
+             </div>
           </div>
         </div>
       </div>
 
+      {/* --- ОРИГИНАЛЬНЫЙ ДИЗАЙН ДОСКИ (Не тронут) --- */}
       <div className="flex gap-4 h-full min-h-0 overflow-x-auto pb-4 custom-scrollbar items-start">
         {globalJobStages.map((columnStatus, index) => {
           const columnCandidates = safeCandidates.filter(c => c.status === columnStatus);
@@ -375,7 +326,7 @@ export function KanbanTab() {
                         {candidate.score}% match
                       </span>
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getDecisionBadge(candidate.decision)}`}>
-                        {candidate.decision?.replace(/_/g, ' ')}
+                        {candidate.decision?.replace(/_/g, ' ') || 'MAYBE'}
                       </span>
                     </div>
 

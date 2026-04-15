@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -21,36 +21,42 @@ def get_profile(
     if not person:
         raise HTTPException(status_code=404, detail="Person profile not found")
 
+    # Формируем profile_data из JSON поля
     if person.profile_json:
-        return {"profile_data": json.loads(person.profile_json)}
+        profile_data = json.loads(person.profile_json)
+    else:
+        profile_data = {
+            "personal_info": {
+                "first_name": person.first_name or "",
+                "last_name": person.last_name or "",
+                "email": current_user.email or "",
+                "phone": person.phone or "",
+                "city": person.city or "",
+                "country": person.country or "",
+                "nationality": "",
+                "visa_status": "UNKNOWN",
+                "work_preference": "UNKNOWN",
+                "open_to_remote": False,
+                "open_to_relocation": False,
+                "linkedin_url": "",
+                "github_url": "",
+                "portfolio_url": "",
+                "summary": ""
+            },
+            "experience": [],
+            "education": [],
+            "skills": [],
+            "languages": [],
+            "certifications": [],
+            "references": []
+        }
 
-    default_profile_data = {
-        "personal_info": {
-            "first_name": person.first_name or "",
-            "last_name": person.last_name or "",
-            "email": current_user.email or "",
-            "phone": person.phone or "",
-            "city": person.city or "",
-            "country": person.country or "",
-            "nationality": "",
-            "visa_status": "UNKNOWN",
-            "work_preference": "UNKNOWN",
-            "open_to_remote": False,
-            "open_to_relocation": False,
-            "linkedin_url": "",
-            "github_url": "",
-            "portfolio_url": "",
-            "summary": ""
-        },
-        "experience": [],
-        "education": [],
-        "skills": [],
-        "languages": [],
-        "certifications": [],
-        "references": []
+    # Возвращаем profile_data ВМЕСТЕ с новыми полями приватности из базы
+    return {
+        "profile_data": profile_data,
+        "visibility_level": person.visibility_level,
+        "public_url_slug": person.public_url_slug
     }
-
-    return {"profile_data": default_profile_data}
 
 
 @router.put("/users/me/profile")
@@ -148,11 +154,18 @@ def list_candidates_for_hr(
     if current_user.role != "hr":
         raise HTTPException(status_code=403, detail="Access denied. Only HR can view candidates.")
 
-    candidates_users = db.query(User).filter(User.role == "candidate").all()
+    # ВАЖНО: Фильтруем кандидатов. Показываем только тех, у кого статус 'public'
+    candidates_users = (
+        db.query(User)
+        .join(Person, User.user_id == Person.user_id)
+        .filter(User.role == "candidate")
+        .filter(Person.visibility_level == "public")
+        .all()
+    )
 
     results = []
     for u in candidates_users:
-        person = db.query(Person).filter(Person.user_id == u.user_id).first()
+        person = u.person_profile
         if not person:
             continue
 
@@ -165,7 +178,7 @@ def list_candidates_for_hr(
 
         p_info = profile_data.get("personal_info", {})
         skills = profile_data.get("skills", [])
-        top_skills = [s.get("name") for s in skills[:3]] if skills else []  # Берем топ-3 навыка
+        top_skills = [s.get("name") for s in skills[:3]] if skills else []
 
         results.append({
             "user_id": u.user_id,
@@ -203,3 +216,26 @@ def get_candidate_profile_for_hr(
             pass
 
     return {"profile_data": profile_data}
+
+@router.patch("/me/privacy")
+def update_privacy(
+        privacy_data: dict,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+    if not person:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    if "visibility_level" in privacy_data:
+        person.visibility_level = privacy_data["visibility_level"]
+
+    if "public_url_slug" in privacy_data:
+        person.public_url_slug = privacy_data["public_url_slug"]
+
+    db.commit()
+    return {
+        "status": "success",
+        "visibility_level": person.visibility_level,
+        "public_url_slug": person.public_url_slug
+    }

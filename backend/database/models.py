@@ -63,7 +63,9 @@ class Person(Base):
     profile_json = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-
+    visibility_level = Column(String(32), nullable=False, default="public")
+    shared_with_org_ids_json = Column(Text, nullable=True)
+    public_url_slug = Column(String(128), unique=True, nullable=True, index=True)
     user = relationship("User", back_populates="person_profile")
     resumes = relationship("Resume", back_populates="person")
     applications = relationship("Application", back_populates="person")
@@ -108,7 +110,7 @@ class Job(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     level = Column(String(32), nullable=True, index=True)
-
+    status = Column(String, default="draft")
     region = Column(String(64), nullable=True)
     screening_questions_json = Column(Text, nullable=True)
     pipeline_stages_json = Column(Text, nullable=True)

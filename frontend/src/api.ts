@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
+const BASE_URL = 'http://127.0.0.1:8000'
+//const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -67,6 +68,11 @@ export const authApi = {
 
   getCandidateProfile: async (personId: string) => {
     const response = await apiClient.get(`/hr/candidates/${personId}/profile`);
+    return response.data;
+  },
+
+    updatePrivacy: async (data: { visibility_level?: string; public_url_slug?: string | null }) => {
+    const response = await apiClient.patch('/me/privacy', data);
     return response.data;
   },
 

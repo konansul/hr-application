@@ -15,6 +15,7 @@ export function JobsTab() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const [selectedLevel, setSelectedLevel] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState(''); // Стейт для поиска
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,14 +119,16 @@ export function JobsTab() {
   const getStatusStyles = (status: string) => {
     const s = getStatusNormalized(status);
     if (s.includes('APPL')) return 'bg-gray-100 text-gray-800 border-gray-200';
-    if (s.includes('OFFER') || s.includes('HIRE')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    if (s.includes('OFFER') || s.includes('HIRE') || s.includes('ACCEPT')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     if (s.includes('REJECT') || s.includes('FAIL')) return 'bg-red-100 text-red-800 border-red-200';
     return 'bg-indigo-50 text-indigo-800 border-indigo-200';
   };
 
+  // Фильтрация с учетом поиска и уровня
   const displayedJobs = jobs.filter(job => {
-    if (selectedLevel === 'All') return true;
-    return job.level === selectedLevel;
+    const matchesLevel = selectedLevel === 'All' || job.level === selectedLevel;
+    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesLevel && matchesSearch;
   });
 
   if (loading) {
@@ -142,33 +145,50 @@ export function JobsTab() {
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
       <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.docx,.txt" onChange={handleFileUpload} />
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Explore Jobs </h2>
-          <p className="text-sm text-gray-500">Hello, {user?.email}. Discover your next challenge.</p>
-        </div>
+      {/* ВЕРХНЯЯ СЕКЦИЯ: ПОИСК И ФИЛЬТРАЦИЯ */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 border-b border-gray-100 pb-6">
+        <div className="space-y-4 w-full lg:w-auto">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">Explore Jobs</h2>
+            <p className="text-sm text-gray-500 font-medium">Hello, {user?.email}. Find your next challenge.</p>
+          </div>
 
-        <div className="flex flex-wrap gap-2">
-          {LEVELS.map(level => (
-            <button
-              key={level}
-              onClick={() => setSelectedLevel(level)}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
-                selectedLevel === level 
-                  ? 'bg-gray-900 text-white shadow-sm' 
-                  : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              {level}
-            </button>
-          ))}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Поле поиска */}
+            <div className="relative w-full md:w-72">
+              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search by job title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none transition-all"
+              />
+            </div>
+            {/* Кнопки уровней */}
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+              {LEVELS.map(level => (
+                <button
+                  key={level}
+                  onClick={() => setSelectedLevel(level)}
+                  className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${
+                    selectedLevel === level ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         {displayedJobs.length === 0 ? (
            <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
-             <p className="text-gray-500 font-medium">No jobs found for the selected level.</p>
+             <p className="text-gray-500 font-medium">No jobs found for the selected criteria.</p>
            </div>
         ) : (
           displayedJobs.map((job) => {
@@ -176,18 +196,19 @@ export function JobsTab() {
             const userApp = applications.find(a => a.job_id === jid);
             const isExpanded = expandedJobId === jid;
 
-            const jobStages = job.pipeline_stages && job.pipeline_stages.length > 0
-              ? job.pipeline_stages
-              : ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED'];
-
+            // ЛОГИКА ШАГОВ (ТОЛЬКО ТРИ ШАГА ДЛЯ КАНДИДАТА)
+            const displayStages = ['APPLIED', 'IN_PROGRESS', 'DECISION'];
             const normalizedStatus = userApp ? getStatusNormalized(userApp.status) : '';
-            const stageIndex = jobStages.indexOf(normalizedStatus);
-            const currentStageIdx = stageIndex >= 0 ? stageIndex : 0;
+
+            let currentStageIdx = 0;
+            if (normalizedStatus.includes('OFFER') || normalizedStatus.includes('HIRE') || normalizedStatus.includes('REJECT') || normalizedStatus.includes('FAIL') || normalizedStatus.includes('ACCEPT')) {
+              currentStageIdx = 2; // Decision
+            } else if (normalizedStatus !== '' && !normalizedStatus.includes('APPLIED')) {
+              currentStageIdx = 1; // Любой другой промежуточный статус
+            }
 
             const isRejected = normalizedStatus.includes('REJECT') || normalizedStatus.includes('FAIL');
             const isOffer = normalizedStatus.includes('OFFER') || normalizedStatus.includes('HIRE') || normalizedStatus.includes('ACCEPT');
-
-            const displayStages = jobStages.filter((s: string) => !s.includes('REJECT') && !s.includes('FAIL'));
 
             return (
               <div key={jid} className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
@@ -229,10 +250,8 @@ export function JobsTab() {
 
                   <div className="shrink-0 w-full md:w-auto">
                     {userApp ? (
-                      <div className="flex flex-col items-center md:items-end gap-2">
-                        <div className="bg-gray-50 text-gray-700 px-6 py-2.5 rounded-xl text-sm font-semibold border border-gray-200">
-                          Application Submitted
-                        </div>
+                      <div className="bg-gray-50 text-gray-700 px-6 py-2.5 rounded-xl text-sm font-semibold border border-gray-200">
+                        Application Submitted
                       </div>
                     ) : (
                       <button
@@ -248,6 +267,7 @@ export function JobsTab() {
                 {userApp && (
                   <div className="px-6 md:px-12 py-8 border-t border-gray-100 bg-gray-50/50 relative overflow-x-auto custom-scrollbar">
                     <div className="flex justify-between items-center relative min-w-[500px] max-w-3xl mx-auto">
+                      {/* ОРИГИНАЛЬНЫЙ ДИЗАЙН ПАЙПЛАЙНА */}
                       <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0 rounded-full"></div>
                       <div
                         className={`absolute top-1/2 left-0 h-1 ${isRejected ? 'bg-red-500' : isOffer ? 'bg-emerald-500' : 'bg-indigo-500'} -translate-y-1/2 z-0 transition-all duration-1000 rounded-full`}
@@ -300,30 +320,24 @@ export function JobsTab() {
         )}
       </div>
 
+      {/* МОДАЛЬНОЕ ОКНО ОПРОСНИКА */}
       {showQuestionnaire && applyingJob && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Application Form</h3>
                 <p className="text-xs text-gray-500 font-medium mt-1">For {applyingJob.title}</p>
               </div>
-              <button
-                onClick={() => {setShowQuestionnaire(false); setApplyingJob(null);}}
-                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 rounded-full transition-colors"
-              >
+              <button onClick={() => {setShowQuestionnaire(false); setApplyingJob(null);}} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-200 rounded-full transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-
             <div className="p-6 overflow-y-auto max-h-[60vh] space-y-4 bg-white">
               {applyingJob.questions_to_render?.map((q: any, idx: number) => (
                 <div key={q.id} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 transition-colors hover:border-gray-200 focus-within:border-gray-300 focus-within:bg-white focus-within:shadow-sm">
                   <label className="flex items-center gap-2 mb-3">
-                     <span className="w-5 h-5 rounded-md bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {idx + 1}
-                     </span>
+                     <span className="w-5 h-5 rounded-md bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold shrink-0">{idx + 1}</span>
                      <span className="text-sm font-semibold text-gray-700">{q.label}</span>
                   </label>
                   <input
@@ -335,22 +349,10 @@ export function JobsTab() {
                 </div>
               ))}
             </div>
-
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 shrink-0 flex gap-3">
-              <button
-                onClick={() => {setShowQuestionnaire(false); setApplyingJob(null);}}
-                className="flex-1 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors"
-              >
-                 Cancel
-              </button>
-              <button
-                onClick={handleQuestionnaireSubmit}
-                className="flex-[2] py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 shadow-sm transition-all active:scale-[0.98]"
-              >
-                 Submit Answers
-              </button>
+              <button onClick={() => {setShowQuestionnaire(false); setApplyingJob(null);}} className="flex-1 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors">Cancel</button>
+              <button onClick={handleQuestionnaireSubmit} className="flex-[2] py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 shadow-sm transition-all active:scale-[0.98]">Submit Answers</button>
             </div>
-
           </div>
         </div>
       )}
