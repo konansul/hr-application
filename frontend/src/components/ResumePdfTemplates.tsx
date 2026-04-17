@@ -1041,6 +1041,24 @@ export const TEMPLATES: {
 
 // ─── Download helper ─────────────────────────────────────────────────────────
 
+export async function generateResumePdfBlob(
+  templateId: TemplateId,
+  resumeData: any,
+  title?: string | null,
+  photo?: string,
+): Promise<Blob> {
+  const props = { data: resumeData, title, photo };
+  const doc =
+    templateId === 'classic'    ? <ClassicPdf    {...props} /> :
+    templateId === 'modern'     ? <ModernPdf     {...props} /> :
+    templateId === 'researcher' ? <ResearcherPdf {...props} /> :
+    templateId === 'friggeri'   ? <FriggeriFdf   {...props} /> :
+    templateId === 'hipster'    ? <HipsterPdf    {...props} /> :
+    templateId === 'altacv'     ? <AltaCVPdf     {...props} /> :
+                                  <MinimalPdf    {...props} />;
+  return pdf(doc).toBlob();
+}
+
 export async function downloadResumePdf(
   templateId: TemplateId,
   resumeData: any,

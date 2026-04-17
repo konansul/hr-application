@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
-
+const BASE_URL = 'http://localhost:8000';
 export const apiClient = axios.create({
   baseURL: BASE_URL,
 });

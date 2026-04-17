@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { documentsApi, jobsApi, resumesApi } from '../api';
-import { TEMPLATES, downloadResumePdf, type TemplateId } from './ResumePdfTemplates';
+import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
 
@@ -623,6 +623,10 @@ export function ResumeUploadTab() {
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfIncludePhoto, setPdfIncludePhoto] = useState(true);
+  const [showSavePdfModal, setShowSavePdfModal] = useState(false);
+  const [savingPdfTemplateId, setSavingPdfTemplateId] = useState<string | null>(null);
+  const [previewingTemplateId, setPreviewingTemplateId] = useState<string | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -748,6 +752,25 @@ export function ResumeUploadTab() {
     finally { setIsDeleting(false); }
   };
 
+  const closePdfModals = () => {
+    setShowPdfModal(false);
+    setShowSavePdfModal(false);
+    if (previewBlobUrl) { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); }
+    setPreviewingTemplateId(null);
+  };
+
+  const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string) => {
+    if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
+    setPreviewingTemplateId(templateId);
+    setPreviewBlobUrl(null);
+    try {
+      const blob = await generateResumePdfBlob(templateId as TemplateId, resumeData, title, photo);
+      setPreviewBlobUrl(URL.createObjectURL(blob));
+    } catch {
+      setPreviewingTemplateId(null);
+    }
+  };
+
   const openShareModal = () => {
     setLinkCopied(false);
     setShareEmailTo('');
@@ -778,12 +801,15 @@ export function ResumeUploadTab() {
   const startEditingContent = () => {
     if (!selectedResume) return;
     setEditDraft({ ...selectedResume });
+    setTitleDraft(selectedResume.title || '');
     setIsEditingContent(true);
+    setTimeout(() => titleInputRef.current?.focus(), 0);
   };
 
   const cancelEditingContent = () => {
     setIsEditingContent(false);
     setEditDraft(null);
+    setTitleDraft('');
   };
 
   const handleSaveContent = async () => {
@@ -795,11 +821,11 @@ export function ResumeUploadTab() {
         experience:     editDraft.experience     ?? [],
         education:      editDraft.education      ?? [],
         skills:         editDraft.skills         ?? [],
-        languages:      editDraft.languages      ?? [],
-        certifications: editDraft.certifications ?? [],
+        languages:      (editDraft.languages      ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.language || '').trim()).filter(Boolean),
+        certifications: (editDraft.certifications ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.title  || '').trim()).filter(Boolean),
       };
       await resumesApi.update(selectedResume.resume_id, {
-        title: editDraft.title ?? selectedResume.title ?? undefined,
+        title: titleDraft.trim() || editDraft.title || selectedResume.title || undefined,
         language: editDraft.language ?? selectedResume.language ?? undefined,
         resume_data,
       });
@@ -836,145 +862,128 @@ export function ResumeUploadTab() {
   const noModals = !showProfileModal && !showDuplicateModal && !showJobDescModal;
 
   return (
-    <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-32">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Resume Versions</h2>
-        <p className="text-sm text-gray-500">Create, duplicate, and manage your resume versions in multiple languages.</p>
+    <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 pb-32">
+
+      {/* ---- Header row ---- */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">Resume Versions</h2>
+          <p className="text-sm text-gray-500 mb-0.5">Create, duplicate and manage your resume versions in multiple languages</p>
+          <p className="text-xs text-gray-400">
+            {resumeVersions.length} version{resumeVersions.length !== 1 ? 's' : ''} · {uploadedDocs.length} uploaded doc{uploadedDocs.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        {/* 4 action buttons */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            Upload CV
+          </button>
+          <button
+            onClick={() => setShowProfileModal(true)}
+            disabled={isWorking}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-gray-50 text-gray-900 text-sm font-semibold rounded-xl shadow-sm border border-gray-200 transition-all disabled:opacity-60"
+          >
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            From Profile
+          </button>
+          <button
+            onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
+            disabled={isWorking || resumeVersions.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-xl shadow-sm border border-emerald-100 transition-all disabled:opacity-60"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            Duplicate
+          </button>
+          <button
+            onClick={() => setShowJobDescModal(true)}
+            disabled={isWorking}
+            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-xl shadow-sm border border-indigo-100 transition-all disabled:opacity-60"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            From Job Description
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* ---- Two-column layout: version list + detail ---- */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 items-start">
 
-        {/* ---- Left column ---- */}
-        <div className="lg:col-span-4 space-y-6">
-
-          {/* Quick Actions */}
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 space-y-2.5">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-1">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              Create New Version
-            </h3>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              Upload CV
-            </button>
-
-            <button
-              onClick={() => setShowProfileModal(true)}
-              disabled={isWorking}
-              className="w-full py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-sm border border-gray-200 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              From Profile
-            </button>
-
-            <button
-              onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
-              disabled={isWorking || resumeVersions.length === 0}
-              className="w-full py-2.5 bg-emerald-50 text-emerald-700 text-sm font-semibold rounded-xl hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-              Duplicate Existing
-            </button>
-
-            <button
-              onClick={() => setShowJobDescModal(true)}
-              disabled={isWorking}
-              className="w-full py-2.5 bg-indigo-50 text-indigo-700 text-sm font-semibold rounded-xl hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              From Job Description
-            </button>
-
-            <p className="text-xs text-center text-gray-400 pt-1">
-              {resumeVersions.length} version{resumeVersions.length !== 1 ? 's' : ''} · {uploadedDocs.length} uploaded doc{uploadedDocs.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          {/* Versions */}
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-gray-900">Versions</h3>
-              <span className="text-xs font-semibold text-gray-400">Newest first</span>
-            </div>
-            <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-              {resumeVersions.map((resume, index) => {
-                const isActive = resume.resume_id === selectedResume?.resume_id;
-                const isPendingDelete = confirmDeleteId === resume.resume_id;
-                return (
-                  <div
-                    key={resume.resume_id}
-                    className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                  >
-                    {/* Selectable area */}
-                    <button
-                      onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); }}
-                      className="w-full text-left p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-1">
-                        <div>
-                          <p className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>Version {resumeVersions.length - index}</p>
-                          <h4 className="text-sm font-semibold">{resume.title || 'Untitled Resume'}</h4>
+        {/* Left: Vertical version list */}
+        <div className="space-y-2">
+          {resumeVersions.length > 0 ? (
+            resumeVersions.map((resume) => {
+              const isActive = resume.resume_id === selectedResume?.resume_id;
+              const isPendingDelete = confirmDeleteId === resume.resume_id;
+              return (
+                <div
+                  key={resume.resume_id}
+                  className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-md' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'}`}
+                >
+                  <div className="px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); setMessage(null); }}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <div className="grid grid-cols-3 items-center w-full gap-2">
+                          <h4 className="text-sm font-semibold leading-snug truncate">{resume.title || 'Untitled Resume'}</h4>
+                          <span className={`text-sm text-center whitespace-nowrap ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {resume.created_at ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
+                          </span>
+                          <span className={`text-sm font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap text-center justify-self-end ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-600'}`}>
+                            {langLabel(resume.language)}
+                          </span>
                         </div>
-                        <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-500'}`}>
-                          {langLabel(resume.language)}
-                        </span>
-                      </div>
-                      <p className={`text-xs ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(resume.source_type)}</p>
-                      {resume.valid_until && <p className={`text-xs mt-0.5 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>Valid until: {resume.valid_until}</p>}
-                      <p className={`text-xs mt-1 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>{formatDate(resume.created_at)}</p>
-                    </button>
-                    {/* Delete row */}
-                    {isPendingDelete ? (
-                      <div className={`flex items-center justify-between gap-2 px-4 pb-3 pt-0`}>
-                        <span className={`text-xs font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>Delete this version?</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setConfirmDeleteId(null)}
-                            className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => handleDeleteResume(resume.resume_id)}
-                            disabled={isDeleting}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center gap-1"
-                          >
-                            {isDeleting && <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="px-4 pb-3 pt-0 flex justify-end">
+                      </button>
+                      {!isPendingDelete && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(resume.resume_id); }}
-                          className={`text-xs px-2 py-1 rounded-lg transition-colors ${isActive ? 'text-red-300 hover:bg-white/10' : 'text-gray-300 hover:text-red-400 hover:bg-red-50'}`}
+                          className={`p-1.5 rounded-lg transition-colors shrink-0 ${isActive ? 'text-red-300 hover:bg-white/10' : 'text-gray-300 hover:text-red-400 hover:bg-red-50'}`}
                           title="Delete this version"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
+                      )}
+                    </div>
+                    {isPendingDelete && (
+                      <div className="flex items-center justify-between gap-1 mt-2 pt-2 border-t border-white/10">
+                        <span className={`text-[10px] font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>Delete this version?</span>
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}
+                            className={`text-[10px] px-2 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                          >No</button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteResume(resume.resume_id); }}
+                            disabled={isDeleting}
+                            className="text-[10px] px-2 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center gap-1"
+                          >
+                            {isDeleting && <div className="w-2 h-2 border border-white/30 border-t-white rounded-full animate-spin" />}
+                            Yes
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
-                );
-              })}
-              {resumeVersions.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-gray-200 p-5 text-sm text-gray-500 text-center">
-                  No resume versions yet. Upload a CV or generate one from your profile.
                 </div>
-              )}
+              );
+            })
+          ) : (
+            <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-sm text-gray-500 text-center bg-gray-50/50">
+              No resume versions yet. Use <span className="font-semibold">Create New Version</span> above to get started.
             </div>
-          </div>
+          )}
         </div>
 
-        {/* ---- Right column ---- */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* Right: Resume detail */}
+        <div className="space-y-6">
           {message && (
             <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
               <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -988,40 +997,55 @@ export function ResumeUploadTab() {
 
           {/* Selected resume detail */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4 flex-wrap">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 space-y-3">
+              {/* Row 1: resume name — editable when Edit mode is active */}
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
-                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Selected Resume Version</h3>
+                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></div>
+                {isEditingContent ? (
+                  <input
+                    ref={titleInputRef}
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Escape') cancelEditingTitle(); }}
+                    disabled={isSavingTitle}
+                    className="flex-1 min-w-0 text-lg font-extrabold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                    autoFocus
+                  />
+                ) : (
+                  <h3 className="text-lg font-extrabold text-gray-900 truncate">{selectedResume?.title || 'Untitled Resume'}</h3>
+                )}
               </div>
-              {selectedResume && (
-                <div className="flex items-center gap-2 text-xs flex-wrap justify-end">
-                  <span className="px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 font-semibold text-gray-500">{sourceTypeLabel(selectedResume.source_type)}</span>
-                  {selectedResume.valid_until && (
-                    <span className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold">Valid until {selectedResume.valid_until}</span>
-                  )}
-                  {isEditingContent ? (
-                    <div className="flex items-center gap-2">
+              {/* Row 2: metadata + actions evenly spread */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                  {selectedResume ? sourceTypeLabel(selectedResume.source_type) : '—'}
+                </span>
+                <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ${selectedResume?.valid_until ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
+                  Valid until: {selectedResume?.valid_until || 'No Expiry'}
+                </span>
+                {selectedResume && (
+                  isEditingContent ? (
+                    <>
                       <button
                         onClick={cancelEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
                       >
                         Cancel
                       </button>
-
                       <button
                         onClick={handleSaveContent}
                         disabled={isSavingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
                       >
                         {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                         {isSavingContent ? 'Saving…' : 'Save Changes'}
                       </button>
-                    </div>
+                    </>
                   ) : (
                     <>
                       <button
                         onClick={() => setShowPdfModal(true)}
-                        className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 transition-colors flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1030,7 +1054,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={openShareModal}
-                        className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -1039,7 +1063,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={startEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
@@ -1047,9 +1071,9 @@ export function ResumeUploadTab() {
                         Edit
                       </button>
                     </>
-                  )}
-                </div>
-              )}
+                  )
+                )}
+              </div>
             </div>
 
             <div className="p-6">
@@ -1284,9 +1308,9 @@ export function ResumeUploadTab() {
                             <textarea
                               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none bg-white"
                               rows={2}
-                              value={(editDraft?.languages ?? []).map((l: any) => typeof l === 'string' ? l : l.name || l.language || '').join(', ')}
-                              onChange={e => setEditDraft(d => d ? { ...d, languages: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
-                              placeholder="English, Spanish..."
+                              value={(editDraft?.languages ?? []).map((l: any) => typeof l === 'string' ? l : l.name || l.language || '').join('\n')}
+                              onChange={e => setEditDraft(d => d ? { ...d, languages: e.target.value.split('\n') } : d)}
+                              placeholder={"English\nSpanish\nFrench..."}
                             />
                           ) : (
                             <p className="text-sm text-gray-700">
@@ -1302,9 +1326,9 @@ export function ResumeUploadTab() {
                             <textarea
                               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none bg-white"
                               rows={2}
-                              value={(editDraft?.certifications ?? []).map((c: any) => typeof c === 'string' ? c : c.name || c.title || '').join(', ')}
-                              onChange={e => setEditDraft(d => d ? { ...d, certifications: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
-                              placeholder="AWS Certified, PMP..."
+                              value={(editDraft?.certifications ?? []).map((c: any) => typeof c === 'string' ? c : c.name || c.title || '').join('\n')}
+                              onChange={e => setEditDraft(d => d ? { ...d, certifications: e.target.value.split('\n') } : d)}
+                              placeholder={"AWS Certified\nPMP\nGoogle Analytics..."}
                             />
                           ) : (
                             <p className="text-sm text-gray-700">
@@ -1323,6 +1347,64 @@ export function ResumeUploadTab() {
           </div>
 
           {/* Open Jobs */}
+          {/* Saved PDF card */}
+          {selectedResume && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></div>
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Saved PDF Version</h3>
+                </div>
+                {selectedResume.generated_document_id && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">Saved</span>
+                )}
+              </div>
+              <div className="p-6 space-y-4">
+                {selectedResume.generated_document_id ? (
+                  <>
+                    <p className="text-sm text-gray-500">PDF saved — download anytime, no regeneration needed.</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const url = await documentsApi.getDocumentFileUrl(selectedResume.generated_document_id!);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${selectedResume.title || 'resume'}.pdf`;
+                            a.click();
+                            setTimeout(() => URL.revokeObjectURL(url), 10_000);
+                          } catch { setMessage({ text: 'Could not download the saved PDF.', type: 'error' }); }
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold rounded-xl border border-rose-100 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Download Saved PDF
+                      </button>
+                      <button
+                        onClick={() => setShowSavePdfModal(true)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Regenerate &amp; Save
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500">Save a PDF version to the database so you can download or send it any time without regenerating.</p>
+                    <button
+                      onClick={() => setShowSavePdfModal(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                      Save PDF Version
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {activeJobs.length > 0 && (
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
@@ -1351,7 +1433,8 @@ export function ResumeUploadTab() {
             </div>
           )}
         </div>
-      </div>
+
+      </div>{/* ---- end two-column grid ---- */}
 
       {/* Hidden file input */}
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx,.txt" />
@@ -1396,77 +1479,174 @@ export function ResumeUploadTab() {
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
       )}
 
-      {/* PDF template picker modal */}
+      {/* PDF template picker modal (Export) */}
       {showPdfModal && selectedResume && (
-        <div
-          className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
-          onClick={() => setShowPdfModal(false)}
-        >
-          <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">Export as PDF</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Choose a template for your resume</p>
-                {!!selectedResume.personal_info?.photo && (
-                  <button
-                    type="button"
-                    onClick={() => setPdfIncludePhoto(v => !v)}
-                    className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none"
-                  >
-                    <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
-                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
-                    </span>
-                    Include photo
-                  </button>
-                )}
+        <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
+          <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
+            {/* Template list */}
+            <div className="flex flex-col w-full max-w-sm shrink-0">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Export as PDF</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Preview a template, then download</p>
+                  {!!selectedResume.personal_info?.photo && (
+                    <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
+                      <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
+                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </span>
+                      Include photo
+                    </button>
+                  )}
+                </div>
+                <button onClick={closePdfModals} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
               </div>
-              <button onClick={() => setShowPdfModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-6 space-y-3">
-              {TEMPLATES.map(t => {
-                const hasPhoto = !!selectedResume.personal_info?.photo;
-                return (
-                  <button
-                    key={t.id}
-                    disabled={isGeneratingPdf}
-                    onClick={async () => {
-                      setIsGeneratingPdf(true);
-                      try {
-                        await downloadResumePdf(
-                          t.id as TemplateId,
-                          selectedResume.resume_data ?? {},
-                          selectedResume.title,
-                          pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined,
-                        );
-                        setShowPdfModal(false);
-                      } finally {
-                        setIsGeneratingPdf(false);
-                      }
-                    }}
-                    className="w-full flex items-center justify-between gap-4 p-4 rounded-2xl border border-gray-200 hover:border-rose-200 hover:bg-rose-50 transition-all text-left disabled:opacity-60 group"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-gray-900 group-hover:text-rose-700 transition-colors">{t.label}</p>
-                        {hasPhoto && t.supportsPhoto && (
-                          <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full">photo</span>
-                        )}
+              <div className="p-4 space-y-2 overflow-y-auto">
+                {TEMPLATES.map(t => {
+                  const hasPhoto = !!selectedResume.personal_info?.photo;
+                  const isActive = previewingTemplateId === t.id;
+                  return (
+                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-gray-900">{t.label}</p>
+                          {hasPhoto && t.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{t.description}</p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">{t.description}</p>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined)}
+                          disabled={previewingTemplateId === t.id && !previewBlobUrl}
+                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          {previewingTemplateId === t.id && !previewBlobUrl
+                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />Loading</span>
+                            : isActive ? 'Previewing' : 'Preview'}
+                        </button>
+                        <button
+                          disabled={isGeneratingPdf}
+                          onClick={async () => {
+                            setIsGeneratingPdf(true);
+                            try {
+                              await downloadResumePdf(t.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined);
+                              closePdfModals();
+                            } finally { setIsGeneratingPdf(false); }
+                          }}
+                          className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-60 flex items-center gap-1"
+                        >
+                          {isGeneratingPdf ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                          Download
+                        </button>
+                      </div>
                     </div>
-                    <div className="shrink-0 w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center group-hover:bg-rose-100 transition-colors">
-                      {isGeneratingPdf
-                        ? <div className="w-3.5 h-3.5 border-2 border-rose-200 border-t-rose-500 rounded-full animate-spin" />
-                        : <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      }
-                    </div>
-                  </button>
-                );
-              })}
-              <p className="text-[11px] text-gray-400 text-center pt-1">The PDF will be downloaded to your device.</p>
+                  );
+                })}
+              </div>
             </div>
+            {/* Preview panel */}
+            {previewBlobUrl && (
+              <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview — {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
+                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-400 transition-colors">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Save PDF to DB modal */}
+      {showSavePdfModal && selectedResume && (
+        <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
+          <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
+            {/* Template list */}
+            <div className="flex flex-col w-full max-w-sm shrink-0">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Save PDF to Database</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Preview a template, then save</p>
+                  {!!selectedResume.personal_info?.photo && (
+                    <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
+                      <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
+                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </span>
+                      Include photo
+                    </button>
+                  )}
+                </div>
+                <button onClick={closePdfModals} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-4 space-y-2 overflow-y-auto">
+                {TEMPLATES.map(t => {
+                  const hasPhoto = !!selectedResume.personal_info?.photo;
+                  const isActive = previewingTemplateId === t.id;
+                  return (
+                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-gray-900">{t.label}</p>
+                          {hasPhoto && t.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{t.description}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined)}
+                          disabled={previewingTemplateId === t.id && !previewBlobUrl}
+                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          {previewingTemplateId === t.id && !previewBlobUrl
+                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />Loading</span>
+                            : isActive ? 'Previewing' : 'Preview'}
+                        </button>
+                        <button
+                          disabled={savingPdfTemplateId !== null}
+                          onClick={async () => {
+                            setSavingPdfTemplateId(t.id);
+                            try {
+                              const photo = pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined;
+                              const blob = await generateResumePdfBlob(t.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, photo);
+                              const file = new File([blob], `${selectedResume.title || 'resume'}.pdf`, { type: 'application/pdf' });
+                              const uploaded = await documentsApi.upload(file);
+                              await resumesApi.update(selectedResume.resume_id, { resume_data: selectedResume.resume_data ?? {}, generated_document_id: uploaded.document_id });
+                              setResumeVersions(prev => prev.map(r => r.resume_id === selectedResume.resume_id ? { ...r, generated_document_id: uploaded.document_id } : r));
+                              closePdfModals();
+                              setMessage({ text: 'PDF saved to database successfully.', type: 'success' });
+                            } catch {
+                              setMessage({ text: 'Could not save the PDF. Please try again.', type: 'error' });
+                            } finally { setSavingPdfTemplateId(null); }
+                          }}
+                          className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-60 flex items-center gap-1"
+                        >
+                          {savingPdfTemplateId === t.id ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Preview panel */}
+            {previewBlobUrl && (
+              <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview — {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
+                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-400 transition-colors">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
+              </div>
+            )}
           </div>
         </div>
       )}
