@@ -92,6 +92,9 @@ class JobUpdate(BaseModel):
     description: str
     region: Optional[str] = None
     screening_questions: Optional[List[Any]] = None
+    level: Optional[str] = None
+    status: Optional[Literal['draft', 'active', 'suspended', 'closed']] = None
+    pipeline_stages: Optional[List[str]] = None
 
 
 class ApplicationStatusUpdate(BaseModel):

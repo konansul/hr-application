@@ -1,7 +1,5 @@
 import { Document, Page, Text, View, StyleSheet, pdf, Image, Svg, Circle, Path } from '@react-pdf/renderer';
 
-// ─── helpers ────────────────────────────────────────────────────────────────
-
 const skillName = (s: any) => typeof s === 'string' ? s : s?.name || '';
 const langName  = (l: any) => typeof l === 'string' ? l : l?.name || l?.language || '';
 const certName  = (c: any) => typeof c === 'string' ? c : c?.name || c?.title || '';
@@ -25,10 +23,8 @@ function dateRange(e: any) {
   return `${e.start_date || ''}${e.end_date ? ` – ${e.end_date}` : e.start_date ? ' – Present' : ''}`;
 }
 
-// Guard: only render a section if it has data
 function hasList(arr: any[]) { return arr && arr.length > 0; }
 
-// Skill level: accepts "beginner/intermediate/advanced/expert" or 1-5 number, returns 0-100
 function skillLevel(s: any): number | null {
   const raw = s?.level ?? s?.proficiency;
   if (!raw) return null;
@@ -40,7 +36,6 @@ function skillLevel(s: any): number | null {
   return map[String(raw).toLowerCase()] ?? null;
 }
 
-// SkillBars: render bar chart if any skill has a level, otherwise chips
 function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb = 6, labelFs = 8 }: {
   skills: any[]; barColor?: string; chipStyle?: object; defaultLevel?: number; itemMb?: number; labelFs?: number;
 }) {
@@ -58,7 +53,6 @@ function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb 
       </View>
     );
   }
-  // Bar chart
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
       {skills.map((s, i) => {
@@ -81,7 +75,6 @@ function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb 
   );
 }
 
-// Photo: always cover, never stretch
 function PhotoCircle({ src, size }: { src: string; size: number }) {
   return <Image src={src} style={{ width: size, height: size, borderRadius: size / 2, objectFit: 'cover' }} />;
 }
@@ -89,8 +82,6 @@ function PhotoRect({ src, w, h, radius = 4 }: { src: string; w: number; h: numbe
   return <Image src={src} style={{ width: w, height: h, borderRadius: radius, objectFit: 'cover' }} />;
 }
 
-// ─── Template 1: Classic ────────────────────────────────────────────────────
-// Inspired by traditional academic/professional CV style
 
 const CL = StyleSheet.create({
   page:      { padding: '40 48 40 48', fontFamily: 'Helvetica', backgroundColor: '#fff', fontSize: 9 },
@@ -210,8 +201,6 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
   );
 }
 
-// ─── Template 2: Modern Sidebar ─────────────────────────────────────────────
-// Dark sidebar with contact & skills, clean main column
 
 const MO = StyleSheet.create({
   page:    { fontFamily: 'Helvetica', flexDirection: 'row', backgroundColor: '#fff' },
@@ -248,10 +237,8 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
   const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
 
-  // Chips are much more height-efficient than bars in a narrow sidebar.
-  // Switch rendering mode based on skill count (+ photo overhead).
-  const photoExtra  = photo ? 88 : 0; // 72px photo + 16 margin
-  const effectiveN  = sk.length + Math.round(photoExtra / 17); // 17pt ≈ one bar row
+  const photoExtra  = photo ? 88 : 0;
+  const effectiveN  = sk.length + Math.round(photoExtra / 17);
   const useChips    = effectiveN > 10;
   const usePlainText = sk.length > 22;
   const itemMb  = sk.length > 9 ? 3 : 6;
@@ -350,8 +337,6 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
   );
 }
 
-// ─── Template 3: Minimal ────────────────────────────────────────────────────
-// Centered header, generous whitespace
 
 const MI = StyleSheet.create({
   page:    { padding: '48 52 48 52', fontFamily: 'Helvetica', backgroundColor: '#fff' },
@@ -376,7 +361,7 @@ const MI = StyleSheet.create({
   photo:   { width: 72, height: 72, borderRadius: 36, marginBottom: 12 },
 });
 
-function MinimalPdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience    ?? [];
   const edu  = data.education     ?? [];
@@ -457,8 +442,6 @@ function MinimalPdf({ data, title, photo }: { data: any; title?: string | null; 
   );
 }
 
-// ─── Template 4: Researcher ──────────────────────────────────────────────────
-// Academic two-column: left for meta/education/skills, right for experience
 
 const RE = StyleSheet.create({
   page:    { padding: '36 40 36 40', fontFamily: 'Helvetica', backgroundColor: '#fff' },
@@ -578,8 +561,6 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
   );
 }
 
-// ─── Template 5: Friggeri-inspired ──────────────────────────────────────────
-// Dark left strip, orange section accents, clean body
 
 const FR = StyleSheet.create({
   page:     { fontFamily: 'Helvetica', flexDirection: 'row', backgroundColor: '#fff' },
@@ -619,7 +600,6 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
   return (
     <Document>
       <Page size="A4" style={FR.page}>
-        {/* Strip */}
         <View style={FR.strip}>
           {photo ? <View style={{ alignSelf: 'center', marginBottom: 16 }}><PhotoCircle src={photo} size={70} /></View> : null}
           <Text style={FR.sName}>{fullName(info, title)}</Text>
@@ -645,7 +625,6 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
           ) : null}
         </View>
 
-        {/* Body */}
         <View style={FR.body}>
           {info.summary ? (
             <View style={FR.bSec}>
@@ -702,8 +681,7 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
   );
 }
 
-// ─── Template 6: Hipster ────────────────────────────────────────────────────
-// Teal accent band top, clean serif-feel typography
+
 
 const HI = StyleSheet.create({
   page:    { padding: 0, fontFamily: 'Helvetica', backgroundColor: '#fff' },
@@ -831,8 +809,6 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
   );
 }
 
-// ─── Template 7: AltaCV ──────────────────────────────────────────────────────
-// Dark sidebar with pie-chart skills, orange accents, timeline dots in main column
 
 function PieSkill({ pct, size = 10, fg = '#E96D1F', bg = '#4a4e68' }:
   { pct: number; size?: number; fg?: string; bg?: string }) {
@@ -861,7 +837,7 @@ const AC = StyleSheet.create({
   page:      { fontFamily: 'Helvetica', flexDirection: 'row', backgroundColor: '#fff' },
   sidebar:   { width: '32%', backgroundColor: '#2B2D42', padding: '28 16 28 18' },
   main:      { width: '68%', padding: '28 24 28 20' },
-  // Sidebar
+
   photoWrap: { alignItems: 'center', marginBottom: 12 },
   sName:     { fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
   sTagline:  { fontSize: 7.5, color: '#94a3b8', textAlign: 'center', marginBottom: 12, lineHeight: 1.4 },
@@ -873,7 +849,7 @@ const AC = StyleSheet.create({
   sSkillRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   sSkillName:{ fontSize: 8, color: '#e2e8f0', flex: 1, marginLeft: 7 },
   sSumm:     { fontSize: 7.5, color: '#94a3b8', lineHeight: 1.55 },
-  // Main column
+
   mName:     { fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#2B2D42', marginBottom: 2 },
   mTagline:  { fontSize: 9.5, color: '#E96D1F', marginBottom: 16, fontFamily: 'Helvetica-Oblique' },
   mSecT:     { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#E96D1F', textTransform: 'uppercase',
@@ -898,8 +874,6 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
   const la   = data.languages      ?? [];
   const ce   = data.certifications ?? [];
 
-  // Scale down sidebar skill rows when there are many items so everything fits on one page.
-  // Each row is ~(pieSize + rowMb)pt tall; A4 sidebar has ~785pt usable height minus fixed elements.
   const totalSkillRows = sk.length + la.length;
   const rowMb   = totalSkillRows > 18 ? 2 : totalSkillRows > 13 ? 3 : totalSkillRows > 9 ? 4 : 6;
   const rowFs   = totalSkillRows > 18 ? 6 : totalSkillRows > 13 ? 6.5 : totalSkillRows > 9 ? 7 : 8;
@@ -910,7 +884,6 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
     <Document>
       <Page size="A4" style={AC.page}>
 
-        {/* ── Sidebar ── */}
         <View style={AC.sidebar}>
           {photo ? <View style={AC.photoWrap}><PhotoCircle src={photo} size={72} /></View> : null}
           <Text style={AC.sName}>{fullName(info, title)}</Text>
@@ -957,7 +930,6 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
           ) : null}
         </View>
 
-        {/* ── Main column ── */}
         <View style={AC.main}>
           <Text style={AC.mName}>{fullName(info, title)}</Text>
           {title ? <Text style={AC.mTagline}>{title}</Text> : null}
@@ -1020,7 +992,6 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
   );
 }
 
-// ─── Template registry ───────────────────────────────────────────────────────
 
 export type TemplateId = 'classic' | 'modern' | 'minimal' | 'researcher' | 'friggeri' | 'hipster' | 'altacv';
 
@@ -1039,7 +1010,6 @@ export const TEMPLATES: {
   { id: 'altacv',     label: 'AltaCV',         supportsPhoto: true, description: 'Dark sidebar with pie-chart skill indicators, orange accents and timeline dots.' },
 ];
 
-// ─── Download helper ─────────────────────────────────────────────────────────
 
 export async function generateResumePdfBlob(
   templateId: TemplateId,

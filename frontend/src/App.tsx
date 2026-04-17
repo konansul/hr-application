@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { AuthPage } from './components/AuthTab';
-import { HrDashboard } from './components/HrDashboard';
-import { CandidateDashboard } from './components/CandidateDashboard';
-import { PublicCvView } from './components/PublicCvView';
+import { AuthPage } from './components/auth/AuthTab';
+import { HrDashboard } from './components/hr/HrDashboard';
+import { CandidateDashboard } from './components/candidate/CandidateDashboard';
+import { PublicCvView } from './components/candidate/PublicCvView';
 import { authApi } from './api';
 import { useStore } from './store';
 
-// Check for public CV share link before anything else
 const cvToken = new URLSearchParams(window.location.search).get('cv');
 
 function App() {

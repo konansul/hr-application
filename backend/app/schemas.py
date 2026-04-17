@@ -5,7 +5,9 @@ from typing import List, Optional, Literal, Any
 class JobCreate(BaseModel):
     title: str
     description: str
-
+    level: Optional[str] = None
+    status: Optional[Literal['draft', 'active', 'suspended', 'closed']] = "draft"
+    pipeline_stages: Optional[List[str]] = None
 
 class JobOut(BaseModel):
     id: str
@@ -13,6 +15,9 @@ class JobOut(BaseModel):
     description: str
     region: Optional[str] = None
     screening_questions: List[Any] = []
+    level: Optional[str] = None
+    status: Optional[str] = "draft"
+    pipeline_stages: List[str] = []
     owner_user_id: Optional[str] = None
 
     class Config:

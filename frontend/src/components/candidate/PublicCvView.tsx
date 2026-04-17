@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { resumesApi } from '../api';
+import { resumesApi } from '../../api';
 
 export function PublicCvView({ token }: { token: string }) {
   const [cv, setCv] = useState<any>(null);
@@ -50,7 +50,6 @@ export function PublicCvView({ token }: { token: string }) {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-3xl mx-auto space-y-8">
 
-        {/* Header */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -76,7 +75,6 @@ export function PublicCvView({ token }: { token: string }) {
           )}
         </div>
 
-        {/* Experience */}
         {experience.length > 0 && (
           <section className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">Experience</h2>
@@ -98,7 +96,6 @@ export function PublicCvView({ token }: { token: string }) {
           </section>
         )}
 
-        {/* Skills */}
         {skills.length > 0 && (
           <section className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Skills</h2>
@@ -112,7 +109,6 @@ export function PublicCvView({ token }: { token: string }) {
           </section>
         )}
 
-        {/* Education */}
         {education.length > 0 && (
           <section className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">Education</h2>
@@ -127,7 +123,6 @@ export function PublicCvView({ token }: { token: string }) {
           </section>
         )}
 
-        {/* Languages & Certifications */}
         {(languages.length > 0 || certifications.length > 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {languages.length > 0 && (

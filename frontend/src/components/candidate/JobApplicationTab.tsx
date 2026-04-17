@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { screeningApi, jobsApi } from '../api';
-import { useStore } from '../store';
+import { screeningApi, jobsApi } from '../../api';
+import { useStore } from '../../store';
 
 const STAGES = [
   { value: 'Applied',        label: 'Applied' },
@@ -75,7 +75,6 @@ export function JobApplicationTab() {
   const [submitting, setSubmitting]           = useState(false);
   const [expandedId, setExpandedId]           = useState<string | null>(null);
 
-  // filters
   const [typeFilter, setTypeFilter]     = useState<'all' | 'hr' | 'self'>('all');
   const [stageFilter, setStageFilter]   = useState<string>('all');
   const [searchQuery, setSearchQuery]   = useState('');
@@ -86,19 +85,17 @@ export function JobApplicationTab() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      // Fetch all HR-published jobs and the user's applications in parallel
+
       const [rawApps, allJobs] = await Promise.all([
         screeningApi.getMyApplications().catch(() => [] as any[]),
         jobsApi.list().catch(() => [] as any[]),
       ]);
 
-      // Build a map of job_id → application record
       const appByJobId = new Map<string, any>();
       for (const app of rawApps as any[]) {
         appByJobId.set(app.job_id, app);
       }
 
-      // Every HR job shows up in this tab; enrich with application status if it exists
       const merged = (allJobs as any[]).map((job: any) => {
         const jobId = job.id || job.job_id;
         const app = appByJobId.get(jobId);
@@ -110,7 +107,7 @@ export function JobApplicationTab() {
             job_description: job.description ?? null,
           };
         }
-        // No application record yet — show as "Not Applied"
+
         return {
           application_id: null,
           job_id: jobId,
@@ -126,20 +123,17 @@ export function JobApplicationTab() {
 
       setApiApplications(merged);
     } catch {
-      // keep whatever was loaded before on a refresh failure
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // Initial load
   useEffect(() => {
     fetchApplications(false);
     setTrackedJobs(loadTrackedJobs());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Re-fetch every time the user navigates to this tab (skips the very first mount)
   useEffect(() => {
     if (firstLoad.current) {
       firstLoad.current = false;
@@ -149,9 +143,7 @@ export function JobApplicationTab() {
       fetchApplications(true);
       setTrackedJobs(loadTrackedJobs());
     }
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Self-tracked handlers ─────────────────────────────────────────────────
+  }, [activeTab]);
 
   const handleAddTrackedJob = () => {
     if (!newJobTitle.trim()) return;
@@ -184,12 +176,7 @@ export function JobApplicationTab() {
     setTrackedJobs(updated);
   };
 
-  // ── Filtered lists ────────────────────────────────────────────────────────
 
-  // Returns true if jobStatus satisfies the stage filter.
-  // For Rejected: exact match only.
-  // For any other stage: show the job if its stage index >= the filter's stage index
-  // (i.e. "Applied" filter shows Applied, Shortlisted, HR Interview, etc.)
   const matchesStageFilter = (jobStatus: string) => {
     if (stageFilter === 'all') return true;
     const filterNorm = normalizeStatus(stageFilter);
@@ -204,14 +191,12 @@ export function JobApplicationTab() {
       if (typeFilter === 'self') return false;
       const title = (app.job_title || app.job_id || '').toLowerCase();
       if (searchQuery && !title.includes(searchQuery.toLowerCase())) return false;
-      // 'Not Applied' jobs only show when no specific stage filter is active
       if (stageFilter !== 'all') {
         if (app._notApplied) return false;
         if (!matchesStageFilter(app.status)) return false;
       }
       return true;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiApplications, typeFilter, searchQuery, stageFilter]);
 
   const filteredTracked = useMemo(() => {
@@ -221,7 +206,6 @@ export function JobApplicationTab() {
       if (!matchesStageFilter(job.status)) return false;
       return true;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackedJobs, typeFilter, searchQuery, stageFilter]);
 
   const hrCount      = apiApplications.length;
@@ -230,8 +214,6 @@ export function JobApplicationTab() {
   const visibleCount = filteredApi.length + filteredTracked.length;
   const hasResults   = visibleCount > 0;
   const isFiltering  = searchQuery || stageFilter !== 'all';
-
-  // ── Pipeline render (HR — read-only) ─────────────────────────────────────
 
   const renderHrPipeline = (app: any) => {
     if (app._notApplied) {
@@ -294,14 +276,12 @@ export function JobApplicationTab() {
     );
   };
 
-  // ── Kanban-style interactive pipeline (self-tracked) ─────────────────────
 
   const renderSelfTrackedStages = (job: TrackedJob) => {
     const norm       = normalizeStatus(job.status);
     const currentIdx = getStageIndex(job.status);
     const isRejected = norm === 'REJECTED';
 
-    // Clicking any tile sets that stage exactly — no auto-advance
     const handleClick = (stageValue: string) => {
       handleTrackedStageUpdate(job.id, stageValue);
     };
@@ -317,7 +297,6 @@ export function JobApplicationTab() {
             const sNorm     = normalizeStatus(stage.value);
             const isCurrent = !isRejected && idx === currentIdx;
             const isPast    = !isRejected && idx < currentIdx;
-            // Current stage is also shown green (reached), past stages are green too
             const isDone    = isCurrent || isPast;
 
             return (
@@ -355,10 +334,8 @@ export function JobApplicationTab() {
             );
           })}
 
-          {/* Divider */}
           <div className="w-px bg-gray-200 mx-0.5 self-stretch shrink-0" />
 
-          {/* Rejected tile */}
           <button
             onClick={() => {
               if (isRejected) {
@@ -400,8 +377,6 @@ export function JobApplicationTab() {
     );
   };
 
-  // ── Loading ───────────────────────────────────────────────────────────────
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 border border-gray-100 rounded-2xl max-w-2xl mx-auto mt-10">
@@ -411,12 +386,10 @@ export function JobApplicationTab() {
     );
   }
 
-  // ── Main render ───────────────────────────────────────────────────────────
 
   return (
     <div className="w-full max-w-none mx-auto space-y-5 animate-in fade-in duration-300 pb-20">
 
-      {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">Job Applications</h2>
@@ -437,7 +410,6 @@ export function JobApplicationTab() {
         </button>
       </div>
 
-      {/* ── Self-tracked explainer ── */}
       {(typeFilter === 'self' || (typeFilter === 'all' && selfCount > 0)) && (
         <div className="flex items-start gap-3 bg-violet-50 border border-violet-100 rounded-2xl px-4 py-3">
           <svg className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -450,7 +422,6 @@ export function JobApplicationTab() {
         </div>
       )}
 
-      {/* ── Type filter tabs ── */}
       <div className="flex gap-1 border-b border-gray-100">
         {([
           { key: 'all',  label: 'All',          count: totalCount },
@@ -474,7 +445,6 @@ export function JobApplicationTab() {
         ))}
       </div>
 
-      {/* ── Search + Stage filter bar ── */}
       {totalCount > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[200px]">
@@ -531,7 +501,6 @@ export function JobApplicationTab() {
         </div>
       )}
 
-      {/* ── Empty states ── */}
       {totalCount === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 border border-gray-100 rounded-2xl">
           <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -560,7 +529,6 @@ export function JobApplicationTab() {
 
         <div className="grid grid-cols-1 gap-4">
 
-          {/* ── HR-Managed cards ── */}
           {filteredApi.map(app => {
             const norm = normalizeStatus(app.status);
             const isRejected = norm === 'REJECTED';
@@ -709,7 +677,6 @@ export function JobApplicationTab() {
         </div>
       )}
 
-      {/* ── New Application Modal ── */}
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">

@@ -124,7 +124,6 @@ def list_my_resume_versions(
         .all()
     )
 
-    # Delete any resumes whose valid_until date has passed
     today = date.today().isoformat()  # e.g. "2026-04-13"
     expired_ids = [
         r.resume_id for r in resumes
@@ -343,7 +342,6 @@ def fetch_job_url(
     request: FetchJobUrlRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Fetch a job posting URL and return the extracted title + description."""
     try:
         result = fetch_job_from_url(request.url)
         return result
@@ -363,7 +361,6 @@ def create_resume_from_job_description(
     person = _ensure_person(db, current_user)
     target_language = request.language or "en"
 
-    # Determine the base resume data to adapt
     if request.source_resume_id:
         source_resume = (
             db.query(Resume)
@@ -384,7 +381,6 @@ def create_resume_from_job_description(
         for section in request.removed_sections:
             base_data.pop(section, None)
 
-    # Adapt the resume for the job using LLM (includes translation to target language)
     try:
         resume_data = adapt_resume_for_job(base_data, request.job_description, target_language)
     except Exception as e:

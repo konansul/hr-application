@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
-import {documentsApi, screeningApi} from '../api';
-import {useStore} from '../store';
+import {documentsApi, screeningApi} from '../../api';
+import {useStore} from '../../store';
 
 const Pill = ({
                   label,

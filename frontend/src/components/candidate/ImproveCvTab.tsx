@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { screeningApi } from '../api';
+import { screeningApi } from '../../api';
 
 const Pill = ({
   label,
