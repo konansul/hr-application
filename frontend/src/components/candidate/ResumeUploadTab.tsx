@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { documentsApi, jobsApi, resumesApi } from '../../api';
-import { TEMPLATES, downloadResumePdf, type TemplateId } from './ResumePdfTemplates';
+import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
 
@@ -102,6 +102,8 @@ const normalizeResume = (resume: ResumeVersion | null): ResumeVersion | null => 
   };
 };
 
+// ---- Shared sub-components ----
+
 function LanguageSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <select
@@ -183,6 +185,8 @@ function ModalActions({ onClose, onSubmit, disabled, submitLabel, submitClass }:
   );
 }
 
+// ---- Modals ----
+
 function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
   onClose: () => void;
   onSubmit: (data: { title: string; language: string; validUntil: string; removedSections: ResumeSectionKey[] }) => void;
@@ -236,21 +240,25 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
 
   const sourceResume = resumeVersions.find((r) => r.resume_id === sourceId);
 
+  // Sync defaults when source changes
   const prevSourceIdRef = useRef('');
   if (prevSourceIdRef.current !== sourceId) {
     prevSourceIdRef.current = sourceId;
     if (sourceResume) {
       if (!title || title === resumeVersions.find((r) => r.resume_id === prevSourceIdRef.current)?.title + ' Copy') {
+        // will re-render with new defaults on next cycle — just set directly
       }
     }
   }
 
+  // Use effect to update title/language when source changes
   const [autoTitle, setAutoTitle] = useState(true);
   useEffect(() => {
     if (sourceResume && autoTitle) {
       setTitle(`${sourceResume.title || 'Resume'} Copy`);
       setLanguage(sourceResume.language || 'en');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceId]);
 
   const canSubmit = !isWorking && !!sourceId && title.trim();
@@ -337,6 +345,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const [sourceResumeId, setSourceResumeId] = useState<string>(resumeVersions[0]?.resume_id ?? '');
 
+  // Job description input mode
   type JDMode = 'jobs' | 'manual';
   const [mode, setMode] = useState<JDMode>(activeJobs.length > 0 ? 'jobs' : 'manual');
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -363,6 +372,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         setDescription(result.job_description);
         if (result.job_title && !title) setTitle(`Resume for ${result.job_title}`);
       } else {
+        // Auto-fill got nothing — focus the textarea so user can paste
         setTimeout(() => descriptionRef.current?.focus(), 50);
       }
     } catch (e: any) {
@@ -379,6 +389,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const effectiveDescription = mode === 'jobs' ? (selectedJob?.description ?? '') : description;
   const effectiveJobId = mode === 'jobs' ? (selectedJobId || null) : null;
 
+  // Title can be left blank — it falls back to the fetched job title or a generic label at submit time
   const effectiveTitle = title.trim() || (fetchedTitle ? `Resume for ${fetchedTitle}` : '');
   const canSubmit = !isWorking && !isFetching && !!effectiveDescription.trim() && !!sourceResumeId;
 
@@ -397,6 +408,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   return (
     <ModalShell title="Create Resume from Job Description" subtitle="AI will adapt your existing resume to fit the role" onClose={onClose}>
 
+      {/* Source resume picker */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Base Resume to Adapt</label>
         {resumeVersions.length === 0 ? (
@@ -428,9 +440,11 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         )}
       </div>
 
+      {/* Job description source */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Job Description</label>
 
+        {/* Mode tabs */}
         {activeJobs.length > 0 && (
           <div className="flex rounded-xl border border-gray-200 overflow-hidden mb-3">
             <ModeTab id="jobs" label="Open Jobs" />
@@ -485,6 +499,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
               )}
             </div>
 
+            {/* Textarea — paste fallback, always visible */}
             <textarea
               ref={descriptionRef}
               value={description}
@@ -498,6 +513,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         )}
       </div>
 
+      {/* Meta fields */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Version Name</label>
         <input
@@ -543,6 +559,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   );
 }
 
+// ---- Job description accordion (reference-only, not part of CV) ----
 function JobDescriptionAccordion({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   return (
@@ -577,6 +594,7 @@ function JobDescriptionAccordion({ text }: { text: string }) {
   );
 }
 
+// ---- Main component ----
 
 export function ResumeUploadTab() {
   const [file, setFile] = useState<File | null>(null);
@@ -635,6 +653,7 @@ export function ResumeUploadTab() {
 
   useEffect(() => {
     loadData().catch(() => setMessage({ text: 'Failed to load resume data', type: 'error' }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedResume = useMemo(
@@ -855,109 +874,73 @@ export function ResumeUploadTab() {
           </p>
         </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* 4 action buttons */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            Upload CV
+          </button>
+          <button
+            onClick={() => setShowProfileModal(true)}
+            disabled={isWorking}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-gray-50 text-gray-900 text-sm font-semibold rounded-xl shadow-sm border border-gray-200 transition-all disabled:opacity-60"
+          >
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            From Profile
+          </button>
+          <button
+            onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
+            disabled={isWorking || resumeVersions.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-xl shadow-sm border border-emerald-100 transition-all disabled:opacity-60"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            Duplicate
+          </button>
+          <button
+            onClick={() => setShowJobDescModal(true)}
+            disabled={isWorking}
+            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-xl shadow-sm border border-indigo-100 transition-all disabled:opacity-60"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            From Job Description
+          </button>
+        </div>
+      </div>
 
-        <div className="lg:col-span-4 space-y-6">
+      {/* ---- Two-column layout: version list + detail ---- */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 items-start">
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200 space-y-2.5">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-1">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              Create New Version
-            </h3>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              Upload CV
-            </button>
-
-            <button
-              onClick={() => setShowProfileModal(true)}
-              disabled={isWorking}
-              className="w-full py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-sm border border-gray-200 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              From Profile
-            </button>
-
-            <button
-              onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
-              disabled={isWorking || resumeVersions.length === 0}
-              className="w-full py-2.5 bg-emerald-50 text-emerald-700 text-sm font-semibold rounded-xl hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-              Duplicate Existing
-            </button>
-
-            <button
-              onClick={() => setShowJobDescModal(true)}
-              disabled={isWorking}
-              className="w-full py-2.5 bg-indigo-50 text-indigo-700 text-sm font-semibold rounded-xl hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              From Job Description
-            </button>
-
-            <p className="text-xs text-center text-gray-400 pt-1">
-              {resumeVersions.length} version{resumeVersions.length !== 1 ? 's' : ''} · {uploadedDocs.length} uploaded doc{uploadedDocs.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-gray-900">Versions</h3>
-              <span className="text-xs font-semibold text-gray-400">Newest first</span>
-            </div>
-            <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-              {resumeVersions.map((resume, index) => {
-                const isActive = resume.resume_id === selectedResume?.resume_id;
-                const isPendingDelete = confirmDeleteId === resume.resume_id;
-                return (
-                  <div
-                    key={resume.resume_id}
-                    className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}
-                  >
-                    <button
-                      onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); }}
-                      className="w-full text-left p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-1">
-                        <div>
-                          <p className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>Version {resumeVersions.length - index}</p>
-                          <h4 className="text-sm font-semibold">{resume.title || 'Untitled Resume'}</h4>
+        {/* Left: Vertical version list */}
+        <div className="space-y-2">
+          {resumeVersions.length > 0 ? (
+            resumeVersions.map((resume) => {
+              const isActive = resume.resume_id === selectedResume?.resume_id;
+              const isPendingDelete = confirmDeleteId === resume.resume_id;
+              return (
+                <div
+                  key={resume.resume_id}
+                  className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-md' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'}`}
+                >
+                  <div className="px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); setMessage(null); }}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <div className="grid grid-cols-3 items-center w-full gap-2">
+                          <h4 className="text-sm font-semibold leading-snug truncate">{resume.title || 'Untitled Resume'}</h4>
+                          <span className={`text-sm text-center whitespace-nowrap ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {resume.created_at ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
+                          </span>
+                          <span className={`text-sm font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap text-center justify-self-end ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-600'}`}>
+                            {langLabel(resume.language)}
+                          </span>
                         </div>
-                        <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-500'}`}>
-                          {langLabel(resume.language)}
-                        </span>
-                      </div>
-                      <p className={`text-xs ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(resume.source_type)}</p>
-                      {resume.valid_until && <p className={`text-xs mt-0.5 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>Valid until: {resume.valid_until}</p>}
-                      <p className={`text-xs mt-1 ${isActive ? 'text-gray-400' : 'text-gray-400'}`}>{formatDate(resume.created_at)}</p>
-                    </button>
-                    {isPendingDelete ? (
-                      <div className={`flex items-center justify-between gap-2 px-4 pb-3 pt-0`}>
-                        <span className={`text-xs font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>Delete this version?</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setConfirmDeleteId(null)}
-                            className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => handleDeleteResume(resume.resume_id)}
-                            disabled={isDeleting}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center gap-1"
-                          >
-                            {isDeleting && <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="px-4 pb-3 pt-0 flex justify-end">
+                      </button>
+                      {!isPendingDelete && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(resume.resume_id); }}
                           className={`p-1.5 rounded-lg transition-colors shrink-0 ${isActive ? 'text-red-300 hover:bg-white/10' : 'text-gray-300 hover:text-red-400 hover:bg-red-50'}`}
@@ -999,7 +982,8 @@ export function ResumeUploadTab() {
           )}
         </div>
 
-        <div className="lg:col-span-8 space-y-6">
+        {/* Right: Resume detail */}
+        <div className="space-y-6">
           {message && (
             <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
               <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1011,6 +995,7 @@ export function ResumeUploadTab() {
             </div>
           )}
 
+          {/* Selected resume detail */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 space-y-3">
               {/* Row 1: resume name — editable when Edit mode is active */}
@@ -1103,6 +1088,7 @@ export function ResumeUploadTab() {
               ) : (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Editable title */}
                     <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</span>
                       {editingTitle ? (
@@ -1137,6 +1123,7 @@ export function ResumeUploadTab() {
 
                     <InfoTag label="Created" value={formatDate(selectedResume.created_at)} />
 
+                    {/* Source resume — resolved to title + language */}
                     {(() => {
                       const src = selectedResume.source_resume_id
                         ? resumeVersions.find((r) => r.resume_id === selectedResume.source_resume_id)
@@ -1159,6 +1146,7 @@ export function ResumeUploadTab() {
                     })()}
                   </div>
 
+                  {/* Photo */}
                   <div className="flex items-center gap-5 py-1">
                     {(isEditingContent ? editDraft?.personal_info?.photo : selectedResume.personal_info?.photo) ? (
                       <img
@@ -1358,6 +1346,65 @@ export function ResumeUploadTab() {
             </div>
           </div>
 
+          {/* Open Jobs */}
+          {/* Saved PDF card */}
+          {selectedResume && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></div>
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Saved PDF Version</h3>
+                </div>
+                {selectedResume.generated_document_id && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">Saved</span>
+                )}
+              </div>
+              <div className="p-6 space-y-4">
+                {selectedResume.generated_document_id ? (
+                  <>
+                    <p className="text-sm text-gray-500">PDF saved — download anytime, no regeneration needed.</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const url = await documentsApi.getDocumentFileUrl(selectedResume.generated_document_id!);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${selectedResume.title || 'resume'}.pdf`;
+                            a.click();
+                            setTimeout(() => URL.revokeObjectURL(url), 10_000);
+                          } catch { setMessage({ text: 'Could not download the saved PDF.', type: 'error' }); }
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold rounded-xl border border-rose-100 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Download Saved PDF
+                      </button>
+                      <button
+                        onClick={() => setShowSavePdfModal(true)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Regenerate &amp; Save
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500">Save a PDF version to the database so you can download or send it any time without regenerating.</p>
+                    <button
+                      onClick={() => setShowSavePdfModal(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                      Save PDF Version
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {activeJobs.length > 0 && (
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
@@ -1387,8 +1434,12 @@ export function ResumeUploadTab() {
           )}
         </div>
 
+      </div>{/* ---- end two-column grid ---- */}
+
+      {/* Hidden file input */}
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx,.txt" />
 
+      {/* Global loading overlay (only when no modal is open) */}
       {(isUploading || isWorking) && noModals && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
           <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
@@ -1398,6 +1449,7 @@ export function ResumeUploadTab() {
         </div>
       )}
 
+      {/* Upload confirm bar */}
       {file && !isUploading && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white border border-gray-200 px-6 py-4 rounded-2xl shadow-xl flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-8">
           <div className="flex items-center gap-4">
@@ -1416,6 +1468,7 @@ export function ResumeUploadTab() {
         </div>
       )}
 
+      {/* Modals */}
       {showProfileModal && (
         <CreateFromProfileModal onClose={() => setShowProfileModal(false)} onSubmit={handleCreateFromProfile} isWorking={isWorking} />
       )}
@@ -1426,6 +1479,7 @@ export function ResumeUploadTab() {
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
       )}
 
+      {/* PDF template picker modal (Export) */}
       {showPdfModal && selectedResume && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
           <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
@@ -1597,6 +1651,7 @@ export function ResumeUploadTab() {
         </div>
       )}
 
+      {/* Share modal */}
       {showShareModal && selectedResume && (() => {
         const publicUrl = `${window.location.origin}${window.location.pathname}?cv=${selectedResume.resume_id}`;
         return (
@@ -1617,6 +1672,7 @@ export function ResumeUploadTab() {
               </div>
 
               <div className="p-6 space-y-5">
+                {/* Public link */}
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
                   <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
@@ -1635,6 +1691,7 @@ export function ResumeUploadTab() {
                   <p className="text-[11px] text-gray-400">Anyone with this link can view your CV without logging in.</p>
                 </div>
 
+                {/* Email */}
                 {(() => {
                   const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
                   const senderName = [info.first_name, info.last_name].filter(Boolean).join(' ') || 'Your Name';
