@@ -9,12 +9,19 @@ import { useStore } from './store';
 const cvToken = new URLSearchParams(window.location.search).get('cv');
 
 function App() {
-  const { isLoggedIn, userRole, setIsLoggedIn, setUserRole, setActiveTab } = useStore();
+  const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserRole, setActiveTab } = useStore();
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  if (cvToken) return <PublicCvView token={cvToken} />;
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   useEffect(() => {
+    if (cvToken) return;
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token');
       if (token) {
@@ -33,8 +40,10 @@ function App() {
     checkAuth();
   }, [setIsLoggedIn, setUserRole]);
 
+  if (cvToken) return <PublicCvView token={cvToken} />;
+
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen bg-gray-50">Loading...</div>;
+    return <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900 dark:text-white transition-colors duration-300">Loading...</div>;
   }
 
   if (!isLoggedIn || !userRole) {
