@@ -102,8 +102,6 @@ const normalizeResume = (resume: ResumeVersion | null): ResumeVersion | null => 
   };
 };
 
-// ---- Shared sub-components ----
-
 function LanguageSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <select
@@ -185,8 +183,6 @@ function ModalActions({ onClose, onSubmit, disabled, submitLabel, submitClass }:
   );
 }
 
-// ---- Modals ----
-
 function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
   onClose: () => void;
   onSubmit: (data: { title: string; language: string; validUntil: string; removedSections: ResumeSectionKey[] }) => void;
@@ -240,18 +236,11 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
 
   const sourceResume = resumeVersions.find((r) => r.resume_id === sourceId);
 
-  // Sync defaults when source changes
   const prevSourceIdRef = useRef('');
   if (prevSourceIdRef.current !== sourceId) {
     prevSourceIdRef.current = sourceId;
-    if (sourceResume) {
-      if (!title || title === resumeVersions.find((r) => r.resume_id === prevSourceIdRef.current)?.title + ' Copy') {
-        // will re-render with new defaults on next cycle — just set directly
-      }
-    }
   }
 
-  // Use effect to update title/language when source changes
   const [autoTitle, setAutoTitle] = useState(true);
   useEffect(() => {
     if (sourceResume && autoTitle) {
@@ -345,7 +334,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const [sourceResumeId, setSourceResumeId] = useState<string>(resumeVersions[0]?.resume_id ?? '');
 
-  // Job description input mode
   type JDMode = 'jobs' | 'manual';
   const [mode, setMode] = useState<JDMode>(activeJobs.length > 0 ? 'jobs' : 'manual');
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -372,7 +360,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         setDescription(result.job_description);
         if (result.job_title && !title) setTitle(`Resume for ${result.job_title}`);
       } else {
-        // Auto-fill got nothing — focus the textarea so user can paste
         setTimeout(() => descriptionRef.current?.focus(), 50);
       }
     } catch (e: any) {
@@ -389,7 +376,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const effectiveDescription = mode === 'jobs' ? (selectedJob?.description ?? '') : description;
   const effectiveJobId = mode === 'jobs' ? (selectedJobId || null) : null;
 
-  // Title can be left blank — it falls back to the fetched job title or a generic label at submit time
   const effectiveTitle = title.trim() || (fetchedTitle ? `Resume for ${fetchedTitle}` : '');
   const canSubmit = !isWorking && !isFetching && !!effectiveDescription.trim() && !!sourceResumeId;
 
@@ -408,7 +394,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   return (
     <ModalShell title="Create Resume from Job Description" subtitle="AI will adapt your existing resume to fit the role" onClose={onClose}>
 
-      {/* Source resume picker */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Base Resume to Adapt</label>
         {resumeVersions.length === 0 ? (
@@ -440,11 +425,9 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         )}
       </div>
 
-      {/* Job description source */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Job Description</label>
 
-        {/* Mode tabs */}
         {activeJobs.length > 0 && (
           <div className="flex rounded-xl border border-gray-200 overflow-hidden mb-3">
             <ModeTab id="jobs" label="Open Jobs" />
@@ -463,7 +446,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
 
         {mode === 'manual' && (
           <div className="space-y-3">
-            {/* URL auto-fill */}
             <div className="space-y-1.5">
               <div className="flex gap-2">
                 <input
@@ -499,7 +481,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
               )}
             </div>
 
-            {/* Textarea — paste fallback, always visible */}
             <textarea
               ref={descriptionRef}
               value={description}
@@ -513,7 +494,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         )}
       </div>
 
-      {/* Meta fields */}
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Version Name</label>
         <input
@@ -559,7 +539,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   );
 }
 
-// ---- Job description accordion (reference-only, not part of CV) ----
 function JobDescriptionAccordion({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   return (
@@ -593,8 +572,6 @@ function JobDescriptionAccordion({ text }: { text: string }) {
     </div>
   );
 }
-
-// ---- Main component ----
 
 export function ResumeUploadTab() {
   const [file, setFile] = useState<File | null>(null);
@@ -787,7 +764,6 @@ export function ResumeUploadTab() {
       setEditDraft(d => d ? { ...d, personal_info: { ...(d.personal_info ?? {}), photo: base64 } } : d);
     };
     reader.readAsDataURL(f);
-    // reset so same file can be re-selected
     e.target.value = '';
   };
 
@@ -864,7 +840,6 @@ export function ResumeUploadTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 pb-32">
 
-      {/* ---- Header row ---- */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">Resume Versions</h2>
@@ -874,7 +849,6 @@ export function ResumeUploadTab() {
           </p>
         </div>
 
-        {/* 4 action buttons */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -910,10 +884,8 @@ export function ResumeUploadTab() {
         </div>
       </div>
 
-      {/* ---- Two-column layout: version list + detail ---- */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 items-start">
 
-        {/* Left: Vertical version list */}
         <div className="space-y-2">
           {resumeVersions.length > 0 ? (
             resumeVersions.map((resume) => {
@@ -982,7 +954,6 @@ export function ResumeUploadTab() {
           )}
         </div>
 
-        {/* Right: Resume detail */}
         <div className="space-y-6">
           {message && (
             <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
@@ -995,10 +966,8 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          {/* Selected resume detail */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 space-y-3">
-              {/* Row 1: resume name — editable when Edit mode is active */}
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></div>
                 {isEditingContent ? (
@@ -1015,7 +984,6 @@ export function ResumeUploadTab() {
                   <h3 className="text-lg font-extrabold text-gray-900 truncate">{selectedResume?.title || 'Untitled Resume'}</h3>
                 )}
               </div>
-              {/* Row 2: metadata + actions evenly spread */}
               <div className="flex items-center justify-between gap-2">
                 <span className="px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-500 whitespace-nowrap">
                   {selectedResume ? sourceTypeLabel(selectedResume.source_type) : '—'}
@@ -1088,7 +1056,6 @@ export function ResumeUploadTab() {
               ) : (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Editable title */}
                     <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</span>
                       {editingTitle ? (
@@ -1123,7 +1090,6 @@ export function ResumeUploadTab() {
 
                     <InfoTag label="Created" value={formatDate(selectedResume.created_at)} />
 
-                    {/* Source resume — resolved to title + language */}
                     {(() => {
                       const src = selectedResume.source_resume_id
                         ? resumeVersions.find((r) => r.resume_id === selectedResume.source_resume_id)
@@ -1146,7 +1112,6 @@ export function ResumeUploadTab() {
                     })()}
                   </div>
 
-                  {/* Photo */}
                   <div className="flex items-center gap-5 py-1">
                     {(isEditingContent ? editDraft?.personal_info?.photo : selectedResume.personal_info?.photo) ? (
                       <img
@@ -1346,8 +1311,6 @@ export function ResumeUploadTab() {
             </div>
           </div>
 
-          {/* Open Jobs */}
-          {/* Saved PDF card */}
           {selectedResume && (
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
@@ -1434,12 +1397,10 @@ export function ResumeUploadTab() {
           )}
         </div>
 
-      </div>{/* ---- end two-column grid ---- */}
+      </div>
 
-      {/* Hidden file input */}
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx,.txt" />
 
-      {/* Global loading overlay (only when no modal is open) */}
       {(isUploading || isWorking) && noModals && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
           <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
@@ -1449,7 +1410,6 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Upload confirm bar */}
       {file && !isUploading && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white border border-gray-200 px-6 py-4 rounded-2xl shadow-xl flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-8">
           <div className="flex items-center gap-4">
@@ -1468,7 +1428,6 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Modals */}
       {showProfileModal && (
         <CreateFromProfileModal onClose={() => setShowProfileModal(false)} onSubmit={handleCreateFromProfile} isWorking={isWorking} />
       )}
@@ -1479,11 +1438,9 @@ export function ResumeUploadTab() {
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
       )}
 
-      {/* PDF template picker modal (Export) */}
       {showPdfModal && selectedResume && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
           <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
-            {/* Template list */}
             <div className="flex flex-col w-full max-w-sm shrink-0">
               <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                 <div>
@@ -1545,7 +1502,6 @@ export function ResumeUploadTab() {
                 })}
               </div>
             </div>
-            {/* Preview panel */}
             {previewBlobUrl && (
               <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
@@ -1561,11 +1517,9 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Save PDF to DB modal */}
       {showSavePdfModal && selectedResume && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
           <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
-            {/* Template list */}
             <div className="flex flex-col w-full max-w-sm shrink-0">
               <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                 <div>
@@ -1635,7 +1589,6 @@ export function ResumeUploadTab() {
                 })}
               </div>
             </div>
-            {/* Preview panel */}
             {previewBlobUrl && (
               <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
@@ -1651,7 +1604,6 @@ export function ResumeUploadTab() {
         </div>
       )}
 
-      {/* Share modal */}
       {showShareModal && selectedResume && (() => {
         const publicUrl = `${window.location.origin}${window.location.pathname}?cv=${selectedResume.resume_id}`;
         return (
@@ -1672,7 +1624,6 @@ export function ResumeUploadTab() {
               </div>
 
               <div className="p-6 space-y-5">
-                {/* Public link */}
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
                   <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl">

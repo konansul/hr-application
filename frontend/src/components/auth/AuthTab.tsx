@@ -53,7 +53,6 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white dark:bg-black transition-colors duration-500 overflow-hidden relative">
 
-      {/* КНОПКИ УПРАВЛЕНИЯ (Top Right) */}
       <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
         <select
           value={language}
@@ -75,7 +74,6 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </button>
       </div>
 
-      {/* ЛЕВАЯ ЧАСТЬ (Hero Section) */}
       <div className="hidden lg:flex lg:w-1/2 bg-gray-50 dark:bg-neutral-950 p-16 flex-col justify-between relative overflow-hidden border-r border-gray-100 dark:border-neutral-900 transition-colors">
         <div className="relative z-10">
           <div className="w-14 h-14 bg-gray-900 dark:bg-white rounded-2xl flex items-center justify-center mb-10 shadow-lg transition-colors">
@@ -114,7 +112,6 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="absolute top-[-5%] right-[-5%] w-80 h-80 bg-blue-100/50 dark:bg-blue-900/10 rounded-full blur-[100px]"></div>
       </div>
 
-      {/* ПРАВАЯ ЧАСТЬ (Form Section) */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white dark:bg-black transition-colors">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-right-4 duration-700">
           <div className="mb-10">

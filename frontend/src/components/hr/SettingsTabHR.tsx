@@ -77,7 +77,6 @@ export function SettingsTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
-      {/* Header */}
       <div className="flex justify-between items-end border-b border-gray-100 dark:border-neutral-800 pb-4 transition-colors">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{t.title}</h2>
@@ -100,7 +99,6 @@ export function SettingsTab() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* Left Column: App Preferences */}
         <div className="md:col-span-5 space-y-6">
 
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm transition-colors">
@@ -130,7 +128,6 @@ export function SettingsTab() {
             </div>
           </div>
 
-          {/* Language selection */}
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm transition-colors">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
@@ -151,7 +148,6 @@ export function SettingsTab() {
           </div>
         </div>
 
-        {/* Right Column: Pipeline Settings */}
         <div className="md:col-span-7 space-y-6">
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm min-h-[450px] flex flex-col transition-colors">
             <div className="mb-6">

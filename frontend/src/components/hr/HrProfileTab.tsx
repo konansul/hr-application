@@ -97,7 +97,6 @@ export function HrProfileTab() {
     }
   };
 
-  // Вспомогательные компоненты для верстки (теперь внутри основного, чтобы видеть все стили)
   const DetailRow = ({ label, value }: { label: string; value: string }) => (
     <div className="flex flex-col border-b border-gray-100 dark:border-neutral-800 py-3 transition-colors">
       <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1">{label}</span>
@@ -173,7 +172,6 @@ export function HrProfileTab() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-8 space-y-6">
 
-          {/* Section: Basic Information */}
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <SectionHeader
               label={t.sections.basic}
@@ -217,7 +215,6 @@ export function HrProfileTab() {
             </div>
           </div>
 
-          {/* Section: Contact & Network */}
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <SectionHeader
               label={t.sections.contact}
@@ -250,7 +247,6 @@ export function HrProfileTab() {
             </div>
           </div>
 
-          {/* Section: Work & Location */}
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <SectionHeader
               label={t.sections.work}
@@ -302,7 +298,6 @@ export function HrProfileTab() {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          {/* Side Card: Profile Summary */}
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 flex flex-col items-center text-center relative overflow-hidden transition-colors">
             <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50 shadow-sm mb-5 z-10 transition-colors">
               <span className="text-2xl font-bold">
@@ -344,7 +339,6 @@ export function HrProfileTab() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 dark:bg-neutral-800/50 rounded-full blur-3xl -mr-16 -mt-16 transition-colors"></div>
           </div>
 
-          {/* Side Card: Stats */}
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 space-y-4 transition-colors">
             <h4 className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.stats.title}</h4>
 

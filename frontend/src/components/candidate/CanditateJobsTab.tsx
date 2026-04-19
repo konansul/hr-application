@@ -3,7 +3,6 @@ import { jobsApi, screeningApi, authApi, documentsApi } from '../../api';
 import { useStore } from '../../store';
 import { DICT } from '../../internationalization.ts';
 
-// Мы больше не используем жесткий массив уровней, будем брать из словаря
 const LEVEL_KEYS = ['all', 'junior', 'middle', 'senior', 'lead'] as const;
 
 export function JobsTab() {
@@ -20,7 +19,6 @@ export function JobsTab() {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
-  // Фильтр теперь хранит ключ ('all', 'junior' и т.д.), а не строку
   const [selectedLevelKey, setSelectedLevelKey] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -132,7 +130,6 @@ export function JobsTab() {
   };
 
   const displayedJobs = jobs.filter(job => {
-    // Сравниваем ключ без учета регистра. Игнорируем фильтр, если выбран 'all'
     const jobLevelKey = job.level?.toLowerCase() || '';
     const matchesLevel = selectedLevelKey === 'all' || jobLevelKey === selectedLevelKey;
     const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -153,7 +150,6 @@ export function JobsTab() {
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
       <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.docx,.txt" onChange={handleFileUpload} />
 
-      {/* ВЕРХНЯЯ СЕКЦИЯ: ПОИСК И ФИЛЬТРАЦИЯ */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 border-b border-gray-100 dark:border-neutral-800 pb-6 transition-colors">
         <div className="space-y-4 w-full lg:w-auto">
           <div>
@@ -164,7 +160,6 @@ export function JobsTab() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Поле поиска */}
             <div className="relative w-full md:w-72">
               <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -177,7 +172,6 @@ export function JobsTab() {
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-neutral-900 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500"
               />
             </div>
-            {/* Кнопки уровней */}
             <div className="flex gap-1 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl transition-colors">
               {LEVEL_KEYS.map(key => (
                 <button
@@ -197,7 +191,6 @@ export function JobsTab() {
         </div>
       </div>
 
-      {/* СПИСОК ВАКАНСИЙ */}
       <div className="grid grid-cols-1 gap-6">
         {displayedJobs.length === 0 ? (
            <div className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
@@ -260,7 +253,6 @@ export function JobsTab() {
                     </button>
                   </div>
 
-                  {/* КНОПКА ОТКЛИКА */}
                   <div className="shrink-0 w-full md:w-auto mt-4 md:mt-0">
                     {userApp ? (
                       <div className="w-full text-center bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 px-6 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-neutral-700 transition-colors">
@@ -277,13 +269,10 @@ export function JobsTab() {
                   </div>
                 </div>
 
-                {/* ПРОГРЕСС БАР (PIPELINE) */}
                 {userApp && (
                   <div className="px-6 md:px-12 py-8 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 relative overflow-x-auto custom-scrollbar transition-colors">
                     <div className="flex justify-between items-center relative min-w-[500px] max-w-3xl mx-auto">
-                      {/* Background Track */}
                       <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-800 -translate-y-1/2 z-0 rounded-full"></div>
-                      {/* Fill Track */}
                       <div
                         className={`absolute top-1/2 left-0 h-1 ${isRejected ? 'bg-red-500 dark:bg-red-600' : isOffer ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-indigo-500 dark:bg-white'} -translate-y-1/2 z-0 transition-all duration-1000 rounded-full`}
                         style={{ width: `${Math.min(100, Math.max(0, (currentStageIdx / (displayStages.length - 1)) * 100))}%` }}
@@ -335,7 +324,6 @@ export function JobsTab() {
         )}
       </div>
 
-      {/* МОДАЛЬНОЕ ОКНО ОПРОСНИКА */}
       {showQuestionnaire && applyingJob && (
         <div className="fixed inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-neutral-900 w-full max-w-lg rounded-3xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 transition-colors">

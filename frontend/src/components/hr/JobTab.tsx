@@ -28,10 +28,8 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const token = localStorage.getItem('auth_token');
   const { setGlobalJobId, setGlobalJobTitle, language } = useStore();
 
-  // Подключаем словарь
   const t = DICT[language as keyof typeof DICT]?.jobsHr || DICT.en.jobsHr;
 
-  // --- Стейты для списка и фильтрации ---
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
 
@@ -39,7 +37,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [filterLevel, setFilterLevel] = useState<string>('All');
   const [filterRegion, setFilterRegion] = useState<string>('All');
 
-  // --- Стейты для активной вакансии (Workspace) ---
   const [currentJob, setCurrentJob] = useState<Job | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
   const [activeDescription, setActiveDescription] = useState('');
@@ -48,14 +45,12 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [activeRegion, setActiveRegion] = useState('Global');
   const [activeQuestions, setActiveQuestions] = useState<ScreeningQuestion[]>([]);
 
-  // --- Стейты для модального окна создания ---
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
   const [draftLevel, setDraftLevel] = useState('Middle');
   const [draftRegion, setDraftRegion] = useState('Global');
 
-  // --- Системные стейты ---
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isRefining, setIsRefining] = useState(false);
@@ -87,7 +82,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     if (token) fetchJobs();
   }, [token]);
 
-  // Применяем фильтры к списку
   const filteredJobs = jobs.filter(job => {
     if (filterStatus !== 'All' && job.status !== filterStatus) return false;
     if (filterLevel !== 'All' && job.level !== filterLevel) return false;
@@ -200,8 +194,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setIsSaving(true);
     setError(null);
     try {
-      // Игнорируем строгую проверку TS с помощью "as any",
-      // чтобы передать status (даже если бэкенд его игнорирует)
       const updatedJob = await jobsApi.update(currentJob.id, {
          title: activeTitle,
          description: activeDescription,
@@ -227,7 +219,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       case 'active': return 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50';
       case 'closed': return 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-500 border-gray-200 dark:border-neutral-700';
       case 'suspended': return 'bg-amber-100 dark:bg-amber-950/30 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800/50';
-      default: return 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/50'; // draft
+      default: return 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/50';
     }
   };
 
@@ -243,7 +235,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 pb-20 relative transition-colors">
 
-      {/* --- TOP BAR --- */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-gray-100 dark:border-neutral-800 pb-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">{t.title}</h2>
@@ -298,10 +289,8 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
         </div>
       )}
 
-      {/* --- MAIN LAYOUT --- */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        {/* LEFT PANEL */}
         <div className="lg:col-span-4 flex flex-col gap-6 h-[800px] sticky top-6">
           <div className={`bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col overflow-hidden transition-all ${currentJob ? 'h-[50%]' : 'h-full'}`}>
             <div className="flex items-center px-4 py-3 bg-gray-50 dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800 text-[10px] font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest shrink-0">
@@ -347,7 +336,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             </div>
           </div>
 
-          {/* 2. Screening Questions */}
           {currentJob && (
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col h-[50%] overflow-hidden transition-colors">
               <div className="px-5 py-3.5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-950 shrink-0">
@@ -401,11 +389,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
           )}
         </div>
 
-        {/* ПРАВАЯ ПАНЕЛЬ: РЕДАКТОР (WORKSPACE) */}
         <div className="lg:col-span-8">
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col overflow-hidden h-[800px] transition-colors">
 
-            {/* Тулбар редактора */}
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-950 flex flex-wrap items-center justify-between gap-4 shrink-0">
               <div className="flex items-center gap-3">
                 <div className={`w-2.5 h-2.5 rounded-full ${currentJob ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300 dark:bg-neutral-700'}`}></div>
@@ -435,7 +421,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             {currentJob ? (
               <div className="p-6 flex flex-col flex-1 gap-5 overflow-hidden">
 
-                {/* Заголовок и настройки */}
                 <div className="flex flex-col xl:flex-row xl:items-start gap-4 justify-between shrink-0">
                   <input
                     type="text"
@@ -445,7 +430,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                     placeholder={t.untitled}
                   />
 
-                  {/* Селекторы для редактирования текущей вакансии */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0 bg-gray-50 dark:bg-black p-1.5 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
                     <select
                       value={activeStatus}
@@ -479,7 +463,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
                 <div className="h-px bg-gray-100 dark:bg-neutral-800 w-full shrink-0"></div>
 
-                {/* Основное текстовое поле */}
                 <textarea
                   value={activeDescription}
                   onChange={(e) => setActiveDescription(e.target.value)}
@@ -487,7 +470,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   className={`w-full flex-1 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed border-none focus:ring-0 p-0 resize-none transition-colors custom-scrollbar bg-transparent outline-none ${isRefining ? 'text-indigo-400 dark:text-indigo-500' : ''}`}
                 />
 
-                {/* Footer с удалением */}
                 <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 flex justify-between items-center text-[10px] text-gray-400 dark:text-neutral-600 font-mono uppercase tracking-widest shrink-0 transition-colors">
                   <button onClick={handleDeleteJob} className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors font-bold">
                     {t.deleteBtn}
@@ -512,7 +494,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
         </div>
       </div>
 
-      {/* --- МОДАЛЬНОЕ ОКНО "CREATE NEW JD" --- */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in transition-colors">
           <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border dark:border-neutral-800">

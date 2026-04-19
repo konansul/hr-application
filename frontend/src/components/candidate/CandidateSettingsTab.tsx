@@ -35,7 +35,6 @@ export function CandidateSettingsTab() {
     loadSettings();
   }, []);
 
-  // СОХРАНЕНИЕ
   const handleSaveSettings = async () => {
     if (!visibility) return;
     setIsSaving(true);
@@ -75,7 +74,6 @@ export function CandidateSettingsTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20 relative">
 
-      {/* HEADER */}
       <div className="flex justify-between items-end border-b border-gray-100 dark:border-neutral-800 pb-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{t.title}</h2>
@@ -99,7 +97,6 @@ export function CandidateSettingsTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
 
-        {/* ЛЕВАЯ КОЛОНКА */}
         <div className="md:col-span-5 space-y-6">
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm transition-colors">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -160,7 +157,6 @@ export function CandidateSettingsTab() {
           </div>
         </div>
 
-        {/* ПРАВАЯ КОЛОНКА (Privacy) */}
         <div className="md:col-span-7 space-y-6">
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm min-h-[500px] flex flex-col gap-8 transition-colors">
             <section>
@@ -189,7 +185,6 @@ export function CandidateSettingsTab() {
               </div>
             </section>
 
-            {/* Profile Link */}
             <section className="pt-6 border-t border-gray-100 dark:border-neutral-800">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                  <svg className="w-5 h-5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
@@ -206,7 +201,6 @@ export function CandidateSettingsTab() {
               )}
             </section>
 
-            {/* Email Sharing */}
             <section className="pt-6 border-t border-gray-100 dark:border-neutral-800 mt-auto">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                  <svg className="w-5 h-5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>

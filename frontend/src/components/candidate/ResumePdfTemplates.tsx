@@ -41,7 +41,6 @@ function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb 
 }) {
   const withLevel = skills.filter(s => skillLevel(s) !== null);
   if (withLevel.length === 0 && !defaultLevel) {
-    // Plain chips
     return (
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {skills.map((s, i) => (
@@ -495,7 +494,6 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
         </View>
 
         <View style={RE.body}>
-          {/* Left column */}
           <View style={RE.left}>
             {info.summary ? (
               <View style={RE.sec}>
@@ -538,7 +536,6 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
             ) : null}
           </View>
 
-          {/* Right column */}
           <View style={RE.right}>
             {hasList(exp) ? (
               <View style={RE.sec}>
@@ -743,7 +740,6 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
           ) : null}
 
           <View style={HI.colRow}>
-            {/* Left */}
             <View style={HI.left}>
               {hasList(edu) ? (
                 <>
@@ -783,7 +779,6 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
               ) : null}
             </View>
 
-            {/* Right */}
             <View style={HI.right}>
               {hasList(exp) ? (
                 <>

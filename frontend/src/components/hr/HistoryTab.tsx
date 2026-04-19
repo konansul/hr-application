@@ -83,7 +83,6 @@ export function HistoryTab() {
         </div>
       </div>
 
-      {/* STATS WIDGETS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-colors">
           <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">{t.stats.total}</span>

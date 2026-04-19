@@ -78,7 +78,6 @@ export function CompareTab({ batchResults }: CompareTabProps) {
         </div>
       </div>
 
-      {/* CANDIDATE SELECTOR */}
       <div className="p-5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm transition-colors">
         <div className="flex flex-wrap gap-2.5">
           {batchResults.map((result, idx) => {

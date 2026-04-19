@@ -90,7 +90,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
         </div>
       </div>
 
-      {/* INPUT SECTION */}
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
 
@@ -155,11 +154,9 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
         )}
       </div>
 
-      {/* RESULTS SECTION */}
       {result && (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
 
-          {/* OVERALL SCORE & SUMMARY */}
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start transition-colors">
             <div className="w-full md:w-48 shrink-0">
               <Pill label={t.overallScore} value={result.overall_score || '—'} color="blue" />
@@ -170,7 +167,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* STRENGTHS & WEAKNESSES */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 transition-colors">
               <h3 className="text-sm font-semibold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center gap-2">
@@ -211,7 +207,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* KEYWORDS & ADVICE */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mb-3 flex items-center gap-2">
@@ -246,7 +241,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           </div>
 
-          {/* SUGGESTED SUMMARY */}
           {result.improved_summary && (
             <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-2xl p-6 relative overflow-hidden transition-colors">
               <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
@@ -258,7 +252,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
           )}
 
-          {/* BULLET REWRITES */}
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
             <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">{t.bulletRewrites}</h3>
 
@@ -287,7 +280,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             )}
           </div>
 
-          {/* PARSED TEXT PREVIEW */}
           {result.cv_text_preview && (
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mb-3">{t.parsedText}</h3>
