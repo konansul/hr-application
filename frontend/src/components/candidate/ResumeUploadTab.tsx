@@ -107,7 +107,7 @@ function LanguageSelect({ value, onChange }: { value: string; onChange: (v: stri
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+      className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
     >
       {LANGUAGE_OPTIONS.map((lang) => (
         <option key={lang.code} value={lang.code}>{lang.label} ({lang.code})</option>
@@ -126,7 +126,7 @@ function SectionToggles({ removedSections, onToggle }: { removedSections: Resume
           return (
             <label
               key={section.key}
-              className={`rounded-2xl border px-4 py-3 text-sm cursor-pointer transition-all select-none ${removed ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+              className={`rounded-2xl border px-4 py-3 text-sm cursor-pointer transition-all select-none ${removed ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}
             >
               <input type="checkbox" className="hidden" checked={removed} onChange={() => onToggle(section.key)} />
               {removed ? `✕ ${section.label}` : section.label}
@@ -143,18 +143,18 @@ function SectionToggles({ removedSections, onToggle }: { removedSections: Resume
 
 function ModalShell({ title, subtitle, onClose, children }: { title: string; subtitle?: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-      <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-lg overflow-y-auto max-h-[90vh]">
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+      <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-lg overflow-y-auto max-h-[90vh]">
+        <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-gray-900">{title}</h3>
-            {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">{title}</h3>
+            {subtitle && <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <div className="p-6 space-y-5">{children}</div>
+        <div className="p-6 space-y-5 dark:bg-neutral-900">{children}</div>
       </div>
     </div>
   );
@@ -169,7 +169,7 @@ function ModalActions({ onClose, onSubmit, disabled, submitLabel, submitClass }:
 }) {
   return (
     <div className="flex gap-3 pt-2">
-      <button onClick={onClose} className="flex-1 py-3 border border-gray-200 text-sm font-semibold text-gray-600 rounded-xl hover:bg-gray-50 transition-all">
+      <button onClick={onClose} className="flex-1 py-3 border border-gray-200 dark:border-neutral-700 text-sm font-semibold text-gray-600 dark:text-neutral-400 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all">
         Cancel
       </button>
       <button
@@ -198,7 +198,7 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
     <ModalShell title="Create Resume from Profile" subtitle="Choose what to include in this version" onClose={onClose}>
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Version Name</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" placeholder="e.g. Software Engineer Resume" />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" placeholder="e.g. Software Engineer Resume" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -207,7 +207,7 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Valid Until</label>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
         </div>
       </div>
       <SectionToggles removedSections={removedSections} onToggle={toggle} />
@@ -269,7 +269,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
                 key={r.resume_id}
                 type="button"
                 onClick={() => { setSourceId(r.resume_id); setAutoTitle(true); }}
-                className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${isSelected ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'}`}
+                className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${isSelected ? 'border-gray-900 bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div>
@@ -292,7 +292,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
         <input
           value={title}
           onChange={(e) => { setTitle(e.target.value); setAutoTitle(false); }}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+          className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
           placeholder="e.g. Resume for Product Roles"
         />
       </div>
@@ -304,7 +304,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Valid Until</label>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
         </div>
       </div>
 
@@ -385,7 +385,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
     <button
       type="button"
       onClick={() => setMode(id)}
-      className={`flex-1 py-2.5 text-xs font-semibold transition-all ${mode === id ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+      className={`flex-1 py-2.5 text-xs font-semibold transition-all ${mode === id ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
     >
       {label}
     </button>
@@ -407,7 +407,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
                   key={r.resume_id}
                   type="button"
                   onClick={() => setSourceResumeId(r.resume_id)}
-                  className={`w-full text-left rounded-2xl border px-4 py-2.5 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'}`}
+                  className={`w-full text-left rounded-2xl border px-4 py-2.5 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -429,14 +429,14 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Job Description</label>
 
         {activeJobs.length > 0 && (
-          <div className="flex rounded-xl border border-gray-200 overflow-hidden mb-3">
+          <div className="flex rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden mb-3">
             <ModeTab id="jobs" label="Open Jobs" />
             <ModeTab id="manual" label="Paste / URL" />
           </div>
         )}
 
         {mode === 'jobs' && (
-          <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+          <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20">
             <option value="">— Select a job —</option>
             {activeJobs.map((job) => (
               <option key={job.job_id || job.id} value={job.job_id || job.id}>{job.title}</option>
@@ -452,7 +452,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
                   value={jobUrl}
                   onChange={(e) => { setJobUrl(e.target.value); setFetchError(''); setHasFetched(false); }}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleFetchUrl(); }}
-                  className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="flex-1 rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   placeholder="https://company.com/jobs/12345"
                 />
                 <button
@@ -467,7 +467,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
                 </button>
               </div>
               {!fetchError && !hasFetched && (
-                <p className="text-[11px] text-gray-400">Works on static job pages only — for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
+                <p className="text-[11px] text-gray-400 dark:text-neutral-500">Works on static job pages only — for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
               )}
               {fetchError && <p className="text-xs text-red-500">{fetchError} — paste the description below instead.</p>}
               {hasFetched && !description && !fetchError && (
@@ -486,7 +486,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
-              className={`w-full rounded-xl border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${description ? 'border-indigo-300 bg-white' : 'border-gray-200 bg-gray-50'}`}
+              className={`w-full rounded-xl border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${description ? 'border-indigo-300 dark:border-indigo-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white'}`}
               placeholder="Or paste the job description here…"
               autoFocus={activeJobs.length === 0}
             />
@@ -499,7 +499,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20"
           placeholder={fetchedTitle ? `Resume for ${fetchedTitle}` : 'e.g. Resume for Product Manager at Acme'}
         />
       </div>
@@ -510,7 +510,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Valid Until</label>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20" />
         </div>
       </div>
 
@@ -523,7 +523,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
         <p className="text-xs text-amber-600 font-medium">Add a job description to continue.</p>
       )}
       {canSubmit && (
-        <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-xs text-indigo-700 font-medium">
+        <div className="rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 px-4 py-3 text-xs text-indigo-700 dark:text-indigo-400 font-medium">
           AI will adapt the selected resume to match the job requirements and write it in {LANGUAGE_OPTIONS.find((l) => l.code === language)?.label ?? language}.
         </div>
       )}
@@ -542,11 +542,11 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
 function JobDescriptionAccordion({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="rounded-2xl border border-indigo-100 bg-indigo-50 overflow-hidden">
+    <div className="rounded-2xl border border-indigo-100 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-900/20 overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-3 gap-3 hover:bg-indigo-100/60 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3 gap-3 hover:bg-indigo-100/60 dark:hover:bg-indigo-900/30 transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest shrink-0">Job Description</span>
@@ -565,8 +565,8 @@ function JobDescriptionAccordion({ text }: { text: string }) {
         </div>
       </button>
       {expanded && (
-        <div className="px-5 pb-5 border-t border-indigo-100">
-          <p className="text-sm text-indigo-800 leading-relaxed whitespace-pre-wrap pt-4">{text}</p>
+        <div className="px-5 pb-5 border-t border-indigo-100 dark:border-indigo-800/50">
+          <p className="text-sm text-indigo-800 dark:text-indigo-300 leading-relaxed whitespace-pre-wrap pt-4">{text}</p>
         </div>
       )}
     </div>
@@ -597,6 +597,9 @@ export function ResumeUploadTab() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [shareEmailTo, setShareEmailTo] = useState('');
   const [shareEmailRecipientName, setShareEmailRecipientName] = useState('');
+  const [sendEmailTo, setSendEmailTo] = useState('');
+  const [sendEmailSubject, setSendEmailSubject] = useState('');
+  const [sendEmailMessage, setSendEmailMessage] = useState('');
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfIncludePhoto, setPdfIncludePhoto] = useState(true);
@@ -824,9 +827,9 @@ export function ResumeUploadTab() {
   const removeEduEntry = (i: number) => setEditDraft(d => d ? { ...d, education: (d.education ?? []).filter((_: any, j: number) => j !== i) } : d);
 
   const InfoTag = ({ label, value }: { label: string; value: any }) => (
-    <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
-      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
-      <span className="text-sm font-semibold text-gray-900 truncate">
+    <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
+      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{label}</span>
+      <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
         {value === 'UNKNOWN' || value === '' || value === null || value === undefined
           ? <span className="text-gray-400 italic">Not Specified</span>
           : String(value)}
@@ -842,9 +845,9 @@ export function ResumeUploadTab() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-1">Resume Versions</h2>
-          <p className="text-sm text-gray-500 mb-0.5">Create, duplicate and manage your resume versions in multiple languages</p>
-          <p className="text-xs text-gray-400">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">Resume Versions</h2>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mb-0.5">Create, duplicate and manage your resume versions in multiple languages</p>
+          <p className="text-xs text-gray-400 dark:text-neutral-500">
             {resumeVersions.length} version{resumeVersions.length !== 1 ? 's' : ''} · {uploadedDocs.length} uploaded doc{uploadedDocs.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -860,7 +863,7 @@ export function ResumeUploadTab() {
           <button
             onClick={() => setShowProfileModal(true)}
             disabled={isWorking}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-gray-50 text-gray-900 text-sm font-semibold rounded-xl shadow-sm border border-gray-200 transition-all disabled:opacity-60"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-900 dark:text-white text-sm font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 transition-all disabled:opacity-60"
           >
             <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             From Profile
@@ -868,7 +871,7 @@ export function ResumeUploadTab() {
           <button
             onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
             disabled={isWorking || resumeVersions.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-xl shadow-sm border border-emerald-100 transition-all disabled:opacity-60"
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-semibold rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-800/50 transition-all disabled:opacity-60"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
             Duplicate
@@ -876,7 +879,7 @@ export function ResumeUploadTab() {
           <button
             onClick={() => setShowJobDescModal(true)}
             disabled={isWorking}
-            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-xl shadow-sm border border-indigo-100 transition-all disabled:opacity-60"
+            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-xl shadow-sm border border-indigo-100 dark:border-indigo-800/50 transition-all disabled:opacity-60"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             From Job Description
@@ -894,7 +897,7 @@ export function ResumeUploadTab() {
               return (
                 <div
                   key={resume.resume_id}
-                  className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 bg-gray-900 text-white shadow-md' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'}`}
+                  className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm'}`}
                 >
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
@@ -915,7 +918,7 @@ export function ResumeUploadTab() {
                       {!isPendingDelete && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(resume.resume_id); }}
-                          className={`p-1.5 rounded-lg transition-colors shrink-0 ${isActive ? 'text-red-300 hover:bg-white/10' : 'text-gray-300 hover:text-red-400 hover:bg-red-50'}`}
+                          className={`p-1.5 rounded-lg transition-colors shrink-0 ${isActive ? 'text-red-300 hover:bg-white/10' : 'text-gray-300 dark:text-neutral-600 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
                           title="Delete this version"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -930,7 +933,7 @@ export function ResumeUploadTab() {
                         <div className="flex gap-1.5">
                           <button
                             onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}
-                            className={`text-[10px] px-2 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                            className={`text-[10px] px-2 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
                           >No</button>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDeleteResume(resume.resume_id); }}
@@ -948,7 +951,7 @@ export function ResumeUploadTab() {
               );
             })
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-sm text-gray-500 text-center bg-gray-50/50">
+            <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 p-6 text-sm text-gray-500 dark:text-neutral-400 text-center bg-gray-50/50 dark:bg-neutral-800/50">
               No resume versions yet. Use <span className="font-semibold">Create New Version</span> above to get started.
             </div>
           )}
@@ -956,7 +959,7 @@ export function ResumeUploadTab() {
 
         <div className="space-y-6">
           {message && (
-            <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+            <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800/50'}`}>
               <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {message.type === 'success'
                   ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -966,8 +969,8 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 space-y-3">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></div>
                 {isEditingContent ? (
@@ -977,18 +980,18 @@ export function ResumeUploadTab() {
                     onChange={(e) => setTitleDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Escape') cancelEditingTitle(); }}
                     disabled={isSavingTitle}
-                    className="flex-1 min-w-0 text-lg font-extrabold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                    className="flex-1 min-w-0 text-lg font-extrabold text-gray-900 dark:text-white bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
                     autoFocus
                   />
                 ) : (
-                  <h3 className="text-lg font-extrabold text-gray-900 truncate">{selectedResume?.title || 'Untitled Resume'}</h3>
+                  <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate">{selectedResume?.title || 'Untitled Resume'}</h3>
                 )}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-xs font-semibold text-gray-500 dark:text-neutral-400 whitespace-nowrap">
                   {selectedResume ? sourceTypeLabel(selectedResume.source_type) : '—'}
                 </span>
-                <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ${selectedResume?.valid_until ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
+                <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ${selectedResume?.valid_until ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400' : 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-neutral-500'}`}>
                   Valid until: {selectedResume?.valid_until || 'No Expiry'}
                 </span>
                 {selectedResume && (
@@ -996,14 +999,14 @@ export function ResumeUploadTab() {
                     <>
                       <button
                         onClick={cancelEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors whitespace-nowrap"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSaveContent}
                         disabled={isSavingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-white dark:text-gray-900 bg-gray-900 dark:bg-white rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-100 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
                       >
                         {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                         {isSavingContent ? 'Saving…' : 'Save Changes'}
@@ -1013,7 +1016,7 @@ export function ResumeUploadTab() {
                     <>
                       <button
                         onClick={() => setShowPdfModal(true)}
-                        className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1022,7 +1025,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={openShareModal}
-                        className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -1031,7 +1034,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={startEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
@@ -1046,18 +1049,18 @@ export function ResumeUploadTab() {
 
             <div className="p-6">
               {!selectedResume ? (
-                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-12 flex flex-col items-center justify-center bg-gray-50/50 h-64">
+                <div className="border-2 border-dashed border-gray-200 dark:border-neutral-700 rounded-2xl p-12 flex flex-col items-center justify-center bg-gray-50/50 dark:bg-neutral-800/50 h-64">
                   <svg className="w-8 h-8 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
-                  <p className="text-sm font-semibold text-gray-900 mb-1">No resume version selected</p>
-                  <p className="text-xs text-gray-500 text-center">Upload your CV or create a version from your profile.</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No resume version selected</p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 text-center">Upload your CV or create a version from your profile.</p>
                 </div>
               ) : (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</span>
+                    <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Title</span>
                       {editingTitle ? (
                         <div className="flex items-center gap-1.5 -mx-0.5">
                           <input
@@ -1067,10 +1070,10 @@ export function ResumeUploadTab() {
                             onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') cancelEditingTitle(); }}
                             onBlur={handleSaveTitle}
                             disabled={isSavingTitle}
-                            className="flex-1 min-w-0 text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                            className="flex-1 min-w-0 text-sm font-semibold text-gray-900 dark:text-white bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
                             autoFocus
                           />
-                          {isSavingTitle && <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin shrink-0" />}
+                          {isSavingTitle && <div className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-600 dark:border-t-neutral-300 rounded-full animate-spin shrink-0" />}
                         </div>
                       ) : (
                         <button
@@ -1078,7 +1081,7 @@ export function ResumeUploadTab() {
                           className="group flex items-center gap-1.5 text-left"
                           title="Click to rename"
                         >
-                          <span className="text-sm font-semibold text-gray-900 truncate">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                             {selectedResume.title || <span className="text-gray-400 italic">Untitled Resume</span>}
                           </span>
                           <svg className="w-3 h-3 text-gray-300 group-hover:text-gray-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1095,12 +1098,12 @@ export function ResumeUploadTab() {
                         ? resumeVersions.find((r) => r.resume_id === selectedResume.source_resume_id)
                         : null;
                       return (
-                        <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Source Resume</span>
+                        <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
+                          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Source Resume</span>
                           {src ? (
                             <div>
-                              <p className="text-sm font-semibold text-gray-900 truncate">{src.title || 'Untitled Resume'}</p>
-                              <p className="text-[11px] text-gray-400 mt-0.5">{langLabel(src.language)} · {sourceTypeLabel(src.source_type)}</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{src.title || 'Untitled Resume'}</p>
+                              <p className="text-[11px] text-gray-400 dark:text-neutral-500 dark:text-neutral-500 mt-0.5">{langLabel(src.language)} · {sourceTypeLabel(src.source_type)}</p>
                             </div>
                           ) : (
                             <span className="text-sm font-semibold text-gray-400 italic">
@@ -1120,21 +1123,21 @@ export function ResumeUploadTab() {
                         className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shrink-0"
                       />
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center shrink-0">
+                      <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-neutral-800 border-2 border-dashed border-gray-200 dark:border-neutral-700 flex items-center justify-center shrink-0">
                         <svg className="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
                     )}
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-700">Profile Photo</p>
-                      <p className="text-[11px] text-gray-400">Used in PDF templates that support photos.</p>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-neutral-300">Profile Photo</p>
+                      <p className="text-[11px] text-gray-400 dark:text-neutral-500">Used in PDF templates that support photos.</p>
                       {isEditingContent ? (
                         <div className="flex items-center gap-2 mt-1">
                           <button
                             type="button"
                             onClick={() => photoInputRef.current?.click()}
-                            className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
                           >
                             {editDraft?.personal_info?.photo ? 'Change Photo' : 'Upload Photo'}
                           </button>
@@ -1142,7 +1145,7 @@ export function ResumeUploadTab() {
                             <button
                               type="button"
                               onClick={() => setEditDraft(d => d ? { ...d, personal_info: { ...(d.personal_info ?? {}), photo: null } } : d)}
-                              className="px-3 py-1.5 text-xs font-semibold text-red-500 bg-white border border-red-100 rounded-lg hover:bg-red-50 transition-colors"
+                              className="px-3 py-1.5 text-xs font-semibold text-red-500 dark:text-red-400 bg-white dark:bg-neutral-800 border border-red-100 dark:border-red-800/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             >
                               Remove
                             </button>
@@ -1158,76 +1161,76 @@ export function ResumeUploadTab() {
                   )}
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Summary</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Summary</p>
                     {isEditingContent ? (
                       <textarea
-                        className="w-full text-sm text-gray-700 leading-relaxed bg-white border border-gray-300 rounded-2xl p-5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none"
+                        className="w-full text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-2xl p-5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none"
                         rows={4}
                         value={editDraft?.personal_info?.summary ?? ''}
                         onChange={e => setEditDraft(d => d ? { ...d, personal_info: { ...(d.personal_info ?? {}), summary: e.target.value } } : d)}
                         placeholder="Professional summary..."
                       />
                     ) : (
-                      <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl p-5">
+                      <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl p-5">
                         {selectedResume.personal_info?.summary || 'No summary stored for this version.'}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                       Experience
                     </p>
                     {isEditingContent ? (
                       <>
                         {(editDraft?.experience ?? []).map((exp: any, i: number) => (
-                          <div key={i} className="p-4 border border-gray-200 rounded-2xl bg-white space-y-2">
+                          <div key={i} className="p-4 border border-gray-200 dark:border-neutral-700 rounded-2xl bg-white dark:bg-neutral-800 space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-xs font-semibold text-gray-400">Entry {i + 1}</span>
-                              <button type="button" onClick={() => removeExpEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Remove</button>
+                              <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">Entry {i + 1}</span>
+                              <button type="button" onClick={() => removeExpEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <input value={exp.title ?? ''} onChange={e => updateExpField(i, 'title', e.target.value)} placeholder="Job title" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                              <input value={exp.company ?? ''} onChange={e => updateExpField(i, 'company', e.target.value)} placeholder="Company" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                              <input value={exp.start_date ?? ''} onChange={e => updateExpField(i, 'start_date', e.target.value)} placeholder="Start date" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                              <input value={exp.end_date ?? ''} onChange={e => updateExpField(i, 'end_date', e.target.value)} placeholder="End date / Present" className="rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                              <input value={exp.title ?? ''} onChange={e => updateExpField(i, 'title', e.target.value)} placeholder="Job title" className="rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                              <input value={exp.company ?? ''} onChange={e => updateExpField(i, 'company', e.target.value)} placeholder="Company" className="rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                              <input value={exp.start_date ?? ''} onChange={e => updateExpField(i, 'start_date', e.target.value)} placeholder="Start date" className="rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                              <input value={exp.end_date ?? ''} onChange={e => updateExpField(i, 'end_date', e.target.value)} placeholder="End date / Present" className="rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                             </div>
-                            <textarea value={exp.description ?? ''} onChange={e => updateExpField(i, 'description', e.target.value)} placeholder="Job description..." rows={3} className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                            <textarea value={exp.description ?? ''} onChange={e => updateExpField(i, 'description', e.target.value)} placeholder="Job description..." rows={3} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm resize-none bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                           </div>
                         ))}
-                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 rounded-2xl transition-all">+ Add Experience</button>
+                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">+ Add Experience</button>
                       </>
                     ) : (
                       <>
                         {selectedResume.experience?.length ? selectedResume.experience.map((exp: any, i: number) => (
-                          <div key={i} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/50">
-                            <h4 className="text-sm font-semibold text-gray-900 mb-1">{exp.title || 'Untitled role'}{exp.company ? ` @ ${exp.company}` : ''}</h4>
-                            <p className="text-xs font-medium text-gray-500 mb-3">{exp.start_date || '—'} — {exp.end_date || 'Present'}</p>
-                            <p className="text-sm text-gray-700 leading-relaxed">{exp.description || 'No description.'}</p>
+                          <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || 'Untitled role'}{exp.company ? ` @ ${exp.company}` : ''}</h4>
+                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '—'} — {exp.end_date || 'Present'}</p>
+                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{exp.description || 'No description.'}</p>
                           </div>
                         )) : <p className="text-sm text-gray-400 italic">No experience included in this version.</p>}
                       </>
                     )}
                   </div>
 
-                  <div className="space-y-3 border-t border-gray-100 pt-6">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Skills</p>
+                  <div className="space-y-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Skills</p>
                     {isEditingContent ? (
                       <div className="space-y-1">
                         <textarea
-                          className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none"
+                          className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none"
                           rows={3}
                           value={(editDraft?.skills ?? []).map((s: any) => typeof s === 'string' ? s : s.name || '').join(', ')}
                           onChange={e => setEditDraft(d => d ? { ...d, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
                           placeholder="Skill 1, Skill 2, Skill 3..."
                         />
-                        <p className="text-xs text-gray-400">Separate skills with commas</p>
+                        <p className="text-xs text-gray-400 dark:text-neutral-500">Separate skills with commas</p>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => (
-                          <span key={i} className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-900 shadow-sm">
+                          <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold text-gray-900 dark:text-white shadow-sm">
                             {typeof skill === 'string' ? skill : skill.name || 'Skill'}
                             {typeof skill === 'object' && skill.level ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
                           </span>
@@ -1236,67 +1239,67 @@ export function ResumeUploadTab() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 dark:border-neutral-800 pt-6">
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Education</p>
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">Education</p>
                       {isEditingContent ? (
                         <div className="space-y-3">
                           {(editDraft?.education ?? []).map((edu: any, i: number) => (
-                            <div key={i} className="p-3 bg-white border border-gray-200 rounded-2xl space-y-2">
+                            <div key={i} className="p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl space-y-2">
                               <div className="flex justify-between items-center">
-                                <span className="text-xs font-semibold text-gray-400">Entry {i + 1}</span>
-                                <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">Remove</button>
+                                <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">Entry {i + 1}</span>
+                                <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                               </div>
-                              <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                              <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                              <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                              <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                             </div>
                           ))}
-                          <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 rounded-2xl transition-all">+ Add Education</button>
+                          <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">+ Add Education</button>
                         </div>
                       ) : (
                         <div className="space-y-3">
                           {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
-                            <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                              <p className="text-sm font-semibold text-gray-900">{edu.degree || 'Degree'}</p>
-                              <p className="text-xs text-gray-500">{edu.institution || 'Institution'}</p>
+                            <div key={i} className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{edu.degree || 'Degree'}</p>
+                              <p className="text-xs text-gray-500 dark:text-neutral-400">{edu.institution || 'Institution'}</p>
                             </div>
                           )) : <p className="text-sm text-gray-400 italic">No education included.</p>}
                         </div>
                       )}
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Languages & Certifications</p>
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">Languages & Certifications</p>
                       <div className="space-y-3">
-                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Languages</p>
                           {isEditingContent ? (
                             <textarea
-                              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none bg-white"
+                              className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none bg-white"
                               rows={2}
                               value={(editDraft?.languages ?? []).map((l: any) => typeof l === 'string' ? l : l.name || l.language || '').join('\n')}
                               onChange={e => setEditDraft(d => d ? { ...d, languages: e.target.value.split('\n') } : d)}
                               placeholder={"English\nSpanish\nFrench..."}
                             />
                           ) : (
-                            <p className="text-sm text-gray-700">
+                            <p className="text-sm text-gray-700 dark:text-neutral-300">
                               {selectedResume.languages?.length
                                 ? selectedResume.languages.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')
                                 : 'No languages listed.'}
                             </p>
                           )}
                         </div>
-                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Certifications</p>
                           {isEditingContent ? (
                             <textarea
-                              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 resize-none bg-white"
+                              className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none bg-white"
                               rows={2}
                               value={(editDraft?.certifications ?? []).map((c: any) => typeof c === 'string' ? c : c.name || c.title || '').join('\n')}
                               onChange={e => setEditDraft(d => d ? { ...d, certifications: e.target.value.split('\n') } : d)}
                               placeholder={"AWS Certified\nPMP\nGoogle Analytics..."}
                             />
                           ) : (
-                            <p className="text-sm text-gray-700">
+                            <p className="text-sm text-gray-700 dark:text-neutral-300">
                               {selectedResume.certifications?.length
                                 ? selectedResume.certifications.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')
                                 : 'No certifications listed.'}
@@ -1312,20 +1315,20 @@ export function ResumeUploadTab() {
           </div>
 
           {selectedResume && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></div>
-                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Saved PDF Version</h3>
+                  <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">Saved PDF Version</h3>
                 </div>
                 {selectedResume.generated_document_id && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">Saved</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-1 rounded-full">Saved</span>
                 )}
               </div>
               <div className="p-6 space-y-4">
                 {selectedResume.generated_document_id ? (
                   <>
-                    <p className="text-sm text-gray-500">PDF saved — download anytime, no regeneration needed.</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">PDF saved — download anytime, no regeneration needed.</p>
                     <div className="flex items-center gap-3 flex-wrap">
                       <button
                         onClick={async () => {
@@ -1345,7 +1348,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={() => setShowSavePdfModal(true)}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 text-sm font-semibold rounded-xl border border-gray-200 dark:border-neutral-700 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         Regenerate &amp; Save
@@ -1354,7 +1357,7 @@ export function ResumeUploadTab() {
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-500">Save a PDF version to the database so you can download or send it any time without regenerating.</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">Save a PDF version to the database so you can download or send it any time without regenerating.</p>
                     <button
                       onClick={() => setShowSavePdfModal(true)}
                       className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
@@ -1369,23 +1372,23 @@ export function ResumeUploadTab() {
           )}
 
           {activeJobs.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
-                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Open Jobs</h3>
+                <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">Open Jobs</h3>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeJobs.map((job) => (
-                    <div key={job.job_id || job.id} className="p-5 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 hover:shadow-sm transition-all group">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">{job.title}</h4>
-                      <p className="text-xs text-gray-500 mb-4 flex items-center gap-1.5">
+                    <div key={job.job_id || job.id} className="p-5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm transition-all group">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">{job.title}</h4>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400 mb-4 flex items-center gap-1.5">
                         <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         {job.region || 'Remote'}
                       </p>
                       <button
                         onClick={() => setShowJobDescModal(true)}
-                        className="w-full py-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl group-hover:bg-indigo-100 transition-colors"
+                        className="w-full py-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-400 text-xs font-semibold rounded-xl group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors"
                       >
                         Create Resume for This Job
                       </button>
@@ -1395,6 +1398,63 @@ export function ResumeUploadTab() {
               </div>
             </div>
           )}
+
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0"></div>
+              <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">Send CV by Email</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Recipient Email</label>
+                  <input
+                    type="email"
+                    value={sendEmailTo}
+                    onChange={e => setSendEmailTo(e.target.value)}
+                    placeholder="recruiter@company.com"
+                    className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Subject</label>
+                  <input
+                    type="text"
+                    value={sendEmailSubject}
+                    onChange={e => setSendEmailSubject(e.target.value)}
+                    placeholder={selectedResume ? `CV: ${selectedResume.title || 'My Resume'}` : 'CV submission'}
+                    className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Message</label>
+                <textarea
+                  value={sendEmailMessage}
+                  onChange={e => setSendEmailMessage(e.target.value)}
+                  rows={4}
+                  placeholder="Write a short message to accompany your CV…"
+                  className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20 resize-none"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-xs text-gray-400 dark:text-neutral-500">
+                  {selectedResume
+                    ? <>Sending: <span className="font-semibold text-gray-600 dark:text-neutral-300">{selectedResume.title || 'Untitled Resume'}</span></>
+                    : 'Select a resume version on the left first.'}
+                </p>
+                <button
+                  disabled={!sendEmailTo.trim() || !selectedResume}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Send CV
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1403,27 +1463,27 @@ export function ResumeUploadTab() {
 
       {(isUploading || isWorking) && noModals && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
-          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+          <div className="flex flex-col items-center gap-4 bg-white dark:bg-neutral-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-neutral-800">
             <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
-            <p className="font-semibold text-sm text-gray-900">Working on your resume…</p>
+            <p className="font-semibold text-sm text-gray-900 dark:text-white">Working on your resume…</p>
           </div>
         </div>
       )}
 
       {file && !isUploading && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white border border-gray-200 px-6 py-4 rounded-2xl shadow-xl flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-8">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 px-6 py-4 rounded-2xl shadow-xl flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-8">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block">File selected</span>
-              <span className="text-sm font-semibold text-gray-900 truncate max-w-[200px] block">{file.name}</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[200px] block">{file.name}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 pl-4 border-l border-gray-100">
             <button onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">Cancel</button>
-            <button onClick={handleUpload} className="px-5 py-2 bg-gray-900 text-white text-xs font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm">Create Version</button>
+            <button onClick={handleUpload} className="px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm">Create Version</button>
           </div>
         </div>
       )}
@@ -1439,13 +1499,13 @@ export function ResumeUploadTab() {
       )}
 
       {showPdfModal && selectedResume && (
-        <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
+        <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
           <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
-            <div className="flex flex-col w-full max-w-sm shrink-0">
-              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Export as PDF</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Preview a template, then download</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Export as PDF</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">Preview a template, then download</p>
                   {!!selectedResume.personal_info?.photo && (
                     <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
                       <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
@@ -1455,7 +1515,7 @@ export function ResumeUploadTab() {
                     </button>
                   )}
                 </div>
-                <button onClick={closePdfModals} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                <button onClick={closePdfModals} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -1464,13 +1524,13 @@ export function ResumeUploadTab() {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === t.id;
                   return (
-                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-gray-900">{t.label}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{t.label}</p>
                           {hasPhoto && t.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{t.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{t.description}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
@@ -1503,10 +1563,10 @@ export function ResumeUploadTab() {
               </div>
             </div>
             {previewBlobUrl && (
-              <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 bg-white dark:bg-neutral-900">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview — {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
-                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-400 transition-colors">
+                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -1518,13 +1578,13 @@ export function ResumeUploadTab() {
       )}
 
       {showSavePdfModal && selectedResume && (
-        <div className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
+        <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
           <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
-            <div className="flex flex-col w-full max-w-sm shrink-0">
-              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Save PDF to Database</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Preview a template, then save</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Save PDF to Database</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">Preview a template, then save</p>
                   {!!selectedResume.personal_info?.photo && (
                     <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
                       <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
@@ -1534,7 +1594,7 @@ export function ResumeUploadTab() {
                     </button>
                   )}
                 </div>
-                <button onClick={closePdfModals} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                <button onClick={closePdfModals} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -1543,13 +1603,13 @@ export function ResumeUploadTab() {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === t.id;
                   return (
-                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-gray-900">{t.label}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{t.label}</p>
                           {hasPhoto && t.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{t.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{t.description}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
@@ -1590,10 +1650,10 @@ export function ResumeUploadTab() {
               </div>
             </div>
             {previewBlobUrl && (
-              <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 bg-white dark:bg-neutral-900">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview — {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
-                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-400 transition-colors">
+                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -1608,26 +1668,26 @@ export function ResumeUploadTab() {
         const publicUrl = `${window.location.origin}${window.location.pathname}?cv=${selectedResume.resume_id}`;
         return (
           <div
-            className="fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+            className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
             onClick={() => setShowShareModal(false)}
             onKeyDown={e => { if (e.key === 'Escape') setShowShareModal(false); }}
           >
-            <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Share Resume</h3>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[280px]">{selectedResume.title || 'Untitled Resume'}</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Share Resume</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate max-w-[280px]">{selectedResume.title || 'Untitled Resume'}</p>
                 </div>
-                <button onClick={() => setShowShareModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                <button onClick={() => setShowShareModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
 
-              <div className="p-6 space-y-5">
+              <div className="p-6 space-y-5 dark:bg-neutral-900">
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
-                  <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
-                    <p className="text-xs text-indigo-700 font-mono break-all">{publicUrl}</p>
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-xl">
+                    <p className="text-xs text-indigo-700 dark:text-indigo-400 font-mono break-all">{publicUrl}</p>
                   </div>
                   <button
                     onClick={() => handleCopyLink(publicUrl)}
@@ -1639,7 +1699,7 @@ export function ResumeUploadTab() {
                       <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy Link</>
                     )}
                   </button>
-                  <p className="text-[11px] text-gray-400">Anyone with this link can view your CV without logging in.</p>
+                  <p className="text-[11px] text-gray-400 dark:text-neutral-500">Anyone with this link can view your CV without logging in.</p>
                 </div>
 
                 {/* Email */}
@@ -1660,7 +1720,7 @@ export function ResumeUploadTab() {
                             value={shareEmailRecipientName}
                             onChange={e => setShareEmailRecipientName(e.target.value)}
                             placeholder="e.g. John Smith"
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           />
                         </div>
                         <div>
@@ -1670,19 +1730,19 @@ export function ResumeUploadTab() {
                             value={shareEmailTo}
                             onChange={e => setShareEmailTo(e.target.value)}
                             placeholder="email@example.com"
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           />
                         </div>
                       </div>
-                      <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl">
-                        <p className="text-[11px] text-gray-500 whitespace-pre-wrap leading-relaxed">{emailBody}</p>
+                      <div className="p-3 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl">
+                        <p className="text-[11px] text-gray-500 dark:text-neutral-400 whitespace-pre-wrap leading-relaxed">{emailBody}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <a
                           href={`https://mail.google.com/mail/?view=cm${shareEmailTo ? `&to=${encodeURIComponent(shareEmailTo)}` : ''}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
+                          className="flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300 text-sm font-semibold rounded-xl transition-colors"
                         >
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
                             <path d="M22 6c0-1.1-.9-2-2-2H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1699,7 +1759,7 @@ export function ResumeUploadTab() {
                               setTimeout(() => setLinkCopied(false), 2000);
                             });
                           }}
-                          className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
+                          className="flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300 text-sm font-semibold rounded-xl transition-colors"
                         >
                           {linkCopied ? (
                             <><svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-emerald-600">Copied!</span></>
@@ -1708,7 +1768,7 @@ export function ResumeUploadTab() {
                           )}
                         </button>
                       </div>
-                      <p className="text-[11px] text-gray-400">Gmail opens a compose window directly. "Copy email" copies the full text — paste it into Outlook, Yahoo, or any other client.</p>
+                      <p className="text-[11px] text-gray-400 dark:text-neutral-500">Gmail opens a compose window directly. "Copy email" copies the full text — paste it into Outlook, Yahoo, or any other client.</p>
                     </div>
                   );
                 })()}
