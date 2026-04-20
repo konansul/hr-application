@@ -1,4 +1,18 @@
-import { Document, Page, Text, View, StyleSheet, pdf, Image, Svg, Circle, Path } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, pdf, Image, Svg, Circle, Path, Font } from '@react-pdf/renderer';
+
+const CDN = 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf';
+
+Font.register({
+  family: 'DejaVu Sans',
+  fonts: [
+    { src: `${CDN}/DejaVuSans.ttf` },
+    { src: `${CDN}/DejaVuSans-Bold.ttf`,       fontWeight: 'bold' },
+    { src: `${CDN}/DejaVuSans-Oblique.ttf`,     fontStyle: 'italic' },
+    { src: `${CDN}/DejaVuSans-BoldOblique.ttf`, fontWeight: 'bold', fontStyle: 'italic' },
+  ],
+});
+
+Font.registerHyphenationCallback(word => [word]);
 
 const skillName = (s: any) => typeof s === 'string' ? s : s?.name || '';
 const langName  = (l: any) => typeof l === 'string' ? l : l?.name || l?.language || '';
@@ -83,19 +97,19 @@ function PhotoRect({ src, w, h, radius = 4 }: { src: string; w: number; h: numbe
 
 
 const CL = StyleSheet.create({
-  page:      { padding: '40 48 40 48', fontFamily: 'Helvetica', backgroundColor: '#fff', fontSize: 9 },
+  page:      { padding: '40 48 40 48', fontFamily: 'DejaVu Sans', backgroundColor: '#fff', fontSize: 9 },
   header:    { marginBottom: 14 },
-  name:      { fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#111', marginBottom: 4 },
+  name:      { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', marginBottom: 4 },
   contacts:  { flexDirection: 'row', flexWrap: 'wrap', gap: 0 },
   contact:   { fontSize: 8.5, color: '#555', marginRight: 14, marginBottom: 2 },
   rule:      { borderBottomWidth: 1.5, borderBottomColor: '#111', marginBottom: 11 },
   section:   { marginBottom: 13 },
-  secTitle:  { fontSize: 7.5, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase',
+  secTitle:  { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', textTransform: 'uppercase',
                letterSpacing: 1.8, marginBottom: 6, color: '#111' },
   thinRule:  { borderBottomWidth: 0.5, borderBottomColor: '#bbb', marginBottom: 7 },
   entry:     { marginBottom: 7 },
   row:       { flexDirection: 'row', justifyContent: 'space-between' },
-  bold:      { fontFamily: 'Helvetica-Bold', fontSize: 9.5, color: '#111' },
+  bold:      { fontFamily: 'DejaVu Sans', fontWeight: 'bold', fontSize: 9.5, color: '#111' },
   sub:       { fontSize: 8.5, color: '#555', marginTop: 1 },
   dates:     { fontSize: 8, color: '#888', textAlign: 'right' },
   desc:      { fontSize: 8.5, color: '#333', lineHeight: 1.55, marginTop: 3 },
@@ -202,12 +216,12 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
 
 
 const MO = StyleSheet.create({
-  page:    { fontFamily: 'Helvetica', flexDirection: 'row', backgroundColor: '#fff' },
+  page:    { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
   sidebar: { width: '33%', backgroundColor: '#1e293b', padding: 26 },
   main:    { width: '67%', padding: 28 },
-  sName:   { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 3 },
+  sName:   { fontSize: 16, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
   sRole:   { fontSize: 8.5, color: '#94a3b8', marginBottom: 20, lineHeight: 1.4 },
-  sSecT:   { fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#64748b', textTransform: 'uppercase',
+  sSecT:   { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase',
              letterSpacing: 1.5, marginBottom: 6 },
   sSec:    { marginBottom: 16 },
   sCon:    { fontSize: 8.5, color: '#cbd5e1', marginBottom: 4, lineHeight: 1.4 },
@@ -216,13 +230,13 @@ const MO = StyleSheet.create({
   sSkill:  { fontSize: 7.5, color: '#e2e8f0', backgroundColor: '#334155',
              paddingHorizontal: 5, paddingVertical: 2, marginRight: 4, marginBottom: 4 },
   photo:   { width: 72, height: 72, borderRadius: 36, marginBottom: 16, alignSelf: 'center' },
-  mSecT:   { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#4f46e5', textTransform: 'uppercase',
+  mSecT:   { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#4f46e5', textTransform: 'uppercase',
              letterSpacing: 1.5, marginBottom: 7, borderBottomWidth: 0.5,
              borderBottomColor: '#e0e7ff', paddingBottom: 4 },
   mSec:    { marginBottom: 14 },
   mEntry:  { marginBottom: 8 },
   mRow:    { flexDirection: 'row', justifyContent: 'space-between' },
-  mBold:   { fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#111827' },
+  mBold:   { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111827' },
   mSub:    { fontSize: 8.5, color: '#6b7280', marginTop: 1 },
   mDates:  { fontSize: 8, color: '#9ca3af' },
   mDesc:   { fontSize: 8.5, color: '#374151', lineHeight: 1.55, marginTop: 3 },
@@ -338,18 +352,18 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
 
 
 const MI = StyleSheet.create({
-  page:    { padding: '48 52 48 52', fontFamily: 'Helvetica', backgroundColor: '#fff' },
+  page:    { padding: '48 52 48 52', fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
   header:  { alignItems: 'center', marginBottom: 22 },
-  name:    { fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#111', marginBottom: 5 },
+  name:    { fontSize: 26, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', marginBottom: 5 },
   cons:    { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   con:     { fontSize: 8.5, color: '#777', marginHorizontal: 7 },
   rule:    { borderBottomWidth: 0.5, borderBottomColor: '#ddd', marginBottom: 18 },
   sec:     { marginBottom: 16 },
-  secT:    { fontSize: 7.5, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase',
+  secT:    { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', textTransform: 'uppercase',
              letterSpacing: 2.5, color: '#999', marginBottom: 9 },
   entry:   { marginBottom: 9 },
   row:     { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
-  bold:    { fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#111' },
+  bold:    { fontSize: 10, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
   sub:     { fontSize: 9, color: '#666' },
   dates:   { fontSize: 8.5, color: '#aaa' },
   desc:    { fontSize: 9, color: '#444', lineHeight: 1.65, marginTop: 3 },
@@ -443,21 +457,21 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
 
 
 const RE = StyleSheet.create({
-  page:    { padding: '36 40 36 40', fontFamily: 'Helvetica', backgroundColor: '#fff' },
+  page:    { padding: '36 40 36 40', fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
   topBand: { backgroundColor: '#1a3a5c', padding: '18 20 14 20', marginBottom: 14 },
-  name:    { fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 3 },
+  name:    { fontSize: 20, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
   cons:    { flexDirection: 'row', flexWrap: 'wrap' },
   con:     { fontSize: 8, color: '#93c5fd', marginRight: 14, marginBottom: 2 },
   body:    { flexDirection: 'row' },
   left:    { width: '36%', paddingRight: 16 },
   right:   { width: '64%', paddingLeft: 16, borderLeftWidth: 0.5, borderLeftColor: '#e5e7eb' },
-  secT:    { fontSize: 7.5, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase',
+  secT:    { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', textTransform: 'uppercase',
              letterSpacing: 1.6, color: '#1a3a5c', marginBottom: 6, borderBottomWidth: 1,
              borderBottomColor: '#1a3a5c', paddingBottom: 3 },
   sec:     { marginBottom: 14 },
   entry:   { marginBottom: 7 },
   row:     { flexDirection: 'row', justifyContent: 'space-between' },
-  bold:    { fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#111' },
+  bold:    { fontSize: 9, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
   sub:     { fontSize: 8, color: '#6b7280', marginTop: 1 },
   dates:   { fontSize: 7.5, color: '#9ca3af' },
   desc:    { fontSize: 8, color: '#374151', lineHeight: 1.55, marginTop: 3 },
@@ -560,12 +574,12 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
 
 
 const FR = StyleSheet.create({
-  page:     { fontFamily: 'Helvetica', flexDirection: 'row', backgroundColor: '#fff' },
+  page:     { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
   strip:    { width: '30%', backgroundColor: '#2d2d2d', padding: 24 },
   body:     { width: '70%', padding: '28 28 28 24' },
-  sName:    { fontSize: 17, fontFamily: 'Helvetica-Bold', color: '#fff', lineHeight: 1.3 },
+  sName:    { fontSize: 17, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', lineHeight: 1.3 },
   sRole:    { fontSize: 8.5, color: '#aaa', marginTop: 3, marginBottom: 18, lineHeight: 1.4 },
-  sSecT:    { fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#888', textTransform: 'uppercase',
+  sSecT:    { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#888', textTransform: 'uppercase',
               letterSpacing: 1.5, marginBottom: 6 },
   sSec:     { marginBottom: 16 },
   sCon:     { fontSize: 8, color: '#ccc', marginBottom: 4, lineHeight: 1.4 },
@@ -573,13 +587,13 @@ const FR = StyleSheet.create({
   sSkillW:  { flexDirection: 'row', flexWrap: 'wrap' },
   sSkill:   { fontSize: 7.5, color: '#ddd', marginRight: 6, marginBottom: 3 },
   photo:    { width: 70, height: 70, borderRadius: 35, marginBottom: 16, alignSelf: 'center' },
-  bSecT:    { fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#e07b39',
+  bSecT:    { fontSize: 9, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#e07b39',
               textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 },
   bRule:    { borderBottomWidth: 1, borderBottomColor: '#e07b39', marginBottom: 8 },
   bSec:     { marginBottom: 14 },
   bEntry:   { marginBottom: 8 },
   bRow:     { flexDirection: 'row', justifyContent: 'space-between' },
-  bBold:    { fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#111' },
+  bBold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
   bSub:     { fontSize: 8.5, color: '#666', marginTop: 1 },
   bDates:   { fontSize: 8, color: '#aaa' },
   bDesc:    { fontSize: 8.5, color: '#333', lineHeight: 1.55, marginTop: 3 },
@@ -681,9 +695,9 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
 
 
 const HI = StyleSheet.create({
-  page:    { padding: 0, fontFamily: 'Helvetica', backgroundColor: '#fff' },
+  page:    { padding: 0, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
   accent:  { backgroundColor: '#0f766e', padding: '20 36 16 36' },
-  name:    { fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 3 },
+  name:    { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
   tagline: { fontSize: 9, color: '#99f6e4', marginBottom: 10 },
   cons:    { flexDirection: 'row', flexWrap: 'wrap' },
   con:     { fontSize: 8, color: '#ccfbf1', marginRight: 14, marginBottom: 2 },
@@ -691,12 +705,12 @@ const HI = StyleSheet.create({
   colRow:  { flexDirection: 'row' },
   left:    { width: '38%', paddingRight: 18 },
   right:   { width: '62%', paddingLeft: 18, borderLeftWidth: 0.5, borderLeftColor: '#d1fae5' },
-  secT:    { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#0f766e', textTransform: 'uppercase',
+  secT:    { fontSize: 8, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#0f766e', textTransform: 'uppercase',
              letterSpacing: 1.5, marginBottom: 6, marginTop: 12 },
   rule:    { borderBottomWidth: 0.5, borderBottomColor: '#d1fae5', marginBottom: 8 },
   entry:   { marginBottom: 8 },
   row:     { flexDirection: 'row', justifyContent: 'space-between' },
-  bold:    { fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#111' },
+  bold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
   sub:     { fontSize: 8.5, color: '#6b7280', marginTop: 1 },
   dates:   { fontSize: 8, color: '#9ca3af' },
   desc:    { fontSize: 8.5, color: '#374151', lineHeight: 1.55, marginTop: 3 },
@@ -829,15 +843,15 @@ function PieSkill({ pct, size = 10, fg = '#E96D1F', bg = '#4a4e68' }:
 }
 
 const AC = StyleSheet.create({
-  page:      { fontFamily: 'Helvetica', flexDirection: 'row', backgroundColor: '#fff' },
+  page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
   sidebar:   { width: '32%', backgroundColor: '#2B2D42', padding: '28 16 28 18' },
   main:      { width: '68%', padding: '28 24 28 20' },
 
   photoWrap: { alignItems: 'center', marginBottom: 12 },
-  sName:     { fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
+  sName:     { fontSize: 13, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
   sTagline:  { fontSize: 7.5, color: '#94a3b8', textAlign: 'center', marginBottom: 12, lineHeight: 1.4 },
   sDivider:  { borderBottomWidth: 0.5, borderBottomColor: '#4a4e68', marginBottom: 10 },
-  sSecT:     { fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#E96D1F', textTransform: 'uppercase',
+  sSecT:     { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#E96D1F', textTransform: 'uppercase',
                letterSpacing: 1.5, marginBottom: 8 },
   sSec:      { marginBottom: 14 },
   sCon:      { fontSize: 7.5, color: '#cbd5e1', lineHeight: 1.5, marginBottom: 4 },
@@ -845,16 +859,16 @@ const AC = StyleSheet.create({
   sSkillName:{ fontSize: 8, color: '#e2e8f0', flex: 1, marginLeft: 7 },
   sSumm:     { fontSize: 7.5, color: '#94a3b8', lineHeight: 1.55 },
 
-  mName:     { fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#2B2D42', marginBottom: 2 },
-  mTagline:  { fontSize: 9.5, color: '#E96D1F', marginBottom: 16, fontFamily: 'Helvetica-Oblique' },
-  mSecT:     { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#E96D1F', textTransform: 'uppercase',
+  mName:     { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#2B2D42', marginBottom: 2 },
+  mTagline:  { fontSize: 9.5, color: '#E96D1F', marginBottom: 16, fontFamily: 'DejaVu Sans', fontStyle: 'italic' },
+  mSecT:     { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#E96D1F', textTransform: 'uppercase',
                letterSpacing: 1.5, paddingBottom: 3, borderBottomWidth: 0.75, borderBottomColor: '#E96D1F',
                marginBottom: 8 },
   mSec:      { marginBottom: 14 },
   mEntry:    { flexDirection: 'row', marginBottom: 9 },
   mDot:      { width: 8, paddingTop: 2, marginRight: 8, alignItems: 'center' },
   mContent:  { flex: 1 },
-  mBold:     { fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#2B2D42' },
+  mBold:     { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#2B2D42' },
   mSub:      { fontSize: 8.5, color: '#E96D1F', marginTop: 1 },
   mDates:    { fontSize: 7.5, color: '#94a3b8', marginTop: 1 },
   mDesc:     { fontSize: 8, color: '#475569', lineHeight: 1.55, marginTop: 3 },
