@@ -305,4 +305,15 @@ export const resumesApi = {
     const response = await apiClient.get(`/v1/resumes/public/${resumeId}`);
     return response.data;
   },
+
+  sendEmail: async (payload: {
+    to: string;
+    subject: string;
+    message: string;
+    pdf_base64: string;
+    filename?: string;
+  }) => {
+    const response = await apiClient.post('/v1/resumes/send-email', payload);
+    return response.data;
+  },
 };

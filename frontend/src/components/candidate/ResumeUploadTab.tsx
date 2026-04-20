@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { documentsApi, jobsApi, resumesApi } from '../../api';
+import { authApi, documentsApi, jobsApi, resumesApi } from '../../api';
 import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
@@ -598,8 +598,21 @@ export function ResumeUploadTab() {
   const [shareEmailTo, setShareEmailTo] = useState('');
   const [shareEmailRecipientName, setShareEmailRecipientName] = useState('');
   const [sendEmailTo, setSendEmailTo] = useState('');
+  const [sendEmailRecipientName, setSendEmailRecipientName] = useState('');
   const [sendEmailSubject, setSendEmailSubject] = useState('');
   const [sendEmailMessage, setSendEmailMessage] = useState('');
+  const [sendEmailAttachment, setSendEmailAttachment] = useState<{ base64: string; filename: string } | null>(null);
+  const [sendEmailPreviewUrl, setSendEmailPreviewUrl] = useState<string | null>(null);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [isAttachingPdf, setIsAttachingPdf] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [sendEmailStatus, setSendEmailStatus] = useState<'idle' | 'success' | 'error' | 'not_configured'>('idle');
+  const [sendEmailError, setSendEmailError] = useState('');
+  const [shareAttachment, setShareAttachment] = useState<{ base64: string; filename: string } | null>(null);
+  const [shareAttachmentPreviewUrl, setShareAttachmentPreviewUrl] = useState<string | null>(null);
+  const [isAttachingSharePdf, setIsAttachingSharePdf] = useState(false);
+  const [isSendingShare, setIsSendingShare] = useState(false);
+  const [shareEmailStatus, setShareEmailStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfIncludePhoto, setPdfIncludePhoto] = useState(true);
@@ -640,6 +653,23 @@ export function ResumeUploadTab() {
     () => resumeVersions.find((r) => r.resume_id === selectedResumeId) ?? resumeVersions[0] ?? null,
     [resumeVersions, selectedResumeId],
   );
+
+  // Auto-populate email message template when resume or recipient name changes
+  useEffect(() => {
+    if (!selectedResume) return;
+    const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
+    const firstName = (info.first_name ?? '').trim();
+    const lastName = (info.last_name ?? '').trim();
+    const senderName = [firstName, lastName].filter(Boolean).join(' ') || 'Me';
+    const slug = firstName && lastName
+      ? (firstName.charAt(0) + lastName).toLowerCase().replace(/[^a-z0-9]/g, '')
+      : selectedResume.resume_id;
+    const cvLink = `https://orange-forest-05793170f.7.azurestaticapps.net/?cv=${slug}`;
+    const greeting = sendEmailRecipientName.trim() ? `Dear ${sendEmailRecipientName.trim()},` : 'Dear Hiring Manager,';
+    setSendEmailMessage(
+      `${greeting}\n\nI hope this message finds you well.\n\nI would like to share my curriculum vitae with you for your consideration. Please find it attached.\n\nYou can also access it using the link below:\n${cvLink}\n\nPlease feel free to reach out if you require any additional information.\n\nThank you for your time and consideration.\n\nKind regards,\n${senderName}`
+    );
+  }, [selectedResume, sendEmailRecipientName]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) { setFile(e.target.files[0]); setMessage(null); }
@@ -756,6 +786,102 @@ export function ResumeUploadTab() {
     setShareEmailTo('');
     setShareEmailRecipientName('');
     setShowShareModal(true);
+  };
+
+  const fetchPdfAttachment = async (documentId: string, filename: string) => {
+    const blobUrl = await documentsApi.getDocumentFileUrl(documentId);
+    const res = await fetch(blobUrl);
+    const arrayBuffer = await res.arrayBuffer();
+    URL.revokeObjectURL(blobUrl);
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const chunk = 8192;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    const previewBlob = new Blob([bytes], { type: 'application/pdf' });
+    const previewUrl = URL.createObjectURL(previewBlob);
+    return { base64, filename, previewUrl };
+  };
+
+  const handleAttachCv = async () => {
+    if (!selectedResume?.generated_document_id) return;
+    setIsAttachingPdf(true);
+    try {
+      if (sendEmailPreviewUrl) URL.revokeObjectURL(sendEmailPreviewUrl);
+      const filename = `${selectedResume.title || 'resume'}.pdf`.replace(/\s+/g, '_');
+      const { base64, previewUrl } = await fetchPdfAttachment(selectedResume.generated_document_id, filename);
+      setSendEmailAttachment({ base64, filename });
+      setSendEmailPreviewUrl(previewUrl);
+    } catch {
+      // ignore — user can retry
+    } finally {
+      setIsAttachingPdf(false);
+    }
+  };
+
+  const handleAttachShareCv = async () => {
+    if (!selectedResume?.generated_document_id) return;
+    setIsAttachingSharePdf(true);
+    try {
+      if (shareAttachmentPreviewUrl) URL.revokeObjectURL(shareAttachmentPreviewUrl);
+      const filename = `${selectedResume.title || 'resume'}.pdf`.replace(/\s+/g, '_');
+      const { base64, previewUrl } = await fetchPdfAttachment(selectedResume.generated_document_id, filename);
+      setShareAttachment({ base64, filename });
+      setShareAttachmentPreviewUrl(previewUrl);
+    } catch {
+      // ignore — user can retry
+    } finally {
+      setIsAttachingSharePdf(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedResume || !sendEmailTo.trim() || !sendEmailAttachment) return;
+    setIsSendingEmail(true);
+    setSendEmailStatus('idle');
+    setSendEmailError('');
+    try {
+      const subject = sendEmailSubject.trim() || `CV: ${selectedResume.title || 'My Resume'}`;
+      await resumesApi.sendEmail({ to: sendEmailTo.trim(), subject, message: sendEmailMessage, pdf_base64: sendEmailAttachment.base64, filename: sendEmailAttachment.filename });
+      setSendEmailStatus('success');
+      setSendEmailTo('');
+      setSendEmailSubject('');
+      setSendEmailMessage('');
+      setSendEmailAttachment(null);
+      if (sendEmailPreviewUrl) { URL.revokeObjectURL(sendEmailPreviewUrl); setSendEmailPreviewUrl(null); setShowEmailPreview(false); }
+    } catch (err: any) {
+      console.error('Send CV error:', err, err?.response?.data);
+      const detail = err?.response?.data?.detail;
+      if (detail === 'Email service not configured') {
+        setSendEmailStatus('not_configured');
+      } else {
+        setSendEmailStatus('error');
+        const msg = typeof detail === 'string' ? detail
+          : Array.isArray(detail) ? JSON.stringify(detail)
+          : err?.message || 'Failed to send. Please try again.';
+        setSendEmailError(msg);
+      }
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const handleSendShare = async (to: string, subject: string, message: string) => {
+    if (!shareAttachment || !to.trim()) return;
+    setIsSendingShare(true);
+    setShareEmailStatus('idle');
+    try {
+      await resumesApi.sendEmail({ to: to.trim(), subject, message, pdf_base64: shareAttachment.base64, filename: shareAttachment.filename });
+      setShareEmailStatus('success');
+      setShareAttachment(null);
+      if (shareAttachmentPreviewUrl) { URL.revokeObjectURL(shareAttachmentPreviewUrl); setShareAttachmentPreviewUrl(null); }
+    } catch {
+      setShareEmailStatus('error');
+    } finally {
+      setIsSendingShare(false);
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1407,6 +1533,16 @@ export function ResumeUploadTab() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Recipient Name</label>
+                  <input
+                    type="text"
+                    value={sendEmailRecipientName}
+                    onChange={e => setSendEmailRecipientName(e.target.value)}
+                    placeholder="Jane Smith"
+                    className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Recipient Email</label>
                   <input
                     type="email"
@@ -1416,27 +1552,83 @@ export function ResumeUploadTab() {
                     className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Subject</label>
-                  <input
-                    type="text"
-                    value={sendEmailSubject}
-                    onChange={e => setSendEmailSubject(e.target.value)}
-                    placeholder={selectedResume ? `CV: ${selectedResume.title || 'My Resume'}` : 'CV submission'}
-                    className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
-                  />
+              </div>
+
+              {sendEmailStatus === 'success' ? (
+                <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
+                  <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    CV sent to {sendEmailTo || 'recipient'}
+                  </div>
+                  <button
+                    onClick={() => { setSendEmailStatus('idle'); setSendEmailTo(''); setSendEmailSubject(''); setSendEmailRecipientName(''); setSendEmailMessage(''); }}
+                    className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline"
+                  >
+                    Send another
+                  </button>
                 </div>
+              ) : (<>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Subject</label>
+                <input
+                  type="text"
+                  value={sendEmailSubject}
+                  onChange={e => setSendEmailSubject(e.target.value)}
+                  placeholder={selectedResume ? `CV: ${selectedResume.title || 'My Resume'}` : 'CV submission'}
+                  className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleAttachCv}
+                  disabled={!selectedResume?.generated_document_id || isAttachingPdf}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isAttachingPdf ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                  )}
+                  {isAttachingPdf ? 'Attaching…' : 'Attach CV'}
+                </button>
+                {sendEmailAttachment ? (
+                  <button
+                    onClick={() => setShowEmailPreview(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+                    title="Click to preview"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    {sendEmailAttachment.filename}
+                    <svg className="w-3 h-3 ml-0.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                ) : (
+                  <span className="text-xs text-gray-400 dark:text-neutral-500">
+                    {selectedResume?.generated_document_id ? 'No PDF attached yet' : 'Save a PDF first from the Saved PDF section above'}
+                  </span>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Message</label>
                 <textarea
                   value={sendEmailMessage}
                   onChange={e => setSendEmailMessage(e.target.value)}
-                  rows={4}
+                  rows={14}
                   placeholder="Write a short message to accompany your CV…"
-                  className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20 resize-none"
+                  className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20 resize-y"
                 />
               </div>
+              {sendEmailStatus === 'error' && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  {sendEmailError || 'Failed to send. Please try again.'}
+                </div>
+              )}
+              {sendEmailStatus === 'not_configured' && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-sm text-amber-700 dark:text-amber-400">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" /></svg>
+                  Email service not configured. Add your Resend API key to the server .env file.
+                </div>
+              )}
               <div className="flex items-center justify-between gap-4">
                 <p className="text-xs text-gray-400 dark:text-neutral-500">
                   {selectedResume
@@ -1444,15 +1636,21 @@ export function ResumeUploadTab() {
                     : 'Select a resume version on the left first.'}
                 </p>
                 <button
-                  disabled={!sendEmailTo.trim() || !selectedResume}
+                  onClick={handleSendEmail}
+                  disabled={!sendEmailTo.trim() || !sendEmailAttachment || isSendingEmail}
                   className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Send CV
+                  {isSendingEmail ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                  {isSendingEmail ? 'Sending…' : 'Send CV'}
                 </button>
               </div>
+              </>)}
             </div>
           </div>
         </div>
@@ -1664,15 +1862,38 @@ export function ResumeUploadTab() {
         </div>
       )}
 
+      {showEmailPreview && sendEmailPreviewUrl && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex flex-col animate-in fade-in">
+          <div className="flex items-center justify-between px-6 py-3 bg-gray-900 border-b border-white/10">
+            <span className="text-sm font-semibold text-white">{sendEmailAttachment?.filename || 'CV Preview'}</span>
+            <button onClick={() => setShowEmailPreview(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <iframe src={sendEmailPreviewUrl} className="flex-1 w-full" title="CV Fullscreen Preview" />
+        </div>
+      )}
+
       {showShareModal && selectedResume && (() => {
-        const publicUrl = `${window.location.origin}${window.location.pathname}?cv=${selectedResume.resume_id}`;
+        const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
+        const firstName = (info.first_name ?? '').trim();
+        const lastName = (info.last_name ?? '').trim();
+        const slug = firstName && lastName
+          ? (firstName.charAt(0) + lastName).toLowerCase().replace(/[^a-z0-9]/g, '')
+          : selectedResume.resume_id;
+        // Register slug with backend (best-effort, non-blocking)
+        if (firstName && lastName) {
+          authApi.updatePrivacy({ public_url_slug: slug }).catch(() => {});
+        }
+        const AZURE_BASE = 'https://orange-forest-05793170f.7.azurestaticapps.net';
+        const publicUrl = `${AZURE_BASE}/?cv=${slug}`;
         return (
           <div
             className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
             onClick={() => setShowShareModal(false)}
             onKeyDown={e => { if (e.key === 'Escape') setShowShareModal(false); }}
           >
-            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-bold text-gray-900 dark:text-white">Share Resume</h3>
@@ -1683,7 +1904,7 @@ export function ResumeUploadTab() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-5 dark:bg-neutral-900">
+              <div className="p-6 space-y-5 dark:bg-neutral-900 overflow-y-auto max-h-[75vh]">
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
                   <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-xl">
@@ -1706,12 +1927,23 @@ export function ResumeUploadTab() {
                 {(() => {
                   const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
                   const senderName = [info.first_name, info.last_name].filter(Boolean).join(' ') || 'Your Name';
-                  const recipientGreeting = shareEmailRecipientName.trim() || "Recipient's Name";
+                  const recipientGreeting = shareEmailRecipientName.trim() || 'Hiring Manager';
                   const emailBody = `Dear ${recipientGreeting},\n\nI hope this message finds you well.\n\nI would like to share my curriculum vitae with you for your consideration. You can access it using the link below:\n${publicUrl}\n\nPlease feel free to reach out if you require any additional information.\n\nThank you for your time and consideration.\n\nKind regards,\n${senderName}`;
                   const subject = `CV: ${selectedResume.title || 'My Resume'}`;
                   return (
                     <div className="space-y-3 border-t border-gray-100 pt-5">
                       <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Share via Email</p>
+                      {shareEmailStatus === 'success' ? (
+                        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
+                          <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
+                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            CV sent to {shareEmailTo}
+                          </div>
+                          <button onClick={() => { setShareEmailStatus('idle'); setShareEmailTo(''); setShareEmailRecipientName(''); }} className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline">
+                            Send another
+                          </button>
+                        </div>
+                      ) : (<>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">Recipient's name</label>
@@ -1737,38 +1969,66 @@ export function ResumeUploadTab() {
                       <div className="p-3 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-xl">
                         <p className="text-[11px] text-gray-500 dark:text-neutral-400 whitespace-pre-wrap leading-relaxed">{emailBody}</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <a
-                          href={`https://mail.google.com/mail/?view=cm${shareEmailTo ? `&to=${encodeURIComponent(shareEmailTo)}` : ''}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300 text-sm font-semibold rounded-xl transition-colors"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                            <path d="M22 6c0-1.1-.9-2-2-2H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 6l10 7 10-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                          Gmail
-                        </a>
+                      <div className="flex items-center gap-3">
                         <button
-                          type="button"
-                          onClick={() => {
-                            const full = `Subject: ${subject}\n\n${emailBody}`;
-                            navigator.clipboard.writeText(full).then(() => {
-                              setLinkCopied(true);
-                              setTimeout(() => setLinkCopied(false), 2000);
-                            });
-                          }}
-                          className="flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300 text-sm font-semibold rounded-xl transition-colors"
+                          onClick={handleAttachShareCv}
+                          disabled={!selectedResume?.generated_document_id || isAttachingSharePdf}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {linkCopied ? (
-                            <><svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-emerald-600">Copied!</span></>
+                          {isAttachingSharePdf ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
                           ) : (
-                            <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy email</>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                           )}
+                          {isAttachingSharePdf ? 'Attaching…' : 'Attach CV'}
                         </button>
+                        {shareAttachment ? (
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            {shareAttachment.filename}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400 dark:text-neutral-500">
+                            {selectedResume?.generated_document_id ? 'No PDF attached' : 'Save a PDF first'}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] text-gray-400 dark:text-neutral-500">Gmail opens a compose window directly. "Copy email" copies the full text — paste it into Outlook, Yahoo, or any other client.</p>
+                      {shareAttachmentPreviewUrl && (
+                        <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-neutral-700">
+                          <div className="px-3 py-2 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">PDF Preview</span>
+                            <button onClick={() => { URL.revokeObjectURL(shareAttachmentPreviewUrl); setShareAttachmentPreviewUrl(null); setShareAttachment(null); }} className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 transition-colors">
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                          <iframe src={shareAttachmentPreviewUrl} className="w-full" style={{ height: '320px' }} title="CV Preview" />
+                        </div>
+                      )}
+                      {shareEmailStatus === 'success' && (
+                        <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-sm text-emerald-700 dark:text-emerald-400">
+                          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          CV sent successfully!
+                        </div>
+                      )}
+                      {shareEmailStatus === 'error' && (
+                        <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
+                          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          Failed to send. Please try again.
+                        </div>
+                      )}
+                      <button
+                        onClick={() => handleSendShare(shareEmailTo, subject, emailBody)}
+                        disabled={!shareEmailTo.trim() || !shareAttachment || isSendingShare}
+                        className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                      >
+                        {isSendingShare ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        )}
+                        {isSendingShare ? 'Sending…' : 'Send CV'}
+                      </button>
+                    </>)}
                     </div>
                   );
                 })()}
