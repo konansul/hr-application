@@ -257,8 +257,16 @@ export const de = {
     stats: "{vCount} Versionen · {dCount} hochgeladene Dokumente",
     uploadCv: "Lebenslauf hochladen",
     fromProfile: "Aus Profil",
-    duplicate: "Duplizieren",
+    duplicate: "Aus CV kopieren",
     fromJob: "Aus Stellenbeschreibung",
+    sourceTypes: {
+      profile: "Aus Profil",
+      profileExtract: "Aus Profil generiert",
+      cvUpload: "CV-Upload",
+      duplicate: "Aus bestehendem CV",
+      publicApp: "Öffentliche Bewerbung",
+      fromJob: "Aus Stellenbeschreibung"
+    },
     noVersions: "Noch keine Lebenslauf-Versionen. Nutzen Sie \"Version erstellen\" oben, um zu beginnen.",
     untitled: "Unbenannter Lebenslauf",
     deleteConfirm: "Diese Version löschen?",
@@ -270,7 +278,9 @@ export const de = {
       validUntil: "Gültig bis: {date}",
       noExpiry: "Kein Ablaufdatum",
       original: "Original",
-      deleted: "Gelöschte Version"
+      deleted: "Gelöschte Version",
+      titleLabel: "Titel",
+      notSpecified: "Nicht angegeben"
     },
     actions: {
       exportPdf: "PDF exportieren",
@@ -278,14 +288,16 @@ export const de = {
       edit: "Bearbeiten",
       save: "Änderungen speichern",
       cancel: "Abbrechen",
-      saving: "Wird gespeichert..."
+      saving: "Wird gespeichert…"
     },
     sections: {
       summary: "Zusammenfassung",
       experience: "Erfahrung",
       skills: "Fähigkeiten",
       education: "Ausbildung",
-      langCert: "Sprachen & Zertifikate"
+      langCert: "Sprachen & Zertifikate",
+      languages: "Sprachen",
+      certifications: "Zertifikate"
     },
     placeholders: {
       noSummary: "Keine Zusammenfassung für diese Version gespeichert.",
@@ -294,7 +306,25 @@ export const de = {
       noEdu: "Keine Ausbildung enthalten.",
       noLang: "Keine Sprachen aufgeführt.",
       noCert: "Keine Zertifikate aufgeführt.",
-      skillHint: "Fähigkeiten durch Kommas trennen"
+      skillHint: "Fähigkeiten durch Kommas trennen",
+      noDesc: "Keine Beschreibung.",
+      untitledRole: "Unbenannte Rolle",
+      present: "Heute"
+    },
+    noSelected: "Keine Lebenslaufversion ausgewählt",
+    noSelectedHint: "Laden Sie Ihren Lebenslauf hoch oder erstellen Sie eine Version aus Ihrem Profil.",
+    photo: {
+      label: "Profilfoto",
+      hint: "Wird in PDF-Vorlagen verwendet, die Fotos unterstützen.",
+      change: "Foto ändern",
+      upload: "Foto hochladen",
+      remove: "Entfernen"
+    },
+    edit: {
+      entry: "Eintrag",
+      remove: "Entfernen",
+      addExp: "+ Erfahrung hinzufügen",
+      addEdu: "+ Ausbildung hinzufügen"
     },
     pdfCard: {
       title: "Gespeicherte PDF-Version",
@@ -309,7 +339,84 @@ export const de = {
     createForJob: "Lebenslauf für diesen Job erstellen",
     working: "Wir arbeiten an Ihrem Lebenslauf...",
     fileSelected: "Datei ausgewählt",
-    createVersion: "Version erstellen"
+    createVersion: "Version erstellen",
+    emailBody: {
+      greeting: "Sehr geehrte(r) {name},",
+      hiringManager: "Sehr geehrte Damen und Herren,",
+      line1: "ich hoffe, diese Nachricht erreicht Sie wohlauf.",
+      line2attach: "Ich möchte Ihnen meinen Lebenslauf zur Prüfung zusenden. Bitte finden Sie ihn im Anhang.",
+      line2link: "Ich möchte Ihnen meinen Lebenslauf zur Prüfung zukommen lassen. Sie können ihn über den folgenden Link aufrufen:",
+      line3: "Sie können ihn auch über den folgenden Link aufrufen:",
+      line4: "Für weitere Informationen stehe ich Ihnen gerne zur Verfügung.",
+      line5: "Vielen Dank für Ihre Zeit und Ihre Aufmerksamkeit.",
+      regards: "Mit freundlichen Grüßen,"
+    },
+    sendEmail: {
+      title: "CV per E-Mail senden",
+      recipientName: "Name des Empfängers",
+      recipientEmail: "E-Mail des Empfängers",
+      subject: "Betreff",
+      message: "Nachricht",
+      attachBtn: "CV anhängen",
+      attaching: "Wird angehängt…",
+      noAttachment: "Noch kein PDF angehängt",
+      savePdfFirst: "Speichern Sie zuerst ein PDF im obigen Abschnitt",
+      sendBtn: "CV senden",
+      sending: "Wird gesendet…",
+      sentTo: "CV gesendet an {email}",
+      sendAnother: "Weitere senden",
+      errorMsg: "Senden fehlgeschlagen. Bitte erneut versuchen.",
+      notConfigured: "E-Mail-Dienst nicht konfiguriert. Fügen Sie Ihren Resend API-Schlüssel zur .env-Datei hinzu.",
+      namePlaceholder: "Max Mustermann",
+      subjectPlaceholder: "Bewerbungsunterlagen",
+      previewTitle: "Vorschau des angehängten PDFs",
+      sendingLabel: "Wird gesendet:",
+      selectFirst: "Wählen Sie zunächst eine Lebenslaufversion auf der linken Seite aus."
+    },
+    share: {
+      title: "CV teilen",
+      publicLink: "Öffentlicher Link",
+      copyBtn: "Link kopieren",
+      copied: "Kopiert!",
+      linkHint: "Jeder mit diesem Link kann Ihren Lebenslauf ohne Anmeldung anzeigen.",
+      emailSection: "Per E-Mail teilen",
+      recipientName: "Name des Empfängers",
+      recipientEmail: "E-Mail des Empfängers",
+      namePlaceholder: "z.B. Max Mustermann",
+      emailPlaceholder: "email@example.com",
+      sendBtn: "CV senden",
+      sending: "Wird gesendet…",
+      sentTo: "CV gesendet an {email}",
+      sendAnother: "Weitere senden",
+      errorMsg: "Senden fehlgeschlagen. Bitte erneut versuchen.",
+      noAttachment: "Kein PDF angehängt",
+      savePdfFirst: "Speichern Sie zuerst ein PDF",
+      pdfPreview: "PDF-Vorschau"
+    },
+    modal: {
+      excludeSections: "Abschnitte aus dieser Version ausschließen",
+      excludedHint: "Markierte Abschnitte werden aus dieser Version ausgeschlossen.",
+      versionName: "Versionsname",
+      language: "Sprache",
+      validUntil: "Gültig bis",
+      newVersionName: "Neuer Versionsname",
+      sourceVersion: "Quellversion",
+      noVersionsToDuplicate: "Keine vorhandenen Versionen zum Kopieren.",
+      creating: "Erstelle…",
+      createVersion: "Version erstellen",
+      createDuplicate: "Kopie erstellen",
+      fromProfileTitle: "Lebenslauf aus Profil erstellen",
+      fromProfileSubtitle: "Wählen Sie, was in dieser Version enthalten sein soll",
+      duplicateTitle: "Aus CV kopieren",
+      duplicateSubtitle: "Neue Version auf Basis einer vorhandenen erstellen",
+      fromJobTitle: "Lebenslauf für Stelle erstellen",
+      fromJobSubtitle: "Passen Sie Ihren Lebenslauf an eine bestimmte Stelle an",
+      selectJob: "Stelle auswählen",
+      noJob: "Keine spezifische Stelle",
+      jobDescription: "Stellenbeschreibung",
+      jobDescPlaceholder: "Fügen Sie hier die Stellenbeschreibung ein…",
+      cancel: "Abbrechen"
+    }
   },
   hrNav: {
     overview: "Übersicht",

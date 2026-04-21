@@ -257,8 +257,16 @@ export const es = {
     stats: "{vCount} versiones · {dCount} documentos subidos",
     uploadCv: "Subir CV",
     fromProfile: "Desde el Perfil",
-    duplicate: "Duplicar",
+    duplicate: "Copiar desde CV",
     fromJob: "Desde Puesto de Trabajo",
+    sourceTypes: {
+      profile: "Desde el perfil",
+      profileExtract: "Generado desde el perfil",
+      cvUpload: "Carga de CV",
+      duplicate: "Desde CV existente",
+      publicApp: "Solicitud pública",
+      fromJob: "Desde descripción del trabajo"
+    },
     noVersions: "Aún no hay versiones del currículum. Usa \"Crear Versión\" arriba para empezar.",
     untitled: "Currículum sin título",
     deleteConfirm: "¿Eliminar esta versión?",
@@ -270,7 +278,9 @@ export const es = {
       validUntil: "Válido hasta: {date}",
       noExpiry: "Sin Caducidad",
       original: "Original",
-      deleted: "Versión eliminada"
+      deleted: "Versión eliminada",
+      titleLabel: "Título",
+      notSpecified: "No especificado"
     },
     actions: {
       exportPdf: "Exportar PDF",
@@ -278,14 +288,16 @@ export const es = {
       edit: "Editar",
       save: "Guardar Cambios",
       cancel: "Cancelar",
-      saving: "Guardando..."
+      saving: "Guardando…"
     },
     sections: {
       summary: "Resumen",
       experience: "Experiencia",
       skills: "Habilidades",
       education: "Educación",
-      langCert: "Idiomas y Certificaciones"
+      langCert: "Idiomas y Certificaciones",
+      languages: "Idiomas",
+      certifications: "Certificaciones"
     },
     placeholders: {
       noSummary: "No hay un resumen guardado para esta versión.",
@@ -294,7 +306,25 @@ export const es = {
       noEdu: "No se ha incluido educación.",
       noLang: "No se enumeran idiomas.",
       noCert: "No se enumeran certificaciones.",
-      skillHint: "Separa las habilidades con comas"
+      skillHint: "Separa las habilidades con comas",
+      noDesc: "Sin descripción.",
+      untitledRole: "Rol sin título",
+      present: "Presente"
+    },
+    noSelected: "Ninguna versión de CV seleccionada",
+    noSelectedHint: "Sube tu CV o crea una versión desde tu perfil.",
+    photo: {
+      label: "Foto de Perfil",
+      hint: "Se usa en plantillas PDF que admiten fotos.",
+      change: "Cambiar foto",
+      upload: "Subir foto",
+      remove: "Eliminar"
+    },
+    edit: {
+      entry: "Entrada",
+      remove: "Eliminar",
+      addExp: "+ Añadir experiencia",
+      addEdu: "+ Añadir educación"
     },
     pdfCard: {
       title: "Versión PDF Guardada",
@@ -309,7 +339,84 @@ export const es = {
     createForJob: "Crear CV para este empleo",
     working: "Trabajando en tu currículum...",
     fileSelected: "Archivo seleccionado",
-    createVersion: "Crear Versión"
+    createVersion: "Crear Versión",
+    emailBody: {
+      greeting: "Estimado/a {name},",
+      hiringManager: "Estimado/a responsable de selección,",
+      line1: "Espero que este mensaje le encuentre bien.",
+      line2attach: "Me gustaría compartir mi currículum vitae para su consideración. Encontrará adjunto el archivo.",
+      line2link: "Me gustaría compartir mi currículum vitae para su consideración. Puede acceder a él a través del siguiente enlace:",
+      line3: "También puede acceder a él a través del siguiente enlace:",
+      line4: "No dude en ponerse en contacto si necesita información adicional.",
+      line5: "Gracias por su tiempo y consideración.",
+      regards: "Atentamente,"
+    },
+    sendEmail: {
+      title: "Enviar CV por correo",
+      recipientName: "Nombre del destinatario",
+      recipientEmail: "Correo del destinatario",
+      subject: "Asunto",
+      message: "Mensaje",
+      attachBtn: "Adjuntar CV",
+      attaching: "Adjuntando…",
+      noAttachment: "Ningún PDF adjunto aún",
+      savePdfFirst: "Guarda un PDF primero en la sección PDF de arriba",
+      sendBtn: "Enviar CV",
+      sending: "Enviando…",
+      sentTo: "CV enviado a {email}",
+      sendAnother: "Enviar otro",
+      errorMsg: "Error al enviar. Por favor, inténtelo de nuevo.",
+      notConfigured: "Servicio de correo no configurado. Añade tu clave API de Resend al archivo .env del servidor.",
+      namePlaceholder: "Juan García",
+      subjectPlaceholder: "Envío de CV",
+      previewTitle: "Vista previa del PDF adjunto",
+      sendingLabel: "Enviando:",
+      selectFirst: "Seleccione primero una versión del CV a la izquierda."
+    },
+    share: {
+      title: "Compartir CV",
+      publicLink: "Enlace público",
+      copyBtn: "Copiar enlace",
+      copied: "¡Copiado!",
+      linkHint: "Cualquiera con este enlace puede ver tu CV sin iniciar sesión.",
+      emailSection: "Compartir por correo",
+      recipientName: "Nombre del destinatario",
+      recipientEmail: "Correo del destinatario",
+      namePlaceholder: "ej. Juan García",
+      emailPlaceholder: "correo@ejemplo.com",
+      sendBtn: "Enviar CV",
+      sending: "Enviando…",
+      sentTo: "CV enviado a {email}",
+      sendAnother: "Enviar otro",
+      errorMsg: "Error al enviar. Por favor, inténtelo de nuevo.",
+      noAttachment: "Ningún PDF adjunto",
+      savePdfFirst: "Guarda un PDF primero",
+      pdfPreview: "Vista previa PDF"
+    },
+    modal: {
+      excludeSections: "Excluir secciones de esta versión",
+      excludedHint: "Las secciones marcadas serán excluidas de esta versión.",
+      versionName: "Nombre de la versión",
+      language: "Idioma",
+      validUntil: "Válido hasta",
+      newVersionName: "Nuevo nombre de versión",
+      sourceVersion: "Versión de origen",
+      noVersionsToDuplicate: "No hay versiones existentes para copiar.",
+      creating: "Creando…",
+      createVersion: "Crear versión",
+      createDuplicate: "Crear copia",
+      fromProfileTitle: "Crear CV desde el perfil",
+      fromProfileSubtitle: "Elige qué incluir en esta versión",
+      duplicateTitle: "Copiar desde CV",
+      duplicateSubtitle: "Crear una nueva versión basada en una existente",
+      fromJobTitle: "Crear CV para un trabajo",
+      fromJobSubtitle: "Adapta tu CV a un trabajo específico",
+      selectJob: "Seleccionar trabajo",
+      noJob: "Sin trabajo específico",
+      jobDescription: "Descripción del trabajo",
+      jobDescPlaceholder: "Pega la descripción del trabajo aquí…",
+      cancel: "Cancelar"
+    }
   },
   hrNav: {
     overview: "Resumen",

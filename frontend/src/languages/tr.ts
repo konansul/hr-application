@@ -257,8 +257,16 @@ export const tr = {
     stats: "{vCount} versiyon · {dCount} yüklü belge",
     uploadCv: "CV Yükle",
     fromProfile: "Profilden",
-    duplicate: "Çoğalt",
+    duplicate: "CV'den Kopyala",
     fromJob: "İş Tanımından",
+    sourceTypes: {
+      profile: "Profilden",
+      profileExtract: "Profilden oluşturuldu",
+      cvUpload: "CV Yükleme",
+      duplicate: "Mevcut CV'den",
+      publicApp: "Genel başvuru",
+      fromJob: "İş tanımından"
+    },
     noVersions: "Henüz özgeçmiş versiyonu yok. Başlamak için yukarıdaki \"Versiyon Oluştur\"u kullanın.",
     untitled: "İsimsiz Özgeçmiş",
     deleteConfirm: "Bu versiyon silinsin mi?",
@@ -270,7 +278,9 @@ export const tr = {
       validUntil: "Geçerlilik: {date}",
       noExpiry: "Süresiz",
       original: "Orijinal",
-      deleted: "Silinmiş versiyon"
+      deleted: "Silinmiş versiyon",
+      titleLabel: "Başlık",
+      notSpecified: "Belirtilmemiş"
     },
     actions: {
       exportPdf: "PDF Çıktısı",
@@ -278,14 +288,16 @@ export const tr = {
       edit: "Düzenle",
       save: "Değişiklikleri Kaydet",
       cancel: "İptal",
-      saving: "Kaydediliyor..."
+      saving: "Kaydediliyor…"
     },
     sections: {
       summary: "Özet",
       experience: "Deneyim",
       skills: "Beceriler",
       education: "Eğitim",
-      langCert: "Diller ve Sertifikalar"
+      langCert: "Diller ve Sertifikalar",
+      languages: "Diller",
+      certifications: "Sertifikalar"
     },
     placeholders: {
       noSummary: "Bu versiyon için özet kaydedilmedi.",
@@ -294,7 +306,25 @@ export const tr = {
       noEdu: "Eğitim bulunmuyor.",
       noLang: "Dil listelenmedi.",
       noCert: "Sertifika listelenmedi.",
-      skillHint: "Becerileri virgülle ayırın"
+      skillHint: "Becerileri virgülle ayırın",
+      noDesc: "Açıklama yok.",
+      untitledRole: "Başlıksız rol",
+      present: "Günümüz"
+    },
+    noSelected: "Özgeçmiş versiyonu seçilmedi",
+    noSelectedHint: "CV'nizi yükleyin veya profilinizden bir versiyon oluşturun.",
+    photo: {
+      label: "Profil Fotoğrafı",
+      hint: "Fotoğraf destekleyen PDF şablonlarında kullanılır.",
+      change: "Fotoğrafı Değiştir",
+      upload: "Fotoğraf Yükle",
+      remove: "Kaldır"
+    },
+    edit: {
+      entry: "Giriş",
+      remove: "Kaldır",
+      addExp: "+ Deneyim Ekle",
+      addEdu: "+ Eğitim Ekle"
     },
     pdfCard: {
       title: "Kaydedilmiş PDF Versiyonu",
@@ -309,7 +339,84 @@ export const tr = {
     createForJob: "Bu İş İçin CV Oluştur",
     working: "Özgeçmişiniz üzerinde çalışılıyor...",
     fileSelected: "Dosya seçildi",
-    createVersion: "Versiyon Oluştur"
+    createVersion: "Versiyon Oluştur",
+    emailBody: {
+      greeting: "Sayın {name},",
+      hiringManager: "Sayın İşe Alım Yöneticisi,",
+      line1: "Umarım bu mesajı iyi bir dönemde alıyorsunuzdur.",
+      line2attach: "Özgeçmişimi değerlendirmeniz için paylaşmak istiyorum. Lütfen ekteki dosyayı inceleyiniz.",
+      line2link: "Özgeçmişimi değerlendirmeniz için paylaşmak istiyorum. Aşağıdaki bağlantıdan erişebilirsiniz:",
+      line3: "Ayrıca aşağıdaki bağlantıdan da erişebilirsiniz:",
+      line4: "Ek bilgi gerektiğinde lütfen çekinmeden iletişime geçiniz.",
+      line5: "Zaman ayırdığınız için teşekkür ederim.",
+      regards: "Saygılarımla,"
+    },
+    sendEmail: {
+      title: "CV'yi E-posta ile Gönder",
+      recipientName: "Alıcı Adı",
+      recipientEmail: "Alıcı E-postası",
+      subject: "Konu",
+      message: "Mesaj",
+      attachBtn: "CV Ekle",
+      attaching: "Ekleniyor…",
+      noAttachment: "Henüz PDF eklenmedi",
+      savePdfFirst: "Önce yukarıdaki PDF bölümünden bir PDF kaydedin",
+      sendBtn: "CV Gönder",
+      sending: "Gönderiliyor…",
+      sentTo: "CV {email} adresine gönderildi",
+      sendAnother: "Başka gönder",
+      errorMsg: "Gönderilemedi. Lütfen tekrar deneyin.",
+      notConfigured: "E-posta servisi yapılandırılmamış. Resend API anahtarınızı sunucunun .env dosyasına ekleyin.",
+      namePlaceholder: "Ahmet Yılmaz",
+      subjectPlaceholder: "CV Başvurusu",
+      previewTitle: "Ekli PDF Önizleme",
+      sendingLabel: "Gönderiliyor:",
+      selectFirst: "Önce soldaki CV versiyonunu seçin."
+    },
+    share: {
+      title: "CV'yi Paylaş",
+      publicLink: "Genel Bağlantı",
+      copyBtn: "Bağlantıyı Kopyala",
+      copied: "Kopyalandı!",
+      linkHint: "Bu bağlantıya sahip herkes CV'nizi giriş yapmadan görüntüleyebilir.",
+      emailSection: "E-posta ile Paylaş",
+      recipientName: "Alıcı adı",
+      recipientEmail: "Alıcı e-postası",
+      namePlaceholder: "örn. Ahmet Yılmaz",
+      emailPlaceholder: "email@ornek.com",
+      sendBtn: "CV Gönder",
+      sending: "Gönderiliyor…",
+      sentTo: "CV {email} adresine gönderildi",
+      sendAnother: "Başka gönder",
+      errorMsg: "Gönderilemedi. Lütfen tekrar deneyin.",
+      noAttachment: "PDF eklenmedi",
+      savePdfFirst: "Önce bir PDF kaydedin",
+      pdfPreview: "PDF Önizleme"
+    },
+    modal: {
+      excludeSections: "Bu versiyondan bölümleri hariç tut",
+      excludedHint: "İşaretlenen bölümler bu versiyondan hariç tutulacak.",
+      versionName: "Versiyon Adı",
+      language: "Dil",
+      validUntil: "Geçerlilik Tarihi",
+      newVersionName: "Yeni Versiyon Adı",
+      sourceVersion: "Kaynak Versiyon",
+      noVersionsToDuplicate: "Kopyalanacak mevcut versiyon yok.",
+      creating: "Oluşturuluyor…",
+      createVersion: "Versiyon Oluştur",
+      createDuplicate: "Kopya Oluştur",
+      fromProfileTitle: "Profilden CV Oluştur",
+      fromProfileSubtitle: "Bu versiyona nelerin dahil edileceğini seçin",
+      duplicateTitle: "CV'den Kopyala",
+      duplicateSubtitle: "Mevcut bir versiyona dayalı yeni versiyon oluştur",
+      fromJobTitle: "İş İçin CV Oluştur",
+      fromJobSubtitle: "CV'nizi belirli bir işe göre uyarlayın",
+      selectJob: "İş Seç",
+      noJob: "Belirli bir iş yok",
+      jobDescription: "İş Tanımı",
+      jobDescPlaceholder: "İş tanımını buraya yapıştırın…",
+      cancel: "İptal"
+    }
   },
   hrNav: {
     overview: "Genel Bakış",

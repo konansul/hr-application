@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { authApi, documentsApi, jobsApi, resumesApi } from '../../api';
+import { DICT } from '../../internationalization.ts';
+import { useStore } from '../../store';
 import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
@@ -55,14 +57,15 @@ const REMOVABLE_SECTIONS: { key: ResumeSectionKey; label: string }[] = [
   { key: 'certifications', label: 'Certifications' },
 ];
 
-const sourceTypeLabel = (value?: string) => {
+const sourceTypeLabel = (value?: string, t?: { sourceTypes?: { profile?: string; profileExtract?: string; cvUpload?: string; duplicate?: string; publicApp?: string; fromJob?: string } }) => {
+  const st = t?.sourceTypes;
   switch (value) {
-    case 'profile': return 'From Profile';
-    case 'profile_extract': return 'Generated from Profile';
-    case 'cv_upload': return 'CV Upload';
-    case 'duplicate': return 'Duplicate';
-    case 'public_application': return 'Public Application';
-    case 'job_description': return 'From Job Description';
+    case 'profile': return st?.profile || 'From Profile';
+    case 'profile_extract': return st?.profileExtract || 'Generated from Profile';
+    case 'cv_upload': return st?.cvUpload || 'CV Upload';
+    case 'duplicate': return st?.duplicate || 'From existing CV';
+    case 'public_application': return st?.publicApp || 'Public Application';
+    case 'job_description': return st?.fromJob || 'From Job Description';
     default: return value || 'Unknown';
   }
 };
@@ -117,9 +120,11 @@ function LanguageSelect({ value, onChange }: { value: string; onChange: (v: stri
 }
 
 function SectionToggles({ removedSections, onToggle }: { removedSections: ResumeSectionKey[]; onToggle: (key: ResumeSectionKey) => void }) {
+  const { language } = useStore();
+  const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
   return (
     <div>
-      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Exclude sections from this version</label>
+      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">{t.modal.excludeSections}</label>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {REMOVABLE_SECTIONS.map((section) => {
           const removed = removedSections.includes(section.key);
@@ -135,7 +140,7 @@ function SectionToggles({ removedSections, onToggle }: { removedSections: Resume
         })}
       </div>
       {removedSections.length > 0 && (
-        <p className="text-xs text-red-500 mt-2">Marked sections will be excluded from this version.</p>
+        <p className="text-xs text-red-500 mt-2">{t.modal.excludedHint}</p>
       )}
     </div>
   );
@@ -167,10 +172,12 @@ function ModalActions({ onClose, onSubmit, disabled, submitLabel, submitClass }:
   submitLabel: string;
   submitClass?: string;
 }) {
+  const { language } = useStore();
+  const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
   return (
     <div className="flex gap-3 pt-2">
       <button onClick={onClose} className="flex-1 py-3 border border-gray-200 dark:border-neutral-700 text-sm font-semibold text-gray-600 dark:text-neutral-400 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all">
-        Cancel
+        {t.modal.cancel}
       </button>
       <button
         onClick={onSubmit}
@@ -188,6 +195,8 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
   onSubmit: (data: { title: string; language: string; validUntil: string; removedSections: ResumeSectionKey[] }) => void;
   isWorking: boolean;
 }) {
+  const { language: appLanguage } = useStore();
+  const t = DICT[appLanguage as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [title, setTitle] = useState('My Profile Resume');
   const [language, setLanguage] = useState('en');
   const [validUntil, setValidUntil] = useState('');
@@ -195,18 +204,18 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
   const toggle = (key: ResumeSectionKey) => setRemovedSections((p) => p.includes(key) ? p.filter((s) => s !== key) : [...p, key]);
 
   return (
-    <ModalShell title="Create Resume from Profile" subtitle="Choose what to include in this version" onClose={onClose}>
+    <ModalShell title={t.modal.fromProfileTitle} subtitle={t.modal.fromProfileSubtitle} onClose={onClose}>
       <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Version Name</label>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.versionName}</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" placeholder="e.g. Software Engineer Resume" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Language</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
           <LanguageSelect value={language} onChange={setLanguage} />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Valid Until</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.validUntil}</label>
           <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
         </div>
       </div>
@@ -215,7 +224,7 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
         onClose={onClose}
         onSubmit={() => onSubmit({ title, language, validUntil, removedSections })}
         disabled={isWorking || !title.trim()}
-        submitLabel={isWorking ? 'Creating…' : 'Create Version'}
+        submitLabel={isWorking ? t.modal.creating : t.modal.createVersion}
       />
     </ModalShell>
   );
@@ -227,6 +236,8 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
   isWorking: boolean;
   resumeVersions: ResumeVersion[];
 }) {
+  const { language: appLanguage } = useStore();
+  const t = DICT[appLanguage as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [sourceId, setSourceId] = useState(resumeVersions[0]?.resume_id ?? '');
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('en');
@@ -255,12 +266,12 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
   const langLabel = (code?: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label || code || 'en';
 
   return (
-    <ModalShell title="Duplicate Resume Version" subtitle="Create a new version based on an existing one" onClose={onClose}>
+    <ModalShell title={t.modal.duplicateTitle} subtitle={t.modal.duplicateSubtitle} onClose={onClose}>
       <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Source Version</label>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.sourceVersion}</label>
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
           {resumeVersions.length === 0 && (
-            <p className="text-sm text-gray-400 italic">No existing versions to duplicate.</p>
+            <p className="text-sm text-gray-400 italic">{t.modal.noVersionsToDuplicate}</p>
           )}
           {resumeVersions.map((r, i) => {
             const isSelected = r.resume_id === sourceId;
@@ -274,13 +285,13 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <span className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-gray-300' : 'text-gray-400'}`}>Version {resumeVersions.length - i}</span>
-                    <p className="text-sm font-semibold leading-tight">{r.title || 'Untitled Resume'}</p>
+                    <p className="text-sm font-semibold leading-tight">{r.title || t.untitled}</p>
                   </div>
                   <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap ${isSelected ? 'border-white/20 text-white' : 'border-gray-200 text-gray-500'}`}>
                     {langLabel(r.language)}
                   </span>
                 </div>
-                <p className={`text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(r.source_type)} · {formatDate(r.created_at)}</p>
+                <p className={`text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(r.source_type, t)} · {formatDate(r.created_at)}</p>
               </button>
             );
           })}
@@ -288,7 +299,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">New Version Name</label>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.newVersionName}</label>
         <input
           value={title}
           onChange={(e) => { setTitle(e.target.value); setAutoTitle(false); }}
@@ -299,11 +310,11 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Language</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
           <LanguageSelect value={language} onChange={(v) => { setLanguage(v); setAutoTitle(false); }} />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Valid Until</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.validUntil}</label>
           <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
         </div>
       </div>
@@ -314,7 +325,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
         onClose={onClose}
         onSubmit={() => onSubmit({ sourceResumeId: sourceId, title, language, validUntil, removedSections })}
         disabled={!canSubmit}
-        submitLabel={isWorking ? 'Creating…' : 'Create Duplicate'}
+        submitLabel={isWorking ? t.modal.creating : t.modal.createDuplicate}
         submitClass="bg-emerald-600 hover:bg-emerald-700"
       />
     </ModalShell>
@@ -328,6 +339,8 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   activeJobs: any[];
   resumeVersions: ResumeVersion[];
 }) {
+  const { language: appLanguage } = useStore();
+  const t = DICT[appLanguage as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('en');
   const [validUntil, setValidUntil] = useState('');
@@ -392,7 +405,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   );
 
   return (
-    <ModalShell title="Create Resume from Job Description" subtitle="AI will adapt your existing resume to fit the role" onClose={onClose}>
+    <ModalShell title={t.modal.fromJobTitle} subtitle={t.modal.fromJobSubtitle} onClose={onClose}>
 
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Base Resume to Adapt</label>
@@ -412,7 +425,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <span className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-indigo-200' : 'text-gray-400'}`}>Version {resumeVersions.length - i}</span>
-                      <p className="text-sm font-semibold truncate">{r.title || 'Untitled Resume'}</p>
+                      <p className="text-sm font-semibold truncate">{r.title || t.untitled}</p>
                     </div>
                     <span className={`text-[10px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap shrink-0 ${isSelected ? 'border-white/20 text-white' : 'border-gray-200 text-gray-500'}`}>
                       {langLabel(r.language)}
@@ -426,7 +439,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Job Description</label>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.jobDescription}</label>
 
         {activeJobs.length > 0 && (
           <div className="flex rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden mb-3">
@@ -495,7 +508,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Version Name</label>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.versionName}</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -505,11 +518,11 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Output Language</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
           <LanguageSelect value={language} onChange={setLanguage} />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Valid Until</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.validUntil}</label>
           <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20" />
         </div>
       </div>
@@ -574,6 +587,9 @@ function JobDescriptionAccordion({ text }: { text: string }) {
 }
 
 export function ResumeUploadTab() {
+  const { language } = useStore();
+  const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
+
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
@@ -667,9 +683,12 @@ export function ResumeUploadTab() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
     const cvLink = `${cvBase}/?cv=${slug}`;
-    const greeting = sendEmailRecipientName.trim() ? `Dear ${sendEmailRecipientName.trim()},` : 'Dear Hiring Manager,';
+    const eb = t.emailBody;
+    const greeting = sendEmailRecipientName.trim()
+      ? eb.greeting.replace('{name}', sendEmailRecipientName.trim())
+      : eb.hiringManager;
     setSendEmailMessage(
-      `${greeting}\n\nI hope this message finds you well.\n\nI would like to share my curriculum vitae with you for your consideration. Please find it attached.\n\nYou can also access it using the link below:\n${cvLink}\n\nPlease feel free to reach out if you require any additional information.\n\nThank you for your time and consideration.\n\nKind regards,\n${senderName}`
+      `${greeting}\n\n${eb.line1}\n\n${eb.line2attach}\n\n${eb.line3}\n${cvLink}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`
     );
   }, [selectedResume, sendEmailRecipientName]);
 
@@ -959,7 +978,7 @@ export function ResumeUploadTab() {
       <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{label}</span>
       <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
         {value === 'UNKNOWN' || value === '' || value === null || value === undefined
-          ? <span className="text-gray-400 italic">Not Specified</span>
+          ? <span className="text-gray-400 italic">{t.metadata.notSpecified}</span>
           : String(value)}
       </span>
     </div>
@@ -973,10 +992,10 @@ export function ResumeUploadTab() {
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">Resume Versions</h2>
-          <p className="text-sm text-gray-500 dark:text-neutral-400 mb-0.5">Create, duplicate and manage your resume versions in multiple languages</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">{t.title}</h2>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mb-0.5">{t.subtitle}</p>
           <p className="text-xs text-gray-400 dark:text-neutral-500">
-            {resumeVersions.length} version{resumeVersions.length !== 1 ? 's' : ''} · {uploadedDocs.length} uploaded doc{uploadedDocs.length !== 1 ? 's' : ''}
+            {t.stats.replace('{vCount}', String(resumeVersions.length)).replace('{dCount}', String(uploadedDocs.length))}
           </p>
         </div>
 
@@ -986,7 +1005,7 @@ export function ResumeUploadTab() {
             className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            Upload CV
+            {t.uploadCv}
           </button>
           <button
             onClick={() => setShowProfileModal(true)}
@@ -994,7 +1013,7 @@ export function ResumeUploadTab() {
             className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-900 dark:text-white text-sm font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 transition-all disabled:opacity-60"
           >
             <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-            From Profile
+            {t.fromProfile}
           </button>
           <button
             onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
@@ -1002,7 +1021,7 @@ export function ResumeUploadTab() {
             className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-semibold rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-800/50 transition-all disabled:opacity-60"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-            Duplicate
+            {t.duplicate}
           </button>
           <button
             onClick={() => setShowJobDescModal(true)}
@@ -1010,7 +1029,7 @@ export function ResumeUploadTab() {
             className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-xl shadow-sm border border-indigo-100 dark:border-indigo-800/50 transition-all disabled:opacity-60"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            From Job Description
+            {t.fromJob}
           </button>
         </div>
       </div>
@@ -1057,19 +1076,19 @@ export function ResumeUploadTab() {
                     </div>
                     {isPendingDelete && (
                       <div className="flex items-center justify-between gap-1 mt-2 pt-2 border-t border-white/10">
-                        <span className={`text-[10px] font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>Delete this version?</span>
+                        <span className={`text-[10px] font-medium ${isActive ? 'text-red-300' : 'text-red-500'}`}>{t.deleteConfirm}</span>
                         <div className="flex gap-1.5">
                           <button
                             onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}
                             className={`text-[10px] px-2 py-1 rounded-lg border transition-colors ${isActive ? 'border-white/20 text-white hover:bg-white/10' : 'border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
-                          >No</button>
+                          >{t.no}</button>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDeleteResume(resume.resume_id); }}
                             disabled={isDeleting}
                             className="text-[10px] px-2 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center gap-1"
                           >
                             {isDeleting && <div className="w-2 h-2 border border-white/30 border-t-white rounded-full animate-spin" />}
-                            Yes
+                            {t.yes}
                           </button>
                         </div>
                       </div>
@@ -1080,7 +1099,7 @@ export function ResumeUploadTab() {
             })
           ) : (
             <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 p-6 text-sm text-gray-500 dark:text-neutral-400 text-center bg-gray-50/50 dark:bg-neutral-800/50">
-              No resume versions yet. Use <span className="font-semibold">Create New Version</span> above to get started.
+              {t.noVersions}
             </div>
           )}
         </div>
@@ -1112,15 +1131,15 @@ export function ResumeUploadTab() {
                     autoFocus
                   />
                 ) : (
-                  <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate">{selectedResume?.title || 'Untitled Resume'}</h3>
+                  <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate">{selectedResume?.title || t.untitled}</h3>
                 )}
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-xs font-semibold text-gray-500 dark:text-neutral-400 whitespace-nowrap">
-                  {selectedResume ? sourceTypeLabel(selectedResume.source_type) : '—'}
+                  {selectedResume ? sourceTypeLabel(selectedResume.source_type, t) : '—'}
                 </span>
                 <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ${selectedResume?.valid_until ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400' : 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-neutral-500'}`}>
-                  Valid until: {selectedResume?.valid_until || 'No Expiry'}
+                  {selectedResume?.valid_until ? t.metadata.validUntil.replace('{date}', selectedResume.valid_until) : t.metadata.noExpiry}
                 </span>
                 {selectedResume && (
                   isEditingContent ? (
@@ -1129,7 +1148,7 @@ export function ResumeUploadTab() {
                         onClick={cancelEditingContent}
                         className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors whitespace-nowrap"
                       >
-                        Cancel
+                        {t.actions.cancel}
                       </button>
                       <button
                         onClick={handleSaveContent}
@@ -1137,7 +1156,7 @@ export function ResumeUploadTab() {
                         className="px-3 py-1.5 text-xs font-semibold text-white dark:text-gray-900 bg-gray-900 dark:bg-white rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-100 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
                       >
                         {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                        {isSavingContent ? 'Saving…' : 'Save Changes'}
+                        {isSavingContent ? t.actions.saving : t.actions.save}
                       </button>
                     </>
                   ) : (
@@ -1149,7 +1168,7 @@ export function ResumeUploadTab() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Export PDF
+                        {t.actions.exportPdf}
                       </button>
                       <button
                         onClick={openShareModal}
@@ -1158,7 +1177,7 @@ export function ResumeUploadTab() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                         </svg>
-                        Share
+                        {t.actions.share}
                       </button>
                       <button
                         onClick={startEditingContent}
@@ -1167,7 +1186,7 @@ export function ResumeUploadTab() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
                         </svg>
-                        Edit
+                        {t.actions.edit}
                       </button>
                     </>
                   )
@@ -1181,14 +1200,14 @@ export function ResumeUploadTab() {
                   <svg className="w-8 h-8 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No resume version selected</p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 text-center">Upload your CV or create a version from your profile.</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{t.noSelected}</p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 text-center">{t.noSelectedHint}</p>
                 </div>
               ) : (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Title</span>
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.metadata.titleLabel}</span>
                       {editingTitle ? (
                         <div className="flex items-center gap-1.5 -mx-0.5">
                           <input
@@ -1210,7 +1229,7 @@ export function ResumeUploadTab() {
                           title="Click to rename"
                         >
                           <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {selectedResume.title || <span className="text-gray-400 italic">Untitled Resume</span>}
+                            {selectedResume.title || <span className="text-gray-400 italic">{t.untitled}</span>}
                           </span>
                           <svg className="w-3 h-3 text-gray-300 group-hover:text-gray-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
@@ -1219,7 +1238,7 @@ export function ResumeUploadTab() {
                       )}
                     </div>
 
-                    <InfoTag label="Created" value={formatDate(selectedResume.created_at)} />
+                    <InfoTag label={t.metadata.created} value={formatDate(selectedResume.created_at)} />
 
                     {(() => {
                       const src = selectedResume.source_resume_id
@@ -1227,15 +1246,15 @@ export function ResumeUploadTab() {
                         : null;
                       return (
                         <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
-                          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Source Resume</span>
+                          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.metadata.source}</span>
                           {src ? (
                             <div>
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{src.title || 'Untitled Resume'}</p>
-                              <p className="text-[11px] text-gray-400 dark:text-neutral-500 dark:text-neutral-500 mt-0.5">{langLabel(src.language)} · {sourceTypeLabel(src.source_type)}</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{src.title || t.untitled}</p>
+                              <p className="text-[11px] text-gray-400 dark:text-neutral-500 dark:text-neutral-500 mt-0.5">{langLabel(src.language)} · {sourceTypeLabel(src.source_type, t)}</p>
                             </div>
                           ) : (
                             <span className="text-sm font-semibold text-gray-400 italic">
-                              {selectedResume.source_resume_id ? 'Deleted version' : 'Original'}
+                              {selectedResume.source_resume_id ? t.metadata.deleted : t.metadata.original}
                             </span>
                           )}
                         </div>
@@ -1258,8 +1277,8 @@ export function ResumeUploadTab() {
                       </div>
                     )}
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-700 dark:text-neutral-300">Profile Photo</p>
-                      <p className="text-[11px] text-gray-400 dark:text-neutral-500">Used in PDF templates that support photos.</p>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-neutral-300">{t.photo.label}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-neutral-500">{t.photo.hint}</p>
                       {isEditingContent ? (
                         <div className="flex items-center gap-2 mt-1">
                           <button
@@ -1267,7 +1286,7 @@ export function ResumeUploadTab() {
                             onClick={() => photoInputRef.current?.click()}
                             className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
                           >
-                            {editDraft?.personal_info?.photo ? 'Change Photo' : 'Upload Photo'}
+                            {editDraft?.personal_info?.photo ? t.photo.change : t.photo.upload}
                           </button>
                           {editDraft?.personal_info?.photo && (
                             <button
@@ -1275,7 +1294,7 @@ export function ResumeUploadTab() {
                               onClick={() => setEditDraft(d => d ? { ...d, personal_info: { ...(d.personal_info ?? {}), photo: null } } : d)}
                               className="px-3 py-1.5 text-xs font-semibold text-red-500 dark:text-red-400 bg-white dark:bg-neutral-800 border border-red-100 dark:border-red-800/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             >
-                              Remove
+                              {t.photo.remove}
                             </button>
                           )}
                           <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
@@ -1289,7 +1308,7 @@ export function ResumeUploadTab() {
                   )}
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Summary</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.sections.summary}</p>
                     {isEditingContent ? (
                       <textarea
                         className="w-full text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-2xl p-5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none"
@@ -1300,7 +1319,7 @@ export function ResumeUploadTab() {
                       />
                     ) : (
                       <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl p-5">
-                        {selectedResume.personal_info?.summary || 'No summary stored for this version.'}
+                        {selectedResume.personal_info?.summary || t.placeholders.noSummary}
                       </p>
                     )}
                   </div>
@@ -1308,15 +1327,15 @@ export function ResumeUploadTab() {
                   <div className="space-y-3">
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                      Experience
+                      {t.sections.experience}
                     </p>
                     {isEditingContent ? (
                       <>
                         {(editDraft?.experience ?? []).map((exp: any, i: number) => (
                           <div key={i} className="p-4 border border-gray-200 dark:border-neutral-700 rounded-2xl bg-white dark:bg-neutral-800 space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">Entry {i + 1}</span>
-                              <button type="button" onClick={() => removeExpEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                              <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">{t.edit.entry} {i + 1}</span>
+                              <button type="button" onClick={() => removeExpEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <input value={exp.title ?? ''} onChange={e => updateExpField(i, 'title', e.target.value)} placeholder="Job title" className="rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
@@ -1327,23 +1346,23 @@ export function ResumeUploadTab() {
                             <textarea value={exp.description ?? ''} onChange={e => updateExpField(i, 'description', e.target.value)} placeholder="Job description..." rows={3} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm resize-none bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                           </div>
                         ))}
-                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">+ Add Experience</button>
+                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addExp}</button>
                       </>
                     ) : (
                       <>
                         {selectedResume.experience?.length ? selectedResume.experience.map((exp: any, i: number) => (
                           <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
-                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || 'Untitled role'}{exp.company ? ` @ ${exp.company}` : ''}</h4>
-                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '—'} — {exp.end_date || 'Present'}</p>
-                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{exp.description || 'No description.'}</p>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
+                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '—'} — {exp.end_date || t.placeholders.present}</p>
+                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{exp.description || t.placeholders.noDesc}</p>
                           </div>
-                        )) : <p className="text-sm text-gray-400 italic">No experience included in this version.</p>}
+                        )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noExp}</p>}
                       </>
                     )}
                   </div>
 
                   <div className="space-y-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">Skills</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.sections.skills}</p>
                     {isEditingContent ? (
                       <div className="space-y-1">
                         <textarea
@@ -1353,7 +1372,7 @@ export function ResumeUploadTab() {
                           onChange={e => setEditDraft(d => d ? { ...d, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
                           placeholder="Skill 1, Skill 2, Skill 3..."
                         />
-                        <p className="text-xs text-gray-400 dark:text-neutral-500">Separate skills with commas</p>
+                        <p className="text-xs text-gray-400 dark:text-neutral-500">{t.placeholders.skillHint}</p>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -1362,27 +1381,27 @@ export function ResumeUploadTab() {
                             {typeof skill === 'string' ? skill : skill.name || 'Skill'}
                             {typeof skill === 'object' && skill.level ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
                           </span>
-                        )) : <span className="text-sm text-gray-400 italic">No skills listed.</span>}
+                        )) : <span className="text-sm text-gray-400 italic">{t.placeholders.noSkills}</span>}
                       </div>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 dark:border-neutral-800 pt-6">
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">Education</p>
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">{t.sections.education}</p>
                       {isEditingContent ? (
                         <div className="space-y-3">
                           {(editDraft?.education ?? []).map((edu: any, i: number) => (
                             <div key={i} className="p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl space-y-2">
                               <div className="flex justify-between items-center">
-                                <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">Entry {i + 1}</span>
-                                <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                                <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">{t.edit.entry} {i + 1}</span>
+                                <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
                               </div>
                               <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                               <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                             </div>
                           ))}
-                          <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">+ Add Education</button>
+                          <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addEdu}</button>
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -1391,15 +1410,15 @@ export function ResumeUploadTab() {
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">{edu.degree || 'Degree'}</p>
                               <p className="text-xs text-gray-500 dark:text-neutral-400">{edu.institution || 'Institution'}</p>
                             </div>
-                          )) : <p className="text-sm text-gray-400 italic">No education included.</p>}
+                          )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noEdu}</p>}
                         </div>
                       )}
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">Languages & Certifications</p>
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">{t.sections.langCert}</p>
                       <div className="space-y-3">
                         <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Languages</p>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t.sections.languages}</p>
                           {isEditingContent ? (
                             <textarea
                               className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none bg-white"
@@ -1412,12 +1431,12 @@ export function ResumeUploadTab() {
                             <p className="text-sm text-gray-700 dark:text-neutral-300">
                               {selectedResume.languages?.length
                                 ? selectedResume.languages.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')
-                                : 'No languages listed.'}
+                                : t.placeholders.noLang}
                             </p>
                           )}
                         </div>
                         <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Certifications</p>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t.sections.certifications}</p>
                           {isEditingContent ? (
                             <textarea
                               className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none bg-white"
@@ -1430,7 +1449,7 @@ export function ResumeUploadTab() {
                             <p className="text-sm text-gray-700 dark:text-neutral-300">
                               {selectedResume.certifications?.length
                                 ? selectedResume.certifications.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')
-                                : 'No certifications listed.'}
+                                : t.placeholders.noCert}
                             </p>
                           )}
                         </div>
@@ -1447,16 +1466,16 @@ export function ResumeUploadTab() {
               <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></div>
-                  <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">Saved PDF Version</h3>
+                  <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">{t.pdfCard.title}</h3>
                 </div>
                 {selectedResume.generated_document_id && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-1 rounded-full">Saved</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-1 rounded-full">{t.pdfCard.saved}</span>
                 )}
               </div>
               <div className="p-6 space-y-4">
                 {selectedResume.generated_document_id ? (
                   <>
-                    <p className="text-sm text-gray-500 dark:text-neutral-400">PDF saved — download anytime, no regeneration needed.</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">{t.pdfCard.desc}</p>
                     <div className="flex items-center gap-3 flex-wrap">
                       <button
                         onClick={async () => {
@@ -1472,26 +1491,26 @@ export function ResumeUploadTab() {
                         className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold rounded-xl border border-rose-100 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        Download Saved PDF
+                        {t.pdfCard.downloadBtn}
                       </button>
                       <button
                         onClick={() => setShowSavePdfModal(true)}
                         className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 text-sm font-semibold rounded-xl border border-gray-200 dark:border-neutral-700 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        Regenerate &amp; Save
+                        {t.pdfCard.regenerateBtn}
                       </button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-500 dark:text-neutral-400">Save a PDF version to the database so you can download or send it any time without regenerating.</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">{t.pdfCard.notSavedDesc}</p>
                     <button
                       onClick={() => setShowSavePdfModal(true)}
                       className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                      Save PDF Version
+                      {t.pdfCard.saveBtn}
                     </button>
                   </>
                 )}
@@ -1503,7 +1522,7 @@ export function ResumeUploadTab() {
             <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
-                <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">Open Jobs</h3>
+                <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">{t.openJobs}</h3>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1518,7 +1537,7 @@ export function ResumeUploadTab() {
                         onClick={() => setShowJobDescModal(true)}
                         className="w-full py-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-400 text-xs font-semibold rounded-xl group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors"
                       >
-                        Create Resume for This Job
+                        {t.createForJob}
                       </button>
                     </div>
                   ))}
@@ -1530,22 +1549,22 @@ export function ResumeUploadTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0"></div>
-              <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">Send CV by Email</h3>
+              <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">{t.sendEmail.title}</h3>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Recipient Name</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.recipientName}</label>
                   <input
                     type="text"
                     value={sendEmailRecipientName}
                     onChange={e => setSendEmailRecipientName(e.target.value)}
-                    placeholder="Jane Smith"
+                    placeholder={t.sendEmail.namePlaceholder}
                     className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Recipient Email</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.recipientEmail}</label>
                   <input
                     type="email"
                     value={sendEmailTo}
@@ -1560,18 +1579,18 @@ export function ResumeUploadTab() {
                 <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
                   <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
                     <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    CV sent to {sendEmailTo || 'recipient'}
+                    {t.sendEmail.sentTo.replace('{email}', sendEmailTo || 'recipient')}
                   </div>
                   <button
                     onClick={() => { setSendEmailStatus('idle'); setSendEmailTo(''); setSendEmailSubject(''); setSendEmailRecipientName(''); setSendEmailMessage(''); }}
                     className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline"
                   >
-                    Send another
+                    {t.sendEmail.sendAnother}
                   </button>
                 </div>
               ) : (<>
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Subject</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.subject}</label>
                 <input
                   type="text"
                   value={sendEmailSubject}
@@ -1591,7 +1610,7 @@ export function ResumeUploadTab() {
                   ) : (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                   )}
-                  {isAttachingPdf ? 'Attaching…' : 'Attach CV'}
+                  {isAttachingPdf ? t.sendEmail.attaching : t.sendEmail.attachBtn}
                 </button>
                 {sendEmailAttachment ? (
                   <button
@@ -1605,12 +1624,12 @@ export function ResumeUploadTab() {
                   </button>
                 ) : (
                   <span className="text-xs text-gray-400 dark:text-neutral-500">
-                    {selectedResume?.generated_document_id ? 'No PDF attached yet' : 'Save a PDF first from the Saved PDF section above'}
+                    {selectedResume?.generated_document_id ? t.sendEmail.noAttachment : t.sendEmail.savePdfFirst}
                   </span>
                 )}
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">Message</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.message}</label>
                 <textarea
                   value={sendEmailMessage}
                   onChange={e => setSendEmailMessage(e.target.value)}
@@ -1622,20 +1641,20 @@ export function ResumeUploadTab() {
               {sendEmailStatus === 'error' && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  {sendEmailError || 'Failed to send. Please try again.'}
+                  {sendEmailError || t.sendEmail.errorMsg}
                 </div>
               )}
               {sendEmailStatus === 'not_configured' && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-sm text-amber-700 dark:text-amber-400">
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" /></svg>
-                  Email service not configured. Add your Resend API key to the server .env file.
+                  {t.sendEmail.notConfigured}
                 </div>
               )}
               <div className="flex items-center justify-between gap-4">
                 <p className="text-xs text-gray-400 dark:text-neutral-500">
                   {selectedResume
-                    ? <>Sending: <span className="font-semibold text-gray-600 dark:text-neutral-300">{selectedResume.title || 'Untitled Resume'}</span></>
-                    : 'Select a resume version on the left first.'}
+                    ? <>{t.sendEmail.sendingLabel} <span className="font-semibold text-gray-600 dark:text-neutral-300">{selectedResume.title || t.untitled}</span></>
+                    : t.sendEmail.selectFirst}
                 </p>
                 <button
                   onClick={handleSendEmail}
@@ -1649,7 +1668,7 @@ export function ResumeUploadTab() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   )}
-                  {isSendingEmail ? 'Sending…' : 'Send CV'}
+                  {isSendingEmail ? t.sendEmail.sending : t.sendEmail.sendBtn}
                 </button>
               </div>
               </>)}
@@ -1665,7 +1684,7 @@ export function ResumeUploadTab() {
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
           <div className="flex flex-col items-center gap-4 bg-white dark:bg-neutral-900 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-neutral-800">
             <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
-            <p className="font-semibold text-sm text-gray-900 dark:text-white">Working on your resume…</p>
+            <p className="font-semibold text-sm text-gray-900 dark:text-white">{t.working}</p>
           </div>
         </div>
       )}
@@ -1677,13 +1696,13 @@ export function ResumeUploadTab() {
               <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block">File selected</span>
+              <span className="text-[10px] font-bold uppercase text-gray-400 tracking-widest block">{t.fileSelected}</span>
               <span className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[200px] block">{file.name}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 pl-4 border-l border-gray-100">
-            <button onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">Cancel</button>
-            <button onClick={handleUpload} className="px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm">Create Version</button>
+            <button onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">{t.actions.cancel}</button>
+            <button onClick={handleUpload} className="px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm">{t.createVersion}</button>
           </div>
         </div>
       )}
@@ -1899,8 +1918,8 @@ export function ResumeUploadTab() {
             <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Share Resume</h3>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate max-w-[280px]">{selectedResume.title || 'Untitled Resume'}</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{t.share.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate max-w-[280px]">{selectedResume.title || t.untitled}</p>
                 </div>
                 <button onClick={() => setShowShareModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1909,7 +1928,7 @@ export function ResumeUploadTab() {
 
               <div className="p-6 space-y-5 dark:bg-neutral-900 overflow-y-auto max-h-[75vh]">
                 <div className="space-y-3">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Link</p>
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t.share.publicLink}</p>
                   <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-xl">
                     <p className="text-xs text-indigo-700 dark:text-indigo-400 font-mono break-all">{publicUrl}</p>
                   </div>
@@ -1918,53 +1937,56 @@ export function ResumeUploadTab() {
                     className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
                     {linkCopied ? (
-                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Copied!</>
+                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{t.share.copied}</>
                     ) : (
-                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy Link</>
+                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>{t.share.copyBtn}</>
                     )}
                   </button>
-                  <p className="text-[11px] text-gray-400 dark:text-neutral-500">Anyone with this link can view your CV without logging in.</p>
+                  <p className="text-[11px] text-gray-400 dark:text-neutral-500">{t.share.linkHint}</p>
                 </div>
 
                 {/* Email */}
                 {(() => {
                   const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
                   const senderName = [info.first_name, info.last_name].filter(Boolean).join(' ') || 'Your Name';
-                  const recipientGreeting = shareEmailRecipientName.trim() || 'Hiring Manager';
-                  const emailBody = `Dear ${recipientGreeting},\n\nI hope this message finds you well.\n\nI would like to share my curriculum vitae with you for your consideration. You can access it using the link below:\n${publicUrl}\n\nPlease feel free to reach out if you require any additional information.\n\nThank you for your time and consideration.\n\nKind regards,\n${senderName}`;
+                  const eb = t.emailBody;
+                  const recipientGreeting = shareEmailRecipientName.trim()
+                    ? eb.greeting.replace('{name}', shareEmailRecipientName.trim())
+                    : eb.hiringManager;
+                  const emailBody = `${recipientGreeting}\n\n${eb.line1}\n\n${eb.line2link}\n${publicUrl}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`;
                   const subject = `CV: ${selectedResume.title || 'My Resume'}`;
                   return (
                     <div className="space-y-3 border-t border-gray-100 pt-5">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Share via Email</p>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t.share.emailSection}</p>
                       {shareEmailStatus === 'success' ? (
                         <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
                           <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
                             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                            CV sent to {shareEmailTo}
+                            {t.share.sentTo.replace('{email}', shareEmailTo)}
                           </div>
                           <button onClick={() => { setShareEmailStatus('idle'); setShareEmailTo(''); setShareEmailRecipientName(''); }} className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline">
-                            Send another
+                            {t.share.sendAnother}
                           </button>
                         </div>
                       ) : (<>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">Recipient's name</label>
+                          <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">{t.share.recipientName}</label>
                           <input
                             type="text"
                             value={shareEmailRecipientName}
                             onChange={e => setShareEmailRecipientName(e.target.value)}
-                            placeholder="e.g. John Smith"
+                            placeholder={t.share.namePlaceholder}
                             className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">Recipient's email</label>
+                          <label className="block text-[11px] font-semibold text-gray-400 mb-1.5">{t.share.recipientEmail}</label>
                           <input
                             type="email"
                             value={shareEmailTo}
                             onChange={e => setShareEmailTo(e.target.value)}
-                            placeholder="email@example.com"
+                            placeholder={t.share.emailPlaceholder}
                             className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           />
                         </div>
@@ -1983,7 +2005,7 @@ export function ResumeUploadTab() {
                           ) : (
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                           )}
-                          {isAttachingSharePdf ? 'Attaching…' : 'Attach CV'}
+                          {isAttachingSharePdf ? t.sendEmail.attaching : t.sendEmail.attachBtn}
                         </button>
                         {shareAttachment ? (
                           <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400">
@@ -1992,14 +2014,14 @@ export function ResumeUploadTab() {
                           </div>
                         ) : (
                           <span className="text-xs text-gray-400 dark:text-neutral-500">
-                            {selectedResume?.generated_document_id ? 'No PDF attached' : 'Save a PDF first'}
+                            {selectedResume?.generated_document_id ? t.share.noAttachment : t.share.savePdfFirst}
                           </span>
                         )}
                       </div>
                       {shareAttachmentPreviewUrl && (
                         <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-neutral-700">
                           <div className="px-3 py-2 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">PDF Preview</span>
+                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">{t.share.pdfPreview}</span>
                             <button onClick={() => { URL.revokeObjectURL(shareAttachmentPreviewUrl); setShareAttachmentPreviewUrl(null); setShareAttachment(null); }} className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 transition-colors">
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
@@ -2016,7 +2038,7 @@ export function ResumeUploadTab() {
                       {shareEmailStatus === 'error' && (
                         <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
                           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                          Failed to send. Please try again.
+                          {t.share.errorMsg}
                         </div>
                       )}
                       <button
@@ -2029,7 +2051,7 @@ export function ResumeUploadTab() {
                         ) : (
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         )}
-                        {isSendingShare ? 'Sending…' : 'Send CV'}
+                        {isSendingShare ? t.share.sending : t.share.sendBtn}
                       </button>
                     </>)}
                     </div>

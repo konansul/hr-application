@@ -257,8 +257,16 @@ export const en = {
     stats: "{vCount} versions · {dCount} uploaded docs",
     uploadCv: "Upload CV",
     fromProfile: "From Profile",
-    duplicate: "Duplicate",
+    duplicate: "Copy from CV",
     fromJob: "From Job Description",
+    sourceTypes: {
+      profile: "From Profile",
+      profileExtract: "Generated from Profile",
+      cvUpload: "CV Upload",
+      duplicate: "From existing CV",
+      publicApp: "Public Application",
+      fromJob: "From Job Description"
+    },
     noVersions: "No resume versions yet. Use \"Create New Version\" above to get started.",
     untitled: "Untitled Resume",
     deleteConfirm: "Delete this version?",
@@ -270,7 +278,9 @@ export const en = {
       validUntil: "Valid until: {date}",
       noExpiry: "No Expiry",
       original: "Original",
-      deleted: "Deleted version"
+      deleted: "Deleted version",
+      titleLabel: "Title",
+      notSpecified: "Not Specified"
     },
     actions: {
       exportPdf: "Export PDF",
@@ -278,14 +288,16 @@ export const en = {
       edit: "Edit",
       save: "Save Changes",
       cancel: "Cancel",
-      saving: "Saving..."
+      saving: "Saving…"
     },
     sections: {
       summary: "Summary",
       experience: "Experience",
       skills: "Skills",
       education: "Education",
-      langCert: "Languages & Certifications"
+      langCert: "Languages & Certifications",
+      languages: "Languages",
+      certifications: "Certifications"
     },
     placeholders: {
       noSummary: "No summary stored for this version.",
@@ -294,7 +306,25 @@ export const en = {
       noEdu: "No education included.",
       noLang: "No languages listed.",
       noCert: "No certifications listed.",
-      skillHint: "Separate skills with commas"
+      skillHint: "Separate skills with commas",
+      noDesc: "No description.",
+      untitledRole: "Untitled role",
+      present: "Present"
+    },
+    noSelected: "No resume version selected",
+    noSelectedHint: "Upload your CV or create a version from your profile.",
+    photo: {
+      label: "Profile Photo",
+      hint: "Used in PDF templates that support photos.",
+      change: "Change Photo",
+      upload: "Upload Photo",
+      remove: "Remove"
+    },
+    edit: {
+      entry: "Entry",
+      remove: "Remove",
+      addExp: "+ Add Experience",
+      addEdu: "+ Add Education"
     },
     pdfCard: {
       title: "Saved PDF Version",
@@ -309,7 +339,84 @@ export const en = {
     createForJob: "Create Resume for This Job",
     working: "Working on your resume...",
     fileSelected: "File selected",
-    createVersion: "Create Version"
+    createVersion: "Create Version",
+    emailBody: {
+      greeting: "Dear {name},",
+      hiringManager: "Dear Hiring Manager,",
+      line1: "I hope this message finds you well.",
+      line2attach: "I would like to share my curriculum vitae with you for your consideration. Please find it attached.",
+      line2link: "I would like to share my curriculum vitae with you for your consideration. You can access it using the link below:",
+      line3: "You can also access it using the link below:",
+      line4: "Please feel free to reach out if you require any additional information.",
+      line5: "Thank you for your time and consideration.",
+      regards: "Kind regards,"
+    },
+    sendEmail: {
+      title: "Send CV by Email",
+      recipientName: "Recipient Name",
+      recipientEmail: "Recipient Email",
+      subject: "Subject",
+      message: "Message",
+      attachBtn: "Attach CV",
+      attaching: "Attaching…",
+      noAttachment: "No PDF attached yet",
+      savePdfFirst: "Save a PDF first from the Saved PDF section above",
+      sendBtn: "Send CV",
+      sending: "Sending…",
+      sentTo: "CV sent to {email}",
+      sendAnother: "Send another",
+      errorMsg: "Failed to send. Please try again.",
+      notConfigured: "Email service not configured. Add your Resend API key to the server .env file.",
+      namePlaceholder: "Jane Smith",
+      subjectPlaceholder: "CV submission",
+      previewTitle: "Attached PDF Preview",
+      sendingLabel: "Sending:",
+      selectFirst: "Select a resume version on the left first."
+    },
+    share: {
+      title: "Share Resume",
+      publicLink: "Public Link",
+      copyBtn: "Copy Link",
+      copied: "Copied!",
+      linkHint: "Anyone with this link can view your CV without logging in.",
+      emailSection: "Share via Email",
+      recipientName: "Recipient's name",
+      recipientEmail: "Recipient's email",
+      namePlaceholder: "e.g. John Smith",
+      emailPlaceholder: "email@example.com",
+      sendBtn: "Send CV",
+      sending: "Sending…",
+      sentTo: "CV sent to {email}",
+      sendAnother: "Send another",
+      errorMsg: "Failed to send. Please try again.",
+      noAttachment: "No PDF attached",
+      savePdfFirst: "Save a PDF first",
+      pdfPreview: "PDF Preview"
+    },
+    modal: {
+      excludeSections: "Exclude sections from this version",
+      excludedHint: "Marked sections will be excluded from this version.",
+      versionName: "Version Name",
+      language: "Language",
+      validUntil: "Valid Until",
+      newVersionName: "New Version Name",
+      sourceVersion: "Source Version",
+      noVersionsToDuplicate: "No existing versions to copy.",
+      creating: "Creating…",
+      createVersion: "Create Version",
+      createDuplicate: "Create Copy",
+      fromProfileTitle: "Create Resume from Profile",
+      fromProfileSubtitle: "Choose what to include in this version",
+      duplicateTitle: "Copy from CV",
+      duplicateSubtitle: "Create a new version based on an existing one",
+      fromJobTitle: "Create Resume for Job",
+      fromJobSubtitle: "Tailor your resume to a specific job",
+      selectJob: "Select a Job",
+      noJob: "No specific job",
+      jobDescription: "Job Description",
+      jobDescPlaceholder: "Paste the job description here…",
+      cancel: "Cancel"
+    }
   },
   hrNav: {
     overview: "Overview",
