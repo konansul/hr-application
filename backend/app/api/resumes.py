@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import base64
 import copy
 import json
 import logging
 from datetime import date
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+import resend
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -18,6 +21,7 @@ from backend.app.api.models import (
     ResumeFromJobDescriptionRequest,
     ResumeUpdateRequest,
 )
+from backend.app.core.config import settings
 from backend.app.pipeline import adapt_resume_for_job, fetch_job_from_url, translate_resume_data
 from backend.database.db import get_db
 from backend.database.models import Document, Person, Resume, User
@@ -296,9 +300,72 @@ def update_resume_version(
     return _resume_response(resume)
 
 
+class SendResumeEmailRequest(BaseModel):
+    to: EmailStr
+    subject: str
+    message: str
+    pdf_base64: str
+    filename: str = "resume.pdf"
+
+
+@router.post("/send-email")
+def send_resume_email(
+    request: SendResumeEmailRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not settings.EMAIL_API_KEY:
+        raise HTTPException(status_code=503, detail="Email service not configured")
+
+    resend.api_key = settings.EMAIL_API_KEY
+
+    try:
+        pdf_bytes = base64.b64decode(request.pdf_base64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid PDF data")
+
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+    sender_name = (
+        f"{person.first_name} {person.last_name}".strip()
+        if person and person.first_name
+        else current_user.email
+    )
+
+    params: resend.Emails.SendParams = {
+        "from": f"{sender_name} via HRAI <{settings.EMAIL_FROM}>",
+        "to": [request.to],
+        "subject": request.subject,
+        "html": f"<p>{request.message.replace(chr(10), '<br>')}</p>",
+        "attachments": [
+            {
+                "filename": request.filename,
+                "content": base64.b64encode(pdf_bytes).decode(),
+            }
+        ],
+    }
+
+    try:
+        resend.Emails.send(params)
+    except Exception as e:
+        logger.error("Resend error: %s", e)
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return {"ok": True}
+
+
 @router.get("/public/{resume_id}")
 def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
     resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
+    if not resume:
+        # Try resolving by public_url_slug — look up the person, then their latest resume
+        person = db.query(Person).filter(Person.public_url_slug == resume_id).first()
+        if person:
+            resume = (
+                db.query(Resume)
+                .filter(Resume.person_id == person.person_id)
+                .order_by(Resume.created_at.desc())
+                .first()
+            )
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
     return {

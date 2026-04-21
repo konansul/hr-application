@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    EMAIL_API_KEY: str = ""
+    EMAIL_FROM: str = "noreply@boldgeneric.com"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
