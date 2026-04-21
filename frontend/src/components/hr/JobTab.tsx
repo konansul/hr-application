@@ -9,6 +9,49 @@ interface ScreeningQuestion {
   placeholder: string;
 }
 
+interface JobRequirements {
+  // 1. Location & Work Setup
+  workFormat: 'Remote' | 'Hybrid' | 'On-site' | 'Any';
+  willingToRelocate: boolean;
+  remoteCountryRestriction: string;
+  officeDaysRequired: string;
+  timeZoneMatch: string;
+  openToDifferentTimeZone: boolean;
+
+  // 2. Work Authorization
+  visaSponsorship: boolean;
+  validWorkPermitRequired: boolean;
+
+  // 3. Salary & compensation package
+  salaryMin: string;
+  salaryMax: string;
+  currency: string;
+  salaryExpectationRequired: boolean;
+
+  // 4. Availability
+  maxNoticePeriod: string;
+  immediateStartRequired: boolean;
+
+  // 5. Experience & Seniority
+  minExperienceYears: string;
+  maxExperienceYears: string;
+  requiredSeniority: string;
+
+  // 6. Skills & Key Words
+  mandatorySkills: string;
+  mandatoryTechnologies: string;
+
+  // 7. Education & Qualifications
+  minEducation: string;
+  degreeField: string;
+  mandatoryCertifications: string;
+
+  // 8. Job Specific
+  willingToTravel: boolean;
+  drivingLicense: boolean;
+  languageRequirements: string;
+}
+
 type JobStatus = 'draft' | 'active' | 'suspended' | 'closed';
 
 interface Job {
@@ -19,10 +62,39 @@ interface Job {
   region?: string;
   status?: JobStatus;
   screening_questions?: ScreeningQuestion[];
+  requirements?: JobRequirements;
 }
 
 const LEVELS = ['Junior', 'Middle', 'Senior', 'Lead'];
 const REGIONS = ['Global', 'US', 'EU', 'Asia'];
+
+const DEFAULT_REQUIREMENTS: JobRequirements = {
+  workFormat: 'Any',
+  willingToRelocate: false,
+  remoteCountryRestriction: '',
+  officeDaysRequired: '',
+  timeZoneMatch: '',
+  openToDifferentTimeZone: false,
+  visaSponsorship: false,
+  validWorkPermitRequired: true,
+  salaryMin: '',
+  salaryMax: '',
+  currency: 'USD',
+  salaryExpectationRequired: false,
+  maxNoticePeriod: '',
+  immediateStartRequired: false,
+  minExperienceYears: '',
+  maxExperienceYears: '',
+  requiredSeniority: 'Any',
+  mandatorySkills: '',
+  mandatoryTechnologies: '',
+  minEducation: 'Any',
+  degreeField: '',
+  mandatoryCertifications: '',
+  willingToTravel: false,
+  drivingLicense: false,
+  languageRequirements: ''
+};
 
 export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (desc: string) => void }) {
   const token = localStorage.getItem('auth_token');
@@ -44,8 +116,11 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [activeStatus, setActiveStatus] = useState<JobStatus>('active');
   const [activeRegion, setActiveRegion] = useState('Global');
   const [activeQuestions, setActiveQuestions] = useState<ScreeningQuestion[]>([]);
+  const [activeRequirements, setActiveRequirements] = useState<JobRequirements>(DEFAULT_REQUIREMENTS);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false);
+
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
   const [draftLevel, setDraftLevel] = useState('Middle');
@@ -98,7 +173,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setActiveStatus(jobToLoad.status || 'draft');
     setActiveRegion(jobToLoad.region || 'Global');
     setActiveQuestions(jobToLoad.screening_questions ?? []);
-
+    setActiveRequirements(jobToLoad.requirements ?? DEFAULT_REQUIREMENTS);
     setError(null);
   };
 
@@ -114,7 +189,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
     try {
       const newJob = await jobsApi.create(draftTitle, draftDescription, draftRegion, draftLevel);
-
       setCurrentJob(newJob);
       setSelectedJobId(newJob.id);
       setActiveTitle(newJob.title);
@@ -123,6 +197,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setActiveRegion(newJob.region || 'Global');
       setActiveStatus('active');
       setActiveQuestions([]);
+      setActiveRequirements(DEFAULT_REQUIREMENTS);
 
       setMessage(t.success || "New active job created and loaded to workspace.");
 
@@ -139,11 +214,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   };
 
   const handleAddQuestion = () => {
-    const newQ: ScreeningQuestion = {
-      id: `q_${Date.now()}`,
-      label: '',
-      placeholder: 'e.g. Years of React?'
-    };
+    const newQ: ScreeningQuestion = { id: `q_${Date.now()}`, label: '', placeholder: 'e.g. Years of React?' };
     setActiveQuestions([...activeQuestions, newQ]);
   };
 
@@ -153,6 +224,10 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   const handleRemoveQuestion = (id: string) => {
     setActiveQuestions(activeQuestions.filter(q => q.id !== id));
+  };
+
+  const handleUpdateRequirement = (field: keyof JobRequirements, value: any) => {
+    setActiveRequirements(prev => ({ ...prev, [field]: value }));
   };
 
   const handleRefineWithAI = async () => {
@@ -165,6 +240,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       if (data.improved_description) {
         setActiveDescription(data.improved_description);
         setMessage(t.aiSuccess);
+      }
+      if (data.extracted_requirements) {
+         setActiveRequirements(prev => ({...prev, ...data.extracted_requirements}));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'AI Refinement failed');
@@ -182,6 +260,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setActiveTitle('');
       setActiveDescription('');
       setActiveQuestions([]);
+      setActiveRequirements(DEFAULT_REQUIREMENTS);
       setJobs(prev => prev.filter(j => j.id !== currentJob.id));
       setSelectedJobId('');
     } catch (err: any) {
@@ -200,7 +279,8 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
          region: activeRegion,
          level: activeLevel,
          status: activeStatus,
-         screening_questions: activeQuestions
+         screening_questions: activeQuestions,
+         requirements: activeRequirements
       } as any);
 
       setCurrentJob(updatedJob);
@@ -238,45 +318,27 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-gray-100 dark:border-neutral-800 pb-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">{t.title}</h2>
-
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest mr-1">{t.filters.label}</span>
-            <select
-              value={filterStatus}
-              onChange={e => setFilterStatus(e.target.value)}
-              className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer"
-            >
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
               <option value="All">{t.filters.allStatuses}</option>
               <option value="active">{(t as any).statusNames?.active || 'Active'}</option>
               <option value="draft">{(t as any).statusNames?.draft || 'Draft'}</option>
               <option value="suspended">{(t as any).statusNames?.suspended || 'Suspended'}</option>
               <option value="closed">{(t as any).statusNames?.closed || 'Closed'}</option>
             </select>
-
-            <select
-              value={filterLevel}
-              onChange={e => setFilterLevel(e.target.value)}
-              className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer"
-            >
+            <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
               <option value="All">{t.filters.allLevels}</option>
               {LEVELS.map(l => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
             </select>
-
-            <select
-              value={filterRegion}
-              onChange={e => setFilterRegion(e.target.value)}
-              className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer"
-            >
+            <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
               <option value="All">{t.filters.allLocations}</option>
               {REGIONS.map(r => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
             </select>
           </div>
         </div>
 
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all"
-        >
+        <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           {t.createBtn}
         </button>
@@ -290,7 +352,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
         <div className="lg:col-span-4 flex flex-col gap-6 h-[800px] sticky top-6">
           <div className={`bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col overflow-hidden transition-all ${currentJob ? 'h-[50%]' : 'h-full'}`}>
             <div className="flex items-center px-4 py-3 bg-gray-50 dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800 text-[10px] font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest shrink-0">
@@ -304,15 +365,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 filteredJobs.map(job => {
                   const isSelected = selectedJobId === job.id;
                   return (
-                    <button
-                      key={job.id}
-                      onClick={() => handleLoadJob(job)}
-                      className={`flex items-center w-full text-left px-3 py-3 rounded-xl border transition-all duration-200 group ${
-                        isSelected 
-                          ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-md' 
-                          : 'bg-white dark:bg-neutral-900 border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'
-                      }`}
-                    >
+                    <button key={job.id} onClick={() => handleLoadJob(job)} className={`flex items-center w-full text-left px-3 py-3 rounded-xl border transition-all duration-200 group ${isSelected ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-md' : 'bg-white dark:bg-neutral-900 border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}>
                       <div className="flex-1 min-w-0 pr-2">
                         <h4 className={`font-bold text-sm truncate ${isSelected ? 'text-white dark:text-black' : 'text-gray-900 dark:text-white'}`}>{job.title}</h4>
                         <p className={`text-[10px] truncate ${isSelected ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-400 dark:text-neutral-500'}`}>
@@ -339,9 +392,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
           {currentJob && (
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col h-[50%] overflow-hidden transition-colors">
               <div className="px-5 py-3.5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-950 shrink-0">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t.questions.title}</h3>
-                </div>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t.questions.title}</h3>
                 <button onClick={handleAddQuestion} className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 text-xs font-bold rounded-lg transition-colors shadow-sm">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   {t.questions.addBtn}
@@ -355,27 +406,12 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                       <div className="absolute top-3 left-3 w-4 h-4 bg-gray-100 dark:bg-neutral-800 rounded flex items-center justify-center text-[9px] font-bold text-gray-500">
                         {idx + 1}
                       </div>
-                      <button
-                        onClick={() => handleRemoveQuestion(q.id)}
-                        className="absolute top-2 right-2 p-1 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md text-gray-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 shadow-sm opacity-0 group-hover:opacity-100 transition-all"
-                      >
+                      <button onClick={() => handleRemoveQuestion(q.id)} className="absolute top-2 right-2 p-1 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md text-gray-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 shadow-sm opacity-0 group-hover:opacity-100 transition-all">
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                       <div className="pl-6 pr-4 space-y-1.5">
-                        <input
-                          type="text"
-                          placeholder={t.questions.placeholder}
-                          value={q.label}
-                          onChange={(e) => handleUpdateQuestion(q.id, 'label', e.target.value)}
-                          className="w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 border-none focus:ring-0 p-0 outline-none"
-                        />
-                        <input
-                          type="text"
-                          placeholder={t.questions.hintPlaceholder}
-                          value={q.placeholder}
-                          onChange={(e) => handleUpdateQuestion(q.id, 'placeholder', e.target.value)}
-                          className="w-full bg-transparent text-[10px] text-gray-500 dark:text-neutral-500 placeholder-gray-300 dark:placeholder-neutral-700 border-none focus:ring-0 p-0 outline-none"
-                        />
+                        <input type="text" placeholder={t.questions.placeholder} value={q.label} onChange={(e) => handleUpdateQuestion(q.id, 'label', e.target.value)} className="w-full bg-transparent text-xs font-bold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 border-none focus:ring-0 p-0 outline-none" />
+                        <input type="text" placeholder={t.questions.hintPlaceholder} value={q.placeholder} onChange={(e) => handleUpdateQuestion(q.id, 'placeholder', e.target.value)} className="w-full bg-transparent text-[10px] text-gray-500 dark:text-neutral-500 placeholder-gray-300 dark:placeholder-neutral-700 border-none focus:ring-0 p-0 outline-none" />
                       </div>
                     </div>
                   ))
@@ -401,6 +437,13 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               {currentJob && (
                 <div className="flex gap-2">
                   <button
+                    onClick={() => setIsRequirementsModalOpen(true)}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-bold transition-all shadow-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    Requirements
+                  </button>
+                  <button
                     onClick={handleRefineWithAI}
                     disabled={isRefining}
                     className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
@@ -420,7 +463,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
             {currentJob ? (
               <div className="p-6 flex flex-col flex-1 gap-5 overflow-hidden">
-
                 <div className="flex flex-col xl:flex-row xl:items-start gap-4 justify-between shrink-0">
                   <input
                     type="text"
@@ -431,31 +473,17 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   />
 
                   <div className="flex flex-wrap items-center gap-2 shrink-0 bg-gray-50 dark:bg-black p-1.5 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
-                    <select
-                      value={activeStatus}
-                      onChange={(e) => setActiveStatus(e.target.value as JobStatus)}
-                      className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer transition-colors ${getStatusBadgeStyles(activeStatus)}`}
-                    >
+                    <select value={activeStatus} onChange={(e) => setActiveStatus(e.target.value as JobStatus)} className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer transition-colors ${getStatusBadgeStyles(activeStatus)}`}>
                       <option value="draft">{(t as any).statusNames?.draft?.toUpperCase() || 'DRAFT'}</option>
                       <option value="active">{(t as any).statusNames?.active?.toUpperCase() || 'ACTIVE'}</option>
                       <option value="suspended">{(t as any).statusNames?.suspended?.toUpperCase() || 'SUSPENDED'}</option>
                       <option value="closed">{(t as any).statusNames?.closed?.toUpperCase() || 'CLOSED'}</option>
                     </select>
-
                     <div className="w-px h-6 bg-gray-200 dark:bg-neutral-800 mx-1"></div>
-
-                    <select
-                        value={activeLevel}
-                        onChange={(e) => setActiveLevel(e.target.value)}
-                        className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm"
-                      >
+                    <select value={activeLevel} onChange={(e) => setActiveLevel(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm">
                         {LEVELS.map(l => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
                     </select>
-                    <select
-                        value={activeRegion}
-                        onChange={(e) => setActiveRegion(e.target.value)}
-                        className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm"
-                      >
+                    <select value={activeRegion} onChange={(e) => setActiveRegion(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm">
                         {REGIONS.map(r => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
                     </select>
                   </div>
@@ -494,6 +522,198 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
         </div>
       </div>
 
+      {isRequirementsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in transition-colors">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border dark:border-neutral-800">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50 dark:bg-neutral-950 shrink-0">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Strict Job Requirements</h3>
+                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">These parameters act as hard filters for the AI engine.</p>
+              </div>
+              <button onClick={() => setIsRequirementsModalOpen(false)} className="p-2 text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              {/* 1. Location & Setup */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">1. Location & Work Setup</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Work Format</label>
+                    <select value={activeRequirements.workFormat} onChange={(e) => handleUpdateRequirement('workFormat', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none">
+                      <option value="Any">Any</option><option value="Remote">Remote</option><option value="Hybrid">Hybrid</option><option value="On-site">On-site</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Remote Restriction (Country)</label>
+                    <input type="text" placeholder="e.g. Only US or EU" value={activeRequirements.remoteCountryRestriction} onChange={(e) => handleUpdateRequirement('remoteCountryRestriction', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Office Days (If Hybrid/On-site)</label>
+                    <input type="text" placeholder="e.g. 3 days office" value={activeRequirements.officeDaysRequired} onChange={(e) => handleUpdateRequirement('officeDaysRequired', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Timezone Required</label>
+                    <input type="text" placeholder="e.g. CET +/- 2 hours" value={activeRequirements.timeZoneMatch} onChange={(e) => handleUpdateRequirement('timeZoneMatch', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div className="flex flex-col justify-center gap-2 mt-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={activeRequirements.willingToRelocate} onChange={(e) => handleUpdateRequirement('willingToRelocate', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                      <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Willing to Relocate</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={activeRequirements.openToDifferentTimeZone} onChange={(e) => handleUpdateRequirement('openToDifferentTimeZone', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                      <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Open to different timezone</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Work Authorization */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">2. Work Authorization</h4>
+                <div className="flex flex-col sm:flex-row gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={activeRequirements.visaSponsorship} onChange={(e) => handleUpdateRequirement('visaSponsorship', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                    <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Company provides Visa Sponsorship</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={activeRequirements.validWorkPermitRequired} onChange={(e) => handleUpdateRequirement('validWorkPermitRequired', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                    <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Valid Work Permit Required</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 3. Salary & Compensation */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">3. Salary & Compensation</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Min Salary</label>
+                    <input type="number" placeholder="e.g. 50000" value={activeRequirements.salaryMin} onChange={(e) => handleUpdateRequirement('salaryMin', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Max Salary</label>
+                    <input type="number" placeholder="e.g. 80000" value={activeRequirements.salaryMax} onChange={(e) => handleUpdateRequirement('salaryMax', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Currency</label>
+                    <input type="text" placeholder="e.g. USD, EUR" value={activeRequirements.currency} onChange={(e) => handleUpdateRequirement('currency', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div className="flex items-center mt-4">
+                     <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={activeRequirements.salaryExpectationRequired} onChange={(e) => handleUpdateRequirement('salaryExpectationRequired', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                      <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Reject if expectations missing</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Availability */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">4. Availability</h4>
+                <div className="flex flex-col sm:flex-row gap-6 items-center">
+                  <div className="w-full sm:w-1/2">
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Max Notice Period</label>
+                    <input type="text" placeholder="e.g. 1 month, 2 weeks" value={activeRequirements.maxNoticePeriod} onChange={(e) => handleUpdateRequirement('maxNoticePeriod', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer w-full sm:w-1/2 mt-4 sm:mt-0">
+                    <input type="checkbox" checked={activeRequirements.immediateStartRequired} onChange={(e) => handleUpdateRequirement('immediateStartRequired', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                    <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Immediate Start Required</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 5. Experience & Seniority */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">5. Experience & Seniority</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Min Years Exp.</label>
+                    <input type="number" min="0" placeholder="Reject if fewer" value={activeRequirements.minExperienceYears} onChange={(e) => handleUpdateRequirement('minExperienceYears', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Max Years Exp.</label>
+                    <input type="number" min="0" placeholder="Overqualified filter" value={activeRequirements.maxExperienceYears} onChange={(e) => handleUpdateRequirement('maxExperienceYears', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Required Seniority</label>
+                    <select value={activeRequirements.requiredSeniority} onChange={(e) => handleUpdateRequirement('requiredSeniority', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none">
+                      <option value="Any">Any</option><option value="Junior">Junior</option><option value="Middle">Middle</option><option value="Senior">Senior</option><option value="Lead">Lead</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. Skills & Keywords */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">6. Skills & Keywords</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Mandatory Skills (Comma separated)</label>
+                    <input type="text" placeholder="e.g. Sales, Negotiation, B2B" value={activeRequirements.mandatorySkills} onChange={(e) => handleUpdateRequirement('mandatorySkills', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Mandatory Technologies</label>
+                    <input type="text" placeholder="e.g. React, Node.js, AWS" value={activeRequirements.mandatoryTechnologies} onChange={(e) => handleUpdateRequirement('mandatoryTechnologies', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 7. Education & Qualifications */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">7. Education & Qualifications</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Min Education</label>
+                    <select value={activeRequirements.minEducation} onChange={(e) => handleUpdateRequirement('minEducation', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none">
+                      <option value="Any">Any</option><option value="High School">High School</option><option value="Bachelor">Bachelor's Degree</option><option value="Master">Master's Degree</option><option value="PhD">PhD</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Required Degree Field</label>
+                    <input type="text" placeholder="e.g. Computer Science" value={activeRequirements.degreeField} onChange={(e) => handleUpdateRequirement('degreeField', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Mandatory Certifications</label>
+                    <input type="text" placeholder="e.g. AWS Certified, PMP" value={activeRequirements.mandatoryCertifications} onChange={(e) => handleUpdateRequirement('mandatoryCertifications', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 8. Job Specific */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">8. Job Specific Requirements</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col gap-3 justify-center">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={activeRequirements.willingToTravel} onChange={(e) => handleUpdateRequirement('willingToTravel', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                      <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Willing to travel</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={activeRequirements.drivingLicense} onChange={(e) => handleUpdateRequirement('drivingLicense', e.target.checked)} className="rounded text-gray-900 focus:ring-0" />
+                      <span className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Driving License Required</span>
+                    </label>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">Language Requirements</label>
+                    <input type="text" placeholder="e.g. English C1, German B2" value={activeRequirements.languageRequirements} onChange={(e) => handleUpdateRequirement('languageRequirements', e.target.value)} className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white outline-none placeholder-gray-400 dark:placeholder-neutral-500" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950 shrink-0 flex justify-end">
+              <button onClick={() => setIsRequirementsModalOpen(false)} className="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">
+                Close & Keep Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in transition-colors">
           <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border dark:border-neutral-800">
@@ -520,21 +740,13 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.level}</label>
-                  <select
-                    value={draftLevel}
-                    onChange={(e) => setDraftLevel(e.target.value)}
-                    className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white"
-                  >
+                  <select value={draftLevel} onChange={(e) => setDraftLevel(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white">
                     {LEVELS.map(l => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.location}</label>
-                  <select
-                    value={draftRegion}
-                    onChange={(e) => setDraftRegion(e.target.value)}
-                    className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white"
-                  >
+                  <select value={draftRegion} onChange={(e) => setDraftRegion(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white">
                     {REGIONS.map(r => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
                   </select>
                 </div>
@@ -551,10 +763,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               </div>
 
               <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2"
-                >
+                <button type="submit" className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   {t.modal.submit}
                 </button>

@@ -74,9 +74,11 @@ def create_job(
         description=job.description,
         region=getattr(job, "region", None),
         level=getattr(job, "level", None),
-        status=getattr(job, "status", "active"),  # <-- АВТОМАТИЧЕСКИ "ACTIVE" ПРИ СОЗДАНИИ
+        status=getattr(job, "status", "active"),
         screening_questions_json=screening_questions_str,
-        pipeline_stages_json=pipeline_stages_str
+        pipeline_stages_json=pipeline_stages_str,
+        # СОХРАНЯЕМ ТРЕБОВАНИЯ ПРИ СОЗДАНИИ
+        requirements=job.requirements.model_dump() if getattr(job, "requirements", None) else None
     )
 
     db.add(db_job)
@@ -114,10 +116,11 @@ def create_job(
         description=db_job.description,
         region=db_job.region,
         level=db_job.level,
-        status=db_job.status,  # <-- ОТДАЕМ СТАТУС ФРОНТЕНДУ
+        status=db_job.status,
         screening_questions=qs,
         pipeline_stages=stages,
-        owner_user_id=db_job.owner_user_id
+        owner_user_id=db_job.owner_user_id,
+        requirements=db_job.requirements  # ОТДАЕМ ТРЕБОВАНИЯ
     )
 
 
@@ -163,10 +166,11 @@ def list_jobs(
             description=job.description,
             region=job.region,
             level=job.level,
-            status=job.status,  # <-- ОТДАЕМ СТАТУС ФРОНТЕНДУ
+            status=job.status,
             screening_questions=qs,
             pipeline_stages=stages,
-            owner_user_id=job.owner_user_id
+            owner_user_id=job.owner_user_id,
+            requirements=job.requirements
         ))
     return results
 
@@ -206,10 +210,11 @@ def get_job(
         description=job.description,
         region=job.region,
         level=job.level,
-        status=job.status,  # <-- ОТДАЕМ СТАТУС ФРОНТЕНДУ
+        status=job.status,
         screening_questions=qs,
         pipeline_stages=stages,
-        owner_user_id=job.owner_user_id
+        owner_user_id=job.owner_user_id,
+        requirements=job.requirements  # ОТДАЕМ ТРЕБОВАНИЯ
     )
 
 
@@ -263,7 +268,7 @@ def update_job(
         job.region = update_data["region"]
     if "level" in update_data:
         job.level = update_data["level"]
-    if "status" in update_data:              # <-- ОБНОВЛЯЕМ СТАТУС В БАЗЕ
+    if "status" in update_data:
         job.status = update_data["status"]
 
     if "screening_questions" in update_data and update_data["screening_questions"] is not None:
@@ -277,6 +282,9 @@ def update_job(
             update_data["pipeline_stages"],
             ensure_ascii=False
         )
+
+    if "requirements" in update_data and update_data["requirements"] is not None:
+        job.requirements = update_data["requirements"]
 
     db.commit()
     db.refresh(job)
@@ -301,8 +309,9 @@ def update_job(
         description=job.description,
         region=job.region,
         level=job.level,
-        status=job.status,  # <-- ОТДАЕМ СТАТУС ФРОНТЕНДУ ПОСЛЕ ОБНОВЛЕНИЯ
+        status=job.status,
         screening_questions=qs,
         pipeline_stages=stages,
-        owner_user_id=job.owner_user_id
+        owner_user_id=job.owner_user_id,
+        requirements=job.requirements
     )

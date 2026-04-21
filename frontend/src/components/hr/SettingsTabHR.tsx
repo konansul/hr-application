@@ -17,6 +17,7 @@ export function SettingsTab() {
   } = useStore();
 
   const t = DICT[language as keyof typeof DICT]?.hrSettings || DICT.en.hrSettings;
+  const candidateT = DICT[language as keyof typeof DICT]?.jobs?.stages || DICT.en.jobs.stages;
 
   const [editedStages, setEditedStages] = useState<string[]>([]);
   const [newStage, setNewStage] = useState('');
@@ -98,9 +99,89 @@ export function SettingsTab() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        <div className="md:col-span-5 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm min-h-[450px] flex flex-col transition-colors">
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                {t.pipelineTitle}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
+                {t.pipelineDesc} <span className="font-bold text-gray-700 dark:text-white">{globalJobTitle || t.noJobSelected}</span>
+              </p>
+            </div>
+
+            {!globalJobId ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50 dark:bg-neutral-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 transition-colors">
+                <p className="text-sm text-gray-500 dark:text-neutral-400 font-medium">{t.jobSelectWarning}</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 space-y-2 mb-6">
+                  {editedStages.map((stage, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl group hover:border-gray-400 dark:hover:border-neutral-600 transition-all shadow-sm">
+                      <span className="text-sm font-bold text-gray-400 dark:text-neutral-600 shrink-0 w-5 text-right select-none">{index + 1}.</span>
+                      <span className="flex-1 text-sm font-bold text-gray-700 dark:text-white uppercase tracking-wider">{stage.replace(/_/g, ' ')}</span>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => moveStage(index, 'up')} disabled={index === 0} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                        <button onClick={() => moveStage(index, 'down')} disabled={index === editedStages.length - 1} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
+                        <button onClick={() => handleRemoveStage(stage)} className="p-1.5 text-gray-400 hover:text-red-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                      </div>
+                    </div>
+                  ))}
+                  {editedStages.length === 0 && (
+                    <p className="text-xs text-red-500 text-center py-4 font-bold">{t.mustHaveStage}</p>
+                  )}
+                </div>
+
+                <div className="mb-6 py-8 px-4 bg-gray-50/50 dark:bg-neutral-800/30 rounded-2xl border border-gray-100 dark:border-neutral-800">
+                  <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-wider text-center mb-8">Candidate View Preview</p>
+                  <div className="flex justify-between items-center relative max-w-sm mx-auto">
+                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-700 -translate-y-1/2 z-0 rounded-full"></div>
+                    <div className="absolute top-1/2 left-0 h-1 bg-indigo-500 dark:bg-white w-1/2 -translate-y-1/2 z-0 rounded-full"></div>
+
+                    {[
+                      { label: candidateT?.applied || 'APPLIED', hint: 'APPLIED', active: true, done: true },
+                      { label: candidateT?.inProgress || 'IN PROGRESS', hint: 'ALL OTHERS', active: true, done: false },
+                      { label: candidateT?.decision || 'DECISION', hint: 'OFFER / REJECT', active: false, done: false }
+                    ].map((step, i) => (
+                      <div key={i} className="relative z-10 flex flex-col items-center">
+                        <span className="absolute -top-6 text-[8px] font-bold uppercase whitespace-nowrap text-indigo-500 dark:text-indigo-400">
+                          {step.hint}
+                        </span>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-sm transition-colors ${step.active ? 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white' : 'bg-white dark:bg-black border-gray-300 dark:border-neutral-600'}`}>
+                          {step.done ? (
+                            <svg className="w-4 h-4 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                          ) : (
+                            <span className={`text-xs font-bold ${step.active ? 'text-white dark:text-black' : 'text-gray-400 dark:text-neutral-500'}`}>{i + 1}</span>
+                          )}
+                        </div>
+                        <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap ${step.active ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500'}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <form onSubmit={handleAddStage} className="mt-auto pt-4 border-t border-gray-100 dark:border-neutral-800 flex gap-3 transition-colors">
+                  <input
+                    type="text"
+                    value={newStage}
+                    onChange={(e) => setNewStage(e.target.value)}
+                    placeholder={t.addStagePlaceholder}
+                    className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all uppercase placeholder-gray-400 dark:placeholder-neutral-600 font-semibold"
+                  />
+                  <button type="submit" disabled={!newStage.trim()} className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50">{t.addStageBtn}</button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm transition-colors">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -148,55 +229,6 @@ export function SettingsTab() {
           </div>
         </div>
 
-        <div className="md:col-span-7 space-y-6">
-          <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm min-h-[450px] flex flex-col transition-colors">
-            <div className="mb-6">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <svg className="w-5 h-5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                {t.pipelineTitle}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-                {t.pipelineDesc} <span className="font-bold text-gray-700 dark:text-white">{globalJobTitle || t.noJobSelected}</span>
-              </p>
-            </div>
-
-            {!globalJobId ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50 dark:bg-neutral-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 transition-colors">
-                <p className="text-sm text-gray-500 dark:text-neutral-400 font-medium">{t.jobSelectWarning}</p>
-              </div>
-            ) : (
-              <>
-                <div className="flex-1 space-y-2 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                  {editedStages.map((stage, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl group hover:border-gray-400 dark:hover:border-neutral-600 transition-all shadow-sm">
-                      <span className="text-sm font-bold text-gray-400 dark:text-neutral-600 shrink-0 w-5 text-right select-none">{index + 1}.</span>
-                      <span className="flex-1 text-sm font-bold text-gray-700 dark:text-white uppercase tracking-wider">{stage.replace(/_/g, ' ')}</span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => moveStage(index, 'up')} disabled={index === 0} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
-                        <button onClick={() => moveStage(index, 'down')} disabled={index === editedStages.length - 1} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
-                        <button onClick={() => handleRemoveStage(stage)} className="p-1.5 text-gray-400 hover:text-red-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                      </div>
-                    </div>
-                  ))}
-                  {editedStages.length === 0 && (
-                    <p className="text-xs text-red-500 text-center py-4 font-bold">{t.mustHaveStage}</p>
-                  )}
-                </div>
-
-                <form onSubmit={handleAddStage} className="mt-auto pt-4 border-t border-gray-100 dark:border-neutral-800 flex gap-3 transition-colors">
-                  <input
-                    type="text"
-                    value={newStage}
-                    onChange={(e) => setNewStage(e.target.value)}
-                    placeholder={t.addStagePlaceholder}
-                    className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all uppercase placeholder-gray-400 dark:placeholder-neutral-600 font-semibold"
-                  />
-                  <button type="submit" disabled={!newStage.trim()} className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50">{t.addStageBtn}</button>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

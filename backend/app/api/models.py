@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Literal, Optional, Dict, Any, List
 from pydantic import BaseModel, EmailStr, Field
 
+from backend.app.schemas import JobRequirementsBase
+
 
 class RegisterRequest(BaseModel):
     email: str
@@ -95,6 +97,7 @@ class JobUpdate(BaseModel):
     level: Optional[str] = None
     status: Optional[Literal['draft', 'active', 'suspended', 'closed']] = None
     pipeline_stages: Optional[List[str]] = None
+    requirements: Optional[JobRequirementsBase] = None
 
 
 class ApplicationStatusUpdate(BaseModel):

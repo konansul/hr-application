@@ -1,6 +1,32 @@
 from pydantic import BaseModel
 from typing import List, Optional, Literal, Any
 
+class JobRequirementsBase(BaseModel):
+    workFormat: Optional[str] = "Any"
+    willingToRelocate: Optional[bool] = False
+    remoteCountryRestriction: Optional[str] = ""
+    officeDaysRequired: Optional[str] = ""
+    timeZoneMatch: Optional[str] = ""
+    openToDifferentTimeZone: Optional[bool] = False
+    visaSponsorship: Optional[bool] = False
+    validWorkPermitRequired: Optional[bool] = True
+    salaryMin: Optional[str] = ""
+    salaryMax: Optional[str] = ""
+    currency: Optional[str] = "USD"
+    salaryExpectationRequired: Optional[bool] = False
+    maxNoticePeriod: Optional[str] = ""
+    immediateStartRequired: Optional[bool] = False
+    minExperienceYears: Optional[str] = ""
+    maxExperienceYears: Optional[str] = ""
+    requiredSeniority: Optional[str] = "Any"
+    mandatorySkills: Optional[str] = ""
+    mandatoryTechnologies: Optional[str] = ""
+    minEducation: Optional[str] = "Any"
+    degreeField: Optional[str] = ""
+    mandatoryCertifications: Optional[str] = ""
+    willingToTravel: Optional[bool] = False
+    drivingLicense: Optional[bool] = False
+    languageRequirements: Optional[str] = ""
 
 class JobCreate(BaseModel):
     title: str
@@ -8,6 +34,7 @@ class JobCreate(BaseModel):
     level: Optional[str] = None
     status: Optional[Literal['draft', 'active', 'suspended', 'closed']] = "draft"
     pipeline_stages: Optional[List[str]] = None
+    requirements: Optional[JobRequirementsBase] = None
 
 class JobOut(BaseModel):
     id: str
@@ -19,6 +46,7 @@ class JobOut(BaseModel):
     status: Optional[str] = "draft"
     pipeline_stages: List[str] = []
     owner_user_id: Optional[str] = None
+    requirements: Optional[JobRequirementsBase] = None
 
     class Config:
         from_attributes = True
