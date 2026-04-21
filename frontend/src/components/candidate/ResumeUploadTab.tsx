@@ -2029,12 +2029,12 @@ export function ResumeUploadTab() {
                           <iframe src={shareAttachmentPreviewUrl} className="w-full" style={{ height: '320px' }} title="CV Preview" />
                         </div>
                       )}
-                      {shareEmailStatus === 'success' && (
-                        <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-sm text-emerald-700 dark:text-emerald-400">
-                          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                          CV sent successfully!
-                        </div>
-                      )}
+                      {/*{shareEmailStatus === 'success' && (*/}
+                      {/*  <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-sm text-emerald-700 dark:text-emerald-400">*/}
+                      {/*    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>*/}
+                      {/*    CV sent successfully!*/}
+                      {/*  </div>*/}
+                      {/*)}*/}
                       {shareEmailStatus === 'error' && (
                         <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
                           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
