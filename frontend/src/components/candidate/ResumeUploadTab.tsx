@@ -664,7 +664,9 @@ export function ResumeUploadTab() {
     const slug = firstName && lastName
       ? (firstName.charAt(0) + lastName).toLowerCase().replace(/[^a-z0-9]/g, '')
       : selectedResume.resume_id;
-    const cvLink = `https://orange-forest-05793170f.7.azurestaticapps.net/?cv=${slug}`;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
+    const cvLink = `${cvBase}/?cv=${slug}`;
     const greeting = sendEmailRecipientName.trim() ? `Dear ${sendEmailRecipientName.trim()},` : 'Dear Hiring Manager,';
     setSendEmailMessage(
       `${greeting}\n\nI hope this message finds you well.\n\nI would like to share my curriculum vitae with you for your consideration. Please find it attached.\n\nYou can also access it using the link below:\n${cvLink}\n\nPlease feel free to reach out if you require any additional information.\n\nThank you for your time and consideration.\n\nKind regards,\n${senderName}`
@@ -1885,8 +1887,9 @@ export function ResumeUploadTab() {
         if (firstName && lastName) {
           authApi.updatePrivacy({ public_url_slug: slug }).catch(() => {});
         }
-        const AZURE_BASE = 'https://orange-forest-05793170f.7.azurestaticapps.net';
-        const publicUrl = `${AZURE_BASE}/?cv=${slug}`;
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const BASE = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
+        const publicUrl = `${BASE}/?cv=${slug}`;
         return (
           <div
             className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
