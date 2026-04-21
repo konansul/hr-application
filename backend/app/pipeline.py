@@ -56,8 +56,23 @@ def _score(profile: CandidateProfile, must: List[str], nice: List[str]) -> Tuple
 def run_screening(request: ScreeningRequest) -> ScreeningResult:
     with open("backend/app/services/llm/evaluate_match.md", "r", encoding="utf-8") as f:
         template = f.read()
+    requirements_text = "No strict internal requirements specified."
 
-    prompt = template.replace("{{JD_TEXT}}", request.job_description).replace("{{CV_TEXT}}", request.cv_text)
+    if hasattr(request, 'requirements') and request.requirements:
+        active_reqs = {
+            k: v for k, v in request.requirements.model_dump().items()
+            if v not in [None, "", "Any", []]
+        }
+
+        if active_reqs:
+            requirements_text = json.dumps(active_reqs, indent=2, ensure_ascii=False)
+
+    prompt = (
+        template
+        .replace("{{JD_TEXT}}", request.job_description)
+        .replace("{{CV_TEXT}}", request.cv_text)
+        .replace("{{REQUIREMENTS_TEXT}}", requirements_text)
+    )
 
     data = gemini.generate_json(prompt, SCREENING_SCHEMA)
 

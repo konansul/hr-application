@@ -3,14 +3,20 @@ import { AuthPage } from './components/auth/AuthTab';
 import { HrDashboard } from './components/hr/HrDashboard';
 import { CandidateDashboard } from './components/candidate/CandidateDashboard';
 import { PublicCvView } from './components/candidate/PublicCvView';
+import { PublicProfileView } from './components/candidate/PublicProfileView'; //
 import { authApi } from './api';
 import { useStore } from './store';
 
 const cvToken = new URLSearchParams(window.location.search).get('cv');
 
+const pathname = window.location.pathname;
+const isPublicProfile = pathname.startsWith('/p/');
+const publicSlug = isPublicProfile ? pathname.split('/')[2] : null;
+
 function App() {
   const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserRole, setActiveTab } = useStore();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -21,7 +27,8 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    if (cvToken) return;
+    if (cvToken || isPublicProfile) return;
+
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token');
       if (token) {
@@ -41,6 +48,8 @@ function App() {
   }, [setIsLoggedIn, setUserRole]);
 
   if (cvToken) return <PublicCvView token={cvToken} />;
+
+  if (isPublicProfile && publicSlug) return <PublicProfileView slug={publicSlug} />;
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900 dark:text-white transition-colors duration-300">Loading...</div>;

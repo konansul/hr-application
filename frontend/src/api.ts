@@ -316,4 +316,8 @@ export const resumesApi = {
     const response = await apiClient.post('/v1/resumes/send-email', payload);
     return response.data;
   },
+  getProfile: async (slug: string) => {
+    const response = await axios.get(`${BASE_URL}/public/p/${slug}`);
+    return response.data;
+  }
 };

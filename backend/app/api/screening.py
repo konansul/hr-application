@@ -8,7 +8,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from backend.app.schemas import ScreeningRequest
+from backend.app.schemas import ScreeningRequest, JobRequirementsBase
 from backend.app.pipeline import run_screening, run_cv_parsing
 from backend.app.services.parsing.pdf import pdf_to_text
 from backend.app.services.parsing.docx import docx_to_text
@@ -20,6 +20,7 @@ from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 
 router = APIRouter()
+
 
 def extract_cv_text(filename: str, data: bytes) -> tuple[str, str]:
     filename = (filename or "").lower()
@@ -40,8 +41,10 @@ def extract_cv_text(filename: str, data: bytes) -> tuple[str, str]:
         raise ValueError("Could not extract text from file")
     return cv_text, content_type
 
+
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
 
 @router.post("/screening/run-file")
 async def run_file(
@@ -93,7 +96,20 @@ async def run_file(
     db.add(application)
     db.flush()
 
-    request = ScreeningRequest(cv_text=resume.payload, job_description=job.description)
+    req_obj = None
+    if job.requirements:
+        try:
+            req_data = json.loads(job.requirements) if isinstance(job.requirements, str) else job.requirements
+            req_obj = JobRequirementsBase(**req_data)
+        except Exception as e:
+            print(f"Warning: Could not parse job requirements: {e}")
+
+    request = ScreeningRequest(
+        cv_text=resume.payload,
+        job_description=job.description,
+        requirements=req_obj
+    )
+
     ai_result = run_screening(request)
 
     db_result = ScreeningResult(
@@ -115,8 +131,10 @@ async def run_file(
         "full_result": json.loads(db_result.full_result_json)
     }
 
+
 class ApplicationStatusUpdate(BaseModel):
     status: str
+
 
 @router.patch("/applications/{application_id}/status")
 def update_application_status(
@@ -131,7 +149,6 @@ def update_application_status(
             Job.org_id == current_user.org_id
         ).first()
     else:
-        # Candidates can only update status on applications for jobs they personally created
         person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
         app = db.query(Application).join(Job).filter(
             Application.application_id == application_id,
@@ -145,6 +162,7 @@ def update_application_status(
     app.status = update.status
     db.commit()
     return {"ok": True, "new_status": app.status}
+
 
 @router.get("/applications/job/{job_id}")
 def list_applications_by_job(
@@ -203,6 +221,14 @@ def bulk_screen(
 
     results_to_return = []
 
+    req_obj = None
+    if job.requirements:
+        try:
+            req_data = json.loads(job.requirements) if isinstance(job.requirements, str) else job.requirements
+            req_obj = JobRequirementsBase(**req_data)
+        except Exception as e:
+            print(f"Warning: Could not parse job requirements: {e}")
+
     for doc in docs:
         person = db.query(Person).filter(Person.user_id == doc.owner_user_id).first()
 
@@ -230,7 +256,11 @@ def bulk_screen(
         db.query(ScreeningResult).filter(ScreeningResult.application_id == app.application_id).delete()
         db.flush()
 
-        request = ScreeningRequest(cv_text=cv_text_for_ai, job_description=req.job_description)
+        request = ScreeningRequest(
+            cv_text=cv_text_for_ai,
+            job_description=req.job_description,
+            requirements=req_obj
+        )
         try:
             ai_result = run_screening(request)
             ai_data = ai_result.model_dump() if hasattr(ai_result, 'model_dump') else ai_result
@@ -268,6 +298,7 @@ def bulk_screen(
     db.commit()
     return results_to_return
 
+
 @router.get("/applications/organization")
 def list_all_organization_applications(
         db: Session = Depends(get_db),
@@ -298,6 +329,7 @@ def list_all_organization_applications(
         })
     return out
 
+
 @router.delete("/applications/{application_id}")
 def delete_application(
         application_id: str,
@@ -324,6 +356,7 @@ class ApplyRequest(BaseModel):
     job_id: str
     answers: Optional[dict] = None
 
+
 @router.post("/applications/apply")
 def apply_to_job(
         req: ApplyRequest,
@@ -336,7 +369,6 @@ def apply_to_job(
     job = db.query(Job).filter(Job.job_id == req.job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-
 
     person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
     if not person:

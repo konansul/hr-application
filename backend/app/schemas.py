@@ -68,6 +68,7 @@ class CandidateProfile(BaseModel):
 class ScreeningRequest(BaseModel):
     cv_text: str
     job_description: str
+    requirements: Optional[JobRequirementsBase] = None
 
 
 class RequirementCheck(BaseModel):
@@ -137,3 +138,12 @@ class CVImprovementResult(BaseModel):
     improved_summary: str
     rewritten_bullets: List[RewrittenBullet]
     cv_text_preview: str
+
+class PublicProfileOut(BaseModel):
+    person_id: str
+    first_name: str
+    last_name: str
+    profile_data: dict
+
+    class Config:
+        from_attributes = True

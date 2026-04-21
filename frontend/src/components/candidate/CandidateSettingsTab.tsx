@@ -41,7 +41,7 @@ export function CandidateSettingsTab() {
     setMessage(null);
     try {
       await authApi.updatePrivacy({ visibility_level: visibility, public_url_slug: publicSlug });
-      setMessage(t.successSave);
+      setMessage(t.successSave || "Settings saved successfully!");
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       console.error("Save failed", err);
@@ -51,9 +51,40 @@ export function CandidateSettingsTab() {
     }
   };
 
-  const generatePublicLink = () => {
-    const randomId = Math.random().toString(36).substring(7);
-    setPublicSlug(`candidate-${randomId}`);
+  // Автоматически генерируем, делаем публичным и сохраняем
+  const generatePublicLink = async () => {
+    const randomId = Math.random().toString(36).substring(2, 10);
+    const newSlug = `cand-${randomId}`;
+    setPublicSlug(newSlug);
+    setVisibility('public');
+
+    setIsSaving(true);
+    try {
+      await authApi.updatePrivacy({ visibility_level: 'public', public_url_slug: newSlug });
+      setMessage("Link created and saved!");
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err) {
+      console.error("Failed to save generated link", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Автоматически удаляем ссылку и закрываем профиль
+  const removePublicLink = async () => {
+    setPublicSlug(null);
+    setVisibility('private');
+
+    setIsSaving(true);
+    try {
+      await authApi.updatePrivacy({ visibility_level: 'private', public_url_slug: null });
+      setMessage("Link disabled and profile is private");
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err) {
+      console.error("Failed to remove link", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSendEmail = () => {
@@ -90,7 +121,7 @@ export function CandidateSettingsTab() {
             disabled={isSaving}
             className="px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all disabled:bg-gray-400 dark:disabled:bg-neutral-700 active:scale-95"
           >
-            {isSaving ? t.saving : t.save}
+            {isSaving ? (t.saving || 'Saving...') : (t.save || 'Save')}
           </button>
         </div>
       </div>
@@ -192,12 +223,25 @@ export function CandidateSettingsTab() {
               </h3>
               {publicSlug ? (
                 <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700 rounded-2xl">
-                  <div className="flex-1 px-3 py-1 font-mono text-xs text-indigo-600 dark:text-white truncate">hr-platform.com/p/{publicSlug}</div>
-                  <button onClick={() => { navigator.clipboard.writeText(window.location.origin + "/p/" + publicSlug); setMessage(t.copied); setTimeout(() => setMessage(null), 2000); }} className="px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white rounded-xl text-xs font-bold transition-all shadow-sm">{t.copy}</button>
-                  <button onClick={() => setPublicSlug(null)} className="p-2 text-red-400 dark:text-red-500"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                  {/* Заменили хардкод на динамический origin */}
+                  <div className="flex-1 px-3 py-1 font-mono text-xs text-indigo-600 dark:text-white truncate">
+                    {window.location.origin}/p/{publicSlug}
+                  </div>
+                  <button onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/p/${publicSlug}`);
+                    setMessage(t.copied || 'Copied!');
+                    setTimeout(() => setMessage(null), 2000);
+                  }} className="px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                    {t.copy}
+                  </button>
+                  <button onClick={removePublicLink} className="p-2 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
                 </div>
               ) : (
-                <button onClick={generatePublicLink} className="w-full py-4 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-2xl text-xs font-bold text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white transition-all bg-gray-50/30 dark:bg-neutral-800/30">{t.createLink}</button>
+                <button onClick={generatePublicLink} disabled={isSaving} className="w-full py-4 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-2xl text-xs font-bold text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white transition-all bg-gray-50/30 dark:bg-neutral-800/30 disabled:opacity-50">
+                  {isSaving ? "Generating..." : t.createLink}
+                </button>
               )}
             </section>
 
