@@ -257,8 +257,16 @@ export const ru = {
     stats: "Версий: {vCount} · Загружено документов: {dCount}",
     uploadCv: "Загрузить CV",
     fromProfile: "Из профиля",
-    duplicate: "Дублировать",
+    duplicate: "Копировать из CV",
     fromJob: "Под вакансию",
+    sourceTypes: {
+      profile: "Из профиля",
+      profileExtract: "Создано из профиля",
+      cvUpload: "Загрузка CV",
+      duplicate: "Из существующего CV",
+      publicApp: "Публичная заявка",
+      fromJob: "Под вакансию"
+    },
     noVersions: "Версий резюме пока нет. Нажмите «Создать версию» выше.",
     untitled: "Резюме без названия",
     deleteConfirm: "Удалить эту версию?",
@@ -270,7 +278,9 @@ export const ru = {
       validUntil: "Годно до: {date}",
       noExpiry: "Бессрочно",
       original: "Оригинал",
-      deleted: "Удаленная версия"
+      deleted: "Удаленная версия",
+      titleLabel: "Название",
+      notSpecified: "Не указано"
     },
     actions: {
       exportPdf: "Экспорт PDF",
@@ -278,14 +288,16 @@ export const ru = {
       edit: "Редактировать",
       save: "Сохранить",
       cancel: "Отмена",
-      saving: "Сохранение..."
+      saving: "Сохранение…"
     },
     sections: {
       summary: "О себе",
       experience: "Опыт работы",
       skills: "Навыки",
       education: "Образование",
-      langCert: "Языки и Сертификаты"
+      langCert: "Языки и Сертификаты",
+      languages: "Языки",
+      certifications: "Сертификаты"
     },
     placeholders: {
       noSummary: "Описание не заполнено для этой версии.",
@@ -294,7 +306,25 @@ export const ru = {
       noEdu: "Образование не добавлено.",
       noLang: "Языки не указаны.",
       noCert: "Сертификаты не указаны.",
-      skillHint: "Разделяйте навыки запятыми"
+      skillHint: "Разделяйте навыки запятыми",
+      noDesc: "Описание отсутствует.",
+      untitledRole: "Без названия",
+      present: "По настоящее время"
+    },
+    noSelected: "Версия резюме не выбрана",
+    noSelectedHint: "Загрузите резюме или создайте версию из вашего профиля.",
+    photo: {
+      label: "Фото профиля",
+      hint: "Используется в шаблонах PDF с поддержкой фотографий.",
+      change: "Изменить фото",
+      upload: "Загрузить фото",
+      remove: "Удалить"
+    },
+    edit: {
+      entry: "Запись",
+      remove: "Удалить",
+      addExp: "+ Добавить опыт",
+      addEdu: "+ Добавить образование"
     },
     pdfCard: {
       title: "Сохраненная PDF версия",
@@ -309,7 +339,84 @@ export const ru = {
     createForJob: "Создать резюме под эту вакансию",
     working: "Работаем над вашим резюме...",
     fileSelected: "Файл выбран",
-    createVersion: "Создать версию"
+    createVersion: "Создать версию",
+    emailBody: {
+      greeting: "Уважаемый(-ая) {name},",
+      hiringManager: "Уважаемый менеджер по найму,",
+      line1: "Надеюсь, у вас всё хорошо.",
+      line2attach: "Хотел(-а) бы поделиться своим резюме для вашего рассмотрения. Оно прилагается к этому письму.",
+      line2link: "Хотел(-а) бы поделиться своим резюме для вашего рассмотрения. Вы можете ознакомиться с ним по ссылке ниже:",
+      line3: "Вы также можете получить доступ по ссылке ниже:",
+      line4: "Пожалуйста, не стесняйтесь обращаться, если вам потребуется дополнительная информация.",
+      line5: "Благодарю за уделённое время и внимание.",
+      regards: "С уважением,"
+    },
+    sendEmail: {
+      title: "Отправить резюме по email",
+      recipientName: "Имя получателя",
+      recipientEmail: "Email получателя",
+      subject: "Тема",
+      message: "Сообщение",
+      attachBtn: "Прикрепить резюме",
+      attaching: "Прикрепление…",
+      noAttachment: "PDF ещё не прикреплён",
+      savePdfFirst: "Сначала сохраните PDF в разделе «Сохранённая PDF версия»",
+      sendBtn: "Отправить резюме",
+      sending: "Отправка…",
+      sentTo: "Резюме отправлено на {email}",
+      sendAnother: "Отправить ещё",
+      errorMsg: "Не удалось отправить. Попробуйте снова.",
+      notConfigured: "Сервис email не настроен. Добавьте Resend API ключ в файл .env сервера.",
+      namePlaceholder: "Иван Иванов",
+      subjectPlaceholder: "Отправка резюме",
+      previewTitle: "Предпросмотр прикреплённого PDF",
+      sendingLabel: "Отправляется:",
+      selectFirst: "Сначала выберите версию резюме слева."
+    },
+    share: {
+      title: "Поделиться резюме",
+      publicLink: "Публичная ссылка",
+      copyBtn: "Скопировать ссылку",
+      copied: "Скопировано!",
+      linkHint: "Любой с этой ссылкой сможет просмотреть ваше резюме без входа в систему.",
+      emailSection: "Поделиться по email",
+      recipientName: "Имя получателя",
+      recipientEmail: "Email получателя",
+      namePlaceholder: "например, Иван Иванов",
+      emailPlaceholder: "email@example.com",
+      sendBtn: "Отправить резюме",
+      sending: "Отправка…",
+      sentTo: "Резюме отправлено на {email}",
+      sendAnother: "Отправить ещё",
+      errorMsg: "Не удалось отправить. Попробуйте снова.",
+      noAttachment: "PDF не прикреплён",
+      savePdfFirst: "Сначала сохраните PDF",
+      pdfPreview: "Предпросмотр PDF"
+    },
+    modal: {
+      excludeSections: "Исключить разделы из этой версии",
+      excludedHint: "Отмеченные разделы будут исключены из этой версии.",
+      versionName: "Название версии",
+      language: "Язык",
+      validUntil: "Действительно до",
+      newVersionName: "Новое название версии",
+      sourceVersion: "Исходная версия",
+      noVersionsToDuplicate: "Нет существующих версий для копирования.",
+      creating: "Создание…",
+      createVersion: "Создать версию",
+      createDuplicate: "Создать копию",
+      fromProfileTitle: "Создать резюме из профиля",
+      fromProfileSubtitle: "Выберите, что включить в эту версию",
+      duplicateTitle: "Копировать из CV",
+      duplicateSubtitle: "Создать новую версию на основе существующей",
+      fromJobTitle: "Создать резюме для вакансии",
+      fromJobSubtitle: "Адаптируйте резюме под конкретную вакансию",
+      selectJob: "Выбрать вакансию",
+      noJob: "Без конкретной вакансии",
+      jobDescription: "Описание вакансии",
+      jobDescPlaceholder: "Вставьте описание вакансии здесь…",
+      cancel: "Отмена"
+    }
   },
   hrNav: {
     overview: "Обзор",
