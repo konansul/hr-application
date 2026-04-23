@@ -6,6 +6,7 @@ import { PublicCvView } from './components/candidate/PublicCvView';
 import { PublicProfileView } from './components/candidate/PublicProfileView'; //
 import { authApi } from './api';
 import { useStore } from './store';
+import { pathToNavState, hrPathToNavState } from './utils/urlRouting';
 
 const cvToken = new URLSearchParams(window.location.search).get('cv');
 
@@ -61,7 +62,10 @@ function App() {
         onLoginSuccess={(user) => {
           setUserRole(user.role as 'hr' | 'candidate');
           setIsLoggedIn(true);
-          setActiveTab(user.role === 'hr' ? 'job' : 'upload-cv');
+          const navState = user.role === 'candidate'
+            ? pathToNavState(window.location.pathname)
+            : hrPathToNavState(window.location.pathname);
+          setActiveTab(navState?.tab as any ?? (user.role === 'hr' ? 'job' : 'upload-cv'));
         }}
       />
     );

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { authApi, documentsApi, jobsApi, resumesApi } from '../../api';
 import { DICT } from '../../internationalization.ts';
 import { useStore } from '../../store';
+import { resumeToSlug, slugToResumeId } from '../../utils/urlRouting';
 import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
@@ -587,7 +588,7 @@ function JobDescriptionAccordion({ text }: { text: string }) {
 }
 
 export function ResumeUploadTab() {
-  const { language } = useStore();
+  const { language, activeTab } = useStore();
   const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
 
   const [file, setFile] = useState<File | null>(null);
@@ -639,36 +640,96 @@ export function ResumeUploadTab() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  // Slug from URL on first load — consumed once when resumes arrive
+  const initialUrlSlugRef = useRef((() => {
+    const pathSlug = window.location.pathname.startsWith('/resumes/')
+      ? window.location.pathname.replace('/resumes/', '') || undefined
+      : undefined;
+    if (pathSlug) return pathSlug;
+    const querySlug = new URLSearchParams(window.location.search).get('cv') || undefined;
+    return querySlug;
+  })());
+  // Tracks previous selectedResumeId to distinguish push vs replace for URL updates
+  const prevSelectedResumeIdRef = useRef<string | null>(null);
+  const selectedResumeIdRef = useRef<string | null>(null);
 
-  const loadData = async (preferredResumeId?: string | null) => {
+  useEffect(() => {
+    selectedResumeIdRef.current = selectedResumeId;
+  }, [selectedResumeId]);
+
+  const loadData = async (preferredResumeId?: string | null, initialSlug?: string) => {
     const [docs, jobs, versions] = await Promise.all([
       documentsApi.getMyDocuments(),
       jobsApi.list(),
       resumesApi.list(),
     ]);
     const normalized = (versions || []).map((r: ResumeVersion) => normalizeResume(r)).filter(Boolean) as ResumeVersion[];
+    const currentSelectedResumeId = selectedResumeIdRef.current;
+    const resumeIdFromSlug = initialSlug ? slugToResumeId(initialSlug, normalized) : null;
+    const nextSelectedResumeId =
+      preferredResumeId && normalized.some((r) => r.resume_id === preferredResumeId)
+        ? preferredResumeId
+        : resumeIdFromSlug && normalized.some((r) => r.resume_id === resumeIdFromSlug)
+          ? resumeIdFromSlug
+          : currentSelectedResumeId && normalized.some((r) => r.resume_id === currentSelectedResumeId)
+            ? currentSelectedResumeId
+            : normalized[0]?.resume_id ?? null;
+
     setUploadedDocs(docs || []);
     setActiveJobs(jobs || []);
     setResumeVersions(normalized);
-
-    if (preferredResumeId && normalized.some((r) => r.resume_id === preferredResumeId)) {
-      setSelectedResumeId(preferredResumeId);
-    } else if (!selectedResumeId && normalized[0]) {
-      setSelectedResumeId(normalized[0].resume_id);
-    } else if (selectedResumeId && !normalized.some((r) => r.resume_id === selectedResumeId)) {
-      setSelectedResumeId(normalized[0]?.resume_id ?? null);
-    }
+    setSelectedResumeId(nextSelectedResumeId ?? null);
   };
 
   useEffect(() => {
-    loadData().catch(() => setMessage({ text: 'Failed to load resume data', type: 'error' }));
+    loadData(undefined, initialUrlSlugRef.current).catch(() => setMessage({ text: 'Failed to load resume data', type: 'error' }));
+    initialUrlSlugRef.current = undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const selectedResume = useMemo(
-    () => resumeVersions.find((r) => r.resume_id === selectedResumeId) ?? resumeVersions[0] ?? null,
-    [resumeVersions, selectedResumeId],
-  );
+  // Keep URL in sync with the selected resume
+  useEffect(() => {
+    if (activeTab !== 'upload-cv' || !selectedResumeId || !resumeVersions.length) return;
+    const resume = resumeVersions.find((r) => r.resume_id === selectedResumeId);
+    if (!resume) return;
+    const slug = resumeToSlug(resume, resumeVersions);
+    const newPath = `/resumes/${slug}`;
+    if (window.location.pathname === newPath) {
+      prevSelectedResumeIdRef.current = selectedResumeId;
+      return;
+    }
+    // Use pushState when user explicitly switches resume; replaceState for tab arrival / data reload
+    const isExplicitSwitch =
+      prevSelectedResumeIdRef.current !== null &&
+      prevSelectedResumeIdRef.current !== selectedResumeId;
+    prevSelectedResumeIdRef.current = selectedResumeId;
+    if (isExplicitSwitch) {
+      window.history.pushState({}, '', newPath);
+    } else {
+      window.history.replaceState({}, '', newPath);
+    }
+  }, [activeTab, selectedResumeId, resumeVersions]);
+
+  // Handle browser back/forward within the resumes section
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (!path.startsWith('/resumes')) return;
+      if (path.startsWith('/resumes/')) {
+        const slug = path.replace('/resumes/', '');
+        const id = slugToResumeId(slug, resumeVersions);
+        if (id) setSelectedResumeId(id);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [resumeVersions]);
+
+  const selectedResume = useMemo(() => {
+    if (!resumeVersions.length) return null;
+    if (!selectedResumeId) return resumeVersions[0] ?? null;
+    return resumeVersions.find((r) => r.resume_id === selectedResumeId) ?? null;
+  }, [resumeVersions, selectedResumeId]);
 
   // Auto-populate email message template when resume or recipient name changes
   useEffect(() => {
@@ -677,12 +738,10 @@ export function ResumeUploadTab() {
     const firstName = (info.first_name ?? '').trim();
     const lastName = (info.last_name ?? '').trim();
     const senderName = [firstName, lastName].filter(Boolean).join(' ') || 'Me';
-    const slug = firstName && lastName
-      ? (firstName.charAt(0) + lastName).toLowerCase().replace(/[^a-z0-9]/g, '')
-      : selectedResume.resume_id;
+    const slug = resumeToSlug(selectedResume, resumeVersions);
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
-    const cvLink = `${cvBase}/?cv=${slug}`;
+    const cvLink = `${cvBase}/resumes/${slug}`;
     const eb = t.emailBody;
     const greeting = sendEmailRecipientName.trim()
       ? eb.greeting.replace('{name}', sendEmailRecipientName.trim())
@@ -922,6 +981,10 @@ export function ResumeUploadTab() {
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
     });
+  };
+
+  const handleCopyPublicLink = () => {
+    handleCopyLink(window.location.href);
   };
 
   const startEditingContent = () => {
@@ -1171,13 +1234,28 @@ export function ResumeUploadTab() {
                         {t.actions.exportPdf}
                       </button>
                       <button
-                        onClick={openShareModal}
+                        onClick={handleCopyPublicLink}
                         className="px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
+                        {linkCopied ? (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                        {linkCopied ? t.actions.linkCopied : t.actions.copyLink}
+                      </button>
+                      <button
+                        onClick={openShareModal}
+                        className="px-3 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/50 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                      >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        {t.actions.share}
+                        {t.actions.sendByEmail}
                       </button>
                       <button
                         onClick={startEditingContent}
@@ -1899,16 +1977,14 @@ export function ResumeUploadTab() {
         const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
         const firstName = (info.first_name ?? '').trim();
         const lastName = (info.last_name ?? '').trim();
-        const slug = firstName && lastName
-          ? (firstName.charAt(0) + lastName).toLowerCase().replace(/[^a-z0-9]/g, '')
-          : selectedResume.resume_id;
+        const slug = resumeToSlug(selectedResume, resumeVersions);
         // Register slug with backend (best-effort, non-blocking)
         if (firstName && lastName) {
           authApi.updatePrivacy({ public_url_slug: slug }).catch(() => {});
         }
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const BASE = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
-        const publicUrl = `${BASE}/?cv=${slug}`;
+        const publicUrl = `${BASE}/resumes/${slug}`;
         return (
           <div
             className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
@@ -1918,7 +1994,7 @@ export function ResumeUploadTab() {
             <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{t.share.title}</h3>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{t.actions.sendByEmail}</h3>
                   <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate max-w-[280px]">{selectedResume.title || t.untitled}</p>
                 </div>
                 <button onClick={() => setShowShareModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
@@ -1927,24 +2003,6 @@ export function ResumeUploadTab() {
               </div>
 
               <div className="p-6 space-y-5 dark:bg-neutral-900 overflow-y-auto max-h-[75vh]">
-                <div className="space-y-3">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t.share.publicLink}</p>
-                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-xl">
-                    <p className="text-xs text-indigo-700 dark:text-indigo-400 font-mono break-all">{publicUrl}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCopyLink(publicUrl)}
-                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                  >
-                    {linkCopied ? (
-                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{t.share.copied}</>
-                    ) : (
-                      <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>{t.share.copyBtn}</>
-                    )}
-                  </button>
-                  <p className="text-[11px] text-gray-400 dark:text-neutral-500">{t.share.linkHint}</p>
-                </div>
-
                 {/* Email */}
                 {(() => {
                   const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
@@ -1956,8 +2014,7 @@ export function ResumeUploadTab() {
                   const emailBody = `${recipientGreeting}\n\n${eb.line1}\n\n${eb.line2link}\n${publicUrl}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`;
                   const subject = `CV: ${selectedResume.title || 'My Resume'}`;
                   return (
-                    <div className="space-y-3 border-t border-gray-100 pt-5">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t.share.emailSection}</p>
+                    <div className="space-y-3">
                       {shareEmailStatus === 'success' ? (
                         <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
                           <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">

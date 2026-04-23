@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react';
 import { JobTab } from './JobTab';
 import { ScreenTab } from './ScreenTab';
 import { CompareTab } from './CompareTab';
@@ -9,6 +10,7 @@ import { SettingsTab } from './SettingsTabHR';
 import { useStore } from '../../store';
 import { authApi } from '../../api';
 import { DICT } from '../../internationalization.ts';
+import { hrTabToPath, hrPathToNavState } from '../../utils/urlRouting';
 
 export function HrDashboard() {
   const {
@@ -26,6 +28,38 @@ export function HrDashboard() {
 
   const t: Record<string, string> = DICT[language as keyof typeof DICT]?.hrNav || DICT.en.hrNav;
 
+  // Sync tab from URL on mount
+  useEffect(() => {
+    const navState = hrPathToNavState(window.location.pathname);
+    if (navState?.tab) {
+      setActiveTab(navState.tab as any);
+    } else if (!activeTab || activeTab === 'profile') {
+      // Default HR tab is 'job' (job descriptions)
+      const defaultTab = 'job';
+      setActiveTab(defaultTab as any);
+      window.history.replaceState({}, '', hrTabToPath(defaultTab));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const navState = hrPathToNavState(window.location.pathname);
+      setActiveTab((navState?.tab ?? 'job') as any);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [setActiveTab]);
+
+  const navigate = useCallback((tab: string) => {
+    setActiveTab(tab as any);
+    const path = hrTabToPath(tab);
+    if (window.location.pathname !== path) {
+      window.history.pushState({ tab }, '', path);
+    }
+  }, [setActiveTab]);
+
   const handleLogout = async () => {
     try { await authApi.logout(); } catch (e) {}
     localStorage.removeItem('auth_token');
@@ -36,7 +70,7 @@ export function HrDashboard() {
     const isActive = activeTab === id;
     return (
       <button
-        onClick={() => setActiveTab(id as any)}
+        onClick={() => navigate(id)}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
           isActive
             ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm border border-gray-200/60 dark:border-neutral-700'

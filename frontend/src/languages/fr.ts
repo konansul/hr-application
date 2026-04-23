@@ -285,6 +285,9 @@ export const fr = {
     actions: {
       exportPdf: "Exporter en PDF",
       share: "Partager",
+      copyLink: "Copier le lien",
+      linkCopied: "Copié !",
+      sendByEmail: "Envoyer par e-mail",
       edit: "Modifier",
       save: "Enregistrer",
       cancel: "Annuler",

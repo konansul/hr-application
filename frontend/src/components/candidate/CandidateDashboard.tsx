@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ProfileTab } from './ProfileTab';
 import { ResumeUploadTab } from './ResumeUploadTab';
 import { ImproveCvTab } from './ImproveCvTab';
@@ -8,6 +8,7 @@ import { CandidateSettingsTab } from './CandidateSettingsTab';
 import { useStore } from '../../store';
 import { authApi } from '../../api';
 import { DICT } from '../../internationalization.ts';
+import { tabToPath, pathToNavState } from '../../utils/urlRouting';
 
 const NAV_ITEMS = [
   {
@@ -65,9 +66,35 @@ export function CandidateDashboard() {
 
   const t = DICT[language as keyof typeof DICT]?.nav || DICT.en.nav;
 
+  // Sync tab from URL on mount
   useEffect(() => {
-    if (!activeTab) setActiveTab('profile');
-  }, [activeTab, setActiveTab]);
+    const navState = pathToNavState(window.location.pathname);
+    if (navState?.tab) {
+      setActiveTab(navState.tab as any);
+    } else if (!activeTab) {
+      setActiveTab('profile');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const navState = pathToNavState(window.location.pathname);
+      setActiveTab((navState?.tab ?? 'profile') as any);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [setActiveTab]);
+
+  const navigate = useCallback((tab: string) => {
+    setActiveTab(tab as any);
+    const path = tabToPath(tab);
+    // Only push if we're not already on this tab's path tree
+    if (!window.location.pathname.startsWith(path)) {
+      window.history.pushState({ tab }, '', path);
+    }
+  }, [setActiveTab]);
 
   const handleLogout = async () => {
     try { await authApi.logout(); } catch (e) {}
@@ -79,7 +106,7 @@ export function CandidateDashboard() {
     const isActive = activeTab === id;
     return (
       <button
-        onClick={() => setActiveTab(id)}
+        onClick={() => navigate(id)}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
           isActive
             ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm border border-gray-200/60 dark:border-neutral-700'
@@ -214,7 +241,7 @@ export function CandidateDashboard() {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
+                onClick={() => navigate(item.id)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 transition-colors relative ${
                   isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300'
                 }`}

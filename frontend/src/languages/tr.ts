@@ -285,6 +285,9 @@ export const tr = {
     actions: {
       exportPdf: "PDF Çıktısı",
       share: "Paylaş",
+      copyLink: "Bağlantıyı kopyala",
+      linkCopied: "Kopyalandı!",
+      sendByEmail: "E-posta ile gönder",
       edit: "Düzenle",
       save: "Değişiklikleri Kaydet",
       cancel: "İptal",
