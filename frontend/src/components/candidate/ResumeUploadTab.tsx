@@ -739,7 +739,7 @@ export function ResumeUploadTab() {
     const firstName = (info.first_name ?? '').trim();
     const lastName = (info.last_name ?? '').trim();
     const senderName = [firstName, lastName].filter(Boolean).join(' ') || 'Me';
-    const slug = resumeToSlug(selectedResume, resumeVersions);
+    // const slug = resumeToSlug(selectedResume, resumeVersions);
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
     const cvLink = `${cvBase}/?cv=${selectedResume.resume_id}`;
