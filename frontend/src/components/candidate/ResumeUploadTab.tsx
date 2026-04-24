@@ -612,6 +612,7 @@ export function ResumeUploadTab() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [sharePublicLinkCopied, setSharePublicLinkCopied] = useState(false);
   const [shareEmailTo, setShareEmailTo] = useState('');
   const [shareEmailRecipientName, setShareEmailRecipientName] = useState('');
   const [sendEmailTo, setSendEmailTo] = useState('');
@@ -741,7 +742,7 @@ export function ResumeUploadTab() {
     const slug = resumeToSlug(selectedResume, resumeVersions);
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
-    const cvLink = `${cvBase}/resumes/${slug}`;
+    const cvLink = `${cvBase}/?cv=${selectedResume.resume_id}`;
     const eb = t.emailBody;
     const greeting = sendEmailRecipientName.trim()
       ? eb.greeting.replace('{name}', sendEmailRecipientName.trim())
@@ -863,6 +864,7 @@ export function ResumeUploadTab() {
 
   const openShareModal = () => {
     setLinkCopied(false);
+    setSharePublicLinkCopied(false);
     setShareEmailTo('');
     setShareEmailRecipientName('');
     setShowShareModal(true);
@@ -984,7 +986,10 @@ export function ResumeUploadTab() {
   };
 
   const handleCopyPublicLink = () => {
-    handleCopyLink(window.location.href);
+    if (!selectedResume) return;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
+    handleCopyLink(`${base}/?cv=${selectedResume.resume_id}`);
   };
 
   const startEditingContent = () => {
@@ -1984,7 +1989,6 @@ export function ResumeUploadTab() {
         }
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const BASE = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
-        const publicUrl = `${BASE}/resumes/${slug}`;
         return (
           <div
             className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
@@ -1994,8 +1998,8 @@ export function ResumeUploadTab() {
             <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{t.actions.sendByEmail}</h3>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate max-w-[280px]">{selectedResume.title || t.untitled}</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{t.share.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5 truncate max-w-[280px]">{selectedResume.title || t.untitled}</p>
                 </div>
                 <button onClick={() => setShowShareModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-200 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -2003,6 +2007,40 @@ export function ResumeUploadTab() {
               </div>
 
               <div className="p-6 space-y-5 dark:bg-neutral-900 overflow-y-auto max-h-[75vh]">
+                {/* Public link */}
+                {(() => {
+                  const cvPublicUrl = `${BASE}/?cv=${selectedResume.resume_id}`;
+                  const copyPubLink = () => {
+                    navigator.clipboard.writeText(cvPublicUrl).then(() => {
+                      setSharePublicLinkCopied(true);
+                      setTimeout(() => setSharePublicLinkCopied(false), 2000);
+                    });
+                  };
+                  return (
+                    <div className="space-y-2">
+                      <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{t.share.publicLink}</label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-xs text-gray-600 dark:text-neutral-300 truncate font-mono">
+                          {cvPublicUrl}
+                        </div>
+                        <button
+                          onClick={copyPubLink}
+                          className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${sharePublicLinkCopied ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700'}`}
+                        >
+                          {sharePublicLinkCopied
+                            ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                          }
+                          {sharePublicLinkCopied ? t.share.copied : t.share.copyBtn}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">{t.share.linkHint}</p>
+                    </div>
+                  );
+                })()}
+
+                <div className="border-t border-gray-100 dark:border-neutral-800" />
+
                 {/* Email */}
                 {(() => {
                   const info = selectedResume.personal_info ?? selectedResume.resume_data?.personal_info ?? {};
@@ -2011,7 +2049,8 @@ export function ResumeUploadTab() {
                   const recipientGreeting = shareEmailRecipientName.trim()
                     ? eb.greeting.replace('{name}', shareEmailRecipientName.trim())
                     : eb.hiringManager;
-                  const emailBody = `${recipientGreeting}\n\n${eb.line1}\n\n${eb.line2link}\n${publicUrl}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`;
+                  const cvPublicUrl = `${BASE}/?cv=${selectedResume.resume_id}`;
+                  const emailBody = `${recipientGreeting}\n\n${eb.line1}\n\n${eb.line2link}\n${cvPublicUrl}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`;
                   const subject = `CV: ${selectedResume.title || 'My Resume'}`;
                   return (
                     <div className="space-y-3">
