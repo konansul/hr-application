@@ -285,7 +285,7 @@ export const pt = {
     actions: {
       exportPdf: "Exportar PDF",
       share: "Compartilhar",
-      copyLink: "Copiar link",
+      copyLink: "Compartilhar link público",
       linkCopied: "Copiado!",
       sendByEmail: "Enviar por e-mail",
       edit: "Editar",

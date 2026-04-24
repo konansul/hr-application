@@ -285,7 +285,7 @@ export const ru = {
     actions: {
       exportPdf: "Экспорт PDF",
       share: "Поделиться",
-      copyLink: "Копировать ссылку",
+      copyLink: "Поделиться публичной ссылкой",
       linkCopied: "Скопировано!",
       sendByEmail: "Отправить по email",
       edit: "Редактировать",
