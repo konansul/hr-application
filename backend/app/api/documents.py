@@ -14,6 +14,9 @@ from backend.database.db import get_db
 from backend.database.models import Document, User, Person, Resume
 from backend.app.api.helpers.ownership import get_current_user
 
+# ИМПОРТИРУЕМ ФУНКЦИЮ ЛИМИТОВ
+from backend.app.api.helpers.quota import consume_ai_quota
+
 from backend.app.services.parsing.pdf import pdf_to_text
 from backend.app.services.parsing.docx import docx_to_text
 from backend.app.services.parsing.clean import clean_text
@@ -62,9 +65,16 @@ async def upload_document(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    # ПРОВЕРЯЕМ И СПИСЫВАЕМ КВОТУ ПЕРЕД НАЧАЛОМ РАБОТЫ ИИ
+    consume_ai_quota(db, current_user)
+
     try:
         parsed_data = run_cv_parsing(cv_text)
     except Exception as e:
+        # ЕСЛИ ИИ УПАЛ, ВОЗВРАЩАЕМ КАНДИДАТУ ЕГО ПОПЫТКУ
+        if current_user.ai_used > 0:
+            current_user.ai_used -= 1
+            db.commit()
         raise HTTPException(
             status_code=500,
             detail=f"AI parsing failed due to connection or API error: {str(e)}"
@@ -232,18 +242,19 @@ def delete_document(
 async def submit_public_application(
         name: str = Form(...),
         email: str = Form(...),
-        phone: str = Form(None),
-        position: str = Form(...),
-        salary_expectation: str = Form(...),
-        education: str = Form(...),
-        skills: str = Form(...),
-        experience_years: str = Form(...),
-        motivation: str = Form(...),
         job_id: str = Form(...),
         file: UploadFile = File(...),
+        phone: str = Form(None),
+        motivation: str = Form(None),
+        position: str = Form(None),
+        salary_expectation: str = Form(None),
+        education: str = Form(None),
+        skills: str = Form(None),
+        experience_years: str = Form(None),
         db: Session = Depends(get_db)
 ):
     content = await file.read()
+
     try:
         cv_text, doc_content_type = extract_cv_text(file.filename or "", content)
     except ValueError as e:
@@ -261,20 +272,16 @@ async def submit_public_application(
         db.flush()
 
     enriched_raw_text = f"""
-CANDIDATE APPLICATION FORM
-
-Job ID Applied For: {job_id}
+CANDIDATE PUBLIC APPLICATION
+---------------------------
+Job ID: {job_id}
 Name: {name}
 Email: {email}
 Phone: {phone or 'Not provided'}
-Target Position: {position}
-Salary Expectation: {salary_expectation}
-Education: {education}
-Years of Experience: {experience_years}
-Self-Reported Skills: {skills}
-Motivation: {motivation}
+Motivation: {motivation or 'Not provided'}
+Additional Info: {position or ''} {skills or ''}
 
-ORIGINAL CV TEXT
+ORIGINAL CV TEXT:
 {cv_text}
 """
 
@@ -288,21 +295,20 @@ ORIGINAL CV TEXT
 
     if not person:
         name_parts = name.split(" ", 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else "Unknown"
+        f_name = personal_info.get("first_name") or name_parts[0]
+        l_name = personal_info.get("last_name") or (name_parts[1] if len(name_parts) > 1 else "Unknown")
 
         person = Person(
             person_id=new_id("prs"),
             user_id=user.user_id,
-            first_name=personal_info.get("first_name") or first_name,
-            last_name=personal_info.get("last_name") or last_name,
+            first_name=f_name,
+            last_name=l_name,
             phone=phone or personal_info.get("phone")
         )
         db.add(person)
     db.flush()
 
     file_hash = hashlib.sha256(content).hexdigest()
-
     doc = Document(
         document_id=new_id("doc"),
         owner_user_id=user.user_id,
@@ -320,23 +326,14 @@ ORIGINAL CV TEXT
         resume_id=new_id("res"),
         person_id=person.person_id,
         language=parsed_data.get("language") or "en",
-        title=file.filename,
+        title=f"CV: {name} - {file.filename}",
         payload=json.dumps(parsed_data, ensure_ascii=False),
         source_type="public_application",
         source_document_id=doc.document_id,
         generated_document_id=doc.document_id,
-        profile_snapshot_json=person.profile_json,
         generation_status="generated"
     )
     db.add(resume)
-    db.flush()
-    doc.resume_id = resume.resume_id
-
     db.commit()
 
-    return {
-        "status": "success",
-        "message": "Application saved to database successfully",
-        "document_id": doc.document_id,
-        "resume_id": resume.resume_id
-    }
+    return {"status": "success", "resume_id": resume.resume_id}

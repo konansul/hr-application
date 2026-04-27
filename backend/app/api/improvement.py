@@ -21,6 +21,8 @@ from backend.database.models import (
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 
+from backend.app.api.helpers.quota import consume_ai_quota
+
 router = APIRouter()
 
 def extract_cv_text(filename: str, data: bytes) -> tuple[str, str]:
@@ -62,6 +64,8 @@ async def improve_cv_file(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    consume_ai_quota(db, current_user)
+
     file_hash = sha256_bytes(data)
 
     db_document = Document(
@@ -76,10 +80,16 @@ async def improve_cv_file(
     db.add(db_document)
     db.flush()
 
-    result = run_cv_improvement(
-        cv_text=cv_text,
-        job_description=job_description,
-    )
+    try:
+        result = run_cv_improvement(
+            cv_text=cv_text,
+            job_description=job_description,
+        )
+    except Exception as e:
+        if current_user.ai_used > 0:
+            current_user.ai_used -= 1
+            db.commit()
+        raise HTTPException(status_code=500, detail=f"AI Improvement failed: {str(e)}")
 
     db_result = CVImprovementResultDB(
         improvement_id=new_id("imp"),

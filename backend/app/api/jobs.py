@@ -12,6 +12,8 @@ from backend.database.models import Job, User, Person, Resume, Application
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 
+# ИМПОРТИРУЕМ ФУНКЦИЮ ЛИМИТОВ
+from backend.app.api.helpers.quota import consume_ai_quota
 from backend.app.pipeline import run_job_refinement
 
 router = APIRouter()
@@ -22,8 +24,12 @@ DEFAULT_PIPELINE_STAGES = ["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJE
 @router.post("/jobs/refine", response_model=JobRefineResponse)
 def refine_job_description(
         request: JobRefineRequest,
+        db: Session = Depends(get_db), # ДОБАВЛЕНО: сессия БД
         current_user: User = Depends(get_current_user),
 ):
+    # ПРОВЕРЯЕМ И СПИСЫВАЕМ КВОТУ
+    consume_ai_quota(db, current_user)
+
     try:
         region = getattr(request, "region", None)
 
@@ -41,6 +47,10 @@ def refine_job_description(
         )
         return JobRefineResponse(improved_description=improved_text)
     except Exception as e:
+        # ВОЗВРАЩАЕМ ПОПЫТКУ, ЕСЛИ ИИ УПАЛ С ОШИБКОЙ
+        if current_user.ai_used > 0:
+            current_user.ai_used -= 1
+            db.commit()
         raise HTTPException(status_code=500, detail=f"AI Refinement failed: {str(e)}")
 
 
@@ -77,7 +87,6 @@ def create_job(
         status=getattr(job, "status", "active"),
         screening_questions_json=screening_questions_str,
         pipeline_stages_json=pipeline_stages_str,
-        # СОХРАНЯЕМ ТРЕБОВАНИЯ ПРИ СОЗДАНИИ
         requirements=job.requirements.model_dump() if getattr(job, "requirements", None) else None
     )
 
@@ -120,7 +129,7 @@ def create_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=db_job.owner_user_id,
-        requirements=db_job.requirements  # ОТДАЕМ ТРЕБОВАНИЯ
+        requirements=db_job.requirements
     )
 
 
@@ -214,7 +223,7 @@ def get_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=job.owner_user_id,
-        requirements=job.requirements  # ОТДАЕМ ТРЕБОВАНИЯ
+        requirements=job.requirements
     )
 
 
@@ -288,6 +297,46 @@ def update_job(
 
     db.commit()
     db.refresh(job)
+
+    qs = []
+    if job.screening_questions_json:
+        try:
+            qs = json.loads(job.screening_questions_json)
+        except:
+            qs = []
+
+    stages = DEFAULT_PIPELINE_STAGES
+    if job.pipeline_stages_json:
+        try:
+            stages = json.loads(job.pipeline_stages_json)
+        except:
+            pass
+
+    return JobOut(
+        id=job.job_id,
+        title=job.title,
+        description=job.description,
+        region=job.region,
+        level=job.level,
+        status=job.status,
+        screening_questions=qs,
+        pipeline_stages=stages,
+        owner_user_id=job.owner_user_id,
+        requirements=job.requirements
+    )
+
+@router.get("/public/jobs/{job_id}", response_model=JobOut)
+def get_public_job(
+        job_id: str,
+        db: Session = Depends(get_db),
+):
+    job = db.query(Job).filter(Job.job_id == job_id).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if job.status != "active":
+        raise HTTPException(status_code=403, detail="This job is not currently accepting applications")
 
     qs = []
     if job.screening_questions_json:

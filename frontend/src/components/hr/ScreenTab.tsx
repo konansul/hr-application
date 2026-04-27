@@ -35,7 +35,7 @@ interface ScreenTabProps {
 }
 
 export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchResults}: ScreenTabProps) {
-    const {globalJobId, language} = useStore();
+    const {globalJobId, language, aiQuota, aiUsed, setAiLimits} = useStore();
     const t = DICT[language as keyof typeof DICT]?.screening || DICT.en.screening;
 
     const [documents, setDocuments] = useState<any[]>([]);
@@ -111,8 +111,13 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
             if (combinedResults.length > 0) {
                 setSelectedFilename(combinedResults[0].filename);
             }
+            setAiLimits(aiQuota, aiUsed + 1);
         } catch (err: any) {
-            setError(err.response?.data?.detail || "Screening failed to start.");
+            if (err.response?.status === 429) {
+                setError("⏳ Daily AI limit reached. Resets at midnight.");
+            } else {
+                setError(err.response?.data?.detail || "Screening failed to start.");
+            }
         } finally {
             setIsProcessing(false);
         }

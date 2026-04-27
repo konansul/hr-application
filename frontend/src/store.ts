@@ -4,7 +4,6 @@ import { persist } from 'zustand/middleware';
 interface AppState {
   isLoggedIn: boolean;
   userRole: 'hr' | 'candidate' | null;
-  // Добавили 'settings' в список разрешенных вкладок
   activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications' | 'talent' | 'settings';
   globalJobDescription: string;
   globalJobId: string;
@@ -14,10 +13,12 @@ interface AppState {
   isSidebarOpen: boolean;
   theme: 'light' | 'dark';
   language: string;
+  aiQuota: number;
+  aiUsed: number;
+  setAiLimits: (quota: number, used: number) => void;
   setLanguage: (lang: string) => void;
   setIsLoggedIn: (status: boolean) => void;
   setUserRole: (role: 'hr' | 'candidate' | null) => void;
-  // Добавили 'settings' сюда тоже
   setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications' | 'talent' | 'settings') => void;
   setGlobalJobDescription: (desc: string) => void;
   setGlobalJobId: (id: string) => void;
@@ -43,6 +44,9 @@ export const useStore = create<AppState>()(
       isSidebarOpen: true,
       theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light',
       language: 'en',
+      aiQuota: 10,
+      aiUsed: 0,
+      setAiLimits: (quota, used) => set({ aiQuota: quota, aiUsed: used }),
       setIsLoggedIn: (status) => set({ isLoggedIn: status }),
       setUserRole: (role) => set({ userRole: role }),
       setActiveTab: (tab) => set({ activeTab: tab }),
@@ -64,8 +68,10 @@ export const useStore = create<AppState>()(
         globalJobDescription: '',
         globalJobId: '',
         globalJobTitle: '',
-        globalJobStages: [], // Сброс при выходе
-        globalBatchResults: []
+        globalJobStages: [],
+        globalBatchResults: [],
+        aiQuota: 10,
+        aiUsed: 0
       }),
     }),
     {
@@ -78,7 +84,7 @@ export const useStore = create<AppState>()(
         globalJobTitle: state.globalJobTitle,
         globalJobStages: state.globalJobStages,
         theme: state.theme,
-        language: state.language, // Теперь язык тоже сохраняется при обновлении страницы!
+        language: state.language,
       }),
     }
   )

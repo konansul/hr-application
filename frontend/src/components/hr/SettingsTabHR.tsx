@@ -75,6 +75,21 @@ export function SettingsTab() {
     }
   };
 
+  // Логика определения статуса для кандидата на основе внутреннего шага
+  const getCandidateStatus = (stage: string, index: number) => {
+    if (index === 0) {
+      return { label: 'Applied', colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30' };
+    }
+    const upper = stage.toUpperCase();
+    if (upper.includes('REJECT') || upper.includes('DECLINE')) {
+      return { label: 'Rejected', colorClass: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30' };
+    }
+    if (upper.includes('OFFER') || upper.includes('ACCEPT') || upper.includes('HIRE')) {
+      return { label: 'Offer', colorClass: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30' };
+    }
+    return { label: 'In Progress', colorClass: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' };
+  };
+
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
 
@@ -120,17 +135,37 @@ export function SettingsTab() {
             ) : (
               <>
                 <div className="flex-1 space-y-2 mb-6">
-                  {editedStages.map((stage, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl group hover:border-gray-400 dark:hover:border-neutral-600 transition-all shadow-sm">
-                      <span className="text-sm font-bold text-gray-400 dark:text-neutral-600 shrink-0 w-5 text-right select-none">{index + 1}.</span>
-                      <span className="flex-1 text-sm font-bold text-gray-700 dark:text-white uppercase tracking-wider">{stage.replace(/_/g, ' ')}</span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => moveStage(index, 'up')} disabled={index === 0} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
-                        <button onClick={() => moveStage(index, 'down')} disabled={index === editedStages.length - 1} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
-                        <button onClick={() => handleRemoveStage(stage)} className="p-1.5 text-gray-400 hover:text-red-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                      </div>
+                  {/* Заголовки колонок */}
+                  {editedStages.length > 0 && (
+                    <div className="flex text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-wider px-3 mb-3">
+                      <span className="flex-1 ml-8">Internal Stage</span>
+                      <span className="w-24 text-center mr-2">Candidate View</span>
+                      <span className="w-[84px]"></span>
                     </div>
-                  ))}
+                  )}
+
+                  {editedStages.map((stage, index) => {
+                    const candidateStatus = getCandidateStatus(stage, index);
+
+                    return (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl group hover:border-gray-400 dark:hover:border-neutral-600 transition-all shadow-sm">
+                        <span className="text-sm font-bold text-gray-400 dark:text-neutral-600 shrink-0 w-5 text-right select-none">{index + 1}.</span>
+                        <span className="flex-1 text-sm font-bold text-gray-700 dark:text-white uppercase tracking-wider truncate">{stage.replace(/_/g, ' ')}</span>
+
+                        {/* Бейдж того, что видит кандидат */}
+                        <div className={`w-24 text-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${candidateStatus.colorClass}`}>
+                          {candidateStatus.label}
+                        </div>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity w-[84px] justify-end shrink-0">
+                          <button onClick={() => moveStage(index, 'up')} disabled={index === 0} className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                          <button onClick={() => moveStage(index, 'down')} disabled={index === editedStages.length - 1} className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
+                          <button onClick={() => handleRemoveStage(stage)} className="p-1 text-gray-400 hover:text-red-500 ml-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
                   {editedStages.length === 0 && (
                     <p className="text-xs text-red-500 text-center py-4 font-bold">{t.mustHaveStage}</p>
                   )}

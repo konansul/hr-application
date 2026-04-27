@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-//const BASE_URL = 'http://127.0.0.1:8000'
-const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
+const BASE_URL = 'http://127.0.0.1:8000'
+//const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -24,6 +24,7 @@ export const authApi = {
       last_name,
       organization_name,
       role
+
     });
     return response.data;
   },
@@ -234,90 +235,128 @@ export const documentsApi = {
 };
 
 export const resumesApi = {
-  list: async () => {
-    const response = await apiClient.get('/v1/resumes');
-    return response.data;
-  },
+    list: async () => {
+        const response = await apiClient.get('/v1/resumes');
+        return response.data;
+    },
 
-  latest: async () => {
-    const response = await apiClient.get('/v1/resumes/latest');
-    return response.data;
-  },
+    latest: async () => {
+        const response = await apiClient.get('/v1/resumes/latest');
+        return response.data;
+    },
 
-  createFromProfile: async (payload: {
-    language?: string;
-    title?: string;
-    resume_data?: any;
-    attach_document_id?: string | null;
-    generate_from_profile_if_empty?: boolean;
-    valid_until?: string | null;
-    removed_sections?: string[];
-  } = {}) => {
-    const response = await apiClient.post('/v1/resumes/from-profile', payload);
-    return response.data;
-  },
+    createFromProfile: async (payload: {
+        language?: string;
+        title?: string;
+        resume_data?: any;
+        attach_document_id?: string | null;
+        generate_from_profile_if_empty?: boolean;
+        valid_until?: string | null;
+        removed_sections?: string[];
+    } = {}) => {
+        const response = await apiClient.post('/v1/resumes/from-profile', payload);
+        return response.data;
+    },
 
-  createFromJobDescription: async (payload: {
-    job_description: string;
-    language?: string;
-    title?: string;
-    valid_until?: string | null;
-    removed_sections?: string[];
-    job_id?: string | null;
-    source_resume_id?: string | null;
-  }) => {
-    const response = await apiClient.post('/v1/resumes/from-job-description', payload);
-    return response.data;
-  },
+    createFromJobDescription: async (payload: {
+        job_description: string;
+        language?: string;
+        title?: string;
+        valid_until?: string | null;
+        removed_sections?: string[];
+        job_id?: string | null;
+        source_resume_id?: string | null;
+    }) => {
+        const response = await apiClient.post('/v1/resumes/from-job-description', payload);
+        return response.data;
+    },
 
-  fetchJobUrl: async (url: string): Promise<{ job_title: string; job_description: string }> => {
-    const response = await apiClient.post('/v1/resumes/fetch-job-url', { url });
-    return response.data;
-  },
+    fetchJobUrl: async (url: string): Promise<{ job_title: string; job_description: string }> => {
+        const response = await apiClient.post('/v1/resumes/fetch-job-url', {url});
+        return response.data;
+    },
 
-  duplicate: async (resumeId: string, payload: {
-    language?: string;
-    title?: string;
-    resume_data?: any;
-    removed_sections?: string[];
-    valid_until?: string | null;
-  } = {}) => {
-    const response = await apiClient.post(`/v1/resumes/${resumeId}/duplicate`, payload);
-    return response.data;
-  },
+    duplicate: async (resumeId: string, payload: {
+        language?: string;
+        title?: string;
+        resume_data?: any;
+        removed_sections?: string[];
+        valid_until?: string | null;
+    } = {}) => {
+        const response = await apiClient.post(`/v1/resumes/${resumeId}/duplicate`, payload);
+        return response.data;
+    },
 
-  update: async (resumeId: string, payload: {
-    language?: string;
-    title?: string;
-    resume_data: any;
-    generated_document_id?: string | null;
-  }) => {
-    const response = await apiClient.put(`/v1/resumes/${resumeId}`, payload);
-    return response.data;
-  },
+    update: async (resumeId: string, payload: {
+        language?: string;
+        title?: string;
+        resume_data: any;
+        generated_document_id?: string | null;
+    }) => {
+        const response = await apiClient.put(`/v1/resumes/${resumeId}`, payload);
+        return response.data;
+    },
 
-  delete: async (resumeId: string) => {
-    const response = await apiClient.delete(`/v1/resumes/${resumeId}`);
-    return response.data;
-  },
+    delete: async (resumeId: string) => {
+        const response = await apiClient.delete(`/v1/resumes/${resumeId}`);
+        return response.data;
+    },
 
-  getPublicResume: async (resumeId: string) => {
-    const response = await apiClient.get(`/v1/resumes/public/${resumeId}`);
-    return response.data;
-  },
+    getPublicResume: async (resumeId: string) => {
+        const response = await apiClient.get(`/v1/resumes/public/${resumeId}`);
+        return response.data;
+    },
 
-  sendEmail: async (payload: {
-    to: string;
-    subject: string;
-    message: string;
-    pdf_base64: string;
-    filename?: string;
-  }) => {
-    const response = await apiClient.post('/v1/resumes/send-email', payload);
-    return response.data;
-  },
+    sendEmail: async (payload: {
+        to: string;
+        subject: string;
+        message: string;
+        pdf_base64: string;
+        filename?: string;
+    }) => {
+        const response = await apiClient.post('/v1/resumes/send-email', payload);
+        return response.data;
+    },
+}
+    export const publicApi = {
   getProfile: async (slug: string) => {
     const response = await axios.get(`${BASE_URL}/public/p/${slug}`);
     return response.data;
-  }
+  },
+
+  getJob: async (jobId: string) => {
+    const response = await axios.get(`${BASE_URL}/public/jobs/${jobId}`);
+    return response.data;
+  },
+ // Внутри publicApi в файле src/api.ts
+
+submitPublicApplication: async (payload: {
+  name: string;
+  email: string;
+  job_id: string;
+  file: File;
+  phone?: string;
+  motivation?: string;
+  // Добавляем эти поля в интерфейс, чтобы TS не ругался:
+  position?: string;
+  salary_expectation?: string;
+  education?: string;
+  skills?: string;
+  experience_years?: string;
+}) => {
+  const formData = new FormData();
+
+  // Перебираем все ключи объекта и добавляем в FormData
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      // Если это файл, добавляем как файл, остальное как строку
+      formData.append(key, value instanceof File ? value : String(value));
+    }
+  });
+
+  const response = await axios.post(`${BASE_URL}/v1/applications/submit`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+},
 };

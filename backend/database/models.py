@@ -1,5 +1,7 @@
 import enum
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text, JSON
+from datetime import date
+
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text, JSON, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from backend.database.db import Base
@@ -43,6 +45,9 @@ class User(Base):
     role = Column(String(32), nullable=False, default="candidate")
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    ai_quota = Column(Integer, default=10)
+    ai_used = Column(Integer, default=0)
+    last_quota_reset = Column(Date, default=date.today)
 
     organization = relationship("Organization", back_populates="users")
     person_profile = relationship("Person", back_populates="user", uselist=False)

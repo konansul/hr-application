@@ -23,6 +23,8 @@ class UserMeResponse(BaseModel):
     person_id: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    ai_quota: int = 10
+    ai_used: int = 0
 
 
 class LoginRequest(BaseModel):

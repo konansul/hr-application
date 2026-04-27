@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { resumesApi } from '../../api';
+import { publicApi } from '../../api';
 
 interface PublicCvViewProps {
   slug: string;
@@ -12,7 +12,7 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await resumesApi.getProfile(slug);
+        const data = await publicApi.getProfile(slug);
         setProfileData(data);
       } catch (err: any) {
         if (err.response?.status === 404) {

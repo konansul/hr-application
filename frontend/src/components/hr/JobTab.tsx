@@ -10,43 +10,28 @@ interface ScreeningQuestion {
 }
 
 interface JobRequirements {
-  // 1. Location & Work Setup
   workFormat: 'Remote' | 'Hybrid' | 'On-site' | 'Any';
   willingToRelocate: boolean;
   remoteCountryRestriction: string;
   officeDaysRequired: string;
   timeZoneMatch: string;
   openToDifferentTimeZone: boolean;
-
-  // 2. Work Authorization
   visaSponsorship: boolean;
   validWorkPermitRequired: boolean;
-
-  // 3. Salary & compensation package
   salaryMin: string;
   salaryMax: string;
   currency: string;
   salaryExpectationRequired: boolean;
-
-  // 4. Availability
   maxNoticePeriod: string;
   immediateStartRequired: boolean;
-
-  // 5. Experience & Seniority
   minExperienceYears: string;
   maxExperienceYears: string;
   requiredSeniority: string;
-
-  // 6. Skills & Key Words
   mandatorySkills: string;
   mandatoryTechnologies: string;
-
-  // 7. Education & Qualifications
   minEducation: string;
   degreeField: string;
   mandatoryCertifications: string;
-
-  // 8. Job Specific
   willingToTravel: boolean;
   drivingLicense: boolean;
   languageRequirements: string;
@@ -98,9 +83,14 @@ const DEFAULT_REQUIREMENTS: JobRequirements = {
 
 export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (desc: string) => void }) {
   const token = localStorage.getItem('auth_token');
-  const { setGlobalJobId, setGlobalJobTitle, language } = useStore();
+  const { setGlobalJobId, setGlobalJobTitle, language, aiQuota, aiUsed, setAiLimits } = useStore();
 
   const t = DICT[language as keyof typeof DICT]?.jobsHr || DICT.en.jobsHr;
+
+  const [initialTargetId] = useState(() => {
+    const match = window.location.pathname.match(/\/jobs\/([^/?#]+)/);
+    return match ? match[1] : null;
+  });
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
@@ -120,6 +110,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false);
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
 
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
@@ -143,10 +134,18 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   const fetchJobs = async () => {
     try {
-      const data = await jobsApi.list();
+      const data: Job[] = await jobsApi.list();
       setJobs(data);
-      if (data.length > 0 && !selectedJobId && !currentJob) {
-        handleLoadJob(data[0]);
+
+      if (data.length > 0) {
+        if (!selectedJobId && !currentJob) {
+          const jobToLoad = initialTargetId ? data.find((j: Job) => j.id === initialTargetId) : null;
+          if (jobToLoad) {
+            handleLoadJob(jobToLoad);
+          } else {
+            handleLoadJob(data[0]);
+          }
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -157,7 +156,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     if (token) fetchJobs();
   }, [token]);
 
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = jobs.filter((job: Job) => {
     if (filterStatus !== 'All' && job.status !== filterStatus) return false;
     if (filterLevel !== 'All' && job.level !== filterLevel) return false;
     if (filterRegion !== 'All' && job.region !== filterRegion) return false;
@@ -175,18 +174,17 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setActiveQuestions(jobToLoad.screening_questions ?? []);
     setActiveRequirements(jobToLoad.requirements ?? DEFAULT_REQUIREMENTS);
     setError(null);
+    window.history.replaceState(null, '', `/hr/jobs/${jobToLoad.id}`);
   };
 
   const handleCreateJob = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
-
     if (!draftTitle.trim() || !draftDescription.trim()) {
       setError("Please provide a title and a basic description.");
       return;
     }
-
     try {
       const newJob = await jobsApi.create(draftTitle, draftDescription, draftRegion, draftLevel);
       setCurrentJob(newJob);
@@ -198,16 +196,14 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setActiveStatus('active');
       setActiveQuestions([]);
       setActiveRequirements(DEFAULT_REQUIREMENTS);
-
       setMessage(t.success || "New active job created and loaded to workspace.");
-
       setDraftTitle('');
       setDraftDescription('');
       setDraftLevel('Middle');
       setDraftRegion('Global');
       setIsCreateModalOpen(false);
-
       fetchJobs();
+      window.history.replaceState(null, '', `/hr/jobs/${newJob.id}`);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Create failed');
     }
@@ -219,11 +215,11 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   };
 
   const handleUpdateQuestion = (id: string, field: keyof ScreeningQuestion, value: string) => {
-    setActiveQuestions(activeQuestions.map(q => q.id === id ? { ...q, [field]: value } : q));
+    setActiveQuestions(activeQuestions.map((q: ScreeningQuestion) => q.id === id ? { ...q, [field]: value } : q));
   };
 
   const handleRemoveQuestion = (id: string) => {
-    setActiveQuestions(activeQuestions.filter(q => q.id !== id));
+    setActiveQuestions(activeQuestions.filter((q: ScreeningQuestion) => q.id !== id));
   };
 
   const handleUpdateRequirement = (field: keyof JobRequirements, value: any) => {
@@ -244,8 +240,13 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       if (data.extracted_requirements) {
          setActiveRequirements(prev => ({...prev, ...data.extracted_requirements}));
       }
+      setAiLimits(aiQuota, aiUsed + 1);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'AI Refinement failed');
+      if (err.response?.status === 429) {
+        setError("⏳ Daily AI limit reached. Resets at midnight.");
+      } else {
+        setError(err.response?.data?.detail || 'AI Refinement failed');
+      }
     } finally {
       setIsRefining(false);
     }
@@ -261,8 +262,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setActiveDescription('');
       setActiveQuestions([]);
       setActiveRequirements(DEFAULT_REQUIREMENTS);
-      setJobs(prev => prev.filter(j => j.id !== currentJob.id));
+      setJobs(prev => prev.filter((j: Job) => j.id !== currentJob.id));
       setSelectedJobId('');
+      window.history.replaceState(null, '', '/hr/jobs');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Delete failed');
     }
@@ -282,7 +284,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
          screening_questions: activeQuestions,
          requirements: activeRequirements
       } as any);
-
       setCurrentJob(updatedJob);
       setMessage(t.success);
       fetchJobs();
@@ -292,6 +293,47 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCopyLink = () => {
+    if (!currentJob) return;
+    const url = `${window.location.origin}/p/jobs/${currentJob.id}`;
+    navigator.clipboard.writeText(url);
+    setMessage("Public job link copied to clipboard!");
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  const shareJob = (platform: string) => {
+    if (!currentJob) return;
+
+    const url = `${window.location.origin}/p/jobs/${currentJob.id}`;
+    const salary = activeRequirements.salaryMin && activeRequirements.salaryMax
+      ? `\n💰 Salary: ${activeRequirements.salaryMin}-${activeRequirements.salaryMax} ${activeRequirements.currency}`
+      : '';
+    const format = activeRequirements.workFormat !== 'Any'
+      ? `\n📍 Format: ${activeRequirements.workFormat}`
+      : '';
+
+    const text = `We are hiring a ${activeTitle}!${format}${salary}\n\nApply here:`;
+
+    let shareUrl = '';
+    switch (platform) {
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
+        break;
+    }
+
+    if (shareUrl) window.open(shareUrl, '_blank');
+    setIsShareMenuOpen(false);
   };
 
   const getStatusBadgeStyles = (status?: string) => {
@@ -314,7 +356,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 pb-20 relative transition-colors">
-
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-gray-100 dark:border-neutral-800 pb-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">{t.title}</h2>
@@ -329,16 +370,15 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             </select>
             <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
               <option value="All">{t.filters.allLevels}</option>
-              {LEVELS.map(l => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
+              {LEVELS.map((l: string) => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
             </select>
             <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
               <option value="All">{t.filters.allLocations}</option>
-              {REGIONS.map(r => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
+              {REGIONS.map((r: string) => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
             </select>
           </div>
         </div>
-
-        <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all">
+        <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           {t.createBtn}
         </button>
@@ -359,10 +399,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               <div className="w-16 text-center">{t.listHeaders.status}</div>
               <div className="w-12 text-right">{t.listHeaders.loc}</div>
             </div>
-
             <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
               {filteredJobs.length > 0 ? (
-                filteredJobs.map(job => {
+                filteredJobs.map((job: Job) => {
                   const isSelected = selectedJobId === job.id;
                   return (
                     <button key={job.id} onClick={() => handleLoadJob(job)} className={`flex items-center w-full text-left px-3 py-3 rounded-xl border transition-all duration-200 group ${isSelected ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-md' : 'bg-white dark:bg-neutral-900 border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}>
@@ -388,7 +427,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               )}
             </div>
           </div>
-
           {currentJob && (
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col h-[50%] overflow-hidden transition-colors">
               <div className="px-5 py-3.5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-950 shrink-0">
@@ -398,10 +436,9 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   {t.questions.addBtn}
                 </button>
               </div>
-
               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-gray-50/30 dark:bg-black/20">
                 {activeQuestions.length > 0 ? (
-                  activeQuestions.map((q, idx) => (
+                  activeQuestions.map((q: ScreeningQuestion, idx: number) => (
                     <div key={q.id} className="p-3 bg-white dark:bg-neutral-900 hover:bg-gray-50 dark:hover:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-800 relative group transition-colors shadow-sm">
                       <div className="absolute top-3 left-3 w-4 h-4 bg-gray-100 dark:bg-neutral-800 rounded flex items-center justify-center text-[9px] font-bold text-gray-500">
                         {idx + 1}
@@ -424,54 +461,73 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             </div>
           )}
         </div>
-
         <div className="lg:col-span-8">
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col overflow-hidden h-[800px] transition-colors">
-
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-950 flex flex-wrap items-center justify-between gap-4 shrink-0">
               <div className="flex items-center gap-3">
                 <div className={`w-2.5 h-2.5 rounded-full ${currentJob ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300 dark:bg-neutral-700'}`}></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.workspace}</h3>
               </div>
-
               {currentJob && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setIsRequirementsModalOpen(true)}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-bold transition-all shadow-sm"
-                  >
+                <div className="flex flex-wrap gap-2">
+
+                  <button onClick={handleCopyLink} className="flex items-center gap-1.5 px-4 py-1.5 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300 border border-gray-200 dark:border-neutral-700 rounded-xl text-xs font-bold transition-all shadow-sm">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                    Copy Link
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 rounded-xl text-xs font-bold transition-all shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                      Share Job
+                    </button>
+
+                    {isShareMenuOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setIsShareMenuOpen(false)}></div>
+                        {/* Меню с right-0, чтобы открывалось влево и не обрезалось */}
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <button onClick={() => shareJob('linkedin')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors">
+                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                             LinkedIn
+                          </button>
+                          <button onClick={() => shareJob('telegram')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-3 transition-colors border-t border-gray-50 dark:border-neutral-800/50">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a5.96 5.96 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.123-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.888-.667 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                             Telegram
+                          </button>
+                          <button onClick={() => shareJob('twitter')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white flex items-center gap-3 transition-colors border-t border-gray-50 dark:border-neutral-800/50">
+                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                             X (Twitter)
+                          </button>
+                          <button onClick={() => shareJob('whatsapp')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-3 transition-colors border-t border-gray-50 dark:border-neutral-800/50">
+                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.876 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                             WhatsApp
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <button onClick={() => setIsRequirementsModalOpen(true)} className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-bold transition-all shadow-sm">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     Requirements
                   </button>
-                  <button
-                    onClick={handleRefineWithAI}
-                    disabled={isRefining}
-                    className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-                  >
+                  <button onClick={handleRefineWithAI} disabled={isRefining} className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
                     {isRefining ? t.aiWorking : t.aiRewrite}
                   </button>
-                  <button
-                    onClick={handleSaveChanges}
-                    disabled={isSaving}
-                    className="px-5 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-sm"
-                  >
+                  <button onClick={handleSaveChanges} disabled={isSaving} className="px-5 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-sm">
                     {isSaving ? t.saving : t.saveChanges}
                   </button>
                 </div>
               )}
             </div>
-
             {currentJob ? (
               <div className="p-6 flex flex-col flex-1 gap-5 overflow-hidden">
                 <div className="flex flex-col xl:flex-row xl:items-start gap-4 justify-between shrink-0">
-                  <input
-                    type="text"
-                    value={activeTitle}
-                    onChange={(e) => setActiveTitle(e.target.value)}
-                    className="flex-1 text-3xl font-bold text-gray-900 dark:text-white border-none focus:ring-0 p-0 placeholder-gray-300 dark:placeholder-neutral-700 bg-transparent"
-                    placeholder={t.untitled}
-                  />
-
+                  <input type="text" value={activeTitle} onChange={(e) => setActiveTitle(e.target.value)} className="flex-1 text-3xl font-bold text-gray-900 dark:text-white border-none focus:ring-0 p-0 placeholder-gray-300 dark:placeholder-neutral-700 bg-transparent" placeholder={t.untitled} />
                   <div className="flex flex-wrap items-center gap-2 shrink-0 bg-gray-50 dark:bg-black p-1.5 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
                     <select value={activeStatus} onChange={(e) => setActiveStatus(e.target.value as JobStatus)} className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer transition-colors ${getStatusBadgeStyles(activeStatus)}`}>
                       <option value="draft">{(t as any).statusNames?.draft?.toUpperCase() || 'DRAFT'}</option>
@@ -481,23 +537,15 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                     </select>
                     <div className="w-px h-6 bg-gray-200 dark:bg-neutral-800 mx-1"></div>
                     <select value={activeLevel} onChange={(e) => setActiveLevel(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm">
-                        {LEVELS.map(l => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
+                        {LEVELS.map((l: string) => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
                     </select>
                     <select value={activeRegion} onChange={(e) => setActiveRegion(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm">
-                        {REGIONS.map(r => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
+                        {REGIONS.map((r: string) => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
                     </select>
                   </div>
                 </div>
-
                 <div className="h-px bg-gray-100 dark:bg-neutral-800 w-full shrink-0"></div>
-
-                <textarea
-                  value={activeDescription}
-                  onChange={(e) => setActiveDescription(e.target.value)}
-                  placeholder="Start writing the detailed description..."
-                  className={`w-full flex-1 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed border-none focus:ring-0 p-0 resize-none transition-colors custom-scrollbar bg-transparent outline-none ${isRefining ? 'text-indigo-400 dark:text-indigo-500' : ''}`}
-                />
-
+                <textarea value={activeDescription} onChange={(e) => setActiveDescription(e.target.value)} placeholder="Start writing the detailed description..." className={`w-full flex-1 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed border-none focus:ring-0 p-0 resize-none transition-colors custom-scrollbar bg-transparent outline-none ${isRefining ? 'text-indigo-400 dark:text-indigo-500' : ''}`} />
                 <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 flex justify-between items-center text-[10px] text-gray-400 dark:text-neutral-600 font-mono uppercase tracking-widest shrink-0 transition-colors">
                   <button onClick={handleDeleteJob} className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors font-bold">
                     {t.deleteBtn}
@@ -507,7 +555,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                     <span>Length: {activeDescription.length}</span>
                   </div>
                 </div>
-
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-gray-50/30 dark:bg-black/20 transition-colors">
@@ -534,9 +581,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-              {/* 1. Location & Setup */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">1. Location & Work Setup</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -570,8 +615,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
               </div>
-
-              {/* 2. Work Authorization */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">2. Work Authorization</h4>
                 <div className="flex flex-col sm:flex-row gap-6">
@@ -585,8 +628,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </label>
                 </div>
               </div>
-
-              {/* 3. Salary & Compensation */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">3. Salary & Compensation</h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -610,8 +651,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
               </div>
-
-              {/* 4. Availability */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">4. Availability</h4>
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
@@ -625,8 +664,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </label>
                 </div>
               </div>
-
-              {/* 5. Experience & Seniority */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">5. Experience & Seniority</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -646,8 +683,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
               </div>
-
-              {/* 6. Skills & Keywords */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">6. Skills & Keywords</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -661,8 +696,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
               </div>
-
-              {/* 7. Education & Qualifications */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">7. Education & Qualifications</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -682,8 +715,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
               </div>
-
-              {/* 8. Job Specific */}
               <div>
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-neutral-800 pb-2 mb-4">8. Job Specific Requirements</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -704,7 +735,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 </div>
               </div>
             </div>
-
             <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950 shrink-0 flex justify-end">
               <button onClick={() => setIsRequirementsModalOpen(false)} className="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">
                 Close & Keep Changes
@@ -723,45 +753,29 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-
             <form onSubmit={handleCreateJob} className="p-6 space-y-5">
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.jobTitle}</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Senior Frontend Engineer"
-                  value={draftTitle}
-                  onChange={(e) => setDraftTitle(e.target.value)}
-                  className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600"
-                  autoFocus
-                />
+                <input type="text" placeholder="e.g. Senior Frontend Engineer" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" autoFocus />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.level}</label>
                   <select value={draftLevel} onChange={(e) => setDraftLevel(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white">
-                    {LEVELS.map(l => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
+                    {LEVELS.map((l: string) => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.location}</label>
                   <select value={draftRegion} onChange={(e) => setDraftRegion(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white">
-                    {REGIONS.map(r => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
+                    {REGIONS.map((r: string) => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
                   </select>
                 </div>
               </div>
-
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.initDesc}</label>
-                <textarea
-                  placeholder={t.modal.descPlaceholder}
-                  value={draftDescription}
-                  onChange={(e) => setDraftDescription(e.target.value)}
-                  className="w-full h-32 px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none transition-all custom-scrollbar dark:text-white placeholder-gray-400 dark:placeholder-neutral-600"
-                />
+                <textarea placeholder={t.modal.descPlaceholder} value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} className="w-full h-32 px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none transition-all custom-scrollbar dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" />
               </div>
-
               <div className="pt-2">
                 <button type="submit" className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>

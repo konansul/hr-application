@@ -357,7 +357,6 @@ def send_resume_email(
 def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
     resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
     if not resume:
-        # Try resolving by public_url_slug — look up the person, then their latest resume
         person = db.query(Person).filter(Person.public_url_slug == resume_id).first()
         if person:
             resume = (

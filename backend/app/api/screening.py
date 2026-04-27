@@ -19,6 +19,9 @@ from backend.database.models import Document, ScreeningResult, User, Job, Applic
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 
+# ИМПОРТИРУЕМ ФУНКЦИЮ ЛИМИТОВ
+from backend.app.api.helpers.quota import consume_ai_quota
+
 router = APIRouter()
 
 
@@ -66,70 +69,81 @@ async def run_file(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    parsed_data = run_cv_parsing(cv_text)
+    # ПРОВЕРЯЕМ И СПИСЫВАЕМ КВОТУ ПЕРЕД НАЧАЛОМ РАБОТЫ ИИ
+    consume_ai_quota(db, current_user)
 
-    person = Person(
-        person_id=new_id("prs"),
-        user_id=current_user.user_id,
-        first_name=parsed_data.get("personal_info", {}).get("first_name", "Unknown"),
-        last_name=parsed_data.get("personal_info", {}).get("last_name", "Unknown"),
-        city=parsed_data.get("personal_info", {}).get("city")
-    )
-    db.add(person)
-    db.flush()
+    try:
+        parsed_data = run_cv_parsing(cv_text)
 
-    resume = Resume(
-        resume_id=new_id("res"),
-        person_id=person.person_id,
-        payload=json.dumps(parsed_data, ensure_ascii=False)
-    )
-    db.add(resume)
-    db.flush()
+        person = Person(
+            person_id=new_id("prs"),
+            user_id=current_user.user_id,
+            first_name=parsed_data.get("personal_info", {}).get("first_name", "Unknown"),
+            last_name=parsed_data.get("personal_info", {}).get("last_name", "Unknown"),
+            city=parsed_data.get("personal_info", {}).get("city")
+        )
+        db.add(person)
+        db.flush()
 
-    application = Application(
-        application_id=new_id("app"),
-        job_id=job.job_id,
-        person_id=person.person_id,
-        resume_id=resume.resume_id,
-        status="Applied"
-    )
-    db.add(application)
-    db.flush()
+        resume = Resume(
+            resume_id=new_id("res"),
+            person_id=person.person_id,
+            payload=json.dumps(parsed_data, ensure_ascii=False)
+        )
+        db.add(resume)
+        db.flush()
 
-    req_obj = None
-    if job.requirements:
-        try:
-            req_data = json.loads(job.requirements) if isinstance(job.requirements, str) else job.requirements
-            req_obj = JobRequirementsBase(**req_data)
-        except Exception as e:
-            print(f"Warning: Could not parse job requirements: {e}")
+        application = Application(
+            application_id=new_id("app"),
+            job_id=job.job_id,
+            person_id=person.person_id,
+            resume_id=resume.resume_id,
+            status="Applied"
+        )
+        db.add(application)
+        db.flush()
 
-    request = ScreeningRequest(
-        cv_text=resume.payload,
-        job_description=job.description,
-        requirements=req_obj
-    )
+        req_obj = None
+        if job.requirements:
+            try:
+                req_data = json.loads(job.requirements) if isinstance(job.requirements, str) else job.requirements
+                req_obj = JobRequirementsBase(**req_data)
+            except Exception as e:
+                print(f"Warning: Could not parse job requirements: {e}")
 
-    ai_result = run_screening(request)
+        request = ScreeningRequest(
+            cv_text=resume.payload,
+            job_description=job.description,
+            requirements=req_obj
+        )
 
-    db_result = ScreeningResult(
-        result_id=new_id("scr"),
-        application_id=application.application_id,
-        score=ai_result.score,
-        decision=ai_result.decision,
-        full_result_json=ai_result.model_dump_json(),
-    )
+        ai_result = run_screening(request)
 
-    db.add(db_result)
-    db.commit()
+        db_result = ScreeningResult(
+            result_id=new_id("scr"),
+            application_id=application.application_id,
+            score=ai_result.score,
+            decision=ai_result.decision,
+            full_result_json=ai_result.model_dump_json(),
+        )
 
-    return {
-        "application_id": application.application_id,
-        "result_id": db_result.result_id,
-        "score": db_result.score,
-        "decision": db_result.decision,
-        "full_result": json.loads(db_result.full_result_json)
-    }
+        db.add(db_result)
+        db.commit()
+
+        return {
+            "application_id": application.application_id,
+            "result_id": db_result.result_id,
+            "score": db_result.score,
+            "decision": db_result.decision,
+            "full_result": json.loads(db_result.full_result_json)
+        }
+    except Exception as e:
+        db.rollback()
+        # ВОЗВРАЩАЕМ ПОПЫТКУ, ЕСЛИ ИИ УПАЛ С ОШИБКОЙ
+        if current_user.ai_used > 0:
+            current_user.ai_used -= 1
+            db.commit()
+        raise HTTPException(status_code=500, detail=f"AI Screening failed: {str(e)}")
 
 
 class ApplicationStatusUpdate(BaseModel):
@@ -230,71 +244,85 @@ def bulk_screen(
             print(f"Warning: Could not parse job requirements: {e}")
 
     for doc in docs:
-        person = db.query(Person).filter(Person.user_id == doc.owner_user_id).first()
+        # Пытаемся списать квоту для каждого документа
+        try:
+            consume_ai_quota(db, current_user)
+        except HTTPException as e:
+            if e.status_code == 429:
+                print("Daily AI limit reached during bulk screen. Stopping early.")
+                break  # Прерываем цикл, если лимит исчерпан
+            raise e
 
-        resume = db.query(Resume).filter(Resume.person_id == person.person_id).order_by(
-            Resume.created_at.desc()).first() if person else None
+        try:
+            person = db.query(Person).filter(Person.user_id == doc.owner_user_id).first()
 
-        cv_text_for_ai = resume.payload if resume else doc.raw_text
+            resume = db.query(Resume).filter(Resume.person_id == person.person_id).order_by(
+                Resume.created_at.desc()).first() if person else None
 
-        app = db.query(Application).filter(
-            Application.job_id == job.job_id,
-            Application.person_id == (person.person_id if person else None)
-        ).first()
+            cv_text_for_ai = resume.payload if resume else doc.raw_text
 
-        if not app:
-            app = Application(
-                application_id=new_id("app"),
-                job_id=job.job_id,
-                person_id=person.person_id if person else None,
-                resume_id=resume.resume_id if resume else None,
-                status="APPLIED"
-            )
-            db.add(app)
+            app = db.query(Application).filter(
+                Application.job_id == job.job_id,
+                Application.person_id == (person.person_id if person else None)
+            ).first()
+
+            if not app:
+                app = Application(
+                    application_id=new_id("app"),
+                    job_id=job.job_id,
+                    person_id=person.person_id if person else None,
+                    resume_id=resume.resume_id if resume else None,
+                    status="APPLIED"
+                )
+                db.add(app)
+                db.flush()
+
+            db.query(ScreeningResult).filter(ScreeningResult.application_id == app.application_id).delete()
             db.flush()
 
-        db.query(ScreeningResult).filter(ScreeningResult.application_id == app.application_id).delete()
-        db.flush()
+            request = ScreeningRequest(
+                cv_text=cv_text_for_ai,
+                job_description=req.job_description,
+                requirements=req_obj
+            )
 
-        request = ScreeningRequest(
-            cv_text=cv_text_for_ai,
-            job_description=req.job_description,
-            requirements=req_obj
-        )
-        try:
             ai_result = run_screening(request)
             ai_data = ai_result.model_dump() if hasattr(ai_result, 'model_dump') else ai_result
+
+            db_res = ScreeningResult(
+                result_id=new_id("scr"),
+                application_id=app.application_id,
+                score=ai_data.get("score", 0),
+                decision=ai_data.get("decision", "maybe"),
+                full_result_json=json.dumps(ai_data, ensure_ascii=False),
+            )
+            db.add(db_res)
+            db.flush()
+
+            results_to_return.append({
+                "application_id": app.application_id,
+                "result_id": db_res.result_id,
+                "filename": doc.filename,
+                "score": db_res.score,
+                "decision": db_res.decision,
+                "status": "Completed",
+                "summary": ai_data.get("summary", ""),
+                "matched_skills": ai_data.get("matched_skills", []),
+                "missing_skills": ai_data.get("missing_skills", []),
+                "risks": ai_data.get("risks", []),
+                "interview_questions": ai_data.get("interview_questions", []),
+                "recommendations": ai_data.get("recommendations", []),
+                "full_result": ai_data
+            })
+
         except Exception as e:
             print(f"AI Screening failed for {doc.filename}: {e}")
+            db.rollback()
+            if current_user.ai_used > 0:
+                current_user.ai_used -= 1
+                db.commit()
             continue
 
-        db_res = ScreeningResult(
-            result_id=new_id("scr"),
-            application_id=app.application_id,
-            score=ai_data.get("score", 0),
-            decision=ai_data.get("decision", "maybe"),
-            full_result_json=json.dumps(ai_data, ensure_ascii=False),
-        )
-        db.add(db_res)
-        db.flush()
-
-        results_to_return.append({
-            "application_id": app.application_id,
-            "result_id": db_res.result_id,
-            "filename": doc.filename,
-            "score": db_res.score,
-            "decision": db_res.decision,
-            "status": "Completed",
-            "summary": ai_data.get("summary", ""),
-            "matched_skills": ai_data.get("matched_skills", []),
-            "missing_skills": ai_data.get("missing_skills", []),
-            "risks": ai_data.get("risks", []),
-            "interview_questions": ai_data.get("interview_questions", []),
-            "recommendations": ai_data.get("recommendations", []),
-            "full_result": ai_data
-        })
-
-    print(results_to_return)
     db.commit()
     return results_to_return
 

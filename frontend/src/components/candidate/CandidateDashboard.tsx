@@ -61,10 +61,28 @@ export function CandidateDashboard() {
     setActiveTab,
     setIsSidebarOpen,
     logoutStore,
-    language
+    language,
+    aiQuota, // ДОСТАЛИ ИЗ СТОРА
+    aiUsed   // ДОСТАЛИ ИЗ СТОРА
   } = useStore();
 
   const t = DICT[language as keyof typeof DICT]?.nav || DICT.en.nav;
+
+  // === ЛОГИКА ДЛЯ СЧЕТЧИКА ЛИМИТОВ ===
+  const usesLeft = Math.max(0, aiQuota - aiUsed);
+  const percentageLeft = (usesLeft / aiQuota) * 100;
+
+  const getIndicatorColor = () => {
+    if (usesLeft > 3) return 'bg-emerald-500';
+    if (usesLeft > 1) return 'bg-amber-500';
+    return 'bg-red-500';
+  };
+
+  const getTextColor = () => {
+    if (usesLeft > 3) return 'text-emerald-600 dark:text-emerald-400';
+    if (usesLeft > 1) return 'text-amber-600 dark:text-amber-400';
+    return 'text-red-600 dark:text-red-400';
+  };
 
   // Sync tab from URL on mount
   useEffect(() => {
@@ -128,7 +146,8 @@ export function CandidateDashboard() {
         py-4 bg-gray-50 dark:bg-neutral-900 border-r border-gray-100 dark:border-neutral-800
         transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10
       `}>
-        <div className="flex items-center px-3 mb-6 mt-2">
+        {/* Заголовок */}
+        <div className="flex items-center px-3 mb-4 mt-2 shrink-0">
           <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center mr-3 shrink-0 shadow-sm">
             <svg className="w-5 h-5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -137,7 +156,40 @@ export function CandidateDashboard() {
           <h1 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">{t.portal}</h1>
         </div>
 
-        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto font-medium">
+        {/* === БЛОК AI LIMITS (КАНДИДАТ) === */}
+        <div className="px-3 mb-6 shrink-0">
+          <div className="relative p-3.5 bg-white dark:bg-neutral-950/50 rounded-2xl border border-gray-200/80 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col gap-3">
+            {/* Фоновое легкое свечение в зависимости от статуса */}
+            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl opacity-10 pointer-events-none transition-colors duration-500 ${getIndicatorColor()}`}></div>
+
+            <div className="flex justify-between items-center z-10">
+              <span className="text-[11px] font-bold text-gray-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI Limit
+              </span>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-sm font-extrabold ${getTextColor()}`}>
+                  {usesLeft}
+                </span>
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-neutral-500">
+                  / {aiQuota}
+                </span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-100 dark:bg-neutral-800 rounded-full h-1.5 z-10">
+              <div
+                className={`h-1.5 rounded-full transition-all duration-500 shadow-sm ${getIndicatorColor()}`}
+                style={{ width: `${percentageLeft}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto font-medium custom-scrollbar pr-1 relative z-10">
           {NAV_ITEMS.map(item => (
             <SideNavItem
               key={item.id}
@@ -148,7 +200,7 @@ export function CandidateDashboard() {
           ))}
         </nav>
 
-        <div className="mt-auto px-0 py-3 space-y-1">
+        <div className="mt-auto px-0 py-3 space-y-1 shrink-0">
           <SideNavItem
             id="settings"
             label={t.settings}
@@ -186,8 +238,6 @@ export function CandidateDashboard() {
             </svg>
           </button>
         </header>
-
-          <div className="mt-auto pt-2 border-t border-gray-200/50 dark:border-neutral-700/50 mx-3"></div>
 
         <header className="md:hidden h-14 flex items-center justify-between px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-colors">
           <div className="flex items-center gap-2">

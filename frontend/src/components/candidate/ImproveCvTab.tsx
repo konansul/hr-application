@@ -45,7 +45,8 @@ interface ImproveCvTabProps {
 }
 
 export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
-  const { language } = useStore();
+  // === 1. ДОСТАЕМ ЛИМИТЫ ИЗ СТОРА ===
+  const { language, aiQuota, aiUsed, setAiLimits } = useStore();
   const t = DICT[language as keyof typeof DICT]?.improve || DICT.en.improve;
 
   const [file, setFile] = useState<File | null>(null);
@@ -71,8 +72,17 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
     try {
       const data = await screeningApi.improveCvFile(file, jobDescription);
       setResult(data);
+
+      // === 2. ОБНОВЛЯЕМ СЧЕТЧИК ПРИ УСПЕХЕ ===
+      setAiLimits(aiQuota, aiUsed + 1);
+
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || t.error);
+      // === 3. КРАСИВАЯ ОШИБКА, ЕСЛИ ЛИМИТ ИСЧЕРПАН ===
+      if (err.response?.status === 429) {
+        setError("⏳ You have reached your daily AI limit. Please come back tomorrow!");
+      } else {
+        setError(err.response?.data?.detail || err.message || t.error);
+      }
     } finally {
       setIsProcessing(false);
     }

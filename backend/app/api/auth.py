@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -97,6 +98,9 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 def me(current: User = Depends(get_current_user), db: Session = Depends(get_db)):
     person = db.query(Person).filter(Person.user_id == current.user_id).first()
 
+    today = date.today()
+    actual_ai_used = current.ai_used if current.last_quota_reset == today else 0
+
     return {
         "user_id": current.user_id,
         "email": current.email,
@@ -104,9 +108,11 @@ def me(current: User = Depends(get_current_user), db: Session = Depends(get_db))
         "org_id": current.org_id,
         "person_id": person.person_id if person else None,
         "first_name": person.first_name if person else None,
-        "last_name": person.last_name if person else None
-    }
+        "last_name": person.last_name if person else None,
 
+        "ai_quota": current.ai_quota,
+        "ai_used": actual_ai_used
+    }
 
 @router.post("/auth/logout")
 def logout():
