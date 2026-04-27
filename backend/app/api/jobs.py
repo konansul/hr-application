@@ -120,7 +120,9 @@ def create_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=db_job.owner_user_id,
-        requirements=db_job.requirements  # ОТДАЕМ ТРЕБОВАНИЯ
+        requirements=db_job.requirements,
+        created_at=db_job.created_at,
+        organization_name=db_job.organization.name if db_job.organization else None,
     )
 
 
@@ -170,7 +172,9 @@ def list_jobs(
             screening_questions=qs,
             pipeline_stages=stages,
             owner_user_id=job.owner_user_id,
-            requirements=job.requirements
+            requirements=job.requirements,
+            created_at=job.created_at,
+            organization_name=job.organization.name if job.organization else None,
         ))
     return results
 
@@ -214,7 +218,9 @@ def get_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=job.owner_user_id,
-        requirements=job.requirements  # ОТДАЕМ ТРЕБОВАНИЯ
+        requirements=job.requirements,
+        created_at=job.created_at,
+        organization_name=job.organization.name if job.organization else None,
     )
 
 
@@ -313,5 +319,7 @@ def update_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=job.owner_user_id,
-        requirements=job.requirements
+        requirements=job.requirements,
+        created_at=job.created_at,
+        organization_name=job.organization.name if job.organization else None,
     )

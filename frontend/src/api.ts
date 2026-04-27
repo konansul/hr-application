@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-//const BASE_URL = 'http://127.0.0.1:8000'
-const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
+const BASE_URL = 'http://127.0.0.1:8000'
+//const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -320,4 +320,17 @@ export const resumesApi = {
     const response = await axios.get(`${BASE_URL}/public/p/${slug}`);
     return response.data;
   }
+};
+
+export const externalJobsApi = {
+  search: async (params: {
+    q?: string;
+    location_value?: string;
+    employment_type?: string;
+    level?: string;
+    page?: number;
+  }) => {
+    const response = await apiClient.get('/api/external-jobs/search', { params });
+    return response.data;
+  },
 };
