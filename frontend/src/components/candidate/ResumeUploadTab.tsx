@@ -1120,12 +1120,12 @@ export function ResumeUploadTab() {
                         onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); setMessage(null); }}
                         className="min-w-0 flex-1 text-left"
                       >
-                        <div className="grid grid-cols-3 items-center w-full gap-2">
-                          <h4 className="text-sm font-semibold leading-snug truncate">{resume.title || 'Untitled Resume'}</h4>
-                          <span className={`text-sm text-center whitespace-nowrap ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
+                        <div className="flex items-center w-full gap-2">
+                          <h4 className="text-sm font-semibold leading-snug truncate flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
+                          <span className={`text-xs whitespace-nowrap shrink-0 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
                             {resume.created_at ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
                           </span>
-                          <span className={`text-sm font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap text-center justify-self-end ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-600'}`}>
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-600'}`}>
                             {langLabel(resume.language)}
                           </span>
                         </div>
