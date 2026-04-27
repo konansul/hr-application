@@ -71,7 +71,12 @@ export const authApi = {
     return response.data;
   },
 
-    updatePrivacy: async (data: { visibility_level?: string; public_url_slug?: string | null }) => {
+    importFromUrl: async (url: string) => {
+    const response = await apiClient.post('/users/me/import-from-url', { url });
+    return response.data;
+  },
+
+  updatePrivacy: async (data: { visibility_level?: string; public_url_slug?: string | null }) => {
     const response = await apiClient.patch('/me/privacy', data);
     return response.data;
   },

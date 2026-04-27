@@ -176,3 +176,7 @@ class HRProfileUpdate(BaseModel):
     department: Optional[str] = None
     hr_role_title: Optional[str] = None
     timezone: Optional[str] = None
+
+
+class UrlImportRequest(BaseModel):
+    url: str
