@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Literal, Any
+from datetime import datetime
 
 class JobRequirementsBase(BaseModel):
     workFormat: Optional[str] = "Any"
@@ -47,6 +48,8 @@ class JobOut(BaseModel):
     pipeline_stages: List[str] = []
     owner_user_id: Optional[str] = None
     requirements: Optional[JobRequirementsBase] = None
+    created_at: Optional[datetime] = None
+    organization_name: Optional[str] = None
 
     class Config:
         from_attributes = True

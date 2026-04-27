@@ -12,7 +12,6 @@ from backend.database.models import Job, User, Person, Resume, Application
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 
-# ИМПОРТИРУЕМ ФУНКЦИЮ ЛИМИТОВ
 from backend.app.api.helpers.quota import consume_ai_quota
 from backend.app.pipeline import run_job_refinement
 
@@ -24,10 +23,9 @@ DEFAULT_PIPELINE_STAGES = ["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJE
 @router.post("/jobs/refine", response_model=JobRefineResponse)
 def refine_job_description(
         request: JobRefineRequest,
-        db: Session = Depends(get_db), # ДОБАВЛЕНО: сессия БД
+        db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    # ПРОВЕРЯЕМ И СПИСЫВАЕМ КВОТУ
     consume_ai_quota(db, current_user)
 
     try:
@@ -47,7 +45,6 @@ def refine_job_description(
         )
         return JobRefineResponse(improved_description=improved_text)
     except Exception as e:
-        # ВОЗВРАЩАЕМ ПОПЫТКУ, ЕСЛИ ИИ УПАЛ С ОШИБКОЙ
         if current_user.ai_used > 0:
             current_user.ai_used -= 1
             db.commit()
@@ -129,7 +126,9 @@ def create_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=db_job.owner_user_id,
-        requirements=db_job.requirements
+        requirements=db_job.requirements,
+        created_at=db_job.created_at,
+        organization_name=db_job.organization.name if db_job.organization else None,
     )
 
 
@@ -179,7 +178,9 @@ def list_jobs(
             screening_questions=qs,
             pipeline_stages=stages,
             owner_user_id=job.owner_user_id,
-            requirements=job.requirements
+            requirements=job.requirements,
+            created_at=job.created_at,
+            organization_name=job.organization.name if job.organization else None,
         ))
     return results
 
@@ -223,7 +224,9 @@ def get_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=job.owner_user_id,
-        requirements=job.requirements
+        requirements=job.requirements,
+        created_at=job.created_at,
+        organization_name=job.organization.name if job.organization else None,
     )
 
 
@@ -322,7 +325,9 @@ def update_job(
         screening_questions=qs,
         pipeline_stages=stages,
         owner_user_id=job.owner_user_id,
-        requirements=job.requirements
+        requirements=job.requirements,
+        created_at=job.created_at,
+        organization_name=job.organization.name if job.organization else None,
     )
 
 @router.get("/public/jobs/{job_id}", response_model=JobOut)

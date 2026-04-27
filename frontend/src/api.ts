@@ -360,3 +360,16 @@ submitPublicApplication: async (payload: {
   return response.data;
 },
 };
+
+export const externalJobsApi = {
+  search: async (params: {
+    q?: string;
+    location_value?: string;
+    employment_type?: string;
+    level?: string;
+    page?: number;
+  }) => {
+    const response = await apiClient.get('/api/external-jobs/search', { params });
+    return response.data;
+  },
+};
