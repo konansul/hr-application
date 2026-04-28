@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { documentsApi, authApi } from '../../api';
 import { useStore } from '../../store';
 import { DICT } from '../../internationalization.ts';
+import { OnboardingWizard } from './OnboardingWizard';
 
 export function ProfileTab() {
   const { language } = useStore();
@@ -26,6 +27,12 @@ export function ProfileTab() {
     experience: [], education: [], skills: [], languages: [], certifications: [], references: []
   });
 
+  const [showWizard, setShowWizard] = useState(false);
+
+  const [showLinkedInInput, setShowLinkedInInput] = useState(false);
+  const [linkedinImportUrl, setLinkedinImportUrl] = useState('');
+  const [isImportingLinkedIn, setIsImportingLinkedIn] = useState(false);
+
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingEducation, setIsEditingEducation] = useState(false);
@@ -33,23 +40,36 @@ export function ProfileTab() {
   const [isEditingReferences, setIsEditingReferences] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const loadProfile = async (currentUser?: any) => {
+    try {
+      const savedProfile = await authApi.getProfile().catch(() => null);
+      if (savedProfile && savedProfile.profile_data && Object.keys(savedProfile.profile_data).length > 0) {
+        setProfileData({ ...savedProfile.profile_data, references: savedProfile.profile_data.references || [] });
+      } else if (currentUser) {
+        setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, email: currentUser.email } }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
-        const [userData, docs, savedProfile] = await Promise.all([
+        const [userData, docs] = await Promise.all([
           authApi.getMe(),
           documentsApi.getMyDocuments(),
-          authApi.getProfile().catch(() => null)
         ]);
 
         setUser(userData);
         setResumeVersions(docs);
 
-        if (savedProfile && savedProfile.profile_data && Object.keys(savedProfile.profile_data).length > 0) {
-          setProfileData({ ...savedProfile.profile_data, references: savedProfile.profile_data.references || [] });
-        } else if (userData) {
-          setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, email: userData.email } }));
+        if (userData?.user_id) {
+          const key = `hrai_onboarding_${userData.user_id}`;
+          if (!localStorage.getItem(key)) setShowWizard(true);
         }
+
+        await loadProfile(userData);
       } catch (err) {
         console.error(err);
       }
@@ -108,6 +128,31 @@ export function ProfileTab() {
     setFile(null);
     setUploadIntent(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleLinkedInImport = async () => {
+    if (!linkedinImportUrl.trim()) return;
+    setIsImportingLinkedIn(true);
+    setMessage(null);
+    try {
+      const result = await authApi.importFromUrl(linkedinImportUrl.trim());
+      if (result.profile_data) {
+        setProfileData({ ...result.profile_data, references: result.profile_data.references || [] });
+      }
+      setMessage({ text: 'Profile imported successfully!', type: 'success' });
+      setShowLinkedInInput(false);
+      setLinkedinImportUrl('');
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail ?? '';
+      if (detail) {
+        setMessage({ text: detail, type: 'error' });
+      } else {
+        setMessage({ text: 'Import failed. Please try again.', type: 'error' });
+      }
+    } finally {
+      setIsImportingLinkedIn(false);
+    }
   };
 
   const handlePersonalInputChange = (field: string, value: any) => {
@@ -574,7 +619,7 @@ export function ProfileTab() {
             </h3>
             <p className="text-sm text-gray-500 dark:text-neutral-400 mb-6">{profileData.personal_info.phone || user?.email}</p>
 
-            <div className="w-full p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700 mb-2 transition-colors">
+            <div className="w-full p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700 mb-2 transition-colors space-y-2">
               <p className="text-xs text-gray-600 dark:text-neutral-400 mb-3">{t.sidebar.fillPrompt}</p>
               <button
                 onClick={() => handleUploadClick('profile')}
@@ -583,7 +628,60 @@ export function ProfileTab() {
                 {t.sidebar.autofill}
                 <span className="text-[10px] font-bold bg-gray-900 dark:bg-white text-white dark:text-black rounded px-1 py-0.5 leading-none">AI</span>
               </button>
+
+              {/* LinkedIn import */}
+              <button
+                onClick={() => { setShowLinkedInInput(v => !v); setLinkedinImportUrl(''); }}
+                className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-600 text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+              >
+                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                Import from URL
+              </button>
+
+              {showLinkedInInput && (
+                <div className="pt-1 space-y-2">
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <input
+                      type="url"
+                      placeholder="https://yourname.com or linkedin.com/in/..."
+                      value={linkedinImportUrl}
+                      onChange={e => setLinkedinImportUrl(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleLinkedInImport()}
+                      autoFocus
+                      className="flex-1 bg-transparent text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 outline-none min-w-0"
+                    />
+                  </div>
+                  <button
+                    onClick={handleLinkedInImport}
+                    disabled={!linkedinImportUrl.trim() || isImportingLinkedIn}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    {isImportingLinkedIn && (
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    )}
+                    {isImportingLinkedIn ? 'Importing…' : 'Import profile'}
+                  </button>
+                </div>
+              )}
             </div>
+
+            <button
+              onClick={() => {
+                if (user?.user_id) localStorage.removeItem(`hrai_onboarding_${user.user_id}`);
+                setShowWizard(true);
+              }}
+              className="w-full mt-1 text-xs text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors py-1 flex items-center justify-center gap-1"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Redo setup wizard
+            </button>
           </div>
 
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
@@ -663,6 +761,10 @@ export function ProfileTab() {
             <p className="font-semibold text-sm text-gray-900 dark:text-white">{t.upload.processing}</p>
           </div>
         </div>
+      )}
+
+      {showWizard && user?.user_id && (
+        <OnboardingWizard userId={user.user_id} onComplete={() => { setShowWizard(false); loadProfile(user); }} />
       )}
     </div>
   );
