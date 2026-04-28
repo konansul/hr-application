@@ -229,9 +229,8 @@ def bulk_screen(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found in your organization")
 
-    docs = db.query(Document).filter(Document.document_id.in_(req.document_ids)).all()
-    if not docs:
-        raise HTTPException(status_code=404, detail="No documents found")
+    if not req.document_ids:
+        raise HTTPException(status_code=400, detail="No items selected for screening")
 
     results_to_return = []
 
@@ -243,40 +242,68 @@ def bulk_screen(
         except Exception as e:
             print(f"Warning: Could not parse job requirements: {e}")
 
-    for doc in docs:
-        # Пытаемся списать квоту для каждого документа
+    for item_id in req.document_ids:
+        # 1. Пытаемся списать квоту
         try:
             consume_ai_quota(db, current_user)
         except HTTPException as e:
             if e.status_code == 429:
                 print("Daily AI limit reached during bulk screen. Stopping early.")
-                break  # Прерываем цикл, если лимит исчерпан
+                break
             raise e
 
         try:
-            person = db.query(Person).filter(Person.user_id == doc.owner_user_id).first()
+            # 2. УМНЫЙ ПОИСК РЕЗЮМЕ (Поддерживаем и старые doc_id, и новые res_id)
+            resume = None
+            filename = "Unknown_Resume.pdf"
 
-            resume = db.query(Resume).filter(Resume.person_id == person.person_id).order_by(
-                Resume.created_at.desc()).first() if person else None
+            if item_id.startswith("res_"):
+                resume = db.query(Resume).filter(Resume.resume_id == item_id).first()
+            elif item_id.startswith("virtual_res_") or item_id.startswith("virtual_"):
+                clean_id = item_id.replace("virtual_res_", "").replace("virtual_", "")
+                resume = db.query(Resume).filter(Resume.resume_id == clean_id).first()
+            else:
+                # Если это старый формат (doc_id)
+                doc = db.query(Document).filter(Document.document_id == item_id).first()
+                if doc:
+                    filename = doc.filename
+                    # Находим резюме, к которому привязан этот документ
+                    resume = db.query(Resume).filter(
+                        (Resume.source_document_id == doc.document_id) |
+                        (Resume.generated_document_id == doc.document_id)
+                    ).first()
 
-            cv_text_for_ai = resume.payload if resume else doc.raw_text
+            if not resume:
+                print(f"AI Screening skipped for {item_id}: No Resume found.")
+                # Возвращаем квоту, так как скрининг не состоялся
+                if current_user.ai_used > 0:
+                    current_user.ai_used -= 1
+                    db.commit()
+                continue
 
+            if resume.title:
+                filename = resume.title
+
+            cv_text_for_ai = resume.payload
+
+            # 3. ИЩЕМ ИЛИ СОЗДАЕМ ОТКЛИК (Application)
             app = db.query(Application).filter(
                 Application.job_id == job.job_id,
-                Application.person_id == (person.person_id if person else None)
+                Application.person_id == resume.person_id
             ).first()
 
             if not app:
                 app = Application(
                     application_id=new_id("app"),
                     job_id=job.job_id,
-                    person_id=person.person_id if person else None,
-                    resume_id=resume.resume_id if resume else None,
+                    person_id=resume.person_id,
+                    resume_id=resume.resume_id,
                     status="APPLIED"
                 )
                 db.add(app)
                 db.flush()
 
+            # 4. УДАЛЯЕМ СТАРЫЕ РЕЗУЛЬТАТЫ И ЗАПУСКАЕМ ИИ
             db.query(ScreeningResult).filter(ScreeningResult.application_id == app.application_id).delete()
             db.flush()
 
@@ -302,7 +329,7 @@ def bulk_screen(
             results_to_return.append({
                 "application_id": app.application_id,
                 "result_id": db_res.result_id,
-                "filename": doc.filename,
+                "filename": filename,
                 "score": db_res.score,
                 "decision": db_res.decision,
                 "status": "Completed",
@@ -316,7 +343,7 @@ def bulk_screen(
             })
 
         except Exception as e:
-            print(f"AI Screening failed for {doc.filename}: {e}")
+            print(f"AI Screening failed for {item_id}: {e}")
             db.rollback()
             if current_user.ai_used > 0:
                 current_user.ai_used -= 1
@@ -382,6 +409,7 @@ def delete_application(
 
 class ApplyRequest(BaseModel):
     job_id: str
+    resume_id: Optional[str] = None
     answers: Optional[dict] = None
 
 
@@ -402,9 +430,24 @@ def apply_to_job(
     if not person:
         raise HTTPException(status_code=400, detail="Please complete your profile first")
 
-    resume = db.query(Resume).filter(Resume.person_id == person.person_id).order_by(Resume.created_at.desc()).first()
+    # --- ЛОГИКА ВЫБОРА РЕЗЮМЕ ---
+    if req.resume_id:
+        # Если фронтенд прислал ID, ищем именно это резюме
+        resume = db.query(Resume).filter(
+            Resume.resume_id == req.resume_id,
+            Resume.person_id == person.person_id
+        ).first()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Selected resume not found")
+    else:
+        # Fallback: если ID не пришел, берем самое последнее (как было раньше)
+        resume = db.query(Resume).filter(
+            Resume.person_id == person.person_id
+        ).order_by(Resume.created_at.desc()).first()
+
     if not resume:
         raise HTTPException(status_code=400, detail="Please upload your CV before applying")
+    # ---------------------------
 
     existing_app = db.query(Application).filter(
         Application.job_id == req.job_id,
@@ -418,7 +461,7 @@ def apply_to_job(
         application_id=new_id("app"),
         job_id=req.job_id,
         person_id=person.person_id,
-        resume_id=resume.resume_id,
+        resume_id=resume.resume_id, # Используем ID найденного выше резюме
         status="APPLIED",
         answers_to_screening_json=json.dumps(req.answers, ensure_ascii=False) if req.answers else None
     )
@@ -499,3 +542,40 @@ def get_my_applications(
             } if scr else None
         })
     return out
+
+
+@router.get("/screening/results/{job_id}")
+def get_job_screening_results(
+        job_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    # Проверяем, что вакансия принадлежит организации HR
+    job = db.query(Job).filter(Job.job_id == job_id, Job.org_id == current_user.org_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Ищем все отклики с результатами скрининга
+    apps = (
+        db.query(Application, ScreeningResult, Resume)
+        .join(ScreeningResult, ScreeningResult.application_id == Application.application_id)
+        .join(Resume, Resume.resume_id == Application.resume_id)
+        .filter(Application.job_id == job_id)
+        .all()
+    )
+
+    results = []
+    for app, scr, res in apps:
+        full_res = json.loads(scr.full_result_json)
+        results.append({
+            "application_id": app.application_id,
+            "filename": res.title or "Resume",
+            "score": scr.score,
+            "decision": scr.decision,
+            "summary": full_res.get("summary"),
+            "matched_skills": full_res.get("matched_skills", []),
+            "missing_skills": full_res.get("missing_skills", []),
+            "risks": full_res.get("risks", []),
+        })
+
+    return results

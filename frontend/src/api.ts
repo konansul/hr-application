@@ -171,10 +171,11 @@ export const screeningApi = {
     return response.data;
   },
 
-  applyToJob: async (jobId: string, answers?: Record<string, string> | null) => {
+  applyToJob: async (jobId: string, answers?: Record<string, string> | null, resumeId?: string | null) => {
     const response = await apiClient.post('/applications/apply', {
       job_id: jobId,
-      answers: answers ?? null
+      answers: answers ?? null,
+      resume_id: resumeId ?? null
     });
     return response.data;
   },
@@ -198,6 +199,10 @@ export const screeningApi = {
 
   deleteApplication: async (applicationId: string) => {
     await apiClient.delete(`/applications/${applicationId}`);
+  },
+    getStoredResults: async (jobId: string) => {
+    const response = await apiClient.get(`/screening/results/${jobId}`);
+    return response.data;
   },
 };
 

@@ -270,6 +270,11 @@ export function JobsTab() {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
+  const [showResumeSelector, setShowResumeSelector] = useState(false);
+  const [myDocuments, setMyDocuments] = useState<any[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [pendingApp, setPendingApp] = useState<{jobId: string, answers: any} | null>(null);
+
   const [selectedLevelKey, setSelectedLevelKey] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
@@ -457,10 +462,15 @@ export function JobsTab() {
   const proceedWithApplication = async (jobId: string, finalAnswers: any = null) => {
     try {
       const myDocs = await documentsApi.getMyDocuments();
+      setPendingApp({ jobId, answers: finalAnswers }); // Запоминаем, куда откликаемся
+
       if (myDocs.length > 0) {
-        await screeningApi.applyToJob(jobId, finalAnswers);
-        completeApplication();
+        // Если резюме есть, показываем окно выбора
+        setMyDocuments(myDocs);
+        setSelectedResumeId(myDocs[0].resume_id); // Выбираем первое по умолчанию
+        setShowResumeSelector(true);
       } else {
+        // Если резюме вообще нет, просим загрузить
         fileInputRef.current?.click();
       }
     } catch (err: any) {
@@ -468,14 +478,32 @@ export function JobsTab() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !applyingJob) return;
-    const jid = applyingJob.id || applyingJob.job_id;
+  const submitApplicationFinal = async () => {
+    if (!pendingApp || !selectedResumeId) {
+        alert("Please select a resume first");
+        return;
+    }
+
+    console.log("SENDING APPLICATION WITH RESUME_ID:", selectedResumeId);
 
     try {
-      await documentsApi.upload(file);
-      await screeningApi.applyToJob(jid, answers);
+      await screeningApi.applyToJob(pendingApp.jobId, pendingApp.answers, selectedResumeId);
+      setShowResumeSelector(false);
+      completeApplication();
+    } catch (err: any) {
+      alert(err.response?.data?.detail || t.errorMsg);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingApp) return;
+
+    try {
+      const uploadRes = await documentsApi.upload(file);
+      // Если загрузили новое, сразу откликаемся им
+      await screeningApi.applyToJob(pendingApp.jobId, pendingApp.answers, uploadRes.resume_id);
+      setShowResumeSelector(false);
       completeApplication();
     } catch (err) {
       alert(t.cvErrorMsg);
@@ -1009,6 +1037,81 @@ export function JobsTab() {
               </button>
               <button onClick={handleQuestionnaireSubmit} className="flex-[2] py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 shadow-sm transition-all active:scale-[0.98]">
                 {t.submitAnswers}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResumeSelector && (
+        <div className="fixed inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-neutral-900 w-full max-w-lg rounded-3xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 transition-colors">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/50 flex justify-between items-center transition-colors">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Select Resume</h3>
+                <p className="text-xs text-gray-500 dark:text-neutral-400 font-medium mt-1">
+                  Choose which CV to send for this application
+                </p>
+              </div>
+              <button onClick={() => setShowResumeSelector(false)} className="p-2 text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[50vh] space-y-3 bg-white dark:bg-neutral-900 transition-colors">
+              {myDocuments.map((doc) => (
+  <label
+    key={doc.resume_id}
+    // Добавляем onClick на всю карточку для надежности
+    onClick={() => setSelectedResumeId(doc.resume_id)}
+    className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
+      selectedResumeId === doc.resume_id
+        ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20'
+        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
+    }`}
+  >
+    <div className="mt-0.5">
+      <input
+        type="radio"
+        name="resume_selection"
+        value={doc.resume_id}
+        checked={selectedResumeId === doc.resume_id}
+        // Оставляем onChange для доступности, но onClick выше сработает быстрее
+        onChange={() => setSelectedResumeId(doc.resume_id)}
+        className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+      />
+    </div>
+    <div className="flex-1">
+      <p className={`text-sm font-bold ${selectedResumeId === doc.resume_id ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-white'}`}>
+        {doc.filename}
+      </p>
+      <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1 uppercase tracking-wider font-semibold">
+        Source: {doc.source_type.replace('_', ' ')}
+      </p>
+    </div>
+  </label>
+))}
+
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    setShowResumeSelector(false);
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-neutral-700 rounded-2xl text-sm font-semibold text-gray-600 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-900 dark:hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  Upload a new CV instead
+                </button>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/50 shrink-0 flex gap-3 transition-colors">
+              <button onClick={() => setShowResumeSelector(false)} className="flex-1 py-2.5 bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors">
+                Cancel
+              </button>
+              <button onClick={submitApplicationFinal} className="flex-[2] py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 shadow-sm transition-all active:scale-[0.98]">
+                Submit Application
               </button>
             </div>
           </div>

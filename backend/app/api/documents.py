@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import hashlib
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -150,68 +150,89 @@ async def upload_document(
 
 @router.get("/documents/organization", response_model=List[DocumentResponse])
 def get_organization_documents(
+        job_id: Optional[str] = None,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
     if current_user.role != "hr" or not current_user.org_id:
-        raise HTTPException(status_code=403, detail="Only HR with an organization can view documents")
+        raise HTTPException(status_code=403, detail="Only HR with organization can view documents")
 
     hr_org_id = current_user.org_id
 
-    documents = (
-        db.query(Document)
-        .join(Person, Person.user_id == Document.owner_user_id)
-        .outerjoin(Application, Application.person_id == Person.person_id)
-        .outerjoin(Job, Job.job_id == Application.job_id)
-        .filter(Document.source_type.in_(["uploaded_cv", "public_application"]))
-        .filter(
-            or_(
-                Job.org_id == hr_org_id,
-                Person.shared_with_org_ids_json.contains(hr_org_id)
-            )
-        )
-        .distinct()
-        .all()
+    # 1. Начинаем запрос с таблицы Application
+    # Это гарантирует, что мы работаем только с реальными откликами
+    query = (
+        db.query(Application, Resume, Document, Person)
+        .join(Job, Job.job_id == Application.job_id)
+        .join(Resume, Resume.resume_id == Application.resume_id)
+        .join(Person, Person.person_id == Application.person_id)
+        # Присоединяем документ (может быть как оригинал, так и сгенерированный)
+        .outerjoin(Document, Document.document_id == Resume.generated_document_id)
+        .filter(Job.org_id == hr_org_id)
     )
 
-    result = []
-    for d in documents:
-        person = db.query(Person).filter(Person.user_id == d.owner_user_id).first()
-        candidate_name = f"{person.first_name} {person.last_name}".strip() if person else None
+    # 2. Фильтруем по конкретной вакансии, если она выбрана
+    if job_id:
+        query = query.filter(Application.job_id == job_id)
 
-        result.append({
-            "document_id": d.document_id,
-            "owner_user_id": d.owner_user_id,
-            "filename": d.filename,
-            "content_type": d.content_type,
-            "source_type": d.source_type,
-            "raw_text": d.raw_text,
-            "candidate_name": candidate_name,
-            "resume_id": d.resume_id,
-            "document_role": d.document_role,
+    results = query.all()
+
+    final_list = []
+    for app, resume, doc, person in results:
+        # Если при отклике был сгенерирован PDF, берем его.
+        # Если нет (просто текст), используем данные из Resume
+
+        doc_id = doc.document_id if doc else resume.resume_id
+        filename = doc.filename if doc else (resume.title or f"Resume_{person.last_name}.pdf")
+
+        final_list.append({
+            "document_id": doc_id,
+            "owner_user_id": person.user_id,
+            "filename": filename,
+            "content_type": doc.content_type if doc else "application/pdf",
+            "source_type": resume.source_type, # Показываем источник из резюме (UPLOADED или IMPROVE)
+            "raw_text": doc.raw_text if doc else resume.payload,
+            "candidate_name": f"{person.first_name} {person.last_name}",
+            "resume_id": resume.resume_id,
+            "document_role": "application_cv"
         })
-    return result
 
+    return final_list
 
-@router.get("/documents/me", response_model=List[DocumentResponse])
+@router.get("/documents/me")
 def get_my_documents(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    documents = db.query(Document).filter(Document.owner_user_id == current_user.user_id).all()
+    # 1. Находим профиль кандидата
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+    if not person:
+        return []
 
-    return [
-        {
-            "document_id": d.document_id,
-            "owner_user_id": d.owner_user_id,
-            "filename": d.filename,
-            "content_type": d.content_type,
-            "source_type": d.source_type,
-            "resume_id": d.resume_id,
-            "document_role": d.document_role
-        }
-        for d in documents
-    ]
+    # 2. Берем ВСЕ его резюме прямо из таблицы resumes (никаких JOIN с документами!)
+    resumes = (
+        db.query(Resume)
+        .filter(Resume.person_id == person.person_id)
+        .order_by(Resume.created_at.desc())
+        .all()
+    )
+
+    results = []
+    for r in resumes:
+        # Берем ID документа (оригинала или сгенерированного), чтобы фронт не ругался
+        doc_id = r.generated_document_id or r.source_document_id or r.resume_id
+
+        results.append({
+            "document_id": doc_id,  # Нужен фронтенду для ключей
+            "resume_id": r.resume_id,  # САМОЕ ГЛАВНОЕ: ID для отклика
+            "owner_user_id": current_user.user_id,
+            "filename": r.title or "My Resume",  # В title у нас лежит имя файла
+            "content_type": "application/pdf",
+            "source_type": r.source_type,
+            "document_role": "resume"
+        })
+
+    return results
 
 
 @router.get("/documents/{document_id}/file")
@@ -276,6 +297,7 @@ async def submit_public_application(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    # 1. Проверяем или создаем пользователя
     user = db.query(User).filter(User.email == email).first()
     if not user:
         user = User(
@@ -306,6 +328,7 @@ ORIGINAL CV TEXT:
     except Exception:
         parsed_data = {}
 
+    # 2. Проверяем или создаем профиль (Person)
     person = db.query(Person).filter(Person.user_id == user.user_id).first()
     personal_info = parsed_data.get("personal_info", {})
 
@@ -322,8 +345,9 @@ ORIGINAL CV TEXT:
             phone=phone or personal_info.get("phone")
         )
         db.add(person)
-    db.flush()
+        db.flush()
 
+    # 3. Сохраняем физический документ
     file_hash = hashlib.sha256(content).hexdigest()
     doc = Document(
         document_id=new_id("doc"),
@@ -338,6 +362,7 @@ ORIGINAL CV TEXT:
     db.add(doc)
     db.flush()
 
+    # 4. Создаем запись в таблице резюме (Resume)
     resume = Resume(
         resume_id=new_id("res"),
         person_id=person.person_id,
@@ -350,6 +375,22 @@ ORIGINAL CV TEXT:
         generation_status="generated"
     )
     db.add(resume)
+    db.flush()
+
+    new_application = Application(
+        application_id=new_id("app"),
+        job_id=job_id,
+        person_id=person.person_id,
+        resume_id=resume.resume_id,
+        status="APPLIED"
+    )
+    db.add(new_application)
+
+    # Сохраняем всё в базу
     db.commit()
 
-    return {"status": "success", "resume_id": resume.resume_id}
+    return {
+        "status": "success",
+        "resume_id": resume.resume_id,
+        "application_id": new_application.application_id
+    }

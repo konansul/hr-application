@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { screeningApi } from '../../api';
 import { useStore } from '../../store';
 import { DICT } from '../../internationalization.ts';
 
@@ -14,9 +15,9 @@ const Pill = ({
   const colorStyles = {
     gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400',
-    red: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
-    amber: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400',
-    blue: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400',
+    red: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
+    amber: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400',
+    blue: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400',
   };
 
   return (
@@ -28,33 +29,67 @@ const Pill = ({
 };
 
 interface CompareTabProps {
-  batchResults: any[];
+  batchResults?: any[];
 }
 
-export function CompareTab({ batchResults }: CompareTabProps) {
-  const { language } = useStore();
+export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
+  const { language, globalJobId } = useStore();
   const t = DICT[language as keyof typeof DICT]?.compare || DICT.en.compare;
 
-  const [selectedFilenames, setSelectedFilenames] = useState<string[]>([]);
+  const [dbResults, setDbResults] = useState<any[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (batchResults && batchResults.length >= 2 && selectedFilenames.length === 0) {
-      setSelectedFilenames([batchResults[0].filename, batchResults[1].filename]);
-    }
-  }, [batchResults, selectedFilenames.length]);
-
-  const handleCheckboxChange = (filename: string) => {
-    setSelectedFilenames((prev) => {
-      if (prev.includes(filename)) {
-        return prev.filter(f => f !== filename);
-      } else {
-        if (prev.length >= 3) return prev;
-        return [...prev, filename];
+    const loadStoredData = async () => {
+      if (!globalJobId) return;
+      setLoading(true);
+      try {
+        const data = await (screeningApi as any).getStoredResults(globalJobId);
+        setDbResults(data);
+        if (data.length >= 2 && selectedIds.length === 0) {
+          setSelectedIds([data[0].application_id, data[1].application_id]);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
+    };
+    loadStoredData();
+  }, [globalJobId]);
+
+  const allResults = useMemo(() => {
+    const resultMap = new Map();
+    dbResults.forEach(r => resultMap.set(r.application_id, r));
+    if (sessionResults) {
+      sessionResults.forEach(r => resultMap.set(r.application_id, r));
+    }
+    return Array.from(resultMap.values());
+  }, [dbResults, sessionResults]);
+
+  const handleToggleSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) return prev.filter(i => i !== id);
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
     });
   };
 
-  if (!batchResults || batchResults.length === 0) {
+  const compareItems = useMemo(() =>
+    allResults.filter(item => selectedIds.includes(item.application_id)),
+  [allResults, selectedIds]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 font-medium">Loading stored analysis...</p>
+      </div>
+    );
+  }
+
+  if (allResults.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl transition-colors">
         <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 border dark:border-blue-800/50">
@@ -66,11 +101,8 @@ export function CompareTab({ batchResults }: CompareTabProps) {
     );
   }
 
-  const compareItems = batchResults.filter(item => selectedFilenames.includes(item.filename));
-
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
-
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{t.title}</h2>
@@ -80,14 +112,14 @@ export function CompareTab({ batchResults }: CompareTabProps) {
 
       <div className="p-5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm transition-colors">
         <div className="flex flex-wrap gap-2.5">
-          {batchResults.map((result, idx) => {
-            const isSelected = selectedFilenames.includes(result.filename);
-            const isDisabled = !isSelected && selectedFilenames.length >= 3;
+          {allResults.map((result) => {
+            const isSelected = selectedIds.includes(result.application_id);
+            const isDisabled = !isSelected && selectedIds.length >= 3;
 
             return (
               <button
-                key={idx}
-                onClick={() => handleCheckboxChange(result.filename)}
+                key={result.application_id}
+                onClick={() => handleToggleSelection(result.application_id)}
                 disabled={isDisabled}
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold transition-all duration-200
@@ -119,17 +151,15 @@ export function CompareTab({ batchResults }: CompareTabProps) {
         </div>
       ) : (
         <div className="space-y-6 pt-4 border-t border-gray-100 dark:border-neutral-800">
-
           <div className={`grid gap-6 items-start ${compareItems.length === 3 ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
-            {compareItems.map((candidate, idx) => (
-              <div key={idx} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col h-full hover:shadow-md transition-all duration-300">
-
+            {compareItems.map((candidate) => (
+              <div key={candidate.application_id} className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col h-full hover:shadow-md transition-all duration-300">
                 <div className="mb-6">
                   <h4 className="text-lg font-bold text-gray-900 dark:text-white break-words mb-4 pb-4 border-b border-gray-100 dark:border-neutral-800">
                     {candidate.filename}
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <Pill label={t.score} value={`${candidate.score}%` || '—'} color="blue" />
+                    <Pill label={t.score} value={`${candidate.score}%`} color="blue" />
                     <Pill
                       label={t.decision}
                       value={candidate.decision || '—'}
@@ -139,7 +169,6 @@ export function CompareTab({ batchResults }: CompareTabProps) {
                 </div>
 
                 <div className="flex flex-col gap-6 flex-1">
-
                   <section>
                     <h5 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mb-2">{t.summary}</h5>
                     <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-gray-50 dark:bg-neutral-800/50 p-4 rounded-xl border border-gray-100 dark:border-neutral-800 transition-colors">
@@ -184,12 +213,10 @@ export function CompareTab({ batchResults }: CompareTabProps) {
                       )}
                     </ul>
                   </section>
-
                 </div>
               </div>
             ))}
           </div>
-
         </div>
       )}
     </div>
