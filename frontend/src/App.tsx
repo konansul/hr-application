@@ -81,7 +81,7 @@ function App() {
           const navState = user.role === 'candidate'
             ? pathToNavState(window.location.pathname)
             : hrPathToNavState(window.location.pathname);
-          setActiveTab(navState?.tab as any ?? (user.role === 'hr' ? 'job' : 'upload-cv'));
+          setActiveTab(navState?.tab as any ?? (user.role === 'hr' ? 'job' : 'profile'));
         }}
       />
     );
