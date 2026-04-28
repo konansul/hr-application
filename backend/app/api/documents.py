@@ -7,14 +7,15 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
+
 
 from backend.app.api.models import DocumentResponse
 from backend.database.storage import new_id
 from backend.database.db import get_db
-from backend.database.models import Document, User, Person, Resume
+from backend.database.models import Document, User, Person, Resume, Job, Application
 from backend.app.api.helpers.ownership import get_current_user
 
-# ИМПОРТИРУЕМ ФУНКЦИЮ ЛИМИТОВ
 from backend.app.api.helpers.quota import consume_ai_quota
 
 from backend.app.services.parsing.pdf import pdf_to_text
@@ -152,17 +153,32 @@ def get_organization_documents(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != "hr":
-        raise HTTPException(status_code=403, detail="Only HR can view candidates")
+    if current_user.role != "hr" or not current_user.org_id:
+        raise HTTPException(status_code=403, detail="Only HR with an organization can view documents")
 
-    documents = db.query(Document).filter(
-        Document.source_type.in_(["uploaded_cv", "public_application"])
-    ).all()
+    hr_org_id = current_user.org_id
+
+    documents = (
+        db.query(Document)
+        .join(Person, Person.user_id == Document.owner_user_id)
+        .outerjoin(Application, Application.person_id == Person.person_id)
+        .outerjoin(Job, Job.job_id == Application.job_id)
+        .filter(Document.source_type.in_(["uploaded_cv", "public_application"]))
+        .filter(
+            or_(
+                Job.org_id == hr_org_id,
+                Person.shared_with_org_ids_json.contains(hr_org_id)
+            )
+        )
+        .distinct()
+        .all()
+    )
 
     result = []
     for d in documents:
         person = db.query(Person).filter(Person.user_id == d.owner_user_id).first()
         candidate_name = f"{person.first_name} {person.last_name}".strip() if person else None
+
         result.append({
             "document_id": d.document_id,
             "owner_user_id": d.owner_user_id,

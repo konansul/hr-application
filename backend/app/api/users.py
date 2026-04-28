@@ -3,6 +3,7 @@ import os
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 import httpx
 
 from html.parser import HTMLParser
@@ -11,7 +12,7 @@ from backend.app.api.helpers.ownership import get_current_user
 from backend.app.api.models import ProfileUpdateRequest, HRProfileUpdate, UrlImportRequest
 from backend.app.schemas import PublicProfileOut
 from backend.database.db import get_db
-from backend.database.models import User, Person
+from backend.database.models import User, Person, Job, Application
 from backend.app.gemini import client as _llm_client
 from backend.app.core.config import settings
 from backend.app.services.llm.schemas import CV_PARSING_SCHEMA
@@ -159,15 +160,25 @@ def list_candidates_for_hr(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != "hr":
-        raise HTTPException(status_code=403, detail="Access denied. Only HR can view candidates.")
+    # Проверяем, что это HR и у него есть привязка к организации
+    if current_user.role != "hr" or not current_user.org_id:
+        raise HTTPException(status_code=403, detail="Access denied. Only HR with an organization can view candidates.")
 
-    # ВАЖНО: Фильтруем кандидатов. Показываем только тех, у кого статус 'public'
+    hr_org_id = current_user.org_id
+
     candidates_users = (
         db.query(User)
         .join(Person, User.user_id == Person.user_id)
+        .outerjoin(Application, Application.person_id == Person.person_id)
+        .outerjoin(Job, Job.job_id == Application.job_id)
         .filter(User.role == "candidate")
-        .filter(Person.visibility_level == "public")
+        .filter(
+            or_(
+                Job.org_id == hr_org_id,
+                Person.shared_with_org_ids_json.contains(hr_org_id)
+            )
+        )
+        .distinct()
         .all()
     )
 
@@ -209,12 +220,27 @@ def get_candidate_profile_for_hr(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != "hr":
-        raise HTTPException(status_code=403, detail="Access denied. Only HR can view profiles.")
+    if current_user.role != "hr" or not current_user.org_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
 
-    person = db.query(Person).filter(Person.person_id == person_id).first()
+    hr_org_id = current_user.org_id
+
+    person = (
+        db.query(Person)
+        .outerjoin(Application, Application.person_id == Person.person_id)
+        .outerjoin(Job, Job.job_id == Application.job_id)
+        .filter(Person.person_id == person_id)
+        .filter(
+            or_(
+                Job.org_id == hr_org_id,
+                Person.shared_with_org_ids_json.contains(hr_org_id)
+            )
+        )
+        .first()
+    )
+
     if not person:
-        raise HTTPException(status_code=404, detail="Candidate not found")
+        raise HTTPException(status_code=404, detail="Candidate not found or access denied")
 
     profile_data = {}
     if person.profile_json:

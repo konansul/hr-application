@@ -441,10 +441,17 @@ def get_candidate_answers(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != "hr":
-        raise HTTPException(status_code=403, detail="Only HR can view answers")
+    if current_user.role != "hr" or not current_user.org_id:
+        raise HTTPException(status_code=403, detail="Only HR with an organization can view answers")
 
-    job = db.query(Job).filter(Job.job_id == job_id).first()
+    job = db.query(Job).filter(
+        Job.job_id == job_id,
+        Job.org_id == current_user.org_id
+    ).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found or access denied")
+
     questions = json.loads(job.screening_questions_json) if job and job.screening_questions_json else []
 
     person = db.query(Person).filter(Person.user_id == owner_user_id).first()
