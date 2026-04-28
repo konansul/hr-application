@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ProfileTab } from './ProfileTab';
 import { ResumeUploadTab } from './ResumeUploadTab';
 import { ImproveCvTab } from './ImproveCvTab';
