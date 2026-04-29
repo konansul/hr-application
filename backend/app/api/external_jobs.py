@@ -64,24 +64,24 @@ _ADZUNA_LOC: dict[str, tuple[str, str]] = {
 # "europe" is left to Adzuna since there is no single EU country code.
 # ---------------------------------------------------------------------------
 _JSEARCH_LOC: dict[str, tuple[str, str, str]] = {
-    "portugal":  ("Lisbon",      "lisbon porto portugal",  "pt"),
-    "sweden":    ("Stockholm",   "stockholm sweden",       "se"),
-    "norway":    ("Oslo",        "oslo norway",            "no"),
-    "denmark":   ("Copenhagen",  "copenhagen denmark",     "dk"),
-    "finland":   ("Helsinki",    "helsinki finland",       "fi"),
-    "ireland":   ("Dublin",      "dublin ireland",         "ie"),
-    "czech":     ("Prague",      "prague brno czech",      "cz"),
-    "ukraine":   ("Kyiv",        "kyiv ukraine",           "ua"),
-    "romania":   ("Bucharest",   "bucharest romania",      "ro"),
-    "greece":    ("Athens",      "athens greece",          "gr"),
-    "hungary":   ("Budapest",    "budapest hungary",       "hu"),
-    "latvia":    ("Riga",        "riga latvia",            "lv"),
-    "lithuania": ("Vilnius",     "vilnius lithuania",      "lt"),
-    "estonia":   ("Tallinn",     "tallinn estonia",        "ee"),
-    "croatia":   ("Zagreb",      "zagreb croatia",         "hr"),
-    "uae":       ("Dubai",       "dubai abu dhabi uae",    "ae"),
-    "israel":    ("Tel Aviv",    "tel aviv israel",        "il"),
-    "japan":     ("Tokyo",       "tokyo osaka japan",      "jp"),
+    "portugal":  ("Lisbon, Portugal",      "lisbon porto portugal",  "pt"),
+    "sweden":    ("Stockholm, Sweden",     "stockholm sweden",       "se"),
+    "norway":    ("Oslo, Norway",          "oslo norway",            "no"),
+    "denmark":   ("Copenhagen, Denmark",   "copenhagen denmark",     "dk"),
+    "finland":   ("Helsinki, Finland",     "helsinki finland",       "fi"),
+    "ireland":   ("Dublin, Ireland",       "dublin ireland",         "ie"),
+    "czech":     ("Prague, Czech Republic","prague brno czech",      "cz"),
+    "ukraine":   ("Kyiv, Ukraine",         "kyiv ukraine",           "ua"),
+    "romania":   ("Bucharest, Romania",    "bucharest romania",      "ro"),
+    "greece":    ("Athens, Greece",        "athens greece",          "gr"),
+    "hungary":   ("Budapest, Hungary",     "budapest hungary",       "hu"),
+    "latvia":    ("Riga, Latvia",          "riga latvia",            "lv"),
+    "lithuania": ("Vilnius, Lithuania",    "vilnius lithuania",      "lt"),
+    "estonia":   ("Tallinn, Estonia",      "tallinn estonia",        "ee"),
+    "croatia":   ("Zagreb, Croatia",       "zagreb croatia",         "hr"),
+    "uae":       ("Dubai, UAE",            "dubai abu dhabi uae",    "ae"),
+    "israel":    ("Tel Aviv, Israel",      "tel aviv israel",        "il"),
+    "japan":     ("Tokyo, Japan",          "tokyo osaka japan",      "jp"),
 }
 
 _LOCATION_STOP_WORDS = {
@@ -165,7 +165,12 @@ async def _search_jsearch(query: str, location_value: str, employment_type: str,
     location_str, strip_words, country_iso = loc_entry
 
     clean_query = _strip_location_words(query, strip_words)
-    job_query = clean_query if clean_query else "jobs"
+    # Embed city into the query string — JSearch ranks by query text and the
+    # separate `location` param alone is often ignored for non-US cities.
+    if clean_query:
+        job_query = f"{clean_query} in {location_str}"
+    else:
+        job_query = f"jobs in {location_str}"
 
     params: dict = {
         "query":     job_query,
