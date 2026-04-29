@@ -25,6 +25,7 @@ type ResumeVersion = {
   skills?: any[];
   languages?: any[];
   certifications?: any[];
+  hide_references?: boolean;
   valid_until?: string | null;
   job_description?: string | null;
   created_at?: string | null;
@@ -103,6 +104,7 @@ const normalizeResume = (resume: ResumeVersion | null): ResumeVersion | null => 
     skills: resumeData.skills ?? [],
     languages: resumeData.languages ?? [],
     certifications: resumeData.certifications ?? [],
+    hide_references: resumeData.hide_references ?? resume.hide_references ?? false,
   };
 };
 
@@ -348,9 +350,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const [sourceResumeId, setSourceResumeId] = useState<string>(resumeVersions[0]?.resume_id ?? '');
 
-  type JDMode = 'jobs' | 'manual';
-  const [mode, setMode] = useState<JDMode>(activeJobs.length > 0 ? 'jobs' : 'manual');
-  const [selectedJobId, setSelectedJobId] = useState('');
   const [description, setDescription] = useState('');
   const [jobUrl, setJobUrl] = useState('');
   const [isFetching, setIsFetching] = useState(false);
@@ -385,25 +384,13 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
     }
   };
 
-  const selectedJob = activeJobs.find((j) => (j.job_id || j.id) === selectedJobId);
-
-  const effectiveDescription = mode === 'jobs' ? (selectedJob?.description ?? '') : description;
-  const effectiveJobId = mode === 'jobs' ? (selectedJobId || null) : null;
+  const effectiveDescription = description;
+  const effectiveJobId = null;
 
   const effectiveTitle = title.trim() || (fetchedTitle ? `Resume for ${fetchedTitle}` : '');
   const canSubmit = !isWorking && !isFetching && !!effectiveDescription.trim() && !!sourceResumeId;
 
   const langLabel = (code?: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label || code || 'en';
-
-  const ModeTab = ({ id, label }: { id: JDMode; label: string }) => (
-    <button
-      type="button"
-      onClick={() => setMode(id)}
-      className={`flex-1 py-2.5 text-xs font-semibold transition-all ${mode === id ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
-    >
-      {label}
-    </button>
-  );
 
   return (
     <ModalShell title={t.modal.fromJobTitle} subtitle={t.modal.fromJobSubtitle} onClose={onClose}>
@@ -442,70 +429,52 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
       <div>
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.jobDescription}</label>
 
-        {activeJobs.length > 0 && (
-          <div className="flex rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden mb-3">
-            <ModeTab id="jobs" label="Open Jobs" />
-            <ModeTab id="manual" label="Paste / URL" />
-          </div>
-        )}
-
-        {mode === 'jobs' && (
-          <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20">
-            <option value="">— Select a job —</option>
-            {activeJobs.map((job) => (
-              <option key={job.job_id || job.id} value={job.job_id || job.id}>{job.title}</option>
-            ))}
-          </select>
-        )}
-
-        {mode === 'manual' && (
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <div className="flex gap-2">
-                <input
-                  value={jobUrl}
-                  onChange={(e) => { setJobUrl(e.target.value); setFetchError(''); setHasFetched(false); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleFetchUrl(); }}
-                  className="flex-1 rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  placeholder="https://company.com/jobs/12345"
-                />
-                <button
-                  type="button"
-                  onClick={handleFetchUrl}
-                  disabled={isFetching || !jobUrl.trim()}
-                  className="px-4 py-2.5 bg-gray-800 text-white text-xs font-semibold rounded-xl hover:bg-gray-700 transition-all disabled:opacity-50 flex items-center gap-2 shrink-0"
-                >
-                  {isFetching
-                    ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Loading…</>
-                    : 'Auto-fill'}
-                </button>
-              </div>
-              {!fetchError && !hasFetched && (
-                <p className="text-[11px] text-gray-400 dark:text-neutral-500">Works on static job pages only — for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
-              )}
-              {fetchError && <p className="text-xs text-red-500">{fetchError} — paste the description below instead.</p>}
-              {hasFetched && !description && !fetchError && (
-                <p className="text-xs text-amber-600">This site requires JavaScript (e.g. LinkedIn, Indeed) and can't be fetched automatically. Copy the job description from the page and paste it below.</p>
-              )}
-              {hasFetched && fetchedTitle && description && (
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  <span className="text-xs text-emerald-600 font-semibold">Filled from: {fetchedTitle}</span>
-                </div>
-              )}
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <div className="flex gap-2">
+              <input
+                value={jobUrl}
+                onChange={(e) => { setJobUrl(e.target.value); setFetchError(''); setHasFetched(false); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleFetchUrl(); }}
+                className="flex-1 rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                placeholder="https://company.com/jobs/12345"
+              />
+              <button
+                type="button"
+                onClick={handleFetchUrl}
+                disabled={isFetching || !jobUrl.trim()}
+                className="px-4 py-2.5 bg-gray-800 text-white text-xs font-semibold rounded-xl hover:bg-gray-700 transition-all disabled:opacity-50 flex items-center gap-2 shrink-0"
+              >
+                {isFetching
+                  ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Loading…</>
+                  : 'Auto-fill'}
+              </button>
             </div>
-
-            <textarea
-              ref={descriptionRef}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={6}
-              className={`w-full rounded-xl border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${description ? 'border-indigo-300 dark:border-indigo-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white'}`}
-              placeholder="Or paste the job description here…"
-              autoFocus={activeJobs.length === 0}
-            />
+            {!fetchError && !hasFetched && (
+              <p className="text-[11px] text-gray-400 dark:text-neutral-500">Works on static job pages only — for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
+            )}
+            {fetchError && <p className="text-xs text-red-500">{fetchError} — paste the description below instead.</p>}
+            {hasFetched && !description && !fetchError && (
+              <p className="text-xs text-amber-600">This site requires JavaScript (e.g. LinkedIn, Indeed) and can't be fetched automatically. Copy the job description from the page and paste it below.</p>
+            )}
+            {hasFetched && fetchedTitle && description && (
+              <div className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <span className="text-xs text-emerald-600 font-semibold">Filled from: {fetchedTitle}</span>
+              </div>
+            )}
           </div>
-        )}
+
+          <textarea
+            ref={descriptionRef}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={6}
+            className={`w-full rounded-xl border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${description ? 'border-indigo-300 dark:border-indigo-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white'}`}
+            placeholder="Or paste the job description here…"
+            autoFocus
+          />
+        </div>
       </div>
 
       <div>
@@ -599,6 +568,7 @@ export function ResumeUploadTab() {
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
+  const [showBestPractices, setShowBestPractices] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showJobDescModal, setShowJobDescModal] = useState(false);
@@ -635,6 +605,7 @@ export function ResumeUploadTab() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfIncludePhoto, setPdfIncludePhoto] = useState(true);
   const [showSavePdfModal, setShowSavePdfModal] = useState(false);
+  const [showSendEmailModal, setShowSendEmailModal] = useState(false);
   const [savingPdfTemplateId, setSavingPdfTemplateId] = useState<string | null>(null);
   const [previewingTemplateId, setPreviewingTemplateId] = useState<string | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
@@ -1015,8 +986,9 @@ export function ResumeUploadTab() {
         experience:     editDraft.experience     ?? [],
         education:      editDraft.education      ?? [],
         skills:         editDraft.skills         ?? [],
-        languages:      (editDraft.languages      ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.language || '').trim()).filter(Boolean),
-        certifications: (editDraft.certifications ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.title  || '').trim()).filter(Boolean),
+        languages:       (editDraft.languages      ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.language || '').trim()).filter(Boolean),
+        certifications:  (editDraft.certifications ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.title  || '').trim()).filter(Boolean),
+        hide_references: editDraft.hide_references ?? false,
       };
       await resumesApi.update(selectedResume.resume_id, {
         title: titleDraft.trim() || editDraft.title || selectedResume.title || undefined,
@@ -1040,6 +1012,14 @@ export function ResumeUploadTab() {
     setEditDraft(d => { if (!d) return d; const a = [...(d.education ?? [])]; a[i] = { ...a[i], [field]: value }; return { ...d, education: a }; });
   const addEduEntry = () => setEditDraft(d => d ? { ...d, education: [...(d.education ?? []), { degree: '', institution: '' }] } : d);
   const removeEduEntry = (i: number) => setEditDraft(d => d ? { ...d, education: (d.education ?? []).filter((_: any, j: number) => j !== i) } : d);
+
+  const addLangEntry = () => setEditDraft(d => d ? { ...d, languages: [...(d.languages ?? []), ''] } : d);
+  const removeLangEntry = (i: number) => setEditDraft(d => d ? { ...d, languages: (d.languages ?? []).filter((_: any, j: number) => j !== i) } : d);
+  const updateLangEntry = (i: number, value: string) => setEditDraft(d => { if (!d) return d; const a = [...(d.languages ?? [])]; a[i] = value; return { ...d, languages: a }; });
+
+  const addCertEntry = () => setEditDraft(d => d ? { ...d, certifications: [...(d.certifications ?? []), ''] } : d);
+  const removeCertEntry = (i: number) => setEditDraft(d => d ? { ...d, certifications: (d.certifications ?? []).filter((_: any, j: number) => j !== i) } : d);
+  const updateCertEntry = (i: number, value: string) => setEditDraft(d => { if (!d) return d; const a = [...(d.certifications ?? [])]; a[i] = value; return { ...d, certifications: a }; });
 
   const InfoTag = ({ label, value }: { label: string; value: any }) => (
     <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
@@ -1068,6 +1048,13 @@ export function ResumeUploadTab() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowBestPractices(p => !p)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl shadow-sm border transition-all ${showBestPractices ? 'bg-violet-600 hover:bg-violet-700 text-white border-violet-600' : 'bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50'}`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            CV Tips
+          </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
@@ -1102,7 +1089,68 @@ export function ResumeUploadTab() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 items-start">
+      {showBestPractices && (
+        <div className="rounded-2xl overflow-hidden border border-violet-200 dark:border-violet-800/40 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="px-6 py-5 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+              </div>
+              <div>
+                <p className="text-base font-bold text-white leading-tight">CV Best Practices</p>
+                <p className="text-xs text-white/65 mt-0.5">12 tips to make your CV stand out and get noticed</p>
+              </div>
+            </div>
+            <button onClick={() => setShowBestPractices(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div className="p-6 bg-white dark:bg-neutral-900">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {([
+                { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout.', color: 'violet' },
+                { title: 'Keep it short and sharp', desc: '1 or 2 pages only — recruiters scan fast.', color: 'indigo' },
+                { title: 'Include essential personal details only', desc: 'Focus on professional information that supports your application.', color: 'sky' },
+                { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name.', color: 'emerald' },
+                { title: 'Keep the design clean', desc: 'Prioritise readability over decoration.', color: 'teal' },
+                { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction.', color: 'blue' },
+                { title: 'Use a photo only if appropriate', desc: 'Include a photo only when it is standard or expected in your industry or country.', color: 'amber' },
+                { title: 'Tailor your CV', desc: 'Adjust content for each role to match requirements and keywords.', color: 'orange' },
+                { title: 'Keep it concise', desc: 'Use short, clear bullet points that are easy to scan.', color: 'rose' },
+                { title: 'Prioritise relevance', desc: 'Include experience and skills that match the role you\'re targeting.', color: 'pink' },
+                { title: 'Use specific language', desc: 'Replace generic statements with concrete examples and outcomes.', color: 'purple' },
+                { title: 'State references availability', desc: 'Add "References available upon request" when relevant.', color: 'indigo' },
+              ] as { title: string; desc: string; color: string }[]).map((tip, i) => {
+                const palette: Record<string, { badge: string; dot: string }> = {
+                  violet: { badge: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300', dot: 'bg-violet-400' },
+                  indigo: { badge: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300', dot: 'bg-indigo-400' },
+                  sky:    { badge: 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300', dot: 'bg-sky-400' },
+                  emerald:{ badge: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-400' },
+                  teal:   { badge: 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300', dot: 'bg-teal-400' },
+                  blue:   { badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300', dot: 'bg-blue-400' },
+                  amber:  { badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300', dot: 'bg-amber-400' },
+                  orange: { badge: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300', dot: 'bg-orange-400' },
+                  rose:   { badge: 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300', dot: 'bg-rose-400' },
+                  pink:   { badge: 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300', dot: 'bg-pink-400' },
+                  purple: { badge: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300', dot: 'bg-purple-400' },
+                };
+                const p = palette[tip.color] ?? palette.indigo;
+                return (
+                  <div key={i} className="flex gap-3 p-4 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 hover:border-gray-200 dark:hover:border-neutral-600 hover:shadow-sm transition-all">
+                    <div className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-xs font-black ${p.badge}`}>{i + 1}</div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-gray-900 dark:text-white mb-1 leading-snug">{tip.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">{tip.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
 
         <div className="space-y-2">
           {resumeVersions.length > 0 ? (
@@ -1120,12 +1168,12 @@ export function ResumeUploadTab() {
                         onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); setMessage(null); }}
                         className="min-w-0 flex-1 text-left"
                       >
-                        <div className="flex items-center w-full gap-2">
-                          <h4 className="text-sm font-semibold leading-snug truncate flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
+                        <div className="flex items-center w-full gap-2 min-w-0">
+                          <h4 className="text-sm font-semibold leading-snug break-words flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
                           <span className={`text-xs whitespace-nowrap shrink-0 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
                             {resume.created_at ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
                           </span>
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${isActive ? 'border-white/20 text-white' : 'border-gray-200 text-gray-600'}`}>
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${isActive ? 'border-white/20 text-white' : 'border-gray-200 dark:border-neutral-600 text-gray-600 dark:text-neutral-400'}`}>
                             {langLabel(resume.language)}
                           </span>
                         </div>
@@ -1469,76 +1517,151 @@ export function ResumeUploadTab() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 dark:border-neutral-800 pt-6">
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">{t.sections.education}</p>
-                      {isEditingContent ? (
-                        <div className="space-y-3">
-                          {(editDraft?.education ?? []).map((edu: any, i: number) => (
-                            <div key={i} className="p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">{t.edit.entry} {i + 1}</span>
-                                <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
-                              </div>
-                              <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-                              <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-                            </div>
-                          ))}
-                          <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addEdu}</button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
-                            <div key={i} className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{edu.degree || 'Degree'}</p>
-                              <p className="text-xs text-gray-500 dark:text-neutral-400">{edu.institution || 'Institution'}</p>
-                            </div>
-                          )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noEdu}</p>}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-3">{t.sections.langCert}</p>
+                  <div className="space-y-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+                      {t.sections.education}
+                    </p>
+                    {isEditingContent ? (
                       <div className="space-y-3">
-                        <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t.sections.languages}</p>
-                          {isEditingContent ? (
-                            <textarea
-                              className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none bg-white"
-                              rows={2}
-                              value={(editDraft?.languages ?? []).map((l: any) => typeof l === 'string' ? l : l.name || l.language || '').join('\n')}
-                              onChange={e => setEditDraft(d => d ? { ...d, languages: e.target.value.split('\n') } : d)}
-                              placeholder={"English\nSpanish\nFrench..."}
-                            />
-                          ) : (
-                            <p className="text-sm text-gray-700 dark:text-neutral-300">
-                              {selectedResume.languages?.length
-                                ? selectedResume.languages.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')
-                                : t.placeholders.noLang}
-                            </p>
-                          )}
-                        </div>
-                        <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t.sections.certifications}</p>
-                          {isEditingContent ? (
-                            <textarea
-                              className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none bg-white"
-                              rows={2}
-                              value={(editDraft?.certifications ?? []).map((c: any) => typeof c === 'string' ? c : c.name || c.title || '').join('\n')}
-                              onChange={e => setEditDraft(d => d ? { ...d, certifications: e.target.value.split('\n') } : d)}
-                              placeholder={"AWS Certified\nPMP\nGoogle Analytics..."}
-                            />
-                          ) : (
-                            <p className="text-sm text-gray-700 dark:text-neutral-300">
-                              {selectedResume.certifications?.length
-                                ? selectedResume.certifications.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')
-                                : t.placeholders.noCert}
-                            </p>
-                          )}
-                        </div>
+                        {(editDraft?.education ?? []).map((edu: any, i: number) => (
+                          <div key={i} className="p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">{t.edit.entry} {i + 1}</span>
+                              <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
+                            </div>
+                            <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                            <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                          </div>
+                        ))}
+                        <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addEdu}</button>
                       </div>
+                    ) : (
+                      <>
+                        {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
+                          <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{edu.degree || 'Degree'}</h4>
+                            {edu.institution && <p className="text-xs font-medium text-gray-500 dark:text-neutral-400">{edu.institution}</p>}
+                            {(edu.start_date || edu.end_date) && <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}</p>}
+                          </div>
+                        )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noEdu}</p>}
+                      </>
+                    )}
+                  </div>
+
+                  {(isEditingContent || (selectedResume.languages?.length ?? 0) > 0 || (selectedResume.certifications?.length ?? 0) > 0 || !selectedResume.hide_references) && (
+                  <div className="border-t border-gray-100 dark:border-neutral-800 pt-6">
+                    <div className="flex flex-wrap gap-6">
+
+                      {/* Languages */}
+                      {(isEditingContent || (selectedResume.languages?.length ?? 0) > 0) && (
+                      <div className="flex-1 min-w-[150px] space-y-2">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                            {t.sections.languages}
+                          </p>
+                          {isEditingContent && (
+                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
+                          )}
+                        </div>
+                        {isEditingContent ? (
+                          <div className="space-y-1.5">
+                            {(editDraft?.languages ?? []).map((l: any, i: number) => {
+                              const val = typeof l === 'string' ? l : l.name || l.language || '';
+                              return (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <input value={val} onChange={e => updateLangEntry(i, e.target.value)} placeholder="e.g. English" className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-neutral-700 px-2.5 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                                  <button type="button" onClick={() => removeLangEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">{t.edit.remove}</button>
+                                </div>
+                              );
+                            })}
+                            <button type="button" onClick={addLangEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-gray-400 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
+                            {selectedResume.languages!.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                      )}
+
+                      {/* Certifications */}
+                      {(isEditingContent || (selectedResume.certifications?.length ?? 0) > 0) && (
+                      <div className="flex-1 min-w-[150px] space-y-2">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                            {t.sections.certifications}
+                          </p>
+                          {isEditingContent && (
+                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
+                          )}
+                        </div>
+                        {isEditingContent ? (
+                          <div className="space-y-1.5">
+                            {(editDraft?.certifications ?? []).map((c: any, i: number) => {
+                              const val = typeof c === 'string' ? c : c.name || c.title || '';
+                              return (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <input value={val} onChange={e => updateCertEntry(i, e.target.value)} placeholder="e.g. AWS Certified" className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-neutral-700 px-2.5 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                                  <button type="button" onClick={() => removeCertEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">{t.edit.remove}</button>
+                                </div>
+                              );
+                            })}
+                            <button type="button" onClick={addCertEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-gray-400 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
+                            {selectedResume.certifications!.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                      )}
+
+                      {/* References */}
+                      {(isEditingContent || !selectedResume.hide_references) && (
+                      <div className="flex-1 min-w-[150px] space-y-2">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            References
+                          </p>
+                          {isEditingContent && (
+                            editDraft?.hide_references
+                              ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-medium px-1.5 py-0.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">Restore</button>
+                              : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
+                          )}
+                        </div>
+                        {editDraft?.hide_references && isEditingContent
+                          ? <p className="text-xs text-gray-400 dark:text-neutral-500 italic">Hidden from resume.</p>
+                          : <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">References available upon request</p>
+                        }
+                      </div>
+                      )}
+
                     </div>
                   </div>
+                  )}
+
+                  {isEditingContent && (
+                    <div className="flex items-center gap-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
+                      <button
+                        onClick={cancelEditingContent}
+                        className="flex-1 py-2.5 text-sm font-semibold text-gray-600 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                      >
+                        {t.actions.cancel}
+                      </button>
+                      <button
+                        onClick={handleSaveContent}
+                        disabled={isSavingContent}
+                        className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isSavingContent && <div className="w-3.5 h-3.5 border-2 border-white/30 dark:border-gray-900/30 border-t-white dark:border-t-gray-900 rounded-full animate-spin" />}
+                        {isSavingContent ? t.actions.saving : t.actions.save}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1597,6 +1720,19 @@ export function ResumeUploadTab() {
                     </button>
                   </>
                 )}
+                <div className="border-t border-gray-100 dark:border-neutral-800 pt-4">
+                  <button
+                    onClick={() => { setSendEmailStatus('idle'); setShowSendEmailModal(true); }}
+                    disabled={!selectedResume?.generated_document_id}
+                    title={!selectedResume?.generated_document_id ? 'Save a PDF first to send by email' : undefined}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {t.sendEmail.title}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1629,134 +1765,6 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0"></div>
-              <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">{t.sendEmail.title}</h3>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.recipientName}</label>
-                  <input
-                    type="text"
-                    value={sendEmailRecipientName}
-                    onChange={e => setSendEmailRecipientName(e.target.value)}
-                    placeholder={t.sendEmail.namePlaceholder}
-                    className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.recipientEmail}</label>
-                  <input
-                    type="email"
-                    value={sendEmailTo}
-                    onChange={e => setSendEmailTo(e.target.value)}
-                    placeholder="recruiter@company.com"
-                    className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
-                  />
-                </div>
-              </div>
-
-              {sendEmailStatus === 'success' ? (
-                <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
-                  <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
-                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    {t.sendEmail.sentTo.replace('{email}', sendEmailTo || 'recipient')}
-                  </div>
-                  <button
-                    onClick={() => { setSendEmailStatus('idle'); setSendEmailTo(''); setSendEmailSubject(''); setSendEmailRecipientName(''); setSendEmailMessage(''); }}
-                    className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline"
-                  >
-                    {t.sendEmail.sendAnother}
-                  </button>
-                </div>
-              ) : (<>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.subject}</label>
-                <input
-                  type="text"
-                  value={sendEmailSubject}
-                  onChange={e => setSendEmailSubject(e.target.value)}
-                  placeholder={selectedResume ? `CV: ${selectedResume.title || 'My Resume'}` : 'CV submission'}
-                  className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20"
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleAttachCv}
-                  disabled={!selectedResume?.generated_document_id || isAttachingPdf}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {isAttachingPdf ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                  )}
-                  {isAttachingPdf ? t.sendEmail.attaching : t.sendEmail.attachBtn}
-                </button>
-                {sendEmailAttachment ? (
-                  <button
-                    onClick={() => setShowEmailPreview(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                    title="Click to preview"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    {sendEmailAttachment.filename}
-                    <svg className="w-3 h-3 ml-0.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  </button>
-                ) : (
-                  <span className="text-xs text-gray-400 dark:text-neutral-500">
-                    {selectedResume?.generated_document_id ? t.sendEmail.noAttachment : t.sendEmail.savePdfFirst}
-                  </span>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.message}</label>
-                <textarea
-                  value={sendEmailMessage}
-                  onChange={e => setSendEmailMessage(e.target.value)}
-                  rows={14}
-                  placeholder="Write a short message to accompany your CV…"
-                  className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:focus:ring-sky-400/20 resize-y"
-                />
-              </div>
-              {sendEmailStatus === 'error' && (
-                <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
-                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  {sendEmailError || t.sendEmail.errorMsg}
-                </div>
-              )}
-              {sendEmailStatus === 'not_configured' && (
-                <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-sm text-amber-700 dark:text-amber-400">
-                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" /></svg>
-                  {t.sendEmail.notConfigured}
-                </div>
-              )}
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-xs text-gray-400 dark:text-neutral-500">
-                  {selectedResume
-                    ? <>{t.sendEmail.sendingLabel} <span className="font-semibold text-gray-600 dark:text-neutral-300">{selectedResume.title || t.untitled}</span></>
-                    : t.sendEmail.selectFirst}
-                </p>
-                <button
-                  onClick={handleSendEmail}
-                  disabled={!sendEmailTo.trim() || !sendEmailAttachment || isSendingEmail}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSendingEmail ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                  {isSendingEmail ? t.sendEmail.sending : t.sendEmail.sendBtn}
-                </button>
-              </div>
-              </>)}
-            </div>
-          </div>
         </div>
 
       </div>
@@ -1798,6 +1806,71 @@ export function ResumeUploadTab() {
       )}
       {showJobDescModal && (
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
+      )}
+
+      {showSendEmailModal && selectedResume && (
+        <ModalShell title={t.sendEmail.title} onClose={() => setShowSendEmailModal(false)}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.recipientName}</label>
+                <input type="text" value={sendEmailRecipientName} onChange={e => setSendEmailRecipientName(e.target.value)} placeholder={t.sendEmail.namePlaceholder} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.recipientEmail}</label>
+                <input type="email" value={sendEmailTo} onChange={e => setSendEmailTo(e.target.value)} placeholder="recruiter@company.com" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20" />
+              </div>
+            </div>
+            {sendEmailStatus === 'success' ? (
+              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
+                <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  {t.sendEmail.sentTo.replace('{email}', sendEmailTo || 'recipient')}
+                </div>
+                <button onClick={() => { setSendEmailStatus('idle'); setSendEmailTo(''); setSendEmailSubject(''); setSendEmailRecipientName(''); setSendEmailMessage(''); }} className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline">{t.sendEmail.sendAnother}</button>
+              </div>
+            ) : (<>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.subject}</label>
+                <input type="text" value={sendEmailSubject} onChange={e => setSendEmailSubject(e.target.value)} placeholder={`CV: ${selectedResume.title || 'My Resume'}`} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20" />
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={handleAttachCv} disabled={!selectedResume?.generated_document_id || isAttachingPdf} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  {isAttachingPdf ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>}
+                  {isAttachingPdf ? t.sendEmail.attaching : t.sendEmail.attachBtn}
+                </button>
+                {sendEmailAttachment ? (
+                  <button onClick={() => setShowEmailPreview(true)} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition-colors" title="Click to preview">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    {sendEmailAttachment.filename}
+                  </button>
+                ) : (
+                  <span className="text-xs text-gray-400 dark:text-neutral-500">{t.sendEmail.noAttachment}</span>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.message}</label>
+                <textarea value={sendEmailMessage} onChange={e => setSendEmailMessage(e.target.value)} rows={10} placeholder="Write a short message to accompany your CV…" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 resize-y" />
+              </div>
+              {sendEmailStatus === 'error' && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  {sendEmailError || t.sendEmail.errorMsg}
+                </div>
+              )}
+              {sendEmailStatus === 'not_configured' && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-sm text-amber-700 dark:text-amber-400">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" /></svg>
+                  {t.sendEmail.notConfigured}
+                </div>
+              )}
+              <button onClick={handleSendEmail} disabled={!sendEmailTo.trim() || !sendEmailAttachment || isSendingEmail} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                {isSendingEmail ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                {isSendingEmail ? t.sendEmail.sending : t.sendEmail.sendBtn}
+              </button>
+            </>)}
+          </div>
+        </ModalShell>
       )}
 
       {showPdfModal && selectedResume && (
