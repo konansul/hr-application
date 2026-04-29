@@ -1,5 +1,5 @@
-import { useState, type ChangeEvent } from 'react';
-import { screeningApi } from '../../api';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
+import { screeningApi, documentsApi } from '../../api';
 import { useStore } from '../../store';
 import { DICT } from '../../internationalization.ts';
 
@@ -45,10 +45,11 @@ interface ImproveCvTabProps {
 }
 
 export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
-  // === 1. ДОСТАЕМ ЛИМИТЫ ИЗ СТОРА ===
   const { language, aiQuota, aiUsed, setAiLimits } = useStore();
   const t = DICT[language as keyof typeof DICT]?.improve || DICT.en.improve;
 
+  const [myDocuments, setMyDocuments] = useState<any[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState<string>(initialJobDescription);
 
@@ -56,28 +57,48 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   const [result, setResult] = useState<ImproveResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    documentsApi.getMyDocuments()
+      .then(setMyDocuments)
+      .catch(console.error);
+  }, []);
+
+  const handleSelectResume = (resumeId: string) => {
+    setSelectedResumeId(resumeId);
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
+      setSelectedResumeId(null);
     }
   };
 
   const handleAnalyze = async () => {
-    if (!file) return;
+    if (!file && !selectedResumeId) return;
 
     setIsProcessing(true);
     setError(null);
     setResult(null);
 
     try {
-      const data = await screeningApi.improveCvFile(file, jobDescription);
-      setResult(data);
+      let data;
+      if (file) {
+        data = await screeningApi.improveCvFile(file, jobDescription);
+      } else if (selectedResumeId) {
+        data = await (screeningApi as any).improveCvExisting(selectedResumeId, jobDescription);
+      }
 
-      // === 2. ОБНОВЛЯЕМ СЧЕТЧИК ПРИ УСПЕХЕ ===
+      setResult(data);
       setAiLimits(aiQuota, aiUsed + 1);
 
     } catch (err: any) {
-      // === 3. КРАСИВАЯ ОШИБКА, ЕСЛИ ЛИМИТ ИСЧЕРПАН ===
       if (err.response?.status === 429) {
         setError("⏳ You have reached your daily AI limit. Please come back tomorrow!");
       } else {
@@ -87,6 +108,9 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       setIsProcessing(false);
     }
   };
+
+  const selectedDoc = myDocuments.find(d => d.resume_id === selectedResumeId);
+  const displayFileName = file ? file.name : (selectedDoc ? selectedDoc.filename : t.none);
 
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
@@ -103,11 +127,52 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
 
-          <div className="lg:col-span-8 space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-300">{t.uploadLabel}</label>
+          <div className="lg:col-span-8 space-y-6">
+
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-300">Select CV to Improve</label>
+
+              {myDocuments.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
+                  {myDocuments.map(doc => (
+                    <div
+                      key={doc.resume_id}
+                      onClick={() => handleSelectResume(doc.resume_id)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                        selectedResumeId === doc.resume_id 
+                          ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm' 
+                          : 'border-gray-100 dark:border-neutral-800 bg-white dark:bg-black hover:border-gray-300 dark:hover:border-neutral-600'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                        selectedResumeId === doc.resume_id ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400'
+                      }`}>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-bold truncate ${selectedResumeId === doc.resume_id ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-white'}`}>
+                          {doc.filename}
+                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mt-0.5">
+                          {doc.source_type.replace('_', ' ')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {myDocuments.length > 0 && (
+                <div className="flex items-center gap-4 py-2">
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">OR UPLOAD NEW</span>
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800"></div>
+                </div>
+              )}
+
               <input
                 type="file"
+                ref={fileInputRef}
                 accept=".pdf,.docx,.txt"
                 onChange={handleFileChange}
                 disabled={isProcessing}
@@ -127,18 +192,18 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 disabled={isProcessing}
-                className="w-full min-h-[140px] px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 bg-white dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all resize-y"
+                className="w-full min-h-[140px] px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 bg-gray-50 dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all resize-y"
               />
             </div>
           </div>
 
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <Pill label={t.fileSelected} value={file ? file.name : t.none} color={file ? 'emerald' : 'gray'} />
+            <Pill label={t.fileSelected} value={displayFileName} color={file || selectedResumeId ? 'emerald' : 'gray'} />
             <Pill label={t.jobDescLength} value={`${jobDescription.length} ${t.chars}`} color={jobDescription.length > 0 ? 'blue' : 'gray'} />
 
             <button
               onClick={handleAnalyze}
-              disabled={!file || isProcessing}
+              disabled={(!file && !selectedResumeId) || isProcessing}
               className="w-full mt-auto py-3 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 dark:focus:ring-offset-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isProcessing ? (

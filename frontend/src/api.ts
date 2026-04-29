@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-//const BASE_URL = 'http://127.0.0.1:8000'
-const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
+const BASE_URL = 'http://127.0.0.1:8000'
+//const BASE_URL = 'https://hr-application-hkbxdtfvazfgcthr.canadaeast-01.azurewebsites.net';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -202,6 +202,13 @@ export const screeningApi = {
   },
     getStoredResults: async (jobId: string) => {
     const response = await apiClient.get(`/screening/results/${jobId}`);
+    return response.data;
+  },
+    improveCvExisting: async (resumeId: string, jobDescription: string) => {
+    const formData = new FormData();
+    formData.append('resume_id', resumeId);
+    formData.append('job_description', jobDescription);
+    const response = await apiClient.post('/improve-cv-existing', formData);
     return response.data;
   },
 };
