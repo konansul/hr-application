@@ -182,6 +182,7 @@ export function PublicCvView({ token }: { token: string }) {
     { id: 'education',  label: 'Education',   show: education.length > 0 },
     { id: 'languages',  label: 'Languages',   show: languages.length > 0 || certs.length > 0 },
     { id: 'contact',    label: 'Contact',     show: !!(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) },
+    { id: 'references', label: 'References',  show: true },
   ].filter(n => n.show);
 
   return (
@@ -361,6 +362,10 @@ export function PublicCvView({ token }: { token: string }) {
                 </div>
               </Section>
             )}
+
+            <Section id="references" title="References" accentBar="bg-slate-400">
+              <p className="text-sm text-slate-500 italic">References available upon request</p>
+            </Section>
           </div>
 
           {/* ── right column: Skills + Languages + Certs + Contact ────────── */}

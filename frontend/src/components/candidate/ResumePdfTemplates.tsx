@@ -209,6 +209,12 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
             ) : null}
           </View>
         ) : null}
+
+        <View style={CL.section}>
+          <Text style={CL.secTitle}>References</Text>
+          <View style={CL.thinRule} />
+          <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>References available upon request</Text>
+        </View>
       </Page>
     </Document>
   );
@@ -344,6 +350,11 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
               ))}
             </View>
           ) : null}
+
+          <View style={MO.mSec}>
+            <Text style={MO.mSecT}>References</Text>
+            <Text style={{ fontSize: 8.5, color: '#6b7280', fontStyle: 'italic' }}>References available upon request</Text>
+          </View>
         </View>
       </Page>
     </Document>
@@ -450,6 +461,11 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
             ) : null}
           </View>
         ) : null}
+
+        <View style={MI.sec}>
+          <Text style={MI.secT}>References</Text>
+          <Text style={{ fontSize: 9, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>References available upon request</Text>
+        </View>
       </Page>
     </Document>
   );
@@ -566,6 +582,11 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
               </View>
             ) : null}
           </View>
+        </View>
+
+        <View style={RE.sec}>
+          <Text style={RE.secT}>References</Text>
+          <Text style={{ fontSize: 8, color: '#6b7280', fontStyle: 'italic' }}>References available upon request</Text>
         </View>
       </Page>
     </Document>
@@ -686,6 +707,12 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
               ))}
             </View>
           ) : null}
+
+          <View style={FR.bSec}>
+            <Text style={FR.bSecT}>References</Text>
+            <View style={FR.bRule} />
+            <Text style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>References available upon request</Text>
+          </View>
         </View>
       </Page>
     </Document>
@@ -811,6 +838,12 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
                 </>
               ) : null}
             </View>
+          </View>
+
+          <View>
+            <Text style={HI.secT}>References</Text>
+            <View style={HI.rule} />
+            <Text style={{ fontSize: 8.5, color: '#374151', fontStyle: 'italic' }}>References available upon request</Text>
           </View>
         </View>
       </Page>
@@ -995,6 +1028,11 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
               ))}
             </View>
           ) : null}
+
+          <View style={AC.mSec}>
+            <Text style={AC.mSecT}>References</Text>
+            <Text style={{ fontSize: 8.5, color: '#475569', fontStyle: 'italic' }}>References available upon request</Text>
+          </View>
         </View>
       </Page>
     </Document>
