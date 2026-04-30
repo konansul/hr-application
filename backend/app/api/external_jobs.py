@@ -10,11 +10,6 @@ ADZUNA_APP_ID  = os.getenv("ADZUNA_APP_ID", "")
 ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "")
 RAPIDAPI_KEY   = os.getenv("RAPIDAPI_KEY", "")
 
-# ---------------------------------------------------------------------------
-# Adzuna — native country endpoints
-# Maps frontend location value → (adzuna_country_code, city_for_where_filter)
-# where= works only for cities within that endpoint's own country.
-# ---------------------------------------------------------------------------
 _ADZUNA_LOC: dict[str, tuple[str, str]] = {
     "remote":      ("gb", ""),
     "usa":         ("us", ""),
@@ -34,13 +29,11 @@ _ADZUNA_LOC: dict[str, tuple[str, str]] = {
     "india":       ("in", ""),
     "brazil":      ("br", ""),
     "mexico":      ("mx", ""),
-    # UK cities — where= works on the GB endpoint
     "london":      ("gb", "London"),
     "manchester":  ("gb", "Manchester"),
     "birmingham":  ("gb", "Birmingham"),
     "edinburgh":   ("gb", "Edinburgh"),
     "bristol":     ("gb", "Bristol"),
-    # US cities — where= works on the US endpoint
     "new-york":    ("us", "New York"),
     "sf-bay":      ("us", "San Francisco"),
     "los-angeles": ("us", "Los Angeles"),
@@ -51,18 +44,11 @@ _ADZUNA_LOC: dict[str, tuple[str, str]] = {
     "denver":      ("us", "Denver"),
     "miami":       ("us", "Miami"),
     "dc":          ("us", "Washington"),
-    # Canada cities — where= works on the CA endpoint
     "toronto":     ("ca", "Toronto"),
     "vancouver":   ("ca", "Vancouver"),
     "montreal":    ("ca", "Montreal"),
 }
 
-# ---------------------------------------------------------------------------
-# JSearch (RapidAPI / Google Jobs) — covers locations Adzuna doesn't have
-# Tuple: (city for location= param, words to strip from query, ISO country code)
-# The country= param is critical — without it JSearch defaults to "us".
-# "europe" is left to Adzuna since there is no single EU country code.
-# ---------------------------------------------------------------------------
 _JSEARCH_LOC: dict[str, tuple[str, str, str]] = {
     "portugal":  ("Lisbon",      "lisbon porto portugal",  "pt"),
     "sweden":    ("Stockholm",   "stockholm sweden",       "se"),

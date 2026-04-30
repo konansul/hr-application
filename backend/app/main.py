@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import auth, users, jobs, screening, improvement, documents, resumes, external_jobs
-
-app = FastAPI(title="CV Screening API")
+from backend.app.api import auth, users, jobs, applications, screening, improvement, documents, resumes, external_jobs, profiles, public
+app = FastAPI(title="HR Application API")
 
 origins = [
     "https://happy-hill-018c19800.4.azurestaticapps.net",
@@ -23,13 +22,15 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/v1", tags=["Authentication"])
-app.include_router(jobs.router, tags=["Jobs"])
-app.include_router(screening.router, tags=["Screening"])
-app.include_router(improvement.router, tags=["Improvement"])
+app.include_router(users.router, prefix="/v1", tags=["Users"])
+app.include_router(profiles.router, prefix="/v1", tags=["Profiles"])
 app.include_router(documents.router, prefix="/v1", tags=["Documents"])
-app.include_router(resumes.router)
-app.include_router(users.router, tags=["Users"])
-app.include_router(external_jobs.router, tags=["External Jobs"])
+app.include_router(resumes.router, prefix="/v1", tags=["Resumes"])
+app.include_router(jobs.router, prefix="/v1", tags=["Jobs"])
+app.include_router(screening.router, prefix="/v1", tags=["Screening"])
+app.include_router(applications.router, prefix="/v1", tags=["Applications"])
+app.include_router(improvement.router, prefix="/v1", tags=["Improvement"])
+app.include_router(external_jobs.router, prefix="/v1", tags=["External Jobs"])
 
 @app.get("/health")
 def health():

@@ -29,7 +29,7 @@ from backend.database.storage import new_id
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/v1/resumes", tags=["Resumes"])
+router = APIRouter()
 
 
 def _loads(data: str | None, default: Any):
@@ -115,7 +115,7 @@ def _resume_response(resume: Resume) -> Dict[str, Any]:
     }
 
 
-@router.get("")
+@router.get("/resumes")
 def list_my_resume_versions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -146,7 +146,7 @@ def list_my_resume_versions(
     return [_resume_response(resume) for resume in resumes]
 
 
-@router.get("/latest")
+@router.get("/resumes/latest")
 def get_latest_resume(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -165,7 +165,7 @@ def get_latest_resume(
     return response
 
 
-@router.post("/from-profile")
+@router.post("/resumes/from-profile")
 def create_resume_from_profile(
     request: ResumeCreateFromProfileRequest,
     db: Session = Depends(get_db),
@@ -217,7 +217,7 @@ def create_resume_from_profile(
     return _resume_response(resume)
 
 
-@router.post("/{resume_id}/duplicate")
+@router.post("/resumes/{resume_id}/duplicate")
 def duplicate_resume_version(
     resume_id: str,
     request: ResumeDuplicateRequest,
@@ -264,7 +264,7 @@ def duplicate_resume_version(
     return _resume_response(new_resume)
 
 
-@router.put("/{resume_id}")
+@router.put("/resumes/{resume_id}")
 def update_resume_version(
     resume_id: str,
     request: ResumeUpdateRequest,
@@ -308,7 +308,7 @@ class SendResumeEmailRequest(BaseModel):
     filename: str = "resume.pdf"
 
 
-@router.post("/send-email")
+@router.post("/resumes/send-email")
 def send_resume_email(
     request: SendResumeEmailRequest,
     db: Session = Depends(get_db),
@@ -353,7 +353,7 @@ def send_resume_email(
     return {"ok": True}
 
 
-@router.get("/public/{resume_id}")
+@router.get("/resumes/public/{resume_id}")
 def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
     resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
     if not resume:
@@ -374,7 +374,7 @@ def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.delete("/{resume_id}")
+@router.delete("/resumes/{resume_id}")
 def delete_resume_version(
     resume_id: str,
     db: Session = Depends(get_db),
@@ -403,7 +403,7 @@ def delete_resume_version(
     return {"deleted": resume_id}
 
 
-@router.post("/fetch-job-url")
+@router.post("/resumes/fetch-job-url")
 def fetch_job_url(
     request: FetchJobUrlRequest,
     current_user: User = Depends(get_current_user),
@@ -418,7 +418,7 @@ def fetch_job_url(
         raise HTTPException(status_code=500, detail=f"Failed to extract job details: {e}")
 
 
-@router.post("/from-job-description")
+@router.post("/resumes/from-job-description")
 def create_resume_from_job_description(
     request: ResumeFromJobDescriptionRequest,
     db: Session = Depends(get_db),

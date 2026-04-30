@@ -43,42 +43,42 @@ export const authApi = {
   },
 
   getProfile: async () => {
-    const response = await apiClient.get('/users/me/profile');
+    const response = await apiClient.get('/v1/users/me/profile');
     return response.data;
   },
 
   updateProfile: async (profileData: any) => {
-    const response = await apiClient.put('/users/me/profile', {
+    const response = await apiClient.put('/v1/users/me/profile', {
       profile_data: profileData
     });
     return response.data;
   },
   getHrProfile: async () => {
-    const response = await apiClient.get('/users/me/hr-profile');
+    const response = await apiClient.get('/v1/users/me/hr-profile');
     return response.data;
   },
   updateHrProfile: async (data: any) => {
-    const response = await apiClient.put('/users/me/hr-profile', data);
+    const response = await apiClient.put('/v1/users/me/hr-profile', data);
     return response.data;
   },
 
   listCandidates: async () => {
-    const response = await apiClient.get('/hr/candidates');
+    const response = await apiClient.get('/v1/hr/candidates');
     return response.data;
   },
 
   getCandidateProfile: async (personId: string) => {
-    const response = await apiClient.get(`/hr/candidates/${personId}/profile`);
+    const response = await apiClient.get(`/v1/hr/candidates/${personId}/profile`);
     return response.data;
   },
 
     importFromUrl: async (url: string) => {
-    const response = await apiClient.post('/users/me/import-from-url', { url });
+    const response = await apiClient.post('/v1/users/me/import-from-url', { url });
     return response.data;
   },
 
   updatePrivacy: async (data: { visibility_level?: string; public_url_slug?: string | null }) => {
-    const response = await apiClient.patch('/me/privacy', data);
+    const response = await apiClient.patch('/v1/me/privacy', data);
     return response.data;
   },
 
@@ -90,7 +90,7 @@ export const authApi = {
 
 export const jobsApi = {
   create: async (title: string, description: string, region?: string, level?: string, screening_questions?: string[]) => {
-    const response = await apiClient.post('/jobs', {
+    const response = await apiClient.post('/v1/jobs', {
       title,
       description,
       region,
@@ -101,17 +101,17 @@ export const jobsApi = {
   },
 
   list: async () => {
-    const response = await apiClient.get('/jobs');
+    const response = await apiClient.get('/v1/jobs');
     return response.data;
   },
 
   getById: async (jobId: string) => {
-    const response = await apiClient.get(`/jobs/${jobId}`);
+    const response = await apiClient.get(`/v1/jobs/${jobId}`);
     return response.data;
   },
 
   refine: async (title: string, description: string, options: any = {}) => {
-    const response = await apiClient.post('/jobs/refine', {
+    const response = await apiClient.post('/v1/jobs/refine', {
       title,
       description,
       ...options
@@ -120,7 +120,7 @@ export const jobsApi = {
   },
 
   update: async (jobId: string, data: { title: string, description: string, region?: string, level?: string, screening_questions?: any, pipeline_stages?: string[] }) => {
-    const response = await apiClient.put(`/jobs/${jobId}`, data);
+    const response = await apiClient.put(`/v1/jobs/${jobId}`, data);
     return response.data;
   },
 
@@ -135,7 +135,7 @@ export const screeningApi = {
     formData.append('file', file);
     formData.append('job_id', jobId);
 
-    const response = await apiClient.post('/screening/run-file', formData, {
+    const response = await apiClient.post('/v1/screening/run-file', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
@@ -146,24 +146,24 @@ export const screeningApi = {
     formData.append('file', file);
     formData.append('job_description', jobDescription);
 
-    const response = await apiClient.post('/improve-cv-file', formData, {
+    const response = await apiClient.post('/v1/improve-cv-file', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
 
   updateStatus: async (applicationId: string, status: string) => {
-    const response = await apiClient.patch(`/applications/${applicationId}/status`, { status });
+    const response = await apiClient.patch(`/v1/applications/${applicationId}/status`, { status });
     return response.data;
   },
 
   getApplicationsByJob: async (jobId: string) => {
-    const response = await apiClient.get(`/applications/job/${jobId}`);
+    const response = await apiClient.get(`/v1/applications/job/${jobId}`);
     return response.data;
   },
 
   runBulk: async (documentIds: string[], jobDescription: string, jobId: string) => {
-    const response = await apiClient.post('/screening/bulk', {
+    const response = await apiClient.post('/v1/screening/bulk', {
       document_ids: documentIds,
       job_id: jobId,
       job_description: jobDescription
@@ -172,7 +172,7 @@ export const screeningApi = {
   },
 
   applyToJob: async (jobId: string, answers?: Record<string, string> | null, resumeId?: string | null) => {
-    const response = await apiClient.post('/applications/apply', {
+    const response = await apiClient.post('/v1/applications/apply', {
       job_id: jobId,
       answers: answers ?? null,
       resume_id: resumeId ?? null
@@ -181,19 +181,19 @@ export const screeningApi = {
   },
 
   getCandidateAnswers: async (ownerUserId: string, jobId: string) => {
-    const response = await apiClient.get('/applications/answers', {
+    const response = await apiClient.get('/v1/applications/answers', {
       params: { owner_user_id: ownerUserId, job_id: jobId }
     });
     return response.data;
   },
 
   getAllOrganizationApplications: async () => {
-    const response = await apiClient.get('/applications/organization');
+    const response = await apiClient.get('/v1/applications/organization');
     return response.data;
   },
 
   getMyApplications: async () => {
-    const response = await apiClient.get('/applications/my');
+    const response = await apiClient.get('/v1/applications/my');
     return response.data;
   },
 
@@ -201,14 +201,14 @@ export const screeningApi = {
     await apiClient.delete(`/applications/${applicationId}`);
   },
     getStoredResults: async (jobId: string) => {
-    const response = await apiClient.get(`/screening/results/${jobId}`);
+    const response = await apiClient.get(`/v1/screening/results/${jobId}`);
     return response.data;
   },
     improveCvExisting: async (resumeId: string, jobDescription: string) => {
     const formData = new FormData();
     formData.append('resume_id', resumeId);
     formData.append('job_description', jobDescription);
-    const response = await apiClient.post('/improve-cv-existing', formData);
+    const response = await apiClient.post('/v1/improve-cv-existing', formData);
     return response.data;
   },
 };
@@ -337,12 +337,12 @@ export const resumesApi = {
 }
     export const publicApi = {
   getProfile: async (slug: string) => {
-    const response = await axios.get(`${BASE_URL}/public/p/${slug}`);
+    const response = await axios.get(`${BASE_URL}/v1/public/p/${slug}`);
     return response.data;
   },
 
   getJob: async (jobId: string) => {
-    const response = await axios.get(`${BASE_URL}/public/jobs/${jobId}`);
+    const response = await axios.get(`${BASE_URL}/v1/public/jobs/${jobId}`);
     return response.data;
   },
  // Внутри publicApi в файле src/api.ts
@@ -386,7 +386,7 @@ export const externalJobsApi = {
     level?: string;
     page?: number;
   }) => {
-    const response = await apiClient.get('/api/external-jobs/search', { params });
+    const response = await apiClient.get('/v1/api/external-jobs/search', { params });
     return response.data;
   },
 };
