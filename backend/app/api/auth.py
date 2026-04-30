@@ -5,15 +5,13 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.api.models import RegisterRequest, LoginRequest, TokenResponse, UserMeResponse
+from backend.app.schemas import RegisterRequest, LoginRequest, TokenResponse, UserMeResponse
 from backend.database.storage import new_id
 from backend.database.db import get_db
 from backend.database.models import User, Organization, Person
 from backend.database.security import hash_password, verify_password, create_access_token
 from backend.app.api.helpers.ownership import get_current_user
-
 router = APIRouter()
-
 
 @router.post("/auth/register", response_model=UserMeResponse)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):

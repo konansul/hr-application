@@ -10,7 +10,7 @@ from backend.app.api.helpers.quota import consume_ai_quota
 from backend.app.pipeline import run_cv_parsing, run_screening
 from backend.app.schemas import JobRequirementsBase, ScreeningRequest, ScreeningResult
 from backend.database.db import get_db
-from backend.database.models import User, Job, Person, Resume, Application, Document
+from backend.database.models import User, Job, Person, Resume, Application, Document, ScreeningResult
 from backend.database.storage import new_id
 
 router = APIRouter()

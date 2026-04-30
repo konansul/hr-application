@@ -31,6 +31,7 @@ app.include_router(screening.router, prefix="/v1", tags=["Screening"])
 app.include_router(applications.router, prefix="/v1", tags=["Applications"])
 app.include_router(improvement.router, prefix="/v1", tags=["Improvement"])
 app.include_router(external_jobs.router, prefix="/v1", tags=["External Jobs"])
+app.include_router(public.router, prefix="/v1", tags=["Public"])
 
 @app.get("/health")
 def health():

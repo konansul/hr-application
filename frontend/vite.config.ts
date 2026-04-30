@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+    envDir: '../',
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },

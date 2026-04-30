@@ -9,14 +9,13 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.app.api.helpers.extract import extract_cv_text
-from backend.app.api.models import DocumentResponse
+from backend.app.schemas import DocumentResponse
 from backend.database.storage import new_id
 from backend.database.db import get_db
 from backend.database.models import Document, User, Person, Resume, Job, Application
 from backend.app.api.helpers.ownership import get_current_user
 
 from backend.app.api.helpers.quota import consume_ai_quota
-
 from backend.app.pipeline import run_cv_parsing
 
 router = APIRouter()

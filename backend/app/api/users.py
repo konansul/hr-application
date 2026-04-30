@@ -5,7 +5,7 @@ import httpx
 
 from backend.app.api.helpers.ownership import get_current_user
 from backend.app.api.helpers.text_extractor import _html_to_text
-from backend.app.api.models import UrlImportRequest
+from backend.app.schemas import UrlImportRequest
 from backend.database.db import get_db
 from backend.database.models import User, Person
 from backend.app.gemini import client as _llm_client

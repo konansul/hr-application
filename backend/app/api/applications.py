@@ -15,17 +15,10 @@ from backend.database.db import get_db
 from backend.database.models import Document, User, Job, Application, Person, Resume
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
-
 router = APIRouter()
-
-
-def sha256_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
 
 class ApplicationStatusUpdate(BaseModel):
     status: str
-
 
 @router.patch("/applications/{application_id}/status")
 def update_application_status(

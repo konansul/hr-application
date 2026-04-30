@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import hashlib
-
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from sqlalchemy.orm import Session
 
-from backend.app.api.helpers.extract import extract_cv_text
+from backend.app.api.helpers.extract import extract_cv_text, sha256_bytes
 from backend.app.schemas import CVImprovementResult
 from backend.app.pipeline import run_cv_improvement
 
@@ -16,9 +14,6 @@ from backend.app.api.helpers.ownership import get_current_user
 from backend.app.api.helpers.quota import consume_ai_quota
 
 router = APIRouter()
-
-def sha256_bytes(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
 
 @router.post("/improve-cv-file", response_model=CVImprovementResult)
 async def improve_cv_file(

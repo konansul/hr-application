@@ -78,7 +78,6 @@ _LOCATION_STOP_WORDS = {
 
 
 def _strip_location_words(query: str, location_words: str) -> str:
-    """Remove location words and stop-words from query so they don't pollute what=."""
     loc_set = set(location_words.lower().split())
     cleaned = [
         w for w in query.split()
@@ -86,10 +85,6 @@ def _strip_location_words(query: str, location_words: str) -> str:
     ]
     return " ".join(cleaned)
 
-
-# ---------------------------------------------------------------------------
-# Adzuna search — for all locations it natively supports
-# ---------------------------------------------------------------------------
 async def _search_adzuna(query: str, location_value: str, employment_type: str, page: int) -> dict:
     country, where = _ADZUNA_LOC.get(location_value, ("gb", ""))
 
@@ -141,18 +136,11 @@ async def _search_adzuna(query: str, location_value: str, employment_type: str, 
         })
     return {"jobs": jobs, "total": data.get("count", 0), "page": page, "source": "adzuna"}
 
-
-# ---------------------------------------------------------------------------
-# JSearch search — Google Jobs aggregator via RapidAPI
-# Free tier: 200 requests/month. Sign up at rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
-# ---------------------------------------------------------------------------
 async def _search_jsearch(query: str, location_value: str, employment_type: str, page: int) -> dict:
     loc_entry = _JSEARCH_LOC.get(location_value, (location_value, "", ""))
     location_str, strip_words, country_iso = loc_entry
 
     clean_query = _strip_location_words(query, strip_words)
-    # Embed city into the query string — JSearch ranks by query text and the
-    # separate `location` param alone is often ignored for non-US cities.
     if clean_query:
         job_query = f"{clean_query} in {location_str}"
     else:
@@ -165,7 +153,7 @@ async def _search_jsearch(query: str, location_value: str, employment_type: str,
         "num_pages": "1",
     }
     if country_iso:
-        params["country"] = country_iso   # required — without this JSearch defaults to "us"
+        params["country"] = country_iso
 
     if employment_type == "remote":
         params["remote_jobs_only"] = "true"
@@ -209,13 +197,9 @@ async def _search_jsearch(query: str, location_value: str, employment_type: str,
             "source":        "jsearch",
         })
 
-    # JSearch doesn't return a total count — estimate based on pages
     estimated_total = len(jobs) * 10 if jobs else 0
     return {"jobs": jobs, "total": estimated_total, "page": page, "source": "jsearch"}
 
-
-# Reverse map: keyword in free-text query → location value
-# Auto-detects location when user types city name without selecting from dropdown.
 _QUERY_TO_LOC: dict[str, str] = {
     "lisbon": "portugal", "porto": "portugal", "portugal": "portugal",
     "dubai": "uae", "abu dhabi": "uae", "uae": "uae",
@@ -240,7 +224,6 @@ _QUERY_TO_LOC: dict[str, str] = {
 
 @router.get("/api/external-jobs/debug-jsearch")
 async def debug_jsearch(q: str = Query("developer"), loc: str = Query("portugal")):
-    """Dev-only endpoint — returns raw JSearch response for diagnosis."""
     if not RAPIDAPI_KEY:
         return {"error": "RAPIDAPI_KEY not set"}
     loc_entry = _JSEARCH_LOC.get(loc, (loc, "", ""))
@@ -267,7 +250,6 @@ async def search_external_jobs(
     emp   = "" if employment_type in ("all", "") else employment_type
     loc   = "" if location_value  in ("all", "") else location_value
 
-    # Auto-detect location from query text when no dropdown selection is active.
     if not loc and query:
         q_lower = query.lower()
         for keyword, detected_loc in _QUERY_TO_LOC.items():
@@ -276,9 +258,6 @@ async def search_external_jobs(
                 break
 
     try:
-        # Route to JSearch when the location has no native Adzuna endpoint and
-        # a RapidAPI key is available. JSearch uses Google Jobs data and covers
-        # Portugal, UAE, and all other non-Adzuna markets accurately.
         if RAPIDAPI_KEY and loc in _JSEARCH_LOC:
             return await _search_jsearch(query, loc, emp, page)
 

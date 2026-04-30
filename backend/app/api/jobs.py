@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.app.schemas import JobCreate, JobOut
-from backend.app.api.models import JobRefineRequest, JobRefineResponse, JobUpdate
+from backend.app.schemas import JobRefineRequest, JobRefineResponse, JobUpdate
 from backend.database.db import get_db
 from backend.database.models import Job, User, Person, Resume, Application
 from backend.database.storage import new_id
@@ -328,44 +328,4 @@ def update_job(
         requirements=job.requirements,
         created_at=job.created_at,
         organization_name=job.organization.name if job.organization else None,
-    )
-
-@router.get("/public/jobs/{job_id}", response_model=JobOut)
-def get_public_job(
-        job_id: str,
-        db: Session = Depends(get_db),
-):
-    job = db.query(Job).filter(Job.job_id == job_id).first()
-
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    if job.status != "active":
-        raise HTTPException(status_code=403, detail="This job is not currently accepting applications")
-
-    qs = []
-    if job.screening_questions_json:
-        try:
-            qs = json.loads(job.screening_questions_json)
-        except:
-            qs = []
-
-    stages = DEFAULT_PIPELINE_STAGES
-    if job.pipeline_stages_json:
-        try:
-            stages = json.loads(job.pipeline_stages_json)
-        except:
-            pass
-
-    return JobOut(
-        id=job.job_id,
-        title=job.title,
-        description=job.description,
-        region=job.region,
-        level=job.level,
-        status=job.status,
-        screening_questions=qs,
-        pipeline_stages=stages,
-        owner_user_id=job.owner_user_id,
-        requirements=job.requirements
     )

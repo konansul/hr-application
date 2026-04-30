@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from 'react';
-import { ProfileTab } from './ProfileTab';
-import { ResumeUploadTab } from './ResumeUploadTab';
-import { ImproveCvTab } from './ImproveCvTab';
-import { JobsTab } from './CanditateJobsTab';
-import { JobApplicationTab } from './JobApplicationTab';
-import { CandidateSettingsTab } from './CandidateSettingsTab';
+import { ProfileTab } from './1. Profile/ProfileTab';
+import { ResumeUploadTab } from './2. Resumes/ResumeUploadTab';
+import { JobsTab } from './3. Explore/CanditateJobsTab';
+import { JobApplicationTab } from './4. Applications/JobApplicationTab';
+import { ImproveCvTab } from './5. Improve/ImproveCvTab';
+import { CandidateSettingsTab } from './6. Settings/CandidateSettingsTab';
 import { useStore } from '../../store';
 import { authApi } from '../../api';
 import { DICT } from '../../internationalization.ts';
@@ -62,13 +62,12 @@ export function CandidateDashboard() {
     setIsSidebarOpen,
     logoutStore,
     language,
-    aiQuota, // ДОСТАЛИ ИЗ СТОРА
-    aiUsed   // ДОСТАЛИ ИЗ СТОРА
+    aiQuota,
+    aiUsed
   } = useStore();
 
   const t = DICT[language as keyof typeof DICT]?.nav || DICT.en.nav;
 
-  // === ЛОГИКА ДЛЯ СЧЕТЧИКА ЛИМИТОВ ===
   const usesLeft = Math.max(0, aiQuota - aiUsed);
   const percentageLeft = (usesLeft / aiQuota) * 100;
 
@@ -84,7 +83,6 @@ export function CandidateDashboard() {
     return 'text-red-600 dark:text-red-400';
   };
 
-  // Sync tab from URL on mount
   useEffect(() => {
     const navState = pathToNavState(window.location.pathname);
     if (navState?.tab) {
@@ -92,10 +90,8 @@ export function CandidateDashboard() {
     } else if (!activeTab) {
       setActiveTab('profile');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle browser back/forward
   useEffect(() => {
     const handlePopState = () => {
       const navState = pathToNavState(window.location.pathname);
@@ -108,7 +104,6 @@ export function CandidateDashboard() {
   const navigate = useCallback((tab: string) => {
     setActiveTab(tab as any);
     const path = tabToPath(tab);
-    // Only push if we're not already on this tab's path tree
     if (!window.location.pathname.startsWith(path)) {
       window.history.pushState({ tab }, '', path);
     }
@@ -146,7 +141,6 @@ export function CandidateDashboard() {
         py-4 bg-gray-50 dark:bg-neutral-900 border-r border-gray-100 dark:border-neutral-800
         transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10
       `}>
-        {/* Заголовок */}
         <div className="flex items-center px-3 mb-4 mt-2 shrink-0">
           <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center mr-3 shrink-0 shadow-sm">
             <svg className="w-5 h-5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,10 +150,8 @@ export function CandidateDashboard() {
           <h1 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">{t.portal}</h1>
         </div>
 
-        {/* === БЛОК AI LIMITS (КАНДИДАТ) === */}
         <div className="px-3 mb-6 shrink-0">
           <div className="relative p-3.5 bg-white dark:bg-neutral-950/50 rounded-2xl border border-gray-200/80 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col gap-3">
-            {/* Фоновое легкое свечение в зависимости от статуса */}
             <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl opacity-10 pointer-events-none transition-colors duration-500 ${getIndicatorColor()}`}></div>
 
             <div className="flex justify-between items-center z-10">

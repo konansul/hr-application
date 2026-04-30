@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from backend.app.api.helpers.ownership import get_current_user
-from backend.app.api.models import ProfileUpdateRequest, HRProfileUpdate
+from backend.app.schemas import ProfileUpdateRequest, HRProfileUpdate
 from backend.database.db import get_db
 from backend.database.models import User, Person, Application, Job
 
