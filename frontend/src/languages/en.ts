@@ -273,7 +273,7 @@ export const en = {
     stats: "{vCount} versions · {dCount} uploaded docs",
     uploadCv: "Upload CV",
     fromProfile: "From Profile",
-    duplicate: "Copy from CV",
+    duplicate: "From CV",
     fromJob: "From Job Description",
     sourceTypes: {
       profile: "From Profile",

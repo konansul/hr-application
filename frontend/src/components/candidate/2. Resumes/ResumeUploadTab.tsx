@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { authApi, documentsApi, jobsApi, resumesApi } from '../../../api';
+import { authApi, documentsApi, resumesApi } from '../../../api';
 import { DICT } from '../../../internationalization.ts';
 import { useStore } from '../../../store';
 import { resumeToSlug, slugToResumeId } from '../../../utils/urlRouting';
@@ -339,7 +339,6 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
   onClose: () => void;
   onSubmit: (data: { title: string; language: string; validUntil: string; removedSections: ResumeSectionKey[]; jobDescription: string; jobId: string | null; sourceResumeId: string | null }) => void;
   isWorking: boolean;
-  activeJobs: any[];
   resumeVersions: ResumeVersion[];
 }) {
   const { language: appLanguage } = useStore();
@@ -557,7 +556,7 @@ function JobDescriptionAccordion({ text }: { text: string }) {
 }
 
 export function ResumeUploadTab() {
-  const { language, activeTab } = useStore();
+  const { language, activeTab, setActiveTab } = useStore();
   const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
 
   const [file, setFile] = useState<File | null>(null);
@@ -567,7 +566,6 @@ export function ResumeUploadTab() {
   const [resumeVersions, setResumeVersions] = useState<ResumeVersion[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
-  const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const [showBestPractices, setShowBestPractices] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -630,9 +628,8 @@ export function ResumeUploadTab() {
   }, [selectedResumeId]);
 
   const loadData = async (preferredResumeId?: string | null, initialSlug?: string) => {
-    const [docs, jobs, versions] = await Promise.all([
+    const [docs, versions] = await Promise.all([
       documentsApi.getMyDocuments(),
-      jobsApi.list(),
       resumesApi.list(),
     ]);
     const normalized = (versions || []).map((r: ResumeVersion) => normalizeResume(r)).filter(Boolean) as ResumeVersion[];
@@ -648,7 +645,6 @@ export function ResumeUploadTab() {
             : normalized[0]?.resume_id ?? null;
 
     setUploadedDocs(docs || []);
-    setActiveJobs(jobs || []);
     setResumeVersions(normalized);
     setSelectedResumeId(nextSelectedResumeId ?? null);
   };
@@ -1038,7 +1034,7 @@ export function ResumeUploadTab() {
   return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 pb-32 overflow-x-hidden">
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">{t.title}</h2>
           <p className="text-sm text-gray-500 dark:text-neutral-400 mb-0.5">{t.subtitle}</p>
@@ -1047,108 +1043,55 @@ export function ResumeUploadTab() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 w-full">
           <button
-            onClick={() => setShowBestPractices(p => !p)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl shadow-sm border transition-all ${showBestPractices ? 'bg-violet-600 hover:bg-violet-700 text-white border-violet-600' : 'bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50'}`}
+            onClick={() => setShowBestPractices(true)}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
             CV Tips
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+            onClick={() => setActiveTab('improve')}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Improve CV
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold rounded-xl shadow-sm transition-all whitespace-nowrap"
+          >
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             {t.uploadCv}
           </button>
           <button
             onClick={() => setShowProfileModal(true)}
             disabled={isWorking}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-900 dark:text-white text-sm font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 transition-all disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-900 dark:text-white text-xs font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 transition-all whitespace-nowrap disabled:opacity-60"
           >
-            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             {t.fromProfile}
           </button>
           <button
             onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
             disabled={isWorking || resumeVersions.length === 0}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-semibold rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-800/50 transition-all disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-800/50 transition-all whitespace-nowrap disabled:opacity-60"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
             {t.duplicate}
           </button>
           <button
             onClick={() => setShowJobDescModal(true)}
             disabled={isWorking}
-            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-xl shadow-sm border border-indigo-100 dark:border-indigo-800/50 transition-all disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-semibold rounded-xl shadow-sm border border-indigo-100 dark:border-indigo-800/50 transition-all whitespace-nowrap disabled:opacity-60"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             {t.fromJob}
           </button>
         </div>
       </div>
 
-      {showBestPractices && (
-        <div className="rounded-2xl overflow-hidden border border-violet-200 dark:border-violet-800/40 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="px-6 py-5 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-              </div>
-              <div>
-                <p className="text-base font-bold text-white leading-tight">CV Best Practices</p>
-                <p className="text-xs text-white/65 mt-0.5">12 tips to make your CV stand out and get noticed</p>
-              </div>
-            </div>
-            <button onClick={() => setShowBestPractices(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-          <div className="p-6 bg-white dark:bg-neutral-900">
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {([
-                { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout.', color: 'violet' },
-                { title: 'Keep it short and sharp', desc: '1 or 2 pages only — recruiters scan fast.', color: 'indigo' },
-                { title: 'Include essential personal details only', desc: 'Focus on professional information that supports your application.', color: 'sky' },
-                { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name.', color: 'emerald' },
-                { title: 'Keep the design clean', desc: 'Prioritise readability over decoration.', color: 'teal' },
-                { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction.', color: 'blue' },
-                { title: 'Use a photo only if appropriate', desc: 'Include a photo only when it is standard or expected in your industry or country.', color: 'amber' },
-                { title: 'Tailor your CV', desc: 'Adjust content for each role to match requirements and keywords.', color: 'orange' },
-                { title: 'Keep it concise', desc: 'Use short, clear bullet points that are easy to scan.', color: 'rose' },
-                { title: 'Prioritise relevance', desc: 'Include experience and skills that match the role you\'re targeting.', color: 'pink' },
-                { title: 'Use specific language', desc: 'Replace generic statements with concrete examples and outcomes.', color: 'purple' },
-                { title: 'State references availability', desc: 'Add "References available upon request" when relevant.', color: 'indigo' },
-              ] as { title: string; desc: string; color: string }[]).map((tip, i) => {
-                const palette: Record<string, { badge: string; dot: string }> = {
-                  violet: { badge: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300', dot: 'bg-violet-400' },
-                  indigo: { badge: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300', dot: 'bg-indigo-400' },
-                  sky:    { badge: 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300', dot: 'bg-sky-400' },
-                  emerald:{ badge: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-400' },
-                  teal:   { badge: 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300', dot: 'bg-teal-400' },
-                  blue:   { badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300', dot: 'bg-blue-400' },
-                  amber:  { badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300', dot: 'bg-amber-400' },
-                  orange: { badge: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300', dot: 'bg-orange-400' },
-                  rose:   { badge: 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300', dot: 'bg-rose-400' },
-                  pink:   { badge: 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300', dot: 'bg-pink-400' },
-                  purple: { badge: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300', dot: 'bg-purple-400' },
-                };
-                const p = palette[tip.color] ?? palette.indigo;
-                return (
-                  <div key={i} className="flex gap-3 p-4 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 hover:border-gray-200 dark:hover:border-neutral-600 hover:shadow-sm transition-all">
-                    <div className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-xs font-black ${p.badge}`}>{i + 1}</div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-gray-900 dark:text-white mb-1 leading-snug">{tip.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">{tip.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
 
@@ -1737,33 +1680,6 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          {activeJobs.length > 0 && (
-            <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
-                <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">{t.openJobs}</h3>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {activeJobs.map((job) => (
-                    <div key={job.job_id || job.id} className="p-5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm transition-all group">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">{job.title}</h4>
-                      <p className="text-xs text-gray-500 dark:text-neutral-400 mb-4 flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        {job.region || 'Remote'}
-                      </p>
-                      <button
-                        onClick={() => setShowJobDescModal(true)}
-                        className="w-full py-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-400 text-xs font-semibold rounded-xl group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors"
-                      >
-                        {t.createForJob}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
         </div>
 
@@ -1805,7 +1721,68 @@ export function ResumeUploadTab() {
         <DuplicateResumeModal onClose={() => setShowDuplicateModal(false)} onSubmit={handleDuplicate} isWorking={isWorking} resumeVersions={resumeVersions} />
       )}
       {showJobDescModal && (
-        <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} activeJobs={activeJobs} resumeVersions={resumeVersions} />
+        <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} resumeVersions={resumeVersions} />
+      )}
+      {showBestPractices && (
+        <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={() => setShowBestPractices(false)}>
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-5xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-5 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 rounded-t-3xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                </div>
+                <div>
+                  <p className="text-base font-bold text-white leading-tight">CV Best Practices</p>
+                  <p className="text-xs text-white/65 mt-0.5">12 tips to make your CV stand out and get noticed</p>
+                </div>
+              </div>
+              <button onClick={() => setShowBestPractices(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                {([
+                  { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout.', color: 'violet' },
+                  { title: 'Keep it short and sharp', desc: '1 or 2 pages only — recruiters scan fast.', color: 'indigo' },
+                  { title: 'Include essential personal details only', desc: 'Focus on professional information that supports your application.', color: 'sky' },
+                  { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name.', color: 'emerald' },
+                  { title: 'Keep the design clean', desc: 'Prioritise readability over decoration.', color: 'teal' },
+                  { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction.', color: 'blue' },
+                  { title: 'Use a photo only if appropriate', desc: 'Include a photo only when it is standard or expected in your industry or country.', color: 'amber' },
+                  { title: 'Tailor your CV', desc: 'Adjust content for each role to match requirements and keywords.', color: 'orange' },
+                  { title: 'Keep it concise', desc: 'Use short, clear bullet points that are easy to scan.', color: 'rose' },
+                  { title: 'Prioritise relevance', desc: "Include experience and skills that match the role you're targeting.", color: 'pink' },
+                  { title: 'Use specific language', desc: 'Replace generic statements with concrete examples and outcomes.', color: 'purple' },
+                  { title: 'State references availability', desc: '"References available upon request" when relevant.', color: 'indigo' },
+                ] as { title: string; desc: string; color: string }[]).map((tip, i) => {
+                  const palette: Record<string, string> = {
+                    violet:  'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300',
+                    indigo:  'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300',
+                    sky:     'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300',
+                    emerald: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
+                    teal:    'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300',
+                    blue:    'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+                    amber:   'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+                    orange:  'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300',
+                    rose:    'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300',
+                    pink:    'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300',
+                    purple:  'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300',
+                  };
+                  return (
+                    <div key={i} className="flex gap-2.5 p-3 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 hover:border-gray-200 dark:hover:border-neutral-600 hover:shadow-sm transition-all">
+                      <div className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-xs font-black ${palette[tip.color] ?? palette.indigo}`}>{i + 1}</div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-gray-900 dark:text-white mb-1 leading-snug">{tip.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">{tip.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {showSendEmailModal && selectedResume && (
