@@ -22,7 +22,7 @@ from backend.app.api.models import (
     ResumeUpdateRequest,
 )
 from backend.app.core.config import settings
-from backend.app.pipeline import adapt_resume_for_job, fetch_job_from_url, translate_resume_data
+from backend.app.pipeline import adapt_resume_for_job, extract_job_title, fetch_job_from_url, translate_resume_data
 from backend.database.db import get_db
 from backend.database.models import Document, Person, Resume, User
 from backend.database.storage import new_id
@@ -427,6 +427,10 @@ def create_resume_from_job_description(
     person = _ensure_person(db, current_user)
     target_language = request.language or "en"
 
+    title = request.title
+    if not title:
+        title = extract_job_title(request.job_description) or "Job Resume"
+
     if request.source_resume_id:
         source_resume = (
             db.query(Resume)
@@ -457,7 +461,7 @@ def create_resume_from_job_description(
         resume_id=new_id("res"),
         person_id=person.person_id,
         language=target_language,
-        title=request.title,
+        title=title,
         payload=json.dumps(resume_data, ensure_ascii=False),
         source_type="job_description",
         source_resume_id=request.source_resume_id,

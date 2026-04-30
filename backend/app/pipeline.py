@@ -277,6 +277,25 @@ def _strip_json_fences(text: str) -> str:
     return text
 
 
+def extract_job_title(job_description: str) -> str:
+    """Extract the job title from a pasted job description using LLM."""
+    prompt = f"""Extract the job title/position name from the job description below.
+Return ONLY a JSON object with one key: {{"job_title": "the title"}}
+If you cannot determine the title, return {{"job_title": ""}}
+
+Job description:
+{job_description[:3000]}"""
+    try:
+        result = gemini.generate_json(prompt, {
+            "type": "object",
+            "properties": {"job_title": {"type": "string"}},
+            "required": ["job_title"],
+        })
+        return (result.get("job_title") or "").strip()
+    except Exception:
+        return ""
+
+
 def fetch_job_from_url(url: str) -> Dict[str, str]:
     """Fetch a job posting URL and extract the title and description using LLM."""
     import httpx
@@ -345,10 +364,10 @@ def adapt_resume_for_job(
 Adapt the candidate's resume below to make it maximally suitable for the job description provided.
 
 Rules:
-1. Rewrite personal_info.summary to directly address the job's requirements and value proposition.
-2. Keep all experience entries but enhance each description to emphasise aspects most relevant to the job. Do NOT invent new jobs or dates.
-3. Reorder skills so job-relevant ones appear first.
-4. If certifications or education are relevant to the job, briefly highlight them in the summary.
+1. Rewrite personal_info.summary to directly address the job's requirements and value proposition using concrete, specific language — no generic filler.
+2. Keep all experience entries but rewrite each description to emphasise aspects most relevant to the job. Use short bullet points starting with "• " (bullet space), one per line, each starting with a strong action verb. Separate each bullet with a newline character (\n). Replace generic statements with concrete examples and measurable outcomes wherever possible. Do NOT invent new jobs, companies, or dates.
+3. Reorder skills so the most job-relevant ones appear first; remove or deprioritise skills that have no bearing on this role.
+4. If certifications or education entries are relevant to the job, briefly mention them in the summary.
 5. Keep all factual data unchanged: company names, institution names, dates, URLs, email, phone.
 6. Keep all JSON field names unchanged (keys stay in English).
 7. Write all text content in {language_name}.

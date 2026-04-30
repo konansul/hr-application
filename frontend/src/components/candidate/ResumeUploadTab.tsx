@@ -371,7 +371,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
       setFetchedTitle(result.job_title || '');
       if (result.job_description) {
         setDescription(result.job_description);
-        if (result.job_title && !title) setTitle(`Resume for ${result.job_title}`);
+        if (result.job_title && !title) setTitle(result.job_title);
       } else {
         setTimeout(() => descriptionRef.current?.focus(), 50);
       }
@@ -387,7 +387,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, activeJob
   const effectiveDescription = description;
   const effectiveJobId = null;
 
-  const effectiveTitle = title.trim() || (fetchedTitle ? `Resume for ${fetchedTitle}` : '');
+  const effectiveTitle = title.trim() || fetchedTitle || '';
   const canSubmit = !isWorking && !isFetching && !!effectiveDescription.trim() && !!sourceResumeId;
 
   const langLabel = (code?: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label || code || 'en';
@@ -1250,7 +1250,7 @@ export function ResumeUploadTab() {
                   <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate min-w-0 flex-1">{selectedResume?.title || t.untitled}</h3>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
                 <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-xs font-semibold text-gray-500 dark:text-neutral-400 whitespace-nowrap">
                   {selectedResume ? sourceTypeLabel(selectedResume.source_type, t) : '—'}
                 </span>
@@ -1485,7 +1485,7 @@ export function ResumeUploadTab() {
                           <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
                             <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '—'} — {exp.end_date || t.placeholders.present}</p>
-                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{exp.description || t.placeholders.noDesc}</p>
+                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">{exp.description || t.placeholders.noDesc}</p>
                           </div>
                         )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noExp}</p>}
                       </>
