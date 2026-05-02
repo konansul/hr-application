@@ -1,8 +1,6 @@
 import json
-
 from fastapi import Form, UploadFile, File, Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
-
 from backend.app.api.applications import BulkScreenRequest
 from backend.app.api.helpers.extract import extract_cv_text
 from backend.app.api.helpers.ownership import get_current_user
@@ -14,6 +12,60 @@ from backend.database.models import User, Job, Person, Resume, Application, Docu
 from backend.database.storage import new_id
 
 router = APIRouter()
+
+
+def get_cleaned_requirements(req_json):
+    if not req_json:
+        return None
+    try:
+        req_data = json.loads(req_json) if isinstance(req_json, str) else req_json
+
+        defaults = {
+            "workFormat": "Any",
+            "willingToRelocate": False,
+            "remoteCountryRestriction": "",
+            "officeDaysRequired": "",
+            "timeZoneMatch": "",
+            "openToDifferentTimeZone": False,
+            "visaSponsorship": False,
+            "validWorkPermitRequired": True,
+            "salaryMin": "",
+            "salaryMax": "",
+            "currency": "USD",
+            "salaryExpectationRequired": False,
+            "maxNoticePeriod": "",
+            "immediateStartRequired": False,
+            "minExperienceYears": "",
+            "maxExperienceYears": "",
+            "requiredSeniority": "Any",
+            "mandatorySkills": "",
+            "mandatoryTechnologies": "",
+            "minEducation": "Any",
+            "degreeField": "",
+            "mandatoryCertifications": "",
+            "willingToTravel": False,
+            "drivingLicense": False,
+            "languageRequirements": ""
+        }
+
+        cleaned = {}
+        has_real_data = False
+
+        for k, default_v in defaults.items():
+            v = req_data.get(k, default_v)
+            if v == default_v or v in ["", "Any", "UNKNOWN", False]:
+                cleaned[k] = None
+            else:
+                cleaned[k] = v
+                has_real_data = True
+
+        if not has_real_data:
+            return None
+
+        return JobRequirementsBase(**cleaned)
+    except Exception:
+        return None
+
 
 @router.post("/screening/run-file")
 async def run_file(
@@ -68,13 +120,7 @@ async def run_file(
         db.add(application)
         db.flush()
 
-        req_obj = None
-        if job.requirements:
-            try:
-                req_data = json.loads(job.requirements) if isinstance(job.requirements, str) else job.requirements
-                req_obj = JobRequirementsBase(**req_data)
-            except Exception as e:
-                print(f"Warning: Could not parse job requirements: {e}")
+        req_obj = get_cleaned_requirements(job.requirements)
 
         request = ScreeningRequest(
             cv_text=resume.payload,
@@ -110,7 +156,6 @@ async def run_file(
         raise HTTPException(status_code=500, detail=f"AI Screening failed: {str(e)}")
 
 
-
 @router.post("/screening/bulk")
 def bulk_screen(
         req: BulkScreenRequest,
@@ -128,21 +173,13 @@ def bulk_screen(
         raise HTTPException(status_code=400, detail="No items selected for screening")
 
     results_to_return = []
-
-    req_obj = None
-    if job.requirements:
-        try:
-            req_data = json.loads(job.requirements) if isinstance(job.requirements, str) else job.requirements
-            req_obj = JobRequirementsBase(**req_data)
-        except Exception as e:
-            print(f"Warning: Could not parse job requirements: {e}")
+    req_obj = get_cleaned_requirements(job.requirements)
 
     for item_id in req.document_ids:
         try:
             consume_ai_quota(db, current_user)
         except HTTPException as e:
             if e.status_code == 429:
-                print("Daily AI limit reached during bulk screen. Stopping early.")
                 break
             raise e
 
@@ -165,7 +202,6 @@ def bulk_screen(
                     ).first()
 
             if not resume:
-                print(f"AI Screening skipped for {item_id}: No Resume found.")
                 if current_user.ai_used > 0:
                     current_user.ai_used -= 1
                     db.commit()
@@ -178,7 +214,7 @@ def bulk_screen(
 
             app = db.query(Application).filter(
                 Application.job_id == job.job_id,
-                Application.person_id == resume.person_id
+                Application.resume_id == resume.resume_id
             ).first()
 
             if not app:
@@ -231,7 +267,6 @@ def bulk_screen(
             })
 
         except Exception as e:
-            print(f"AI Screening failed for {item_id}: {e}")
             db.rollback()
             if current_user.ai_used > 0:
                 current_user.ai_used -= 1
@@ -240,6 +275,7 @@ def bulk_screen(
 
     db.commit()
     return results_to_return
+
 
 @router.get("/screening/results/{job_id}")
 def get_job_screening_results(
@@ -252,19 +288,23 @@ def get_job_screening_results(
         raise HTTPException(status_code=404, detail="Job not found")
 
     apps = (
-        db.query(Application, ScreeningResult, Resume)
+        db.query(Application, ScreeningResult, Resume, Document)
         .join(ScreeningResult, ScreeningResult.application_id == Application.application_id)
         .join(Resume, Resume.resume_id == Application.resume_id)
+        .outerjoin(Document, Resume.source_document_id == Document.document_id)
         .filter(Application.job_id == job_id)
         .all()
     )
 
     results = []
-    for app, scr, res in apps:
+    for app, scr, res, doc in apps:
         full_res = json.loads(scr.full_result_json)
+
+        real_filename = (doc.filename if doc else None) or res.title or "Candidate Resume"
+
         results.append({
             "application_id": app.application_id,
-            "filename": res.title or "Resume",
+            "filename": real_filename,
             "score": scr.score,
             "decision": scr.decision,
             "summary": full_res.get("summary"),

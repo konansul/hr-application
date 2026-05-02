@@ -69,19 +69,6 @@ export function CandidateDashboard() {
   const t = DICT[language as keyof typeof DICT]?.nav || DICT.en.nav;
 
   const usesLeft = Math.max(0, aiQuota - aiUsed);
-  const percentageLeft = (usesLeft / aiQuota) * 100;
-
-  const getIndicatorColor = () => {
-    if (usesLeft > 3) return 'bg-emerald-500';
-    if (usesLeft > 1) return 'bg-amber-500';
-    return 'bg-red-500';
-  };
-
-  const getTextColor = () => {
-    if (usesLeft > 3) return 'text-emerald-600 dark:text-emerald-400';
-    if (usesLeft > 1) return 'text-amber-600 dark:text-amber-400';
-    return 'text-red-600 dark:text-red-400';
-  };
 
   useEffect(() => {
     const navState = pathToNavState(window.location.pathname);
@@ -150,38 +137,24 @@ export function CandidateDashboard() {
           <h1 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">{t.portal}</h1>
         </div>
 
-        <div className="px-3 mb-6 shrink-0">
-          <div className="relative p-3.5 bg-white dark:bg-neutral-950/50 rounded-2xl border border-gray-200/80 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col gap-3">
-            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl opacity-10 pointer-events-none transition-colors duration-500 ${getIndicatorColor()}`}></div>
-
-            <div className="flex justify-between items-center z-10">
-              <span className="text-[11px] font-bold text-gray-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        {usesLeft === 0 && (
+          <div className="px-3 mb-6 shrink-0">
+            <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-xl border border-red-200/80 dark:border-red-900/50 shadow-sm flex flex-col gap-1.5 relative overflow-hidden">
+              <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                AI Limit
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-sm font-extrabold ${getTextColor()}`}>
-                  {usesLeft}
-                </span>
-                <span className="text-[10px] font-semibold text-gray-400 dark:text-neutral-500">
-                  / {aiQuota}
-                </span>
+                <span className="text-[11px] font-bold uppercase tracking-wider">Limit Reached</span>
               </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-100 dark:bg-neutral-800 rounded-full h-1.5 z-10">
-              <div
-                className={`h-1.5 rounded-full transition-all duration-500 shadow-sm ${getIndicatorColor()}`}
-                style={{ width: `${percentageLeft}%` }}
-              ></div>
+              <p className="text-[10px] text-red-700/80 dark:text-red-300/80 leading-tight font-medium whitespace-normal">
+                0 / {aiQuota} uses left.<br />
+                Resets at midnight.
+              </p>
             </div>
           </div>
-        </div>
+        )}
 
-        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto font-medium custom-scrollbar pr-1 relative z-10">
+        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto font-medium custom-scrollbar pr-1 relative z-10 mt-2">
           {NAV_ITEMS.map(item => (
             <SideNavItem
               key={item.id}

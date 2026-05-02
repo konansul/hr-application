@@ -83,7 +83,7 @@ const DEFAULT_REQUIREMENTS: JobRequirements = {
 
 export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (desc: string) => void }) {
   const token = localStorage.getItem('auth_token');
-  const { setGlobalJobId, setGlobalJobTitle, language, aiQuota, aiUsed, setAiLimits } = useStore();
+  const { setGlobalJobId, setGlobalJobTitle, setGlobalBatchResults, language, aiQuota, aiUsed, setAiLimits } = useStore();
 
   const t = DICT[language as keyof typeof DICT]?.jobsHr || DICT.en.jobsHr;
 
@@ -174,6 +174,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setActiveQuestions(jobToLoad.screening_questions ?? []);
     setActiveRequirements(jobToLoad.requirements ?? DEFAULT_REQUIREMENTS);
     setError(null);
+    setGlobalBatchResults([]);
     window.history.replaceState(null, '', `/hr/jobs/${jobToLoad.id}`);
   };
 

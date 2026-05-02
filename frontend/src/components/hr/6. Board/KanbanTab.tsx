@@ -15,12 +15,8 @@ interface CandidateCard {
 
 export function KanbanTab() {
   const {
-    globalJobId,
-    activeTab,
     globalJobStages,
     setGlobalJobStages,
-    setGlobalJobId,
-    setGlobalJobTitle,
     language
   } = useStore();
 
@@ -31,39 +27,43 @@ export function KanbanTab() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [kanbanJobId, setKanbanJobId] = useState<string>('');
+
   const [filterDecision, setFilterDecision] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
-    if (activeTab !== 'kanban') return;
     const fetchJobsList = async () => {
       try {
         const jobs = await jobsApi.list();
         setJobsList(jobs.map((j: any) => ({ id: j.id, title: j.title })));
+        if (jobs.length > 0) {
+          setKanbanJobId(jobs[0].id);
+        }
       } catch (err) {
-        console.error("Failed to load jobs list", err);
+        console.error(err);
       }
     };
     fetchJobsList();
-  }, [activeTab]);
+  }, []);
 
   useEffect(() => {
-    if (!globalJobId || activeTab !== 'kanban') {
-      if (!globalJobId) setCandidates([]);
+    if (!kanbanJobId) {
+      setCandidates([]);
       return;
     }
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const jobData = await jobsApi.getById(globalJobId);
+        const jobData = await jobsApi.getById(kanbanJobId);
         if (jobData.pipeline_stages && jobData.pipeline_stages.length > 0) {
           setGlobalJobStages(jobData.pipeline_stages);
         } else {
           setGlobalJobStages(["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJECTED"]);
         }
 
-        const results = await screeningApi.getApplicationsByJob(globalJobId);
+        const results = await screeningApi.getApplicationsByJob(kanbanJobId);
         const mapped = results.map((res: any) => {
           const rawStatus = (res.status || 'APPLIED').toUpperCase().replace(/\s+/g, '_');
           return {
@@ -85,15 +85,10 @@ export function KanbanTab() {
     };
 
     fetchData();
-  }, [globalJobId, activeTab, setGlobalJobStages]);
+  }, [kanbanJobId, setGlobalJobStages]);
 
   const handleJobChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
-    const selectedJob = jobsList.find(j => j.id === selectedId);
-    if (selectedJob) {
-      setGlobalJobId(selectedId);
-      setGlobalJobTitle(selectedJob.title);
-    }
+    setKanbanJobId(e.target.value);
   };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, id: string) => {
@@ -182,7 +177,7 @@ export function KanbanTab() {
     globalJobStages.includes(c.status) ? c : { ...c, status: globalJobStages[0] || 'APPLIED' }
   );
 
-  if (!globalJobId && !isLoading) {
+  if (!kanbanJobId && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-2xl max-w-2xl mx-auto mt-10 transition-colors">
         <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mb-4 transition-colors">
@@ -193,7 +188,7 @@ export function KanbanTab() {
 
         <select
           onChange={handleJobChange}
-          value={globalJobId || ''}
+          value={kanbanJobId || ''}
           className="w-full max-w-xs px-4 py-2.5 text-sm bg-white dark:bg-black border border-amber-200 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none shadow-sm cursor-pointer transition-colors"
         >
           <option value="" disabled>{t.selectJob}</option>
@@ -255,7 +250,7 @@ export function KanbanTab() {
              <div className="flex flex-col mr-2">
                  <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-0.5">{t.activeJobBoard}</span>
                  <select
-                   value={globalJobId || ''}
+                   value={kanbanJobId || ''}
                    onChange={handleJobChange}
                    className="text-sm font-bold text-gray-900 dark:text-white bg-transparent border-none outline-none cursor-pointer appearance-none p-0 min-w-[200px] focus:ring-0"
                  >

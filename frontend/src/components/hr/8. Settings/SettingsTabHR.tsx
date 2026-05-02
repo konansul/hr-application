@@ -20,7 +20,9 @@ export function SettingsTab() {
   const candidateT = DICT[language as keyof typeof DICT]?.jobs?.stages || DICT.en.jobs.stages;
 
   const [editedStages, setEditedStages] = useState<string[]>([]);
-  const [newStage, setNewStage] = useState('');
+  const [newStageName, setNewStageName] = useState('');
+  const [newStageCategory, setNewStageCategory] = useState('In Progress');
+
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -34,10 +36,14 @@ export function SettingsTab() {
 
   const handleAddStage = (e: React.FormEvent) => {
     e.preventDefault();
-    const formatted = newStage.trim().toUpperCase().replace(/\s+/g, '_');
-    if (formatted && !editedStages.includes(formatted)) {
-      setEditedStages([...editedStages, formatted]);
-      setNewStage('');
+    const formattedName = newStageName.trim().toUpperCase().replace(/\s+/g, '_');
+
+    if (formattedName) {
+      const exists = editedStages.some(s => s.split(':')[0] === formattedName);
+      if (!exists) {
+        setEditedStages([...editedStages, `${formattedName}:${newStageCategory}`]);
+        setNewStageName('');
+      }
     }
   };
 
@@ -75,19 +81,31 @@ export function SettingsTab() {
     }
   };
 
-  // Логика определения статуса для кандидата на основе внутреннего шага
   const getCandidateStatus = (stage: string, index: number) => {
-    if (index === 0) {
+    const [rawName, category] = stage.split(':');
+    const upper = rawName.toUpperCase();
+
+    let targetCategory = category;
+
+    if (!targetCategory) {
+      if (index === 0) targetCategory = 'Applied';
+      else if (upper.includes('REJECT') || upper.includes('DECLINE') || upper.includes('OFFER') || upper.includes('ACCEPT') || upper.includes('HIRE')) {
+        targetCategory = 'Offer/Rejected';
+      } else {
+        targetCategory = 'In Progress';
+      }
+    }
+
+    if (targetCategory === 'Applied') {
       return { label: 'Applied', colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30' };
+    } else if (targetCategory === 'Offer/Rejected') {
+      if (upper.includes('REJECT') || upper.includes('DECLINE')) {
+        return { label: 'Rejected', colorClass: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30' };
+      }
+      return { label: 'Offer / Decision', colorClass: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30' };
+    } else {
+      return { label: 'In Progress', colorClass: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' };
     }
-    const upper = stage.toUpperCase();
-    if (upper.includes('REJECT') || upper.includes('DECLINE')) {
-      return { label: 'Rejected', colorClass: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30' };
-    }
-    if (upper.includes('OFFER') || upper.includes('ACCEPT') || upper.includes('HIRE')) {
-      return { label: 'Offer', colorClass: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30' };
-    }
-    return { label: 'In Progress', colorClass: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' };
   };
 
   return (
@@ -135,7 +153,6 @@ export function SettingsTab() {
             ) : (
               <>
                 <div className="flex-1 space-y-2 mb-6">
-                  {/* Заголовки колонок */}
                   {editedStages.length > 0 && (
                     <div className="flex text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-wider px-3 mb-3">
                       <span className="flex-1 ml-8">Internal Stage</span>
@@ -146,14 +163,14 @@ export function SettingsTab() {
 
                   {editedStages.map((stage, index) => {
                     const candidateStatus = getCandidateStatus(stage, index);
+                    const displayName = stage.split(':')[0].replace(/_/g, ' ');
 
                     return (
                       <div key={index} className="flex items-center gap-3 p-3 bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl group hover:border-gray-400 dark:hover:border-neutral-600 transition-all shadow-sm">
                         <span className="text-sm font-bold text-gray-400 dark:text-neutral-600 shrink-0 w-5 text-right select-none">{index + 1}.</span>
-                        <span className="flex-1 text-sm font-bold text-gray-700 dark:text-white uppercase tracking-wider truncate">{stage.replace(/_/g, ' ')}</span>
+                        <span className="flex-1 text-sm font-bold text-gray-700 dark:text-white uppercase tracking-wider truncate">{displayName}</span>
 
-                        {/* Бейдж того, что видит кандидат */}
-                        <div className={`w-24 text-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${candidateStatus.colorClass}`}>
+                        <div className={`w-28 text-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${candidateStatus.colorClass}`}>
                           {candidateStatus.label}
                         </div>
 
@@ -201,15 +218,28 @@ export function SettingsTab() {
                   </div>
                 </div>
 
-                <form onSubmit={handleAddStage} className="mt-auto pt-4 border-t border-gray-100 dark:border-neutral-800 flex gap-3 transition-colors">
+                <form onSubmit={handleAddStage} className="mt-auto pt-4 border-t border-gray-100 dark:border-neutral-800 flex gap-2 sm:gap-3 transition-colors">
                   <input
                     type="text"
-                    value={newStage}
-                    onChange={(e) => setNewStage(e.target.value)}
+                    value={newStageName}
+                    onChange={(e) => setNewStageName(e.target.value)}
                     placeholder={t.addStagePlaceholder}
                     className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all uppercase placeholder-gray-400 dark:placeholder-neutral-600 font-semibold"
                   />
-                  <button type="submit" disabled={!newStage.trim()} className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50">{t.addStageBtn}</button>
+
+                  <select
+                    value={newStageCategory}
+                    onChange={(e) => setNewStageCategory(e.target.value)}
+                    className="w-[140px] px-3 py-2.5 text-xs bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer font-bold"
+                  >
+                    <option value="Applied">Applied</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Offer/Rejected">Offer / Rejected</option>
+                  </select>
+
+                  <button type="submit" disabled={!newStageName.trim()} className="px-5 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50">
+                    {t.addStageBtn}
+                  </button>
                 </form>
               </>
             )}
