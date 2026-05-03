@@ -12,6 +12,7 @@ RAPIDAPI_KEY   = os.getenv("RAPIDAPI_KEY", "")
 
 _ADZUNA_LOC: dict[str, tuple[str, str]] = {
     "remote":      ("gb", ""),
+    "europe":      ("gb", ""),
     "usa":         ("us", ""),
     "uk":          ("gb", ""),
     "canada":      ("ca", ""),
@@ -29,6 +30,8 @@ _ADZUNA_LOC: dict[str, tuple[str, str]] = {
     "india":       ("in", ""),
     "brazil":      ("br", ""),
     "mexico":      ("mx", ""),
+    "south-africa":("za", ""),
+    "new-zealand": ("nz", ""),
     "london":      ("gb", "London"),
     "manchester":  ("gb", "Manchester"),
     "birmingham":  ("gb", "Birmingham"),
@@ -50,24 +53,25 @@ _ADZUNA_LOC: dict[str, tuple[str, str]] = {
 }
 
 _JSEARCH_LOC: dict[str, tuple[str, str, str]] = {
-    "portugal":  ("Lisbon, Portugal",      "lisbon porto portugal",  "pt"),
-    "sweden":    ("Stockholm, Sweden",     "stockholm sweden",       "se"),
-    "norway":    ("Oslo, Norway",          "oslo norway",            "no"),
-    "denmark":   ("Copenhagen, Denmark",   "copenhagen denmark",     "dk"),
-    "finland":   ("Helsinki, Finland",     "helsinki finland",       "fi"),
-    "ireland":   ("Dublin, Ireland",       "dublin ireland",         "ie"),
-    "czech":     ("Prague, Czech Republic","prague brno czech",      "cz"),
-    "ukraine":   ("Kyiv, Ukraine",         "kyiv ukraine",           "ua"),
-    "romania":   ("Bucharest, Romania",    "bucharest romania",      "ro"),
-    "greece":    ("Athens, Greece",        "athens greece",          "gr"),
-    "hungary":   ("Budapest, Hungary",     "budapest hungary",       "hu"),
-    "latvia":    ("Riga, Latvia",          "riga latvia",            "lv"),
-    "lithuania": ("Vilnius, Lithuania",    "vilnius lithuania",      "lt"),
-    "estonia":   ("Tallinn, Estonia",      "tallinn estonia",        "ee"),
-    "croatia":   ("Zagreb, Croatia",       "zagreb croatia",         "hr"),
-    "uae":       ("Dubai, UAE",            "dubai abu dhabi uae",    "ae"),
-    "israel":    ("Tel Aviv, Israel",      "tel aviv israel",        "il"),
-    "japan":     ("Tokyo, Japan",          "tokyo osaka japan",      "jp"),
+    "austria":   ("Vienna, Austria",        "vienna austria",          ""),
+    "portugal":  ("Lisbon, Portugal",       "lisbon porto portugal",   ""),
+    "sweden":    ("Stockholm, Sweden",      "stockholm sweden",        ""),
+    "norway":    ("Oslo, Norway",           "oslo norway",             ""),
+    "denmark":   ("Copenhagen, Denmark",    "copenhagen denmark",      ""),
+    "finland":   ("Helsinki, Finland",      "helsinki finland",        ""),
+    "ireland":   ("Dublin, Ireland",        "dublin ireland",          ""),
+    "czech":     ("Prague, Czech Republic", "prague brno czech",       ""),
+    "ukraine":   ("Kyiv, Ukraine",          "kyiv ukraine",            ""),
+    "romania":   ("Bucharest, Romania",     "bucharest romania",       ""),
+    "greece":    ("Athens, Greece",         "athens greece",           ""),
+    "hungary":   ("Budapest, Hungary",      "budapest hungary",        ""),
+    "latvia":    ("Riga, Latvia",           "riga latvia",             ""),
+    "lithuania": ("Vilnius, Lithuania",     "vilnius lithuania",       ""),
+    "estonia":   ("Tallinn, Estonia",       "tallinn estonia",         ""),
+    "croatia":   ("Zagreb, Croatia",        "zagreb croatia",          ""),
+    "uae":       ("Dubai, UAE",             "dubai abu dhabi uae",     ""),
+    "israel":    ("Tel Aviv, Israel",       "tel aviv israel",         ""),
+    "japan":     ("Tokyo, Japan",           "tokyo osaka japan",       ""),
 }
 
 _LOCATION_STOP_WORDS = {
@@ -85,8 +89,52 @@ def _strip_location_words(query: str, location_words: str) -> str:
     ]
     return " ".join(cleaned)
 
+def _ensure_https(url: str) -> str:
+    if not url:
+        return url
+    if url.startswith("http://") or url.startswith("https://"):
+        return url
+    return "https://" + url
+
+
+def _unwrap_redirect_url(url: str) -> str:
+    """Extract redirectUrl query param if present (works on already-followed URLs)."""
+    from urllib.parse import urlparse, parse_qs, unquote
+    if not url:
+        return url
+    try:
+        parsed = urlparse(url)
+        qs = parse_qs(parsed.query)
+        for param in ("redirectUrl", "redirect_url", "url", "dest", "destination"):
+            if param in qs:
+                return unquote(qs[param][0])
+    except Exception:
+        pass
+    return url
+
+
+async def _resolve_final_url(url: str) -> str:
+    """Follow the Adzuna redirect chain to get the actual job posting URL."""
+    if not url:
+        return url
+    try:
+        async with httpx.AsyncClient(timeout=4.0, follow_redirects=True,
+                                     headers={"User-Agent": "Mozilla/5.0 (compatible; HRBot/1.0)"}) as client:
+            r = await client.head(url)
+            final = str(r.url)
+            # If landed on a tracking proxy with redirectUrl param, extract it
+            final = _unwrap_redirect_url(final)
+            return _ensure_https(final)
+    except Exception:
+        return _ensure_https(_unwrap_redirect_url(url))
+
+
 async def _search_adzuna(query: str, location_value: str, employment_type: str, page: int) -> dict:
-    country, where = _ADZUNA_LOC.get(location_value, ("gb", ""))
+    loc_entry = _ADZUNA_LOC.get(location_value)
+    if not loc_entry:
+        return {"jobs": [], "total": 0, "page": page, "source": "unsupported",
+                "error": f"Job search is not available for this location via the current provider. Try selecting a broader region (e.g. Europe) or searching without a location filter."}
+    country, where = loc_entry
 
     params: dict = {
         "app_id": ADZUNA_APP_ID,
@@ -117,9 +165,12 @@ async def _search_adzuna(query: str, location_value: str, employment_type: str, 
         r.raise_for_status()
         data = r.json()
 
-    jobs = []
+    import asyncio
+    raw_jobs = []
+    raw_urls = []
     for item in data.get("results", []):
-        jobs.append({
+        raw_urls.append(item.get("redirect_url", ""))
+        raw_jobs.append({
             "job_id":        f"adzuna_{item.get('id', '')}",
             "title":         item.get("title", ""),
             "description":   item.get("description", ""),
@@ -127,13 +178,15 @@ async def _search_adzuna(query: str, location_value: str, employment_type: str, 
             "location":      item.get("location", {}).get("display_name", ""),
             "salary_min":    item.get("salary_min"),
             "salary_max":    item.get("salary_max"),
-            "url":           item.get("redirect_url", ""),
             "created_at":    item.get("created", ""),
             "contract_time": item.get("contract_time", ""),
             "tags":          [],
             "remote":        False,
             "source":        "adzuna",
         })
+
+    resolved_urls = await asyncio.gather(*[_resolve_final_url(u) for u in raw_urls])
+    jobs = [{**job, "url": url} for job, url in zip(raw_jobs, resolved_urls)]
     return {"jobs": jobs, "total": data.get("count", 0), "page": page, "source": "adzuna"}
 
 async def _search_jsearch(query: str, location_value: str, employment_type: str, page: int) -> dict:
@@ -170,7 +223,7 @@ async def _search_jsearch(query: str, location_value: str, employment_type: str,
     }
 
     url = "https://jsearch.p.rapidapi.com/search"
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=5.0) as client:
         r = await client.get(url, params=params, headers=headers)
         if not r.is_success:
             raise RuntimeError(f"JSearch HTTP {r.status_code}: {r.text[:300]}")
@@ -189,7 +242,7 @@ async def _search_jsearch(query: str, location_value: str, employment_type: str,
             "location":      loc_str,
             "salary_min":    item.get("job_min_salary"),
             "salary_max":    item.get("job_max_salary"),
-            "url":           item.get("job_apply_link", ""),
+            "url":           _ensure_https(item.get("job_apply_link", "")),
             "created_at":    item.get("job_posted_at_datetime_utc", ""),
             "contract_time": item.get("job_employment_type", ""),
             "tags":          [],
@@ -201,6 +254,7 @@ async def _search_jsearch(query: str, location_value: str, employment_type: str,
     return {"jobs": jobs, "total": estimated_total, "page": page, "source": "jsearch"}
 
 _QUERY_TO_LOC: dict[str, str] = {
+    "vienna": "austria", "wien": "austria", "austria": "austria",
     "lisbon": "portugal", "porto": "portugal", "portugal": "portugal",
     "dubai": "uae", "abu dhabi": "uae", "uae": "uae",
     "stockholm": "sweden", "sweden": "sweden",
@@ -257,12 +311,21 @@ async def search_external_jobs(
                 loc = detected_loc
                 break
 
+    # Strip location words so Adzuna doesn't search for "data analyst Vienna"
+    strip_words = _JSEARCH_LOC[loc][1] if loc in _JSEARCH_LOC else loc.replace("-", " ")
+    clean_query = _strip_location_words(query, strip_words) if strip_words else query
+
     try:
         if RAPIDAPI_KEY and loc in _JSEARCH_LOC:
-            return await _search_jsearch(query, loc, emp, page)
+            try:
+                result = await _search_jsearch(query, loc, emp, page)
+                if result.get("jobs"):
+                    return result
+            except Exception:
+                pass  # fall through to Adzuna
 
         if ADZUNA_APP_ID and ADZUNA_APP_KEY:
-            return await _search_adzuna(query, loc, emp, page)
+            return await _search_adzuna(clean_query, loc, emp, page)
 
         return {
             "jobs": [], "total": 0, "page": page, "source": "error",

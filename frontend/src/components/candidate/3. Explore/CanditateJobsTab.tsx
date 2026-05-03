@@ -291,6 +291,64 @@ export function JobsTab() {
     const [externalError, setExternalError] = useState('');
     const [externalSource, setExternalSource] = useState('');
 
+    // Saved jobs tracker
+    const LS_KEY = 'candidate_tracked_jobs';
+    const [savedJobIds, setSavedJobIds] = useState<Set<string>>(() => {
+        try {
+            const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+            return new Set(items.filter(j => j.source_job_id).map(j => j.source_job_id as string));
+        } catch { return new Set(); }
+    });
+
+    useEffect(() => {
+        const handler = () => {
+            try {
+                const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+                setSavedJobIds(new Set(items.filter(j => j.source_job_id).map(j => j.source_job_id as string)));
+            } catch { /* ignore */ }
+        };
+        window.addEventListener('tracked-jobs-updated', handler);
+        return () => window.removeEventListener('tracked-jobs-updated', handler);
+    }, []);
+
+    const saveJobToTracker = (job: any, status: string) => {
+        try {
+            const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+            const sourceJobId = String(job.job_id || job.id || '');
+            const existing = items.findIndex(j => j.source_job_id === sourceJobId);
+            const entry = {
+                id: existing >= 0 ? items[existing].id : 'local-' + Math.random().toString(36).slice(2) + Date.now().toString(36),
+                title: job.title || '',
+                company: job.company || '',
+                location: job.location || '',
+                url: job.url || '',
+                source: job.source || 'external',
+                source_job_id: sourceJobId,
+                description: job.description || '',
+                status,
+                created_at: existing >= 0 ? items[existing].created_at : new Date().toISOString(),
+            };
+            if (existing >= 0) {
+                items[existing] = { ...items[existing], ...entry, status };
+            } else {
+                items.unshift(entry);
+            }
+            localStorage.setItem(LS_KEY, JSON.stringify(items));
+            setSavedJobIds(prev => new Set([...prev, sourceJobId]));
+            window.dispatchEvent(new Event('tracked-jobs-updated'));
+        } catch { /* ignore */ }
+    };
+
+    const unsaveJob = (sourceJobId: string) => {
+        try {
+            const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+            const updated = items.filter(j => j.source_job_id !== sourceJobId);
+            localStorage.setItem(LS_KEY, JSON.stringify(updated));
+            setSavedJobIds(prev => { const next = new Set(prev); next.delete(sourceJobId); return next; });
+            window.dispatchEvent(new Event('tracked-jobs-updated'));
+        } catch { /* ignore */ }
+    };
+
     const availableLocations = useMemo(() => {
         const regions = new Set<string>();
         jobs.forEach(job => {
@@ -375,6 +433,8 @@ export function JobsTab() {
         setSelectedType('all');
         setSelectedLocation('all');
         setSearchQuery('');
+        setExternalJobs([]);
+        setExternalTotal(0);
     };
 
     const fetchExternalJobs = useCallback(async (page: number) => {
@@ -396,7 +456,7 @@ export function JobsTab() {
             setExternalTotal(result.total ?? 0);
             setExternalPage(page);
             setExternalSource(result.source ?? '');
-            if (result.error) setExternalError(`Search error: ${result.error}`);
+            if (result.error) setExternalError(result.source === 'unsupported' ? result.error : `Search error: ${result.error}`);
         } catch {
             setExternalError('Could not reach the job search service. Please try again.');
         } finally {
@@ -409,7 +469,7 @@ export function JobsTab() {
     useEffect(() => {
         if (searchMode !== 'external') return;
         const hasFilters = searchQuery.trim() !== '' || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all';
-        if (!hasFilters) return;
+        if (!hasFilters) { setExternalJobs([]); setExternalTotal(0); return; }
         const timer = setTimeout(() => {
             fetchExternalJobs(1);
         }, 600);
@@ -898,14 +958,35 @@ export function JobsTab() {
                                                     )}
                                                 </div>
                                             )}
-                                            <a
-                                                href={job.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-5 py-2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
-                                            >
-                                                Apply →
-                                            </a>
+                                            <div className="flex items-center gap-2">
+                                                {(() => {
+                                                    const srcId = String(job.job_id || job.id || '');
+                                                    const isSaved = savedJobIds.has(srcId);
+                                                    return (
+                                                        <button
+                                                            onClick={() => isSaved ? unsaveJob(srcId) : saveJobToTracker(job, 'Saved')}
+                                                            title={isSaved ? 'Remove from saved' : 'Save job'}
+                                                            className={`p-2 rounded-xl border transition-all active:scale-95 ${
+                                                                isSaved
+                                                                    ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-800 hover:text-red-500 dark:hover:text-red-400'
+                                                                    : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-neutral-500 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-500 dark:hover:text-indigo-400'
+                                                            }`}
+                                                        >
+                                                            <svg className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                            </svg>
+                                                        </button>
+                                                    );
+                                                })()}
+                                                <a
+                                                    href={job.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-5 py-2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
+                                                >
+                                                    Apply →
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

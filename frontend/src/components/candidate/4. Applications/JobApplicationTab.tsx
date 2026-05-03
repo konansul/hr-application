@@ -4,6 +4,7 @@ import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 
 const STAGES = [
+  { value: 'Saved',          label: 'Saved' },
   { value: 'Applied',        label: 'Applied' },
   { value: 'Shortlisted',    label: 'Shortlisted' },
   { value: 'HR Interview',   label: 'HR Interview' },
@@ -16,6 +17,7 @@ const ALL_STAGE_VALUES = [...STAGES.map(s => s.value), REJECTED_VALUE];
 function stageIcon(norm: string, size = 'w-4 h-4') {
   const p = { className: size, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', strokeWidth: 1.8 } as any;
   switch (norm) {
+    case 'SAVED':          return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>;
     case 'APPLIED':        return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>;
     case 'SHORTLISTED':    return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>;
     case 'HR_INTERVIEW':   return <svg {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>;
@@ -39,6 +41,11 @@ const LS_KEY = 'candidate_tracked_jobs';
 interface TrackedJob {
   id: string;
   title: string;
+  company?: string;
+  location?: string;
+  url?: string;
+  source?: string;
+  source_job_id?: string;
   description: string;
   status: string;
   created_at: string;
@@ -139,6 +146,12 @@ export function JobApplicationTab() {
   }, []);
 
   useEffect(() => {
+    const handler = () => setTrackedJobs(loadTrackedJobs());
+    window.addEventListener('tracked-jobs-updated', handler);
+    return () => window.removeEventListener('tracked-jobs-updated', handler);
+  }, []);
+
+  useEffect(() => {
     if (firstLoad.current) {
       firstLoad.current = false;
       return;
@@ -178,6 +191,7 @@ export function JobApplicationTab() {
     const updated = trackedJobs.filter(j => j.id !== id);
     saveTrackedJobs(updated);
     setTrackedJobs(updated);
+    window.dispatchEvent(new Event('tracked-jobs-updated'));
   };
 
   const matchesStageFilter = (jobStatus: string) => {
@@ -630,8 +644,27 @@ export function JobApplicationTab() {
                           {t.selfTracked}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-400 dark:text-neutral-500 font-medium transition-colors">
-                        {t.added} {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 dark:text-neutral-500 font-medium transition-colors">
+                        {job.company && (
+                          <span className="font-medium text-gray-600 dark:text-neutral-400">{job.company}</span>
+                        )}
+                        {job.location && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                            {job.location}
+                          </span>
+                        )}
+                        <span>{t.added} {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        {job.url && (
+                          <a href={job.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-indigo-500 dark:text-indigo-400 hover:underline font-semibold">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            View job
+                          </a>
+                        )}
                       </div>
                       {job.description && (
                         <div className="mt-2">
