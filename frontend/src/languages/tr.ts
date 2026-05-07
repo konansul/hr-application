@@ -105,6 +105,15 @@ export const tr = {
       end: "Bitiş",
       desc: "Açıklama veya Başarılar"
     },
+    certifications: {
+      title: "Sertifikalar",
+      noCert: "Henüz sertifika eklenmedi.",
+      addCert: "+ Sertifika Ekle",
+      name: "Sertifika Adı",
+      issuer: "Veren Kurum",
+      issueDate: "Verilme Tarihi",
+      expirationDate: "Son Kullanma Tarihi (isteğe bağlı)"
+    },
     references: {
       title: "İş Referansları",
       noRef: "Henüz profesyonel referans eklenmedi.",

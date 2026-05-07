@@ -105,6 +105,15 @@ export const en = {
       end: "End",
       desc: "Description or Achievements"
     },
+    certifications: {
+      title: "Certifications",
+      noCert: "No certifications added yet.",
+      addCert: "+ Add Certification",
+      name: "Certification Name",
+      issuer: "Issuing Organisation",
+      issueDate: "Issue Date",
+      expirationDate: "Expiration Date (optional)"
+    },
     references: {
       title: "Work References",
       noRef: "No professional references added yet.",

@@ -105,6 +105,15 @@ export const fr = {
       end: "Fin",
       desc: "Description ou réalisations"
     },
+    certifications: {
+      title: "Certifications",
+      noCert: "Aucune certification ajoutée pour l'instant.",
+      addCert: "+ Ajouter une certification",
+      name: "Nom de la certification",
+      issuer: "Organisme émetteur",
+      issueDate: "Date d'émission",
+      expirationDate: "Date d'expiration (optionnel)"
+    },
     references: {
       title: "Références professionnelles",
       noRef: "Aucune référence professionnelle ajoutée pour le moment.",

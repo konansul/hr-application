@@ -38,6 +38,7 @@ export function ProfileTab() {
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
+  const [isEditingCertifications, setIsEditingCertifications] = useState(false);
   const [isEditingReferences, setIsEditingReferences] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -161,7 +162,7 @@ export function ProfileTab() {
     setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, [field]: value } }));
   };
 
-  const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'languages' | 'references', index: number, field: string, value: any) => {
+  const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'references', index: number, field: string, value: any) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray[index] = { ...newArray[index], [field]: value };
@@ -169,11 +170,11 @@ export function ProfileTab() {
     });
   };
 
-  const addArrayItem = (section: 'experience' | 'education' | 'skills' | 'languages' | 'references', template: any) => {
+  const addArrayItem = (section: 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'references', template: any) => {
     setProfileData((prev: any) => ({ ...prev, [section]: [...(prev[section] || []), template] }));
   };
 
-  const removeArrayItem = (section: 'experience' | 'education' | 'skills' | 'languages' | 'references', index: number) => {
+  const removeArrayItem = (section: 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'references', index: number) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray.splice(index, 1);
@@ -204,6 +205,7 @@ export function ProfileTab() {
       setIsEditingEducation(false);
       setIsEditingSkills(false);
       setIsEditingLanguages(false);
+      setIsEditingCertifications(false);
       setIsEditingReferences(false);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
@@ -625,6 +627,84 @@ export function ProfileTab() {
                   ))}
                   <button onClick={() => addArrayItem('languages', { name: '', level: 'UNKNOWN' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
                     + Add Language
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400"></div>
+                <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.certifications.title}</h3>
+              </div>
+              {!isEditingCertifications ? (
+                <button onClick={() => setIsEditingCertifications(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                  {t.editSection}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setIsEditingCertifications(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              {!isEditingCertifications ? (
+                profileData.certifications?.length > 0 ? (
+                  <div className="space-y-3">
+                    {profileData.certifications.map((cert: any, i: number) => (
+                      <div key={i} className="flex items-start gap-4 p-4 border border-gray-100 dark:border-neutral-800 rounded-xl bg-gray-50/50 dark:bg-neutral-800/30">
+                        <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                          <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{cert.name}</p>
+                          {cert.issuer && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{cert.issuer}</p>}
+                          {(cert.issue_date || cert.expiration_date) && (
+                            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
+                              {cert.issue_date || ''}
+                              {cert.issue_date && cert.expiration_date ? ' – ' : ''}
+                              {cert.expiration_date || ''}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 dark:text-neutral-500 italic">{t.certifications.noCert}</p>
+                )
+              ) : (
+                <div className="space-y-4">
+                  {(profileData.certifications || []).map((cert: any, i: number) => (
+                    <div key={i} className="p-5 border border-gray-200 dark:border-neutral-800 rounded-xl relative space-y-3 bg-gray-50/30 dark:bg-neutral-800/30">
+                      <button onClick={() => removeArrayItem('certifications', i)} className="absolute top-4 right-4 text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-8">
+                        <div className="space-y-1 md:col-span-2">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.name}</label>
+                          <input type="text" placeholder="e.g. AWS Solutions Architect" value={cert.name || ''} onChange={(e) => handleArrayChange('certifications', i, 'name', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.issuer}</label>
+                          <input type="text" placeholder="e.g. Amazon Web Services" value={cert.issuer || ''} onChange={(e) => handleArrayChange('certifications', i, 'issuer', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.issueDate}</label>
+                          <input type="text" placeholder="e.g. 2023-06" value={cert.issue_date || ''} onChange={(e) => handleArrayChange('certifications', i, 'issue_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.expirationDate}</label>
+                          <input type="text" placeholder="e.g. 2026-06" value={cert.expiration_date || ''} onChange={(e) => handleArrayChange('certifications', i, 'expiration_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={() => addArrayItem('certifications', { name: '', issuer: '', issue_date: '', expiration_date: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                    {t.certifications.addCert}
                   </button>
                 </div>
               )}
