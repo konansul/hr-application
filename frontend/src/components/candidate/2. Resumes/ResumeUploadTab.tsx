@@ -1951,10 +1951,18 @@ export function ResumeUploadTab() {
                   {t.sendEmail.notConfigured}
                 </div>
               )}
-              <button onClick={handleSendEmail} disabled={!sendEmailTo.trim() || !sendEmailAttachment || isSendingEmail} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                {isSendingEmail ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
-                {isSendingEmail ? t.sendEmail.sending : t.sendEmail.sendBtn}
-              </button>
+              <div className="relative group cursor-not-allowed">
+                <button
+                  disabled
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-200 dark:bg-neutral-700 text-gray-400 dark:text-neutral-500 text-sm font-semibold rounded-xl pointer-events-none opacity-60"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  {t.sendEmail.sendBtn}
+                </button>
+                <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2.5 py-1.5 bg-gray-800 dark:bg-neutral-700 text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                  {t.actions.comingSoon}
+                </div>
+              </div>
             </>)}
           </div>
         </ModalShell>
@@ -2356,18 +2364,18 @@ export function ResumeUploadTab() {
                           {t.share.errorMsg}
                         </div>
                       )}
-                      <button
-                        onClick={() => handleSendShare(shareEmailTo, subject, emailBody)}
-                        disabled={!shareEmailTo.trim() || !shareAttachment || isSendingShare}
-                        className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                      >
-                        {isSendingShare ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                        ) : (
+                      <div className="relative group cursor-not-allowed">
+                        <button
+                          disabled
+                          className="w-full py-2.5 bg-gray-200 dark:bg-neutral-700 text-gray-400 dark:text-neutral-500 text-sm font-semibold rounded-xl pointer-events-none flex items-center justify-center gap-2 opacity-60"
+                        >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        )}
-                        {isSendingShare ? t.share.sending : t.share.sendBtn}
-                      </button>
+                          {t.share.sendBtn}
+                        </button>
+                        <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2.5 py-1.5 bg-gray-800 dark:bg-neutral-700 text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                          {t.actions.comingSoon}
+                        </div>
+                      </div>
                     </>)}
                     </div>
                   );

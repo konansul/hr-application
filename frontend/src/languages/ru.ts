@@ -306,7 +306,8 @@ export const ru = {
       copyLink: "Поделиться публичной ссылкой",
       linkCopied: "Скопировано!",
       sendByEmail: "Отправить по email",
-      edit: "Редактировать",
+      comingSoon: "Скоро будет доступно",
+      edit:"Редактировать",
       save: "Сохранить",
       cancel: "Отмена",
       saving: "Сохранение…"

@@ -306,7 +306,8 @@ export const tr = {
       copyLink: "Genel bağlantıyı paylaş",
       linkCopied: "Kopyalandı!",
       sendByEmail: "E-posta ile gönder",
-      edit: "Düzenle",
+      comingSoon: "Yakında",
+      edit:"Düzenle",
       save: "Değişiklikleri Kaydet",
       cancel: "İptal",
       saving: "Kaydediliyor…"

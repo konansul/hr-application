@@ -306,7 +306,8 @@ export const es = {
       copyLink: "Compartir enlace público",
       linkCopied: "¡Copiado!",
       sendByEmail: "Enviar por correo",
-      edit: "Editar",
+      comingSoon: "Próximamente",
+      edit:"Editar",
       save: "Guardar Cambios",
       cancel: "Cancelar",
       saving: "Guardando…"

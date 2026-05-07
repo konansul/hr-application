@@ -322,6 +322,7 @@ export const en = {
       copyLink: "Share Public Link",
       linkCopied: "Copied!",
       sendByEmail: "Send by Email",
+      comingSoon: "Coming soon",
       edit: "Edit",
       save: "Save Changes",
       cancel: "Cancel",
