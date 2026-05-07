@@ -16,6 +16,11 @@ export function CandidateSettingsTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
@@ -84,6 +89,19 @@ export function CandidateSettingsTab() {
       console.error("Failed to remove link", err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await authApi.deleteAccount();
+      window.location.href = '/';
+    } catch {
+      setDeleteError('Deletion failed. Please try again or contact support.');
+      setIsDeleting(false);
     }
   };
 
@@ -186,6 +204,19 @@ export function CandidateSettingsTab() {
               </div>
             </div>
           </div>
+
+          {/* Delete account */}
+          <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm transition-colors">
+            <p className="text-xs text-gray-500 dark:text-neutral-400 mb-4">
+              Permanently delete your account, profile, and all CV files. This action cannot be undone.
+            </p>
+            <button
+              onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(''); setDeleteError(null); }}
+              className="w-full px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl transition-all shadow-sm"
+            >
+              Delete Account
+            </button>
+          </div>
         </div>
 
         <div className="md:col-span-7 space-y-6">
@@ -258,6 +289,55 @@ export function CandidateSettingsTab() {
           </div>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => !isDeleting && setShowDeleteModal(false)}>
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-red-200 dark:border-red-900/50 w-full max-w-md p-8" onClick={e => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete your account?</h2>
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mb-6 leading-relaxed">
+              This will permanently remove your email, profile data, and all CV files from our systems. There is no way to recover this data.
+            </p>
+            <div className="mb-5">
+              <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-widest mb-2">
+                Type <span className="text-red-600 dark:text-red-400 font-mono">DELETE</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleDeleteAccount()}
+                placeholder="DELETE"
+                autoFocus
+                className="w-full px-4 py-3 text-sm border border-gray-200 dark:border-neutral-700 rounded-xl bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-neutral-600 focus:outline-none focus:border-red-400 dark:focus:border-red-600 font-mono transition-colors"
+              />
+            </div>
+            {deleteError && (
+              <p className="text-xs text-red-500 mb-4">{deleteError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 text-sm font-semibold rounded-xl transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-300 dark:disabled:bg-red-900 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                {isDeleting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                {isDeleting ? 'Deleting…' : 'Delete my account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
