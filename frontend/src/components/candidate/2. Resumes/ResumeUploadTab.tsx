@@ -632,6 +632,8 @@ export function ResumeUploadTab() {
   const [showDocViewerModal, setShowDocViewerModal] = useState(false);
   const [docViewerUrl, setDocViewerUrl] = useState<string | null>(null);
   const [docViewerLoading, setDocViewerLoading] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const createMenuRef = useRef<HTMLDivElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -743,6 +745,16 @@ export function ResumeUploadTab() {
       `${greeting}\n\n${eb.line1}\n\n${eb.line2attach}\n\n${eb.line3}\n${cvLink}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`
     );
   }, [selectedResume, sendEmailRecipientName]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (createMenuRef.current && !createMenuRef.current.contains(e.target as Node)) {
+        setShowCreateMenu(false);
+      }
+    };
+    if (showCreateMenu) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCreateMenu]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) { setFile(e.target.files[0]); setMessage(null); }
@@ -1113,37 +1125,52 @@ export function ResumeUploadTab() {
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             Improve CV
           </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold rounded-xl shadow-sm transition-all whitespace-nowrap"
-          >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            {t.uploadCv}
-          </button>
-          <button
-            onClick={() => setShowProfileModal(true)}
-            disabled={isWorking}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-900 dark:text-white text-xs font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 transition-all whitespace-nowrap disabled:opacity-60"
-          >
-            <svg className="w-3.5 h-3.5 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-            {t.fromProfile}
-          </button>
-          <button
-            onClick={() => { if (resumeVersions.length > 0) setShowDuplicateModal(true); }}
-            disabled={isWorking || resumeVersions.length === 0}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-800/50 transition-all whitespace-nowrap disabled:opacity-60"
-          >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-            {t.duplicate}
-          </button>
-          <button
-            onClick={() => setShowJobDescModal(true)}
-            disabled={isWorking}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-xs font-semibold rounded-xl shadow-sm border border-indigo-100 dark:border-indigo-800/50 transition-all whitespace-nowrap disabled:opacity-60"
-          >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            {t.fromJob}
-          </button>
+          <div className="relative" ref={createMenuRef}>
+            <button
+              onClick={() => setShowCreateMenu(v => !v)}
+              disabled={isWorking}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-semibold rounded-xl shadow-sm transition-all whitespace-nowrap disabled:opacity-60"
+            >
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Create Resume Version
+              <svg className={`w-3 h-3 shrink-0 transition-transform ${showCreateMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {showCreateMenu && (
+              <div className="absolute left-0 top-full mt-1.5 z-50 w-52 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl overflow-hidden">
+                <button
+                  onClick={() => { setShowCreateMenu(false); fileInputRef.current?.click(); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left"
+                >
+                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                  {t.uploadCv}
+                </button>
+                <button
+                  onClick={() => { setShowCreateMenu(false); setShowProfileModal(true); }}
+                  disabled={isWorking}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left disabled:opacity-60"
+                >
+                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  {t.fromProfile}
+                </button>
+                <button
+                  onClick={() => { if (resumeVersions.length > 0) { setShowCreateMenu(false); setShowDuplicateModal(true); } }}
+                  disabled={isWorking || resumeVersions.length === 0}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left disabled:opacity-60"
+                >
+                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  {t.duplicate}
+                </button>
+                <button
+                  onClick={() => { setShowCreateMenu(false); setShowJobDescModal(true); }}
+                  disabled={isWorking}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left disabled:opacity-60"
+                >
+                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  {t.fromJob}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
