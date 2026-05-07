@@ -660,7 +660,7 @@ export function JobApplicationTab() {
                         )}
                         <span>{t.added} {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         {job.url && (
-                          <button onClick={() => setExternalModalUrl(job.url)} className="flex items-center gap-1 text-indigo-500 dark:text-indigo-400 hover:underline font-semibold">
+                          <button onClick={() => setExternalModalUrl(job.url ?? null)} className="flex items-center gap-1 text-indigo-500 dark:text-indigo-400 hover:underline font-semibold">
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
