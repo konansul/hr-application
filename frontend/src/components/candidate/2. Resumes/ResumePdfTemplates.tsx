@@ -14,9 +14,18 @@ Font.register({
 
 Font.registerHyphenationCallback(word => [word]);
 
-const skillName = (s: any) => typeof s === 'string' ? s : s?.name || '';
-const langName  = (l: any) => typeof l === 'string' ? l : l?.name || l?.language || '';
-const certName  = (c: any) => typeof c === 'string' ? c : c?.name || c?.title || '';
+function clean(v: any): string {
+  const s = typeof v === 'string' ? v.trim() : '';
+  return (!s || s === 'UNKNOWN') ? '' : s;
+}
+
+function eduLabel(e: any): string {
+  return [clean(e.degree), clean(e.field_of_study)].filter(Boolean).join(' in ');
+}
+
+const skillName = (s: any) => { const n = typeof s === 'string' ? s : (s?.name || ''); return clean(n); };
+const langName  = (l: any) => { const n = typeof l === 'string' ? l : (l?.name || l?.language || ''); return clean(n); };
+const certName  = (c: any) => { const n = typeof c === 'string' ? c : (c?.name || c?.title || ''); return clean(n); };
 
 function fullName(info: any, fallback?: string | null) {
   return [info?.first_name, info?.last_name].filter(Boolean).join(' ') || fallback || 'Resume';
@@ -174,12 +183,16 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
           <View style={CL.section}>
             <Text style={CL.secTitle}>Education</Text>
             <View style={CL.thinRule} />
-            {edu.map((e: any, i: number) => (
-              <View key={i} style={CL.entry}>
-                <Text style={CL.bold}>{e.degree || 'Degree'}</Text>
-                {e.institution ? <Text style={CL.sub}>{e.institution}</Text> : null}
-              </View>
-            ))}
+            {edu.map((e: any, i: number) => {
+              const label = eduLabel(e); const inst = clean(e.institution);
+              if (!label && !inst) return null;
+              return (
+                <View key={i} style={CL.entry}>
+                  {label ? <Text style={CL.bold}>{label}</Text> : null}
+                  {inst  ? <Text style={CL.sub}>{inst}</Text>  : null}
+                </View>
+              );
+            })}
           </View>
         ) : null}
 
@@ -331,12 +344,16 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
           {hasList(edu) ? (
             <View style={MO.mSec}>
               <Text style={MO.mSecT}>Education</Text>
-              {edu.map((e: any, i: number) => (
-                <View key={i} style={MO.mEntry}>
-                  <Text style={MO.mBold}>{e.degree || 'Degree'}</Text>
-                  {e.institution ? <Text style={MO.mSub}>{e.institution}</Text> : null}
-                </View>
-              ))}
+              {edu.map((e: any, i: number) => {
+                const label = eduLabel(e); const inst = clean(e.institution);
+                if (!label && !inst) return null;
+                return (
+                  <View key={i} style={MO.mEntry}>
+                    {label ? <Text style={MO.mBold}>{label}</Text> : null}
+                    {inst  ? <Text style={MO.mSub}>{inst}</Text>  : null}
+                  </View>
+                );
+              })}
             </View>
           ) : null}
 
@@ -429,12 +446,16 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
         {hasList(edu) ? (
           <View style={MI.sec}>
             <Text style={MI.secT}>Education</Text>
-            {edu.map((e: any, i: number) => (
-              <View key={i} style={MI.entry}>
-                <Text style={MI.bold}>{e.degree || 'Degree'}</Text>
-                {e.institution ? <Text style={MI.sub}>{e.institution}</Text> : null}
-              </View>
-            ))}
+            {edu.map((e: any, i: number) => {
+              const label = eduLabel(e); const inst = clean(e.institution);
+              if (!label && !inst) return null;
+              return (
+                <View key={i} style={MI.entry}>
+                  {label ? <Text style={MI.bold}>{label}</Text> : null}
+                  {inst  ? <Text style={MI.sub}>{inst}</Text>   : null}
+                </View>
+              );
+            })}
           </View>
         ) : null}
 
@@ -535,12 +556,16 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
             {hasList(edu) ? (
               <View style={RE.sec}>
                 <Text style={RE.secT}>Education</Text>
-                {edu.map((e: any, i: number) => (
-                  <View key={i} style={RE.entry}>
-                    <Text style={RE.bold}>{e.degree || 'Degree'}</Text>
-                    {e.institution ? <Text style={RE.sub}>{e.institution}</Text> : null}
-                  </View>
-                ))}
+                {edu.map((e: any, i: number) => {
+                  const label = eduLabel(e); const inst = clean(e.institution);
+                  if (!label && !inst) return null;
+                  return (
+                    <View key={i} style={RE.entry}>
+                      {label ? <Text style={RE.bold}>{label}</Text> : null}
+                      {inst  ? <Text style={RE.sub}>{inst}</Text>   : null}
+                    </View>
+                  );
+                })}
               </View>
             ) : null}
 
@@ -687,12 +712,16 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
             <View style={FR.bSec}>
               <Text style={FR.bSecT}>Education</Text>
               <View style={FR.bRule} />
-              {edu.map((e: any, i: number) => (
-                <View key={i} style={FR.bEntry}>
-                  <Text style={FR.bBold}>{e.degree || 'Degree'}</Text>
-                  {e.institution ? <Text style={FR.bSub}>{e.institution}</Text> : null}
-                </View>
-              ))}
+              {edu.map((e: any, i: number) => {
+                const label = eduLabel(e); const inst = clean(e.institution);
+                if (!label && !inst) return null;
+                return (
+                  <View key={i} style={FR.bEntry}>
+                    {label ? <Text style={FR.bBold}>{label}</Text> : null}
+                    {inst  ? <Text style={FR.bSub}>{inst}</Text>   : null}
+                  </View>
+                );
+              })}
             </View>
           ) : null}
 
@@ -786,12 +815,16 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
                 <>
                   <Text style={HI.secT}>Education</Text>
                   <View style={HI.rule} />
-                  {edu.map((e: any, i: number) => (
-                    <View key={i} style={HI.entry}>
-                      <Text style={HI.bold}>{e.degree || 'Degree'}</Text>
-                      {e.institution ? <Text style={HI.sub}>{e.institution}</Text> : null}
-                    </View>
-                  ))}
+                  {edu.map((e: any, i: number) => {
+                    const label = eduLabel(e); const inst = clean(e.institution);
+                    if (!label && !inst) return null;
+                    return (
+                      <View key={i} style={HI.entry}>
+                        {label ? <Text style={HI.bold}>{label}</Text> : null}
+                        {inst  ? <Text style={HI.sub}>{inst}</Text>   : null}
+                      </View>
+                    );
+                  })}
                 </>
               ) : null}
 
@@ -998,18 +1031,22 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
           {hasList(edu) ? (
             <View style={AC.mSec}>
               <Text style={AC.mSecT}>Education</Text>
-              {edu.map((e: any, i: number) => (
-                <View key={i} style={AC.mEntry}>
-                  <View style={AC.mDot}>
-                    <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
+              {edu.map((e: any, i: number) => {
+                const label = eduLabel(e); const inst = clean(e.institution);
+                if (!label && !inst) return null;
+                return (
+                  <View key={i} style={AC.mEntry}>
+                    <View style={AC.mDot}>
+                      <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
+                    </View>
+                    <View style={AC.mContent}>
+                      {label ? <Text style={AC.mBold}>{label}</Text> : null}
+                      {inst  ? <Text style={AC.mSub}>{inst}</Text>   : null}
+                      {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e)}</Text> : null}
+                    </View>
                   </View>
-                  <View style={AC.mContent}>
-                    <Text style={AC.mBold}>{e.degree || 'Degree'}</Text>
-                    {e.institution ? <Text style={AC.mSub}>{e.institution}</Text> : null}
-                    {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e)}</Text> : null}
-                  </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           ) : null}
 

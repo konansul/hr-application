@@ -32,6 +32,28 @@ type ResumeVersion = {
   updated_at?: string | null;
 };
 
+function ExpandableText({ text, limit = 280 }: { text: string; limit?: number }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) return null;
+  if (text.length <= limit) {
+    return <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">{text}</p>;
+  }
+  return (
+    <div>
+      <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">
+        {expanded ? text : text.slice(0, limit) + '…'}
+      </p>
+      <button
+        type="button"
+        onClick={() => setExpanded(e => !e)}
+        className="mt-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+      >
+        {expanded ? 'Show less' : 'Show more'}
+      </button>
+    </div>
+  );
+}
+
 const LANGUAGE_OPTIONS = [
   { code: 'en', label: 'English' },
   { code: 'ru', label: 'Russian' },
@@ -607,6 +629,9 @@ export function ResumeUploadTab() {
   const [savingPdfTemplateId, setSavingPdfTemplateId] = useState<string | null>(null);
   const [previewingTemplateId, setPreviewingTemplateId] = useState<string | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [showDocViewerModal, setShowDocViewerModal] = useState(false);
+  const [docViewerUrl, setDocViewerUrl] = useState<string | null>(null);
+  const [docViewerLoading, setDocViewerLoading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -815,6 +840,36 @@ export function ResumeUploadTab() {
     setShowSavePdfModal(false);
     if (previewBlobUrl) { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); }
     setPreviewingTemplateId(null);
+  };
+
+  const closeDocViewer = () => {
+    if (docViewerUrl) URL.revokeObjectURL(docViewerUrl);
+    setDocViewerUrl(null);
+    setShowDocViewerModal(false);
+  };
+
+  const handleResumeClick = async (resume: ResumeVersion) => {
+    setSelectedResumeId(resume.resume_id);
+    setConfirmDeleteId(null);
+    setMessage(null);
+    if (resume.generated_document_id) {
+      setDocViewerLoading(true);
+      setShowDocViewerModal(true);
+      setDocViewerUrl(null);
+      try {
+        const tempUrl = await documentsApi.getDocumentFileUrl(resume.generated_document_id);
+        const res = await fetch(tempUrl);
+        URL.revokeObjectURL(tempUrl);
+        const blob = await res.blob();
+        setDocViewerUrl(URL.createObjectURL(blob));
+      } catch {
+        setShowDocViewerModal(false);
+      } finally {
+        setDocViewerLoading(false);
+      }
+    } else {
+      setShowPdfModal(true);
+    }
   };
 
   const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string) => {
@@ -1108,7 +1163,7 @@ export function ResumeUploadTab() {
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <button
-                        onClick={() => { setSelectedResumeId(resume.resume_id); setConfirmDeleteId(null); setMessage(null); }}
+                        onClick={() => handleResumeClick(resume)}
                         className="min-w-0 flex-1 text-left"
                       >
                         <div className="flex items-center w-full gap-2 min-w-0">
@@ -1428,7 +1483,9 @@ export function ResumeUploadTab() {
                           <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
                             <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '—'} — {exp.end_date || t.placeholders.present}</p>
-                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">{exp.description || t.placeholders.noDesc}</p>
+                            {exp.description
+                              ? <ExpandableText text={exp.description} />
+                              : <p className="text-sm text-gray-400 italic">{t.placeholders.noDesc}</p>}
                           </div>
                         )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noExp}</p>}
                       </>
@@ -1848,6 +1905,59 @@ export function ResumeUploadTab() {
             </>)}
           </div>
         </ModalShell>
+      )}
+
+      {showDocViewerModal && selectedResume && (
+        <div className="fixed inset-0 z-50 bg-gray-900/60 dark:bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closeDocViewer}>
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-4xl h-[88vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between shrink-0 bg-gray-50/50 dark:bg-neutral-900">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">{selectedResume.title || 'Resume'}</h3>
+                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">Saved PDF</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 ml-4">
+                {docViewerUrl && (
+                  <a
+                    href={docViewerUrl}
+                    download={`${selectedResume.title || 'resume'}.pdf`.replace(/\s+/g, '_')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Download
+                  </a>
+                )}
+                <button
+                  onClick={() => { closeDocViewer(); setShowPdfModal(true); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                  Regenerate
+                </button>
+                <button onClick={closeDocViewer} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 min-h-0 relative">
+              {docViewerLoading ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-3 border-gray-200 dark:border-neutral-700 border-t-indigo-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">Loading PDF…</p>
+                  </div>
+                </div>
+              ) : docViewerUrl ? (
+                <iframe src={docViewerUrl} className="w-full h-full" title="Resume PDF" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-8">
+                  <svg className="w-10 h-10 text-gray-300 dark:text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">Could not load PDF</p>
+                  <button onClick={() => { closeDocViewer(); setShowPdfModal(true); }} className="text-xs text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:no-underline">Generate a new PDF instead</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {showPdfModal && selectedResume && (

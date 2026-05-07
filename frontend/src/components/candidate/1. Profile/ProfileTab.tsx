@@ -37,8 +37,10 @@ export function ProfileTab() {
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isEditingReferences, setIsEditingReferences] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const loadProfile = async (currentUser?: any) => {
     try {
@@ -159,7 +161,7 @@ export function ProfileTab() {
     setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, [field]: value } }));
   };
 
-  const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'references', index: number, field: string, value: any) => {
+  const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'languages' | 'references', index: number, field: string, value: any) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray[index] = { ...newArray[index], [field]: value };
@@ -167,16 +169,29 @@ export function ProfileTab() {
     });
   };
 
-  const addArrayItem = (section: 'experience' | 'education' | 'skills' | 'references', template: any) => {
+  const addArrayItem = (section: 'experience' | 'education' | 'skills' | 'languages' | 'references', template: any) => {
     setProfileData((prev: any) => ({ ...prev, [section]: [...(prev[section] || []), template] }));
   };
 
-  const removeArrayItem = (section: 'experience' | 'education' | 'skills' | 'references', index: number) => {
+  const removeArrayItem = (section: 'experience' | 'education' | 'skills' | 'languages' | 'references', index: number) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
       newArray.splice(index, 1);
       return { ...prev, [section]: newArray };
     });
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target?.result as string;
+      const updated = { ...profileData, personal_info: { ...profileData.personal_info, photo: dataUrl } };
+      setProfileData(updated);
+      try { await authApi.updateProfile(updated); } catch (_) {}
+    };
+    reader.readAsDataURL(f);
   };
 
   const handleSaveProfile = async () => {
@@ -188,6 +203,7 @@ export function ProfileTab() {
       setIsEditingExperience(false);
       setIsEditingEducation(false);
       setIsEditingSkills(false);
+      setIsEditingLanguages(false);
       setIsEditingReferences(false);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
@@ -195,6 +211,25 @@ export function ProfileTab() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const ExpandableText = ({ text, limit = 280 }: { text: string; limit?: number }) => {
+    const [expanded, setExpanded] = useState(false);
+    if (!text) return null;
+    if (text.length <= limit) return <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{text}</p>;
+    return (
+      <div className="mt-3">
+        <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
+          {expanded ? text : `${text.slice(0, limit).trimEnd()}…`}
+        </p>
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="mt-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none"
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      </div>
+    );
   };
 
   const DetailRow = ({ label, value }: { label: string; value: any }) => (
@@ -377,7 +412,7 @@ export function ProfileTab() {
                         <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
                         <h4 className="text-base font-bold text-gray-900 dark:text-white">{exp.title}</h4>
                         <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">{exp.company} • {exp.start_date || 'N/A'} - {exp.is_current ? t.experience.present : (exp.end_date || 'N/A')}</p>
-                        {exp.description && <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{exp.description}</p>}
+                        <ExpandableText text={exp.description} />
                       </div>
                     ))}
                   </div>
@@ -443,7 +478,10 @@ export function ProfileTab() {
                       <div key={i} className="relative">
                         <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
                         <h4 className="text-base font-bold text-gray-900 dark:text-white">{edu.institution}</h4>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">{edu.degree} in {edu.field_of_study} • {edu.start_date || 'N/A'} - {edu.end_date || 'N/A'}</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">
+                          {[edu.degree, edu.field_of_study].filter(v => v && v !== 'UNKNOWN').join(' in ')}
+                          {' • '}{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}
+                        </p>
                         {edu.description && <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{edu.description}</p>}
                       </div>
                     ))}
@@ -463,8 +501,8 @@ export function ProfileTab() {
                         <input type="text" placeholder={t.education.degree} value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
                         <input type="text" placeholder={t.education.field} value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
                         <div className="flex gap-2">
-                          <input type="date" placeholder={t.education.start} value={edu.start_date || ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
-                          <input type="date" placeholder={t.education.end} value={edu.end_date || ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                          <input type="date" placeholder={t.education.start} value={edu.start_date ? (edu.start_date.length === 7 ? edu.start_date + '-01' : edu.start_date) : ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                          <input type="date" placeholder={t.education.end} value={edu.end_date ? (edu.end_date.length === 7 ? edu.end_date + '-01' : edu.end_date) : ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
                         </div>
                       </div>
                       <textarea placeholder={t.education.desc} value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={2} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none dark:text-white" />
@@ -472,6 +510,111 @@ export function ProfileTab() {
                   ))}
                   <button onClick={() => addArrayItem('education', { institution: '', degree: '', field_of_study: '', start_date: '', end_date: '', description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
                     {t.education.addEdu}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
+                <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.skills.title}</h3>
+              </div>
+              {!isEditingSkills ? (
+                <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                  {t.editSection}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setIsEditingSkills(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              {!isEditingSkills ? (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.skills?.length > 0 ? profileData.skills.map((s: any, i: number) => (
+                    <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold shadow-sm transition-colors">
+                      {s.name} {s.level && <span className="text-gray-400 dark:text-neutral-500 text-[10px] ml-1">{s.level}</span>}
+                    </span>
+                  )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">{t.skills.noSkills}</span>}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {profileData.skills.map((s: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-neutral-800 rounded-xl bg-gray-50/30 dark:bg-neutral-800/30 relative">
+                      <input type="text" placeholder={t.skills.skillName} value={s.name || ''} onChange={(e) => handleArrayChange('skills', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                      <select value={s.level || ''} onChange={(e) => handleArrayChange('skills', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white">
+                        <option value="">{t.skills.level}</option>
+                        <option value="Beginner">{t.skills.beginner}</option>
+                        <option value="Intermediate">{t.skills.intermediate}</option>
+                        <option value="Advanced">{t.skills.advanced}</option>
+                        <option value="Expert">{t.skills.expert}</option>
+                      </select>
+                      <button onClick={() => removeArrayItem('skills', i)} className="text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={() => addArrayItem('skills', { name: '', level: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                    {t.skills.addSkill}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Languages */}
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400"></div>
+                <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Languages</h3>
+              </div>
+              {!isEditingLanguages ? (
+                <button onClick={() => setIsEditingLanguages(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                  {t.editSection}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setIsEditingLanguages(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              {!isEditingLanguages ? (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.languages?.length > 0 ? profileData.languages.map((lang: any, i: number) => (
+                    <span key={i} className="px-3 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300 border border-teal-100 dark:border-teal-800/50 rounded-lg text-xs font-semibold shadow-sm">
+                      {lang.name}
+                      {lang.level && lang.level !== 'UNKNOWN' && <span className="text-teal-500 dark:text-teal-400 text-[10px] ml-1">{lang.level}</span>}
+                    </span>
+                  )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">No languages added yet</span>}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {(profileData.languages || []).map((lang: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-neutral-800 rounded-xl bg-gray-50/30 dark:bg-neutral-800/30 relative">
+                      <input type="text" placeholder="Language (e.g. English)" value={lang.name || ''} onChange={(e) => handleArrayChange('languages', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                      <select value={lang.level || 'UNKNOWN'} onChange={(e) => handleArrayChange('languages', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white">
+                        <option value="UNKNOWN">Level</option>
+                        <option value="BASIC">Basic</option>
+                        <option value="INTERMEDIATE">Intermediate</option>
+                        <option value="ADVANCED">Advanced</option>
+                        <option value="FLUENT">Fluent</option>
+                        <option value="NATIVE">Native</option>
+                      </select>
+                      <button onClick={() => removeArrayItem('languages', i)} className="text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={() => addArrayItem('languages', { name: '', level: 'UNKNOWN' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                    + Add Language
                   </button>
                 </div>
               )}
@@ -552,66 +695,24 @@ export function ProfileTab() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
-                <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.skills.title}</h3>
-              </div>
-              {!isEditingSkills ? (
-                <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
-                  {t.editSection}
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setIsEditingSkills(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
-                </div>
-              )}
-            </div>
-            <div className="p-6">
-              {!isEditingSkills ? (
-                <div className="flex flex-wrap gap-2">
-                  {profileData.skills?.length > 0 ? profileData.skills.map((s: any, i: number) => (
-                    <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold shadow-sm transition-colors">
-                      {s.name} {s.level && <span className="text-gray-400 dark:text-neutral-500 text-[10px] ml-1">{s.level}</span>}
-                    </span>
-                  )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">{t.skills.noSkills}</span>}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {profileData.skills.map((s: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-neutral-800 rounded-xl bg-gray-50/30 dark:bg-neutral-800/30 relative">
-                      <input type="text" placeholder={t.skills.skillName} value={s.name || ''} onChange={(e) => handleArrayChange('skills', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
-                      <select value={s.level || ''} onChange={(e) => handleArrayChange('skills', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white">
-                        <option value="">{t.skills.level}</option>
-                        <option value="Beginner">{t.skills.beginner}</option>
-                        <option value="Intermediate">{t.skills.intermediate}</option>
-                        <option value="Advanced">{t.skills.advanced}</option>
-                        <option value="Expert">{t.skills.expert}</option>
-                      </select>
-                      <button onClick={() => removeArrayItem('skills', i)} className="text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
-                  ))}
-                  <button onClick={() => addArrayItem('skills', { name: '', level: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
-                    {t.skills.addSkill}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
         </div>
 
         <div className="lg:col-span-4 space-y-6">
 
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 flex flex-col items-center text-center transition-colors">
-            <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-4 border border-indigo-100 dark:border-indigo-800/50 shadow-sm transition-colors">
-              <span className="text-2xl font-bold">
-                {profileData.personal_info.first_name?.[0] || user?.email?.[0]?.toUpperCase() || '?'}
-              </span>
+            <div className="relative mb-4 group cursor-pointer" onClick={() => photoInputRef.current?.click()}>
+              {profileData.personal_info.photo ? (
+                <img src={profileData.personal_info.photo} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-indigo-100 dark:border-indigo-800/50 shadow-sm" />
+              ) : (
+                <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50 shadow-sm transition-colors">
+                  <span className="text-2xl font-bold">
+                    {profileData.personal_info.first_name?.[0] || user?.email?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </div>
             </div>
 
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
@@ -722,6 +823,7 @@ export function ProfileTab() {
       </div>
 
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf,.docx,.txt" />
+      <input type="file" ref={photoInputRef} onChange={handlePhotoChange} className="hidden" accept="image/*" />
 
       {file && !isUploading && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 px-6 py-4 rounded-2xl shadow-xl flex flex-wrap items-center gap-6 animate-in slide-in-from-bottom-8 transition-colors">

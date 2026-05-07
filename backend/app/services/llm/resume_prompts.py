@@ -82,6 +82,11 @@ def build_cv_parsing_prompt(cv_text: str) -> str:
 Extract all candidate information from the following CV text.
 If a specific piece of information is missing (like a date, city, or skill level), omit the field or use "UNKNOWN" according to the schema enums.
 
+CRITICAL RULES FOR EXPERIENCE DESCRIPTIONS:
+- Copy the FULL description text from the CV exactly as written. Do NOT summarize, shorten, truncate, or paraphrase.
+- Include every bullet point, responsibility, achievement, and sentence exactly as it appears.
+- Preserve the original wording, line breaks (use \\n), and detail level.
+
 CV TEXT:
 {cv_text}
 """
