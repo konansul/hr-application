@@ -1,7 +1,7 @@
 import enum
 from datetime import date
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text, JSON, Date
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Text, JSON, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from backend.database.db import Base
@@ -160,6 +160,7 @@ class Document(Base):
     content_type = Column(String(128), nullable=True)
     file_hash = Column(String(128), nullable=False, index=True)
     file_path = Column(String(512), nullable=True)
+    file_content = Column(LargeBinary, nullable=True)
     raw_text = Column(Text, nullable=False)
     source_type = Column(String(32), nullable=False, default="uploaded_cv")
     document_role = Column(String(32), nullable=False, default="source_cv")

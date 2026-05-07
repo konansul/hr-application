@@ -105,6 +105,15 @@ export const de = {
       end: "Ende",
       desc: "Beschreibung oder Erfolge"
     },
+    certifications: {
+      title: "Zertifikate",
+      noCert: "Noch keine Zertifikate hinzugefügt.",
+      addCert: "+ Zertifikat hinzufügen",
+      name: "Name des Zertifikats",
+      issuer: "Ausstellende Organisation",
+      issueDate: "Ausstellungsdatum",
+      expirationDate: "Ablaufdatum (optional)"
+    },
     references: {
       title: "Referenzen",
       noRef: "Noch keine beruflichen Referenzen hinzugefügt.",

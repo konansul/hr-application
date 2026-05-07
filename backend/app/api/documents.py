@@ -5,7 +5,7 @@ import hashlib
 from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from backend.app.api.helpers.extract import extract_cv_text
@@ -70,9 +70,16 @@ async def upload_document(
     suffix = Path(file.filename or "file").suffix.lower()
     saved_file_path: str | None = None
     if suffix == ".pdf":
-        file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
-        file_on_disk.write_bytes(content)
-        saved_file_path = str(file_on_disk)
+        # Best-effort write to local disk (works in dev; ephemeral on Azure)
+        try:
+            file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
+            file_on_disk.write_bytes(content)
+            saved_file_path = str(file_on_disk)
+        except Exception:
+            pass
+
+    # Always persist binary content in the database so it survives restarts/redeploys
+    stored_content = content if suffix == ".pdf" else None
 
     doc = Document(
         document_id=doc_id,
@@ -81,6 +88,7 @@ async def upload_document(
         content_type=doc_content_type,
         file_hash=file_hash,
         file_path=saved_file_path,
+        file_content=stored_content,
         raw_text=cv_text,
         source_type="uploaded_cv",
         document_role="source_cv"
@@ -212,14 +220,23 @@ def get_document_file(
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    if not doc.file_path or not Path(doc.file_path).exists():
-        raise HTTPException(status_code=404, detail="File not found on server")
+    # Prefer DB-stored bytes (always available, survives Azure restarts)
+    if doc.file_content:
+        return Response(
+            content=doc.file_content,
+            media_type=doc.content_type or "application/pdf",
+            headers={"Content-Disposition": f'inline; filename="{doc.filename}"'},
+        )
 
-    return FileResponse(
-        path=doc.file_path,
-        media_type=doc.content_type or "application/pdf",
-        filename=doc.filename,
-    )
+    # Fallback: local filesystem (dev environment)
+    if doc.file_path and Path(doc.file_path).exists():
+        return FileResponse(
+            path=doc.file_path,
+            media_type=doc.content_type or "application/pdf",
+            filename=doc.filename,
+        )
+
+    raise HTTPException(status_code=404, detail="File not found on server")
 
 
 @router.delete("/documents/{document_id}", status_code=204)
