@@ -77,6 +77,8 @@ export const fr = {
       visa: "Statut de visa",
       workPref: "Préférence de travail",
       linkedin: "URL LinkedIn",
+      github: "URL GitHub",
+      portfolio: "Portfolio / Site Web",
       openRemote: "Ouvert au télétravail",
       openRelocation: "Ouvert à la délocalisation"
     },

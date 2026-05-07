@@ -77,6 +77,8 @@ export const ru = {
       visa: "Визовый статус",
       workPref: "Формат работы",
       linkedin: "Ссылка на LinkedIn",
+      github: "Ссылка на GitHub",
+      portfolio: "Портфолио / Сайт",
       openRemote: "Готов(а) к удаленке",
       openRelocation: "Готов(а) к переезду"
     },

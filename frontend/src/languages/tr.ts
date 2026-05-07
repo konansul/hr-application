@@ -77,6 +77,8 @@ export const tr = {
       visa: "Vize Durumu",
       workPref: "Çalışma Tercihi",
       linkedin: "LinkedIn URL",
+      github: "GitHub URL",
+      portfolio: "Portföy / Web Sitesi",
       openRemote: "Uzaktan Çalışmaya Açık",
       openRelocation: "Yer Değiştirmeye Açık"
     },

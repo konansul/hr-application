@@ -29,9 +29,9 @@ export function ProfileTab() {
 
   const [showWizard, setShowWizard] = useState(false);
 
-  const [showLinkedInInput, setShowLinkedInInput] = useState(false);
-  const [linkedinImportUrl, setLinkedinImportUrl] = useState('');
-  const [isImportingLinkedIn, setIsImportingLinkedIn] = useState(false);
+  const [showUrlImportInput, setShowUrlImportInput] = useState(false);
+  const [urlImportValue, setUrlImportValue] = useState('');
+  const [isImportingUrl, setIsImportingUrl] = useState(false);
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
@@ -132,18 +132,18 @@ export function ProfileTab() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleLinkedInImport = async () => {
-    if (!linkedinImportUrl.trim()) return;
-    setIsImportingLinkedIn(true);
+  const handleUrlImport = async () => {
+    if (!urlImportValue.trim()) return;
+    setIsImportingUrl(true);
     setMessage(null);
     try {
-      const result = await authApi.importFromUrl(linkedinImportUrl.trim());
+      const result = await authApi.importFromUrl(urlImportValue.trim());
       if (result.profile_data) {
         setProfileData({ ...result.profile_data, references: result.profile_data.references || [] });
       }
       setMessage({ text: 'Profile imported successfully!', type: 'success' });
-      setShowLinkedInInput(false);
-      setLinkedinImportUrl('');
+      setShowUrlImportInput(false);
+      setUrlImportValue('');
       setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       const detail = err?.response?.data?.detail ?? '';
@@ -153,7 +153,7 @@ export function ProfileTab() {
         setMessage({ text: 'Import failed. Please try again.', type: 'error' });
       }
     } finally {
-      setIsImportingLinkedIn(false);
+      setIsImportingUrl(false);
     }
   };
 
@@ -301,6 +301,8 @@ export function ProfileTab() {
                   <DetailRow label={t.personal.visa} value={profileData.personal_info.visa_status?.replace(/_/g, ' ')} />
                   <DetailRow label={t.personal.workPref} value={profileData.personal_info.work_preference} />
                   <DetailRow label={t.personal.linkedin} value={profileData.personal_info.linkedin_url} />
+                  <DetailRow label={t.personal.github} value={profileData.personal_info.github_url} />
+                  <DetailRow label={t.personal.portfolio} value={profileData.personal_info.portfolio_url} />
 
                   <div className="md:col-span-2 flex gap-6 pt-4">
                     <div className="flex items-center gap-2">
@@ -368,7 +370,15 @@ export function ProfileTab() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.linkedin}</label>
-                    <input type="text" value={profileData.personal_info.linkedin_url || ''} onChange={(e) => handlePersonalInputChange('linkedin_url', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <input type="text" value={profileData.personal_info.linkedin_url || ''} onChange={(e) => handlePersonalInputChange('linkedin_url', e.target.value)} placeholder="https://linkedin.com/in/..." className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.github}</label>
+                    <input type="text" value={profileData.personal_info.github_url || ''} onChange={(e) => handlePersonalInputChange('github_url', e.target.value)} placeholder="https://github.com/..." className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.portfolio}</label>
+                    <input type="text" value={profileData.personal_info.portfolio_url || ''} onChange={(e) => handlePersonalInputChange('portfolio_url', e.target.value)} placeholder="https://yourname.com" className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
                   </div>
 
                   <div className="flex gap-6 md:col-span-2 pt-4">
@@ -730,9 +740,9 @@ export function ProfileTab() {
                 <span className="text-[10px] font-bold bg-gray-900 dark:bg-white text-white dark:text-black rounded px-1 py-0.5 leading-none">AI</span>
               </button>
 
-              {/* LinkedIn import */}
+              {/* Import from URL */}
               <button
-                onClick={() => { setShowLinkedInInput(v => !v); setLinkedinImportUrl(''); }}
+                onClick={() => { setShowUrlImportInput(v => !v); setUrlImportValue(''); }}
                 className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-600 text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -741,7 +751,7 @@ export function ProfileTab() {
                 Import from URL
               </button>
 
-              {showLinkedInInput && (
+              {showUrlImportInput && (
                 <div className="pt-1 space-y-2">
                   <div className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
                     <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -749,23 +759,23 @@ export function ProfileTab() {
                     </svg>
                     <input
                       type="url"
-                      placeholder="https://yourname.com or linkedin.com/in/..."
-                      value={linkedinImportUrl}
-                      onChange={e => setLinkedinImportUrl(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleLinkedInImport()}
+                      placeholder="https://yourname.com or github.com/..."
+                      value={urlImportValue}
+                      onChange={e => setUrlImportValue(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleUrlImport()}
                       autoFocus
                       className="flex-1 bg-transparent text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 outline-none min-w-0"
                     />
                   </div>
                   <button
-                    onClick={handleLinkedInImport}
-                    disabled={!linkedinImportUrl.trim() || isImportingLinkedIn}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                    onClick={handleUrlImport}
+                    disabled={!urlImportValue.trim() || isImportingUrl}
+                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
                   >
-                    {isImportingLinkedIn && (
+                    {isImportingUrl && (
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     )}
-                    {isImportingLinkedIn ? 'Importing…' : 'Import profile'}
+                    {isImportingUrl ? 'Importing…' : 'Import profile'}
                   </button>
                 </div>
               )}

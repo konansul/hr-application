@@ -120,7 +120,14 @@ def import_from_url(
     if not profile_data.get("personal_info", {}).get("email"):
         profile_data.setdefault("personal_info", {})["email"] = existing_email
 
-    profile_data.setdefault("personal_info", {})["portfolio_url"] = url
+    personal_info = profile_data.setdefault("personal_info", {})
+    url_lower = url.lower()
+    if "linkedin.com" in url_lower:
+        personal_info.setdefault("linkedin_url", url)
+    elif "github.com" in url_lower:
+        personal_info.setdefault("github_url", url)
+    else:
+        personal_info.setdefault("portfolio_url", url)
     profile_data.setdefault("references", [])
 
     person.profile_json = json.dumps(profile_data, ensure_ascii=False)

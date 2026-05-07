@@ -77,6 +77,8 @@ export const de = {
       visa: "Visastatus",
       workPref: "Arbeitspräferenz",
       linkedin: "LinkedIn-URL",
+      github: "GitHub-URL",
+      portfolio: "Portfolio / Website",
       openRemote: "Offen für Remote",
       openRelocation: "Offen für Umzug"
     },
