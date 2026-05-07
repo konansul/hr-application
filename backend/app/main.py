@@ -4,18 +4,6 @@ from backend.app.api import auth, users, jobs, applications, screening, improvem
 
 app = FastAPI(title="HR Application API")
 
-
-@app.on_event("startup")
-def _run_migrations():
-    """Add columns that were introduced after the initial create_all."""
-    from sqlalchemy import inspect, text
-    from backend.database.db import engine
-    insp = inspect(engine)
-    existing = {c["name"] for c in insp.get_columns("documents")}
-    with engine.begin() as conn:
-        if "file_content" not in existing:
-            conn.execute(text("ALTER TABLE documents ADD COLUMN file_content BYTEA"))
-
 origins = [
     "https://happy-hill-018c19800.4.azurestaticapps.net",
     "https://kind-glacier-0e6a06100.6.azurestaticapps.net",
