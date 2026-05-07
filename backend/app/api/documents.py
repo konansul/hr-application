@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
+import uuid
 from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
+from azure.storage.blob import BlobServiceClient, ContentSettings
 
 from backend.app.api.helpers.extract import extract_cv_text
 from backend.app.schemas import DocumentResponse
@@ -17,11 +20,49 @@ from backend.app.api.helpers.ownership import get_current_user
 
 from backend.app.api.helpers.quota import consume_ai_quota
 from backend.app.pipeline import run_cv_parsing
+from backend.app.core.config import settings
 
 router = APIRouter()
 
 STORAGE_DIR = Path(__file__).parent.parent.parent.parent / "storage" / "resumes"
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def upload_to_azure(content: bytes, original_filename: str) -> str:
+    if not settings.AZURE_STORAGE_CONNECTION_STRING:
+        raise HTTPException(status_code=500, detail="Azure Connection String is not configured")
+
+    file_extension = os.path.splitext(original_filename)[1]
+    unique_filename = f"doc_{uuid.uuid4().hex[:12]}{file_extension}"
+
+    blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+    blob_client = blob_service_client.get_blob_client(
+        container=settings.AZURE_CONTAINER_NAME,
+        blob=unique_filename
+    )
+
+    content_settings = None
+    if file_extension.lower() == ".pdf":
+        content_settings = ContentSettings(content_type="application/pdf")
+
+    blob_client.upload_blob(content, overwrite=True, content_settings=content_settings)
+    return blob_client.url
+
+
+def delete_from_azure(file_url: str):
+    if not file_url or not settings.AZURE_STORAGE_CONNECTION_STRING:
+        return
+    try:
+        blob_name = file_url.split('/')[-1]
+        blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+        blob_client = blob_service_client.get_blob_client(
+            container=settings.AZURE_CONTAINER_NAME,
+            blob=blob_name
+        )
+        blob_client.delete_blob()
+    except Exception as e:
+        print(f"Failed to delete blob {file_url}: {e}")
+
 
 @router.post("/documents/upload", response_model=DocumentResponse)
 async def upload_document(
@@ -69,10 +110,17 @@ async def upload_document(
 
     suffix = Path(file.filename or "file").suffix.lower()
     saved_file_path: str | None = None
+
+    # ЕСЛИ ЭТО PDF, СОХРАНЯЕМ В AZURE
     if suffix == ".pdf":
-        file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
-        file_on_disk.write_bytes(content)
-        saved_file_path = str(file_on_disk)
+        try:
+            saved_file_path = upload_to_azure(content, file.filename or "resume.pdf")
+        except Exception as e:
+            # Фолбэк на локальное сохранение, если Azure временно недоступен (полезно для локальной разработки)
+            print(f"Azure upload failed, saving locally: {e}")
+            file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
+            file_on_disk.write_bytes(content)
+            saved_file_path = str(file_on_disk)
 
     doc = Document(
         document_id=doc_id,
@@ -136,7 +184,6 @@ def get_organization_documents(
         .join(Job, Job.job_id == Application.job_id)
         .join(Resume, Resume.resume_id == Application.resume_id)
         .join(Person, Person.person_id == Application.person_id)
-        # Присоединяем документ (может быть как оригинал, так и сгенерированный)
         .outerjoin(Document, Document.document_id == Resume.generated_document_id)
         .filter(Job.org_id == hr_org_id)
     )
@@ -148,7 +195,6 @@ def get_organization_documents(
 
     final_list = []
     for app, resume, doc, person in results:
-
         doc_id = doc.document_id if doc else resume.resume_id
         filename = doc.filename if doc else (resume.title or f"Resume_{person.last_name}.pdf")
 
@@ -165,6 +211,7 @@ def get_organization_documents(
         })
 
     return final_list
+
 
 @router.get("/documents/me")
 def get_my_documents(
@@ -212,14 +259,24 @@ def get_document_file(
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    if not doc.file_path or not Path(doc.file_path).exists():
-        raise HTTPException(status_code=404, detail="File not found on server")
+    if not doc.file_path:
+        raise HTTPException(status_code=404, detail="File path is empty in DB")
 
-    return FileResponse(
-        path=doc.file_path,
-        media_type=doc.content_type or "application/pdf",
-        filename=doc.filename,
-    )
+    # СЦЕНАРИЙ 1: Это новый файл, загруженный в Azure (ссылка)
+    if doc.file_path.startswith("http"):
+        return RedirectResponse(url=doc.file_path)
+
+    # СЦЕНАРИЙ 2: Это старый локальный файл (путь на диске)
+    if Path(doc.file_path).exists():
+        return FileResponse(
+            path=doc.file_path,
+            media_type=doc.content_type or "application/pdf",
+            filename=doc.filename,
+        )
+    else:
+        # Если это локальный путь, но самого файла в папке нет (например, скачали чужую БД)
+        raise HTTPException(status_code=404,
+                            detail="File not found on local disk. It might be missing from your local storage folder.")
 
 
 @router.delete("/documents/{document_id}", status_code=204)
@@ -234,6 +291,13 @@ def delete_document(
 
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
+
+    # Удаляем физический файл из Azure (или с локального диска)
+    if doc.file_path:
+        if doc.file_path.startswith("http"):
+            delete_from_azure(doc.file_path)
+        elif Path(doc.file_path).exists():
+            Path(doc.file_path).unlink()
 
     db.delete(doc)
     db.commit()
