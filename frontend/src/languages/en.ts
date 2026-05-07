@@ -65,6 +65,7 @@ export const en = {
     editSection: "Edit Section",
     cancel: "Cancel",
     saveChanges: "Save Changes",
+    aiParsedTooltip: "This was parsed by AI. Please verify for accuracy.",
     personal: {
       title: "Personal Information",
       firstName: "First Name",
@@ -229,7 +230,10 @@ export const en = {
     submitAnswers: "Submit Answers",
     successMsg: "Application submitted successfully!",
     errorMsg: "Error processing application",
-    cvErrorMsg: "Failed to process CV."
+    cvErrorMsg: "Failed to process CV.",
+    externalRedirectTitle: "Leaving the platform",
+    externalRedirectMsg: "You are leaving the platform to continue your application on an external site. Please review their privacy policy.",
+    externalRedirectContinue: "Continue"
   },
   applications: {
     title: "Job Applications",
@@ -276,7 +280,10 @@ export const en = {
     modalNotice: "Self-tracked jobs are saved locally in your browser. You control all stage updates — HR cannot see these entries.",
     cancel: "Cancel",
     addAppBtn: "Add Application",
-    loading: "Loading Applications..."
+    loading: "Loading Applications...",
+    externalRedirectTitle: "Leaving the platform",
+    externalRedirectMsg: "You are leaving the platform to continue your application on an external site. Please review their privacy policy.",
+    externalRedirectContinue: "Continue"
   },
   resumes: {
     title: "Resume Versions",
@@ -343,6 +350,7 @@ export const en = {
     },
     noSelected: "No resume version selected",
     noSelectedHint: "Upload your CV or create a version from your profile.",
+    aiParsedTooltip: "This was parsed by AI. Please verify for accuracy.",
     photo: {
       label: "Profile Photo",
       hint: "Used in PDF templates that support photos.",

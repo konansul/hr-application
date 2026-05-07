@@ -65,6 +65,7 @@ export const es = {
     editSection: "Editar Sección",
     cancel: "Cancelar",
     saveChanges: "Guardar Cambios",
+    aiParsedTooltip: "Esto fue analizado por IA. Por favor, verifique su precisión.",
     personal: {
       title: "Información Personal",
       firstName: "Nombre",
@@ -213,7 +214,10 @@ export const es = {
     submitAnswers: "Enviar Respuestas",
     successMsg: "¡Solicitud enviada con éxito!",
     errorMsg: "Error al procesar la solicitud",
-    cvErrorMsg: "No se pudo procesar el CV."
+    cvErrorMsg: "No se pudo procesar el CV.",
+    externalRedirectTitle: "Salir de la plataforma",
+    externalRedirectMsg: "Está abandonando la plataforma para continuar su solicitud en un sitio externo. Revise su política de privacidad.",
+    externalRedirectContinue: "Continuar"
   },
   applications: {
     title: "Solicitudes de Empleo",
@@ -260,7 +264,10 @@ export const es = {
     modalNotice: "Los empleos autogestionados se guardan localmente en tu navegador. RRHH no puede ver estas entradas.",
     cancel: "Cancelar",
     addAppBtn: "Agregar Solicitud",
-    loading: "Cargando Solicitudes..."
+    loading: "Cargando Solicitudes...",
+    externalRedirectTitle: "Salir de la plataforma",
+    externalRedirectMsg: "Está abandonando la plataforma para continuar su solicitud en un sitio externo. Revise su política de privacidad.",
+    externalRedirectContinue: "Continuar"
   },
   resumes: {
     title: "Versiones del Currículum",
@@ -327,6 +334,7 @@ export const es = {
     },
     noSelected: "Ninguna versión de CV seleccionada",
     noSelectedHint: "Sube tu CV o crea una versión desde tu perfil.",
+    aiParsedTooltip: "Esto fue analizado por IA. Por favor, verifique su precisión.",
     photo: {
       label: "Foto de Perfil",
       hint: "Se usa en plantillas PDF que admiten fotos.",

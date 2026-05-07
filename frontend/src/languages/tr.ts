@@ -65,6 +65,7 @@ export const tr = {
     editSection: "Bölümü Düzenle",
     cancel: "İptal",
     saveChanges: "Değişiklikleri Kaydet",
+    aiParsedTooltip: "Bu, yapay zeka tarafından ayrıştırıldı. Lütfen doğruluğunu kontrol edin.",
     personal: {
       title: "Kişisel Bilgiler",
       firstName: "Ad",
@@ -213,7 +214,10 @@ export const tr = {
     submitAnswers: "Cevapları Gönder",
     successMsg: "Başvuru başarıyla gönderildi!",
     errorMsg: "Başvuru işlenirken hata oluştu",
-    cvErrorMsg: "CV işlenemedi."
+    cvErrorMsg: "CV işlenemedi.",
+    externalRedirectTitle: "Platformdan ayrılıyorsunuz",
+    externalRedirectMsg: "Başvurunuza harici bir sitede devam etmek için platformdan ayrılıyorsunuz. Lütfen gizlilik politikalarını inceleyin.",
+    externalRedirectContinue: "Devam Et"
   },
   applications: {
     title: "İş Başvuruları",
@@ -260,7 +264,10 @@ export const tr = {
     modalNotice: "Kendi takip ettiğiniz işler tarayıcınıza yerel olarak kaydedilir. İK bu girişleri göremez.",
     cancel: "İptal",
     addAppBtn: "Başvuru Ekle",
-    loading: "Başvurular Yükleniyor..."
+    loading: "Başvurular Yükleniyor...",
+    externalRedirectTitle: "Platformdan ayrılıyorsunuz",
+    externalRedirectMsg: "Başvurunuza harici bir sitede devam etmek için platformdan ayrılıyorsunuz. Lütfen gizlilik politikalarını inceleyin.",
+    externalRedirectContinue: "Devam Et"
   },
   resumes: {
     title: "Özgeçmiş Versiyonları",
@@ -327,6 +334,7 @@ export const tr = {
     },
     noSelected: "Özgeçmiş versiyonu seçilmedi",
     noSelectedHint: "CV'nizi yükleyin veya profilinizden bir versiyon oluşturun.",
+    aiParsedTooltip: "Bu, yapay zeka tarafından ayrıştırıldı. Lütfen doğruluğunu kontrol edin.",
     photo: {
       label: "Profil Fotoğrafı",
       hint: "Fotoğraf destekleyen PDF şablonlarında kullanılır.",
