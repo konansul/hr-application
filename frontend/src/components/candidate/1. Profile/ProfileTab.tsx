@@ -33,6 +33,8 @@ export function ProfileTab() {
   const [urlImportValue, setUrlImportValue] = useState('');
   const [isImportingUrl, setIsImportingUrl] = useState(false);
 
+  const [aiParsed, setAiParsed] = useState(false);
+
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingEducation, setIsEditingEducation] = useState(false);
@@ -114,6 +116,7 @@ export function ProfileTab() {
         };
         setProfileData(updatedProfile);
         await authApi.updateProfile(updatedProfile);
+        setAiParsed(true);
         setMessage({ text: 'Resume uploaded and Master Profile synced successfully!', type: 'success' });
       } else {
         setMessage({ text: 'New resume version uploaded securely!', type: 'success' });
@@ -141,6 +144,7 @@ export function ProfileTab() {
       const result = await authApi.importFromUrl(urlImportValue.trim());
       if (result.profile_data) {
         setProfileData({ ...result.profile_data, references: result.profile_data.references || [] });
+        setAiParsed(true);
       }
       setMessage({ text: 'Profile imported successfully!', type: 'success' });
       setShowUrlImportInput(false);
@@ -199,6 +203,7 @@ export function ProfileTab() {
     setIsUploading(true);
     try {
       await authApi.updateProfile(profileData);
+      setAiParsed(false);
       setMessage({ text: 'Profile saved successfully!', type: 'success' });
       setIsEditingPersonalInfo(false);
       setIsEditingExperience(false);
@@ -214,6 +219,18 @@ export function ProfileTab() {
       setIsUploading(false);
     }
   };
+
+  const AiInfoBadge = () => (
+    <div className="relative group inline-flex items-center">
+      <svg className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-blue-600 text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
+        {t.aiParsedTooltip}
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-blue-600" />
+      </div>
+    </div>
+  );
 
   const ExpandableText = ({ text, limit = 280 }: { text: string; limit?: number }) => {
     const [expanded, setExpanded] = useState(false);
@@ -273,6 +290,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.personal.title}</h3>
+                {aiParsed && <AiInfoBadge />}
               </div>
 
               {!isEditingPersonalInfo ? (
@@ -403,6 +421,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.experience.title}</h3>
+                {aiParsed && <AiInfoBadge />}
               </div>
               {!isEditingExperience ? (
                 <button onClick={() => setIsEditingExperience(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -470,6 +489,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.education.title}</h3>
+                {aiParsed && <AiInfoBadge />}
               </div>
               {!isEditingEducation ? (
                 <button onClick={() => setIsEditingEducation(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -533,6 +553,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.skills.title}</h3>
+                {aiParsed && <AiInfoBadge />}
               </div>
               {!isEditingSkills ? (
                 <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -585,6 +606,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Languages</h3>
+                {aiParsed && <AiInfoBadge />}
               </div>
               {!isEditingLanguages ? (
                 <button onClick={() => setIsEditingLanguages(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -639,6 +661,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.certifications.title}</h3>
+                {aiParsed && <AiInfoBadge />}
               </div>
               {!isEditingCertifications ? (
                 <button onClick={() => setIsEditingCertifications(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">

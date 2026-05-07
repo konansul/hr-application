@@ -65,6 +65,7 @@ export const de = {
     editSection: "Bereich bearbeiten",
     cancel: "Abbrechen",
     saveChanges: "Änderungen speichern",
+    aiParsedTooltip: "Dies wurde von KI analysiert. Bitte überprüfen Sie die Richtigkeit.",
     personal: {
       title: "Persönliche Informationen",
       firstName: "Vorname",
@@ -213,7 +214,10 @@ export const de = {
     submitAnswers: "Antworten einreichen",
     successMsg: "Bewerbung erfolgreich eingereicht!",
     errorMsg: "Fehler bei der Bearbeitung der Bewerbung",
-    cvErrorMsg: "Lebenslauf konnte nicht verarbeitet werden."
+    cvErrorMsg: "Lebenslauf konnte nicht verarbeitet werden.",
+    externalRedirectTitle: "Plattform verlassen",
+    externalRedirectMsg: "Sie verlassen die Plattform, um Ihre Bewerbung auf einer externen Website fortzusetzen. Bitte lesen Sie deren Datenschutzrichtlinie.",
+    externalRedirectContinue: "Weiter"
   },
   applications: {
     title: "Bewerbungen",
@@ -260,7 +264,10 @@ export const de = {
     modalNotice: "Selbst verfolgte Jobs werden lokal in Ihrem Browser gespeichert. HR kann diese Einträge nicht sehen.",
     cancel: "Abbrechen",
     addAppBtn: "Bewerbung hinzufügen",
-    loading: "Bewerbungen werden geladen..."
+    loading: "Bewerbungen werden geladen...",
+    externalRedirectTitle: "Plattform verlassen",
+    externalRedirectMsg: "Sie verlassen die Plattform, um Ihre Bewerbung auf einer externen Website fortzusetzen. Bitte lesen Sie deren Datenschutzrichtlinie.",
+    externalRedirectContinue: "Weiter"
   },
   resumes: {
     title: "Lebenslauf-Versionen",
@@ -327,6 +334,7 @@ export const de = {
     },
     noSelected: "Keine Lebenslaufversion ausgewählt",
     noSelectedHint: "Laden Sie Ihren Lebenslauf hoch oder erstellen Sie eine Version aus Ihrem Profil.",
+    aiParsedTooltip: "Dies wurde von KI analysiert. Bitte überprüfen Sie die Richtigkeit.",
     photo: {
       label: "Profilfoto",
       hint: "Wird in PDF-Vorlagen verwendet, die Fotos unterstützen.",

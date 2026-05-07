@@ -65,6 +65,7 @@ export const fr = {
     editSection: "Modifier la section",
     cancel: "Annuler",
     saveChanges: "Enregistrer les modifications",
+    aiParsedTooltip: "Ceci a été analysé par l'IA. Veuillez vérifier l'exactitude.",
     personal: {
       title: "Informations personnelles",
       firstName: "Prénom",
@@ -213,7 +214,10 @@ export const fr = {
     submitAnswers: "Soumettre les réponses",
     successMsg: "Candidature soumise avec succès !",
     errorMsg: "Erreur lors du traitement de la candidature",
-    cvErrorMsg: "Échec du traitement du CV."
+    cvErrorMsg: "Échec du traitement du CV.",
+    externalRedirectTitle: "Quitter la plateforme",
+    externalRedirectMsg: "Vous quittez la plateforme pour poursuivre votre candidature sur un site externe. Veuillez consulter leur politique de confidentialité.",
+    externalRedirectContinue: "Continuer"
   },
   applications: {
     title: "Candidatures",
@@ -260,7 +264,10 @@ export const fr = {
     modalNotice: "Les emplois auto-suivis sont enregistrés localement dans votre navigateur. Les RH ne peuvent pas voir ces entrées.",
     cancel: "Annuler",
     addAppBtn: "Ajouter la candidature",
-    loading: "Chargement des candidatures..."
+    loading: "Chargement des candidatures...",
+    externalRedirectTitle: "Quitter la plateforme",
+    externalRedirectMsg: "Vous quittez la plateforme pour poursuivre votre candidature sur un site externe. Veuillez consulter leur politique de confidentialité.",
+    externalRedirectContinue: "Continuer"
   },
   resumes: {
     title: "Versions de CV",
@@ -327,6 +334,7 @@ export const fr = {
     },
     noSelected: "Aucune version de CV sélectionnée",
     noSelectedHint: "Importez votre CV ou créez une version depuis votre profil.",
+    aiParsedTooltip: "Ceci a été analysé par l'IA. Veuillez vérifier l'exactitude.",
     photo: {
       label: "Photo de profil",
       hint: "Utilisée dans les modèles PDF qui supportent les photos.",

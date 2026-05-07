@@ -65,6 +65,7 @@ export const pt = {
     editSection: "Editar Seção",
     cancel: "Cancelar",
     saveChanges: "Salvar Alterações",
+    aiParsedTooltip: "Isso foi analisado por IA. Por favor, verifique a precisão.",
     personal: {
       title: "Informações Pessoais",
       firstName: "Nome",
@@ -213,7 +214,10 @@ export const pt = {
     submitAnswers: "Enviar Respostas",
     successMsg: "Candidatura enviada com sucesso!",
     errorMsg: "Erro ao processar a candidatura",
-    cvErrorMsg: "Falha ao processar o CV."
+    cvErrorMsg: "Falha ao processar o CV.",
+    externalRedirectTitle: "Saindo da plataforma",
+    externalRedirectMsg: "Você está saindo da plataforma para continuar sua candidatura em um site externo. Por favor, revise a política de privacidade deles.",
+    externalRedirectContinue: "Continuar"
   },
   applications: {
     title: "Candidaturas a Vagas",
@@ -260,7 +264,10 @@ export const pt = {
     modalNotice: "As vagas rastreadas por você são salvas localmente no seu navegador. O RH não pode ver essas entradas.",
     cancel: "Cancelar",
     addAppBtn: "Adicionar Candidatura",
-    loading: "Carregando Candidaturas..."
+    loading: "Carregando Candidaturas...",
+    externalRedirectTitle: "Saindo da plataforma",
+    externalRedirectMsg: "Você está saindo da plataforma para continuar sua candidatura em um site externo. Por favor, revise a política de privacidade deles.",
+    externalRedirectContinue: "Continuar"
   },
   resumes: {
     title: "Versões de Currículo",
@@ -327,6 +334,7 @@ export const pt = {
     },
     noSelected: "Nenhuma versão de currículo selecionada",
     noSelectedHint: "Carregue seu CV ou crie uma versão a partir do seu perfil.",
+    aiParsedTooltip: "Isso foi analisado por IA. Por favor, verifique a precisão.",
     photo: {
       label: "Foto de Perfil",
       hint: "Usada em modelos de PDF que suportam fotos.",

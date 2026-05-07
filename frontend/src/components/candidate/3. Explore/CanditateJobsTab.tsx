@@ -290,6 +290,7 @@ export function JobsTab() {
     const [externalLoading, setExternalLoading] = useState(false);
     const [externalError, setExternalError] = useState('');
     const [externalSource, setExternalSource] = useState('');
+    const [externalModalUrl, setExternalModalUrl] = useState<string | null>(null);
 
     // Saved jobs tracker
     const LS_KEY = 'candidate_tracked_jobs';
@@ -978,14 +979,12 @@ export function JobsTab() {
                                                         </button>
                                                     );
                                                 })()}
-                                                <a
-                                                    href={job.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                <button
+                                                    onClick={() => setExternalModalUrl(job.url)}
                                                     className="px-5 py-2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
                                                 >
                                                     Apply →
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -1407,6 +1406,42 @@ export function JobsTab() {
                             </button>
                         </div>
 
+                    </div>
+                </div>
+            )}
+
+            {/* External redirect interstitial */}
+            {externalModalUrl && (
+                <div className="fixed inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-md p-8">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white">{tl.externalRedirectTitle}</h3>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-neutral-400 leading-relaxed mb-6">
+                            {tl.externalRedirectMsg}
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setExternalModalUrl(null)}
+                                className="flex-1 py-2.5 text-sm font-semibold text-gray-600 dark:text-neutral-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
+                            >
+                                {tl.cancel}
+                            </button>
+                            <a
+                                href={externalModalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setExternalModalUrl(null)}
+                                className="flex-1 py-2.5 text-sm font-semibold text-center text-white dark:text-black bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 rounded-xl transition-colors"
+                            >
+                                {tl.externalRedirectContinue}
+                            </a>
+                        </div>
                     </div>
                 </div>
             )}

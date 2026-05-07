@@ -32,6 +32,20 @@ type ResumeVersion = {
   updated_at?: string | null;
 };
 
+function AiInfoBadge({ tooltip }: { tooltip: string }) {
+  return (
+    <div className="relative group inline-flex items-center">
+      <svg className="w-3 h-3 text-amber-500 dark:text-amber-400 cursor-help shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-blue-600 text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
+        {tooltip}
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-blue-600" />
+      </div>
+    </div>
+  );
+}
+
 function ExpandableText({ text, limit = 280 }: { text: string; limit?: number }) {
   const [expanded, setExpanded] = useState(false);
   if (!text) return null;
@@ -725,6 +739,8 @@ export function ResumeUploadTab() {
     if (!selectedResumeId) return resumeVersions[0] ?? null;
     return resumeVersions.find((r) => r.resume_id === selectedResumeId) ?? null;
   }, [resumeVersions, selectedResumeId]);
+
+  const isAiGenerated = ['job_description', 'profile', 'profile_extract', 'cv_upload'].includes(selectedResume?.source_type ?? '');
 
   // Auto-populate email message template when resume or recipient name changes
   useEffect(() => {
@@ -1464,7 +1480,10 @@ export function ResumeUploadTab() {
                   )}
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.sections.summary}</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                      {t.sections.summary}
+                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                    </p>
                     {isEditingContent ? (
                       <textarea
                         className="w-full text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-2xl p-5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none"
@@ -1484,6 +1503,7 @@ export function ResumeUploadTab() {
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                       {t.sections.experience}
+                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
                       <>
@@ -1520,7 +1540,10 @@ export function ResumeUploadTab() {
                   </div>
 
                   <div className="space-y-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.sections.skills}</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                      {t.sections.skills}
+                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                    </p>
                     {isEditingContent ? (
                       <div className="space-y-1">
                         <textarea
@@ -1548,6 +1571,7 @@ export function ResumeUploadTab() {
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
                       {t.sections.education}
+                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
                       <div className="space-y-3">
@@ -1587,6 +1611,7 @@ export function ResumeUploadTab() {
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
                             {t.sections.languages}
+                            {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
                             <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
@@ -1620,6 +1645,7 @@ export function ResumeUploadTab() {
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                             {t.sections.certifications}
+                            {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
                             <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
