@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import httpx
@@ -7,7 +8,10 @@ from backend.app.api.helpers.ownership import get_current_user
 from backend.app.api.helpers.text_extractor import _html_to_text
 from backend.app.schemas import UrlImportRequest
 from backend.database.db import get_db
-from backend.database.models import User, Person
+from backend.database.models import (
+    User, Person, Resume, Document,
+    Application, ScreeningResult, CVImprovementResult,
+)
 from backend.app.gemini import client as _llm_client
 from backend.app.core.config import settings
 from backend.app.services.llm.schemas import CV_PARSING_SCHEMA
@@ -140,3 +144,91 @@ def import_from_url(
     db.commit()
 
     return {"message": "Profile imported successfully", "profile_data": profile_data}
+
+
+@router.delete("/users/me", status_code=204)
+def delete_own_account(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    """
+    Permanently delete the current user's account and all associated data.
+    Deletion order is explicit because the models have no DB-level cascade
+    configured beyond Application→ScreeningResult and Document→CVImprovementResult.
+    """
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+
+    if person:
+        # 1. CV improvement results owned directly by this user
+        db.query(CVImprovementResult).filter(
+            CVImprovementResult.owner_user_id == current_user.user_id
+        ).delete(synchronize_session=False)
+
+        # 2. Screening results for this person's applications
+        app_ids = [
+            row[0] for row in
+            db.query(Application.application_id)
+              .filter(Application.person_id == person.person_id)
+              .all()
+        ]
+        if app_ids:
+            db.query(ScreeningResult).filter(
+                ScreeningResult.application_id.in_(app_ids)
+            ).delete(synchronize_session=False)
+
+        # 3. Applications
+        db.query(Application).filter(
+            Application.person_id == person.person_id
+        ).delete(synchronize_session=False)
+
+        # 4. Break circular FK loops before deleting resumes / documents
+        resume_ids = [
+            row[0] for row in
+            db.query(Resume.resume_id)
+              .filter(Resume.person_id == person.person_id)
+              .all()
+        ]
+        if resume_ids:
+            # documents.resume_id → resumes
+            db.query(Document).filter(
+                Document.resume_id.in_(resume_ids)
+            ).update({"resume_id": None}, synchronize_session=False)
+
+            # resumes.source_resume_id (self-referential)
+            db.query(Resume).filter(
+                Resume.source_resume_id.in_(resume_ids)
+            ).update({"source_resume_id": None}, synchronize_session=False)
+
+        # Null document FKs on this person's resumes
+        db.query(Resume).filter(
+            Resume.person_id == person.person_id
+        ).update(
+            {"source_document_id": None, "generated_document_id": None},
+            synchronize_session=False,
+        )
+
+        # 5. Delete resumes
+        db.query(Resume).filter(
+            Resume.person_id == person.person_id
+        ).delete(synchronize_session=False)
+
+        # 6. Delete documents — clean up filesystem files and DB blobs
+        docs = db.query(Document).filter(
+            Document.owner_user_id == current_user.user_id
+        ).all()
+        for doc in docs:
+            if doc.file_path:
+                try:
+                    Path(doc.file_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
+        db.query(Document).filter(
+            Document.owner_user_id == current_user.user_id
+        ).delete(synchronize_session=False)
+
+        # 7. Delete person profile
+        db.delete(person)
+
+    # 8. Delete the user record itself
+    db.delete(current_user)
+    db.commit()

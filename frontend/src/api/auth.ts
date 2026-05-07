@@ -65,4 +65,9 @@ export const authApi = {
     localStorage.removeItem('auth_token');
     return { ok: true };
   },
+
+  deleteAccount: async () => {
+    await apiClient.delete('/v1/users/me');
+    localStorage.removeItem('auth_token');
+  },
 };
