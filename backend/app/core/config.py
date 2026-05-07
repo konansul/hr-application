@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     EMAIL_API_KEY: str = ""
     EMAIL_FROM: str = "noreply@boldgeneric.com"
 
+    AZURE_STORAGE_CONNECTION_STRING: str
+    AZURE_CONTAINER_NAME: str = "resumes"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

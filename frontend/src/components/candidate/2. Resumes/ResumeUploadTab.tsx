@@ -2036,7 +2036,13 @@ export function ResumeUploadTab() {
                           onClick={async () => {
                             setIsGeneratingPdf(true);
                             try {
-                              await downloadResumePdf(t.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined);
+                              await downloadResumePdf(
+  t.id as TemplateId,
+  selectedResume.resume_data ?? {},
+  selectedResume.resume_id, // <-- ИСПРАВЛЕНО: передаем ID (res_...), а не заголовок
+  selectedResume.title,     // <-- ДОБАВЛЕНО: теперь заголовок идет четвертым аргументом
+  pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined
+);
                               closePdfModals();
                             } finally { setIsGeneratingPdf(false); }
                           }}

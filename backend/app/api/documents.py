@@ -2,11 +2,16 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
+import uuid
 from pathlib import Path
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse, Response
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from azure.storage.blob import BlobServiceClient, ContentSettings
+from starlette.responses import StreamingResponse
 
 from backend.app.api.helpers.extract import extract_cv_text
 from backend.app.schemas import DocumentResponse
@@ -17,11 +22,49 @@ from backend.app.api.helpers.ownership import get_current_user
 
 from backend.app.api.helpers.quota import consume_ai_quota
 from backend.app.pipeline import run_cv_parsing
+from backend.app.core.config import settings
 
 router = APIRouter()
 
 STORAGE_DIR = Path(__file__).parent.parent.parent.parent / "storage" / "resumes"
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def upload_to_azure(content: bytes, original_filename: str) -> str:
+    if not settings.AZURE_STORAGE_CONNECTION_STRING:
+        raise HTTPException(status_code=500, detail="Azure Connection String is not configured")
+
+    file_extension = os.path.splitext(original_filename)[1]
+    unique_filename = f"doc_{uuid.uuid4().hex[:12]}{file_extension}"
+
+    blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+    blob_client = blob_service_client.get_blob_client(
+        container=settings.AZURE_CONTAINER_NAME,
+        blob=unique_filename
+    )
+
+    content_settings = None
+    if file_extension.lower() == ".pdf":
+        content_settings = ContentSettings(content_type="application/pdf")
+
+    blob_client.upload_blob(content, overwrite=True, content_settings=content_settings)
+    return blob_client.url
+
+
+def delete_from_azure(file_url: str):
+    if not file_url or not settings.AZURE_STORAGE_CONNECTION_STRING:
+        return
+    try:
+        blob_name = file_url.split('/')[-1]
+        blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+        blob_client = blob_service_client.get_blob_client(
+            container=settings.AZURE_CONTAINER_NAME,
+            blob=blob_name
+        )
+        blob_client.delete_blob()
+    except Exception as e:
+        print(f"Failed to delete blob {file_url}: {e}")
+
 
 @router.post("/documents/upload", response_model=DocumentResponse)
 async def upload_document(
@@ -69,17 +112,15 @@ async def upload_document(
 
     suffix = Path(file.filename or "file").suffix.lower()
     saved_file_path: str | None = None
+
     if suffix == ".pdf":
-        # Best-effort write to local disk (works in dev; ephemeral on Azure)
         try:
+            saved_file_path = upload_to_azure(content, file.filename or "resume.pdf")
+        except Exception as e:
+            print(f"Azure upload failed, saving locally: {e}")
             file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
             file_on_disk.write_bytes(content)
             saved_file_path = str(file_on_disk)
-        except Exception:
-            pass
-
-    # Always persist binary content in the database so it survives restarts/redeploys
-    stored_content = content if suffix == ".pdf" else None
 
     doc = Document(
         document_id=doc_id,
@@ -88,7 +129,6 @@ async def upload_document(
         content_type=doc_content_type,
         file_hash=file_hash,
         file_path=saved_file_path,
-        file_content=stored_content,
         raw_text=cv_text,
         source_type="uploaded_cv",
         document_role="source_cv"
@@ -144,7 +184,6 @@ def get_organization_documents(
         .join(Job, Job.job_id == Application.job_id)
         .join(Resume, Resume.resume_id == Application.resume_id)
         .join(Person, Person.person_id == Application.person_id)
-        # Присоединяем документ (может быть как оригинал, так и сгенерированный)
         .outerjoin(Document, Document.document_id == Resume.generated_document_id)
         .filter(Job.org_id == hr_org_id)
     )
@@ -156,7 +195,6 @@ def get_organization_documents(
 
     final_list = []
     for app, resume, doc, person in results:
-
         doc_id = doc.document_id if doc else resume.resume_id
         filename = doc.filename if doc else (resume.title or f"Resume_{person.last_name}.pdf")
 
@@ -173,6 +211,7 @@ def get_organization_documents(
         })
 
     return final_list
+
 
 @router.get("/documents/me")
 def get_my_documents(
@@ -207,8 +246,9 @@ def get_my_documents(
     return results
 
 
+
 @router.get("/documents/{document_id}/file")
-def get_document_file(
+async def get_document_file(
         document_id: str,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
@@ -220,23 +260,52 @@ def get_document_file(
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    # Prefer DB-stored bytes (always available, survives Azure restarts)
-    if doc.file_content:
-        return Response(
-            content=doc.file_content,
-            media_type=doc.content_type or "application/pdf",
-            headers={"Content-Disposition": f'inline; filename="{doc.filename}"'},
-        )
+    if not doc.file_path:
+        raise HTTPException(status_code=404, detail="File path is empty")
 
-    # Fallback: local filesystem (dev environment)
-    if doc.file_path and Path(doc.file_path).exists():
+    if doc.file_path.startswith("http"):
+        try:
+            blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+
+            blob_name = doc.file_path.split('/')[-1]
+
+            blob_client = blob_service_client.get_blob_client(
+                container=settings.AZURE_CONTAINER_NAME,
+                blob=blob_name
+            )
+
+            if not blob_client.exists():
+                raise HTTPException(status_code=404, detail=f"Blob {blob_name} not found in Azure")
+
+            def stream_blob():
+                download_stream = blob_client.download_blob()
+                for chunk in download_stream.chunks():
+                    yield chunk
+
+            return StreamingResponse(
+                stream_blob(),
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'inline; filename="{doc.filename}"'
+                }
+            )
+
+        except Exception as e:
+            print(f"Azure SDK Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Azure Storage error: {str(e)}")
+
+    local_path = Path(doc.file_path)
+    if local_path.exists():
         return FileResponse(
             path=doc.file_path,
             media_type=doc.content_type or "application/pdf",
             filename=doc.filename,
         )
 
-    raise HTTPException(status_code=404, detail="File not found on server")
+    raise HTTPException(
+        status_code=404,
+        detail="File not found on local disk. It might be missing from storage."
+    )
 
 
 @router.delete("/documents/{document_id}", status_code=204)
@@ -252,5 +321,53 @@ def delete_document(
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
+    if doc.file_path:
+        if doc.file_path.startswith("http"):
+            delete_from_azure(doc.file_path)
+        elif Path(doc.file_path).exists():
+            Path(doc.file_path).unlink()
+
     db.delete(doc)
     db.commit()
+
+
+@router.post("/documents/save-generated")
+async def save_generated_pdf(
+        resume_id: str = Form(...),
+        file: UploadFile = File(...),
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    content = await file.read()
+    file_hash = hashlib.sha256(content).hexdigest()
+
+    clean_filename = file.filename if len(file.filename) < 200 else "generated_resume.pdf"
+    if clean_filename.startswith("data:"):
+        clean_filename = "resume.pdf"
+
+    try:
+        azure_url = upload_to_azure(content, clean_filename)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Azure upload failed: {str(e)}")
+
+    doc_id = new_id("doc")
+    new_doc = Document(
+        document_id=doc_id,
+        owner_user_id=current_user.user_id,
+        filename=clean_filename,
+        content_type="application/pdf",
+        file_hash=file_hash,
+        file_path=azure_url,
+        raw_text="",
+        source_type="generated_cv",
+        document_role="generated_resume"
+    )
+    db.add(new_doc)
+
+    resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
+    if resume:
+        resume.generated_document_id = doc_id
+        resume.generation_status = "generated"
+
+    db.commit()
+    return {"status": "ok", "url": azure_url}
