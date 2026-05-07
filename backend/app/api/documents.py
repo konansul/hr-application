@@ -6,10 +6,12 @@ import os
 import uuid
 from pathlib import Path
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse, RedirectResponse
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from azure.storage.blob import BlobServiceClient, ContentSettings
+from starlette.responses import StreamingResponse
 
 from backend.app.api.helpers.extract import extract_cv_text
 from backend.app.schemas import DocumentResponse
@@ -111,12 +113,10 @@ async def upload_document(
     suffix = Path(file.filename or "file").suffix.lower()
     saved_file_path: str | None = None
 
-    # ЕСЛИ ЭТО PDF, СОХРАНЯЕМ В AZURE
     if suffix == ".pdf":
         try:
             saved_file_path = upload_to_azure(content, file.filename or "resume.pdf")
         except Exception as e:
-            # Фолбэк на локальное сохранение, если Azure временно недоступен (полезно для локальной разработки)
             print(f"Azure upload failed, saving locally: {e}")
             file_on_disk = STORAGE_DIR / f"{doc_id}{suffix}"
             file_on_disk.write_bytes(content)
@@ -246,8 +246,9 @@ def get_my_documents(
     return results
 
 
+
 @router.get("/documents/{document_id}/file")
-def get_document_file(
+async def get_document_file(
         document_id: str,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
@@ -260,23 +261,51 @@ def get_document_file(
         raise HTTPException(status_code=403, detail="Access denied")
 
     if not doc.file_path:
-        raise HTTPException(status_code=404, detail="File path is empty in DB")
+        raise HTTPException(status_code=404, detail="File path is empty")
 
-    # СЦЕНАРИЙ 1: Это новый файл, загруженный в Azure (ссылка)
     if doc.file_path.startswith("http"):
-        return RedirectResponse(url=doc.file_path)
+        try:
+            blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
 
-    # СЦЕНАРИЙ 2: Это старый локальный файл (путь на диске)
-    if Path(doc.file_path).exists():
+            blob_name = doc.file_path.split('/')[-1]
+
+            blob_client = blob_service_client.get_blob_client(
+                container=settings.AZURE_CONTAINER_NAME,
+                blob=blob_name
+            )
+
+            if not blob_client.exists():
+                raise HTTPException(status_code=404, detail=f"Blob {blob_name} not found in Azure")
+
+            def stream_blob():
+                download_stream = blob_client.download_blob()
+                for chunk in download_stream.chunks():
+                    yield chunk
+
+            return StreamingResponse(
+                stream_blob(),
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'inline; filename="{doc.filename}"'
+                }
+            )
+
+        except Exception as e:
+            print(f"Azure SDK Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Azure Storage error: {str(e)}")
+
+    local_path = Path(doc.file_path)
+    if local_path.exists():
         return FileResponse(
             path=doc.file_path,
             media_type=doc.content_type or "application/pdf",
             filename=doc.filename,
         )
-    else:
-        # Если это локальный путь, но самого файла в папке нет (например, скачали чужую БД)
-        raise HTTPException(status_code=404,
-                            detail="File not found on local disk. It might be missing from your local storage folder.")
+
+    raise HTTPException(
+        status_code=404,
+        detail="File not found on local disk. It might be missing from storage."
+    )
 
 
 @router.delete("/documents/{document_id}", status_code=204)
@@ -292,7 +321,6 @@ def delete_document(
     if current_user.role == "candidate" and doc.owner_user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    # Удаляем физический файл из Azure (или с локального диска)
     if doc.file_path:
         if doc.file_path.startswith("http"):
             delete_from_azure(doc.file_path)
@@ -301,3 +329,45 @@ def delete_document(
 
     db.delete(doc)
     db.commit()
+
+
+@router.post("/documents/save-generated")
+async def save_generated_pdf(
+        resume_id: str = Form(...),
+        file: UploadFile = File(...),
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    content = await file.read()
+    file_hash = hashlib.sha256(content).hexdigest()
+
+    clean_filename = file.filename if len(file.filename) < 200 else "generated_resume.pdf"
+    if clean_filename.startswith("data:"):
+        clean_filename = "resume.pdf"
+
+    try:
+        azure_url = upload_to_azure(content, clean_filename)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Azure upload failed: {str(e)}")
+
+    doc_id = new_id("doc")
+    new_doc = Document(
+        document_id=doc_id,
+        owner_user_id=current_user.user_id,
+        filename=clean_filename,
+        content_type="application/pdf",
+        file_hash=file_hash,
+        file_path=azure_url,
+        raw_text="",
+        source_type="generated_cv",
+        document_role="generated_resume"
+    )
+    db.add(new_doc)
+
+    resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
+    if resume:
+        resume.generated_document_id = doc_id
+        resume.generation_status = "generated"
+
+    db.commit()
+    return {"status": "ok", "url": azure_url}

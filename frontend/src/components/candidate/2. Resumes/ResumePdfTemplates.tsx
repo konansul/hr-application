@@ -1113,13 +1113,16 @@ export async function generateResumePdfBlob(
   return pdf(doc).toBlob();
 }
 
+
 export async function downloadResumePdf(
   templateId: TemplateId,
   resumeData: any,
+  resumeId: string,
   title?: string | null,
   photo?: string,
 ) {
   const props = { data: resumeData, title, photo };
+
   const doc =
     templateId === 'classic'    ? <ClassicPdf    {...props} /> :
     templateId === 'modern'     ? <ModernPdf     {...props} /> :
@@ -1129,11 +1132,32 @@ export async function downloadResumePdf(
     templateId === 'altacv'     ? <AltaCVPdf     {...props} /> :
                                   <MinimalPdf    {...props} />;
 
-  const blob = await pdf(doc).toBlob();
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `${title || 'resume'}.pdf`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  try {
+    const blob = await pdf(doc).toBlob();
+    const fileName = `${title || 'resume'}.pdf`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      const formData = new FormData();
+      formData.append('file', blob, fileName);
+      formData.append('resume_id', resumeId);
+
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+      fetch(`${apiUrl}/v1/documents/save-generated`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    }
+  } catch (err) {
+    console.error("Error generating or saving PDF:", err);
+  }
 }
