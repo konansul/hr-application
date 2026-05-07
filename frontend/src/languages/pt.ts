@@ -31,7 +31,14 @@ export const pt = {
     feature2: "Pontuação e Insights por IA",
     feature2Desc: "Feedback imediato sobre a adequação do candidato à vaga.",
     feature3: "Rastreamento de Candidatos",
-    feature3Desc: "Gerencie tudo em um quadro Kanban unificado."
+    feature3Desc: "Gerencie tudo em um quadro Kanban unificado.",
+    preUseNotice1: "Usamos IA para ajudá-lo a construir seu perfil a partir do seu CV.",
+    preUseNotice2: "Ao se registrar, você concorda que especialistas de RH verificados possam encontrá-lo e contatá-lo sobre oportunidades de emprego.",
+    preUseNotice3: "Você pode alterar a visibilidade do seu perfil ou excluir sua conta a qualquer momento nas Configurações.",
+    consentStart: "Aceito os",
+    consentAnd: "e a",
+    tos: "Termos de Serviço",
+    pp: "Política de Privacidade"
   },
   settings: {
     title: "Configurações",

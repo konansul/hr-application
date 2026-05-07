@@ -25,6 +25,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [lastName, setLastName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [role, setRole] = useState<'hr' | 'candidate'>('hr');
+  const [consentChecked, setConsentChecked] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -284,10 +285,49 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </div>
             )}
 
+            {mode === 'Register' && role === 'candidate' && (
+              <div className="px-4 py-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl space-y-1.5">
+                <div className="flex gap-2">
+                  <svg className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">{t.preUseNotice1}</p>
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">{t.preUseNotice2}</p>
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">{t.preUseNotice3}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {mode === 'Register' && role === 'candidate' && (
+              <div className="flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="consent-checkbox"
+                  checked={consentChecked}
+                  onChange={e => setConsentChecked(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 rounded border-zinc-300 dark:border-zinc-700 accent-blue-600 cursor-pointer"
+                />
+                <label htmlFor="consent-checkbox" className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed cursor-pointer select-none">
+                  {t.consentStart}{' '}
+                  <a href="/terms-of-service.docx" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:no-underline" onClick={e => e.stopPropagation()}>
+                    {t.tos}
+                  </a>
+                  {' '}{t.consentAnd}{' '}
+                  <a href="/candidate-privacy-policy.docx" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:no-underline" onClick={e => e.stopPropagation()}>
+                    {t.pp}
+                  </a>
+                  .
+                </label>
+              </div>
+            )}
+
             <div className="pt-4">
               <button
                 type="submit"
-                className="relative w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold rounded-xl shadow-lg shadow-zinc-900/20 dark:shadow-white/10 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-900/30 dark:hover:shadow-white/20 active:scale-[0.98] transition-all overflow-hidden group"
+                disabled={mode === 'Register' && role === 'candidate' && !consentChecked}
+                className="relative w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold rounded-xl shadow-lg shadow-zinc-900/20 dark:shadow-white/10 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-900/30 dark:hover:shadow-white/20 active:scale-[0.98] transition-all overflow-hidden group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
               >
                 <div className="absolute inset-0 bg-white/20 dark:bg-black/10 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-500 ease-in-out"></div>
                 <span className="relative z-10">{mode === 'Login' ? t.signIn : t.createAccount}</span>

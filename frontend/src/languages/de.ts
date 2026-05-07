@@ -31,7 +31,14 @@ export const de = {
     feature2: "KI-Bewertung & Erkenntnisse",
     feature2Desc: "Sofortiges Feedback darüber, wie gut ein Kandidat zur Stelle passt.",
     feature3: "Bewerber-Tracking",
-    feature3Desc: "Verwalten Sie alles von einem einheitlichen Kanban-Board aus."
+    feature3Desc: "Verwalten Sie alles von einem einheitlichen Kanban-Board aus.",
+    preUseNotice1: "Wir nutzen KI, um Ihnen beim Aufbau Ihres Profils aus Ihrem Lebenslauf zu helfen.",
+    preUseNotice2: "Mit der Registrierung erklären Sie sich damit einverstanden, dass verifizierte HR-Spezialisten Sie finden und wegen Stellenangeboten kontaktieren können.",
+    preUseNotice3: "Sie können Ihre Profilsichtbarkeit ändern oder Ihr Konto jederzeit in den Einstellungen löschen.",
+    consentStart: "Ich akzeptiere die",
+    consentAnd: "und die",
+    tos: "Nutzungsbedingungen",
+    pp: "Datenschutzrichtlinie"
   },
   settings: {
     title: "Einstellungen",

@@ -31,7 +31,14 @@ export const en = {
     feature2: "AI Scoring & Insights",
     feature2Desc: "Immediate feedback on how well a candidate fits the job.",
     feature3: "Applicant Tracking",
-    feature3Desc: "Manage everything from a unified Kanban board."
+    feature3Desc: "Manage everything from a unified Kanban board.",
+    preUseNotice1: "We use AI to help you build your profile from your CV.",
+    preUseNotice2: "By registering, you agree that verified HR specialists can find and contact you about job opportunities.",
+    preUseNotice3: "You can change your profile visibility or delete your account at any time in Settings.",
+    consentStart: "I agree to the",
+    consentAnd: "and",
+    tos: "Terms of Service",
+    pp: "Privacy Policy"
   },
   settings: {
     title: "Settings",

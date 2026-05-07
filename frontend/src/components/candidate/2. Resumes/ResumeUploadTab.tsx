@@ -612,6 +612,7 @@ export function ResumeUploadTab() {
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editDraft, setEditDraft] = useState<ResumeVersion | null>(null);
   const [isSavingContent, setIsSavingContent] = useState(false);
+  const [manuallyEditedSections, setManuallyEditedSections] = useState<Set<string>>(new Set());
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -741,6 +742,14 @@ export function ResumeUploadTab() {
   }, [resumeVersions, selectedResumeId]);
 
   const isAiGenerated = ['job_description', 'profile', 'profile_extract', 'cv_upload'].includes(selectedResume?.source_type ?? '');
+
+  useEffect(() => {
+    if (!selectedResume?.resume_id) { setManuallyEditedSections(new Set()); return; }
+    try {
+      const stored = localStorage.getItem(`hrai_manual_sections_${selectedResume.resume_id}`);
+      setManuallyEditedSections(stored ? new Set(JSON.parse(stored)) : new Set());
+    } catch { setManuallyEditedSections(new Set()); }
+  }, [selectedResume?.resume_id]);
 
   // Auto-populate email message template when resume or recipient name changes
   useEffect(() => {
@@ -1074,6 +1083,21 @@ export function ResumeUploadTab() {
         language: editDraft.language ?? selectedResume.language ?? undefined,
         resume_data,
       });
+      const sectionKeys: Array<[string, any, any]> = [
+        ['summary', editDraft.personal_info?.summary, selectedResume.personal_info?.summary],
+        ['experience', editDraft.experience, selectedResume.experience],
+        ['education', editDraft.education, selectedResume.education],
+        ['skills', editDraft.skills, selectedResume.skills],
+        ['languages', editDraft.languages, selectedResume.languages],
+        ['certifications', editDraft.certifications, selectedResume.certifications],
+      ];
+      const changed = sectionKeys.filter(([, a, b]) => JSON.stringify(a) !== JSON.stringify(b)).map(([k]) => k);
+      if (changed.length > 0) {
+        const key = `hrai_manual_sections_${selectedResume.resume_id}`;
+        const updated = new Set([...manuallyEditedSections, ...changed]);
+        localStorage.setItem(key, JSON.stringify([...updated]));
+        setManuallyEditedSections(updated);
+      }
       await loadData(selectedResume.resume_id);
       setIsEditingContent(false);
       setEditDraft(null);
@@ -1482,7 +1506,7 @@ export function ResumeUploadTab() {
                   <div className="space-y-3">
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       {t.sections.summary}
-                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                      {isAiGenerated && !manuallyEditedSections.has('summary') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
                       <textarea
@@ -1503,7 +1527,7 @@ export function ResumeUploadTab() {
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                       {t.sections.experience}
-                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                      {isAiGenerated && !manuallyEditedSections.has('experience') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
                       <>
@@ -1542,7 +1566,7 @@ export function ResumeUploadTab() {
                   <div className="space-y-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       {t.sections.skills}
-                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                      {isAiGenerated && !manuallyEditedSections.has('skills') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
                       <div className="space-y-1">
@@ -1571,7 +1595,7 @@ export function ResumeUploadTab() {
                     <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
                       {t.sections.education}
-                      {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                      {isAiGenerated && !manuallyEditedSections.has('education') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
                       <div className="space-y-3">
@@ -1611,7 +1635,7 @@ export function ResumeUploadTab() {
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
                             {t.sections.languages}
-                            {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                            {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
                             <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
@@ -1645,7 +1669,7 @@ export function ResumeUploadTab() {
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                             {t.sections.certifications}
-                            {isAiGenerated && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                            {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
                             <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>

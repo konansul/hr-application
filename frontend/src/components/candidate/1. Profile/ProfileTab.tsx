@@ -33,7 +33,7 @@ export function ProfileTab() {
   const [urlImportValue, setUrlImportValue] = useState('');
   const [isImportingUrl, setIsImportingUrl] = useState(false);
 
-  const [aiParsed, setAiParsed] = useState(false);
+  const [aiParsedSections, setAiParsedSections] = useState<Set<string>>(new Set());
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
@@ -70,8 +70,12 @@ export function ProfileTab() {
         setResumeVersions(docs);
 
         if (userData?.user_id) {
-          const key = `hrai_onboarding_${userData.user_id}`;
-          if (!localStorage.getItem(key)) setShowWizard(true);
+          const onboardKey = `hrai_onboarding_${userData.user_id}`;
+          if (!localStorage.getItem(onboardKey)) setShowWizard(true);
+          try {
+            const stored = localStorage.getItem(`hrai_ai_sections_${userData.user_id}`);
+            if (stored) setAiParsedSections(new Set(JSON.parse(stored)));
+          } catch {}
         }
 
         await loadProfile(userData);
@@ -104,19 +108,31 @@ export function ProfileTab() {
       setResumeVersions((prev) => [response, ...prev]);
 
       if (syncWithProfile && response.parsed_data) {
+        const pd = response.parsed_data;
+        const prev = profileData;
         const updatedProfile = {
-          ...profileData,
-          personal_info: { ...profileData.personal_info, ...response.parsed_data.personal_info },
-          skills: response.parsed_data.skills || profileData.skills,
-          experience: response.parsed_data.experience || profileData.experience,
-          education: response.parsed_data.education || profileData.education,
-          languages: response.parsed_data.languages || profileData.languages,
-          certifications: response.parsed_data.certifications || profileData.certifications,
-          references: profileData.references
+          ...prev,
+          personal_info: { ...prev.personal_info, ...pd.personal_info },
+          skills: pd.skills?.length ? pd.skills : prev.skills,
+          experience: pd.experience?.length ? pd.experience : prev.experience,
+          education: pd.education?.length ? pd.education : prev.education,
+          languages: pd.languages?.length ? pd.languages : prev.languages,
+          certifications: pd.certifications?.length ? pd.certifications : prev.certifications,
+          references: prev.references
         };
         setProfileData(updatedProfile);
         await authApi.updateProfile(updatedProfile);
-        setAiParsed(true);
+        const sections = new Set<string>();
+        if (pd.experience?.length) sections.add('experience');
+        if (pd.education?.length) sections.add('education');
+        if (pd.skills?.length) sections.add('skills');
+        if (pd.languages?.length) sections.add('languages');
+        if (pd.certifications?.length) sections.add('certifications');
+        const newPersonal = pd.personal_info || {};
+        const personalFields = ['first_name','last_name','phone','city','country','nationality','summary'] as const;
+        if (personalFields.some(f => newPersonal[f])) sections.add('personal');
+        setAiParsedSections(sections);
+        if (user?.user_id) localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...sections]));
         setMessage({ text: 'Resume uploaded and Master Profile synced successfully!', type: 'success' });
       } else {
         setMessage({ text: 'New resume version uploaded securely!', type: 'success' });
@@ -143,8 +159,21 @@ export function ProfileTab() {
     try {
       const result = await authApi.importFromUrl(urlImportValue.trim());
       if (result.profile_data) {
-        setProfileData({ ...result.profile_data, references: result.profile_data.references || [] });
-        setAiParsed(true);
+        const pd = result.profile_data;
+        const prev = profileData;
+        const next = { ...pd, references: pd.references || [] };
+        setProfileData(next);
+        const sections = new Set<string>();
+        if (pd.experience?.length) sections.add('experience');
+        if (pd.education?.length) sections.add('education');
+        if (pd.skills?.length) sections.add('skills');
+        if (pd.languages?.length) sections.add('languages');
+        if (pd.certifications?.length) sections.add('certifications');
+        const newPersonal = pd.personal_info || {};
+        const personalFields = ['first_name','last_name','phone','city','country','nationality','summary'] as const;
+        if (personalFields.some(f => newPersonal[f])) sections.add('personal');
+        setAiParsedSections(sections);
+        if (user?.user_id) localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...sections]));
       }
       setMessage({ text: 'Profile imported successfully!', type: 'success' });
       setShowUrlImportInput(false);
@@ -203,7 +232,8 @@ export function ProfileTab() {
     setIsUploading(true);
     try {
       await authApi.updateProfile(profileData);
-      setAiParsed(false);
+      setAiParsedSections(new Set());
+      if (user?.user_id) localStorage.removeItem(`hrai_ai_sections_${user.user_id}`);
       setMessage({ text: 'Profile saved successfully!', type: 'success' });
       setIsEditingPersonalInfo(false);
       setIsEditingExperience(false);
@@ -290,7 +320,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.personal.title}</h3>
-                {aiParsed && <AiInfoBadge />}
+                {aiParsedSections.has('personal') && <AiInfoBadge />}
               </div>
 
               {!isEditingPersonalInfo ? (
@@ -421,7 +451,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.experience.title}</h3>
-                {aiParsed && <AiInfoBadge />}
+                {aiParsedSections.has('experience') && <AiInfoBadge />}
               </div>
               {!isEditingExperience ? (
                 <button onClick={() => setIsEditingExperience(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -489,7 +519,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.education.title}</h3>
-                {aiParsed && <AiInfoBadge />}
+                {aiParsedSections.has('education') && <AiInfoBadge />}
               </div>
               {!isEditingEducation ? (
                 <button onClick={() => setIsEditingEducation(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -553,7 +583,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.skills.title}</h3>
-                {aiParsed && <AiInfoBadge />}
+                {aiParsedSections.has('skills') && <AiInfoBadge />}
               </div>
               {!isEditingSkills ? (
                 <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -606,7 +636,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Languages</h3>
-                {aiParsed && <AiInfoBadge />}
+                {aiParsedSections.has('languages') && <AiInfoBadge />}
               </div>
               {!isEditingLanguages ? (
                 <button onClick={() => setIsEditingLanguages(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -661,7 +691,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.certifications.title}</h3>
-                {aiParsed && <AiInfoBadge />}
+                {aiParsedSections.has('certifications') && <AiInfoBadge />}
               </div>
               {!isEditingCertifications ? (
                 <button onClick={() => setIsEditingCertifications(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">

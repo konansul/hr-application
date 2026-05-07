@@ -31,7 +31,14 @@ export const tr = {
     feature2: "Yapay Zeka Puanlama ve Analiz",
     feature2Desc: "Adayın işe ne kadar uygun olduğu hakkında anında geri bildirim.",
     feature3: "Aday Takip Sistemi",
-    feature3Desc: "Her şeyi birleşik bir Kanban panosundan yönetin."
+    feature3Desc: "Her şeyi birleşik bir Kanban panosundan yönetin.",
+    preUseNotice1: "CV'nizden profilinizi oluşturmanıza yardımcı olmak için yapay zeka kullanıyoruz.",
+    preUseNotice2: "Kayıt olarak, doğrulanmış İK uzmanlarının sizi bulabileceğini ve iş fırsatları hakkında sizinle iletişime geçebileceğini kabul etmiş olursunuz.",
+    preUseNotice3: "Profil görünürlüğünüzü değiştirebilir veya hesabınızı istediğiniz zaman Ayarlar'dan silebilirsiniz.",
+    consentStart: "Kabul ediyorum:",
+    consentAnd: "ve",
+    tos: "Kullanım Şartları",
+    pp: "Gizlilik Politikası"
   },
   settings: {
     title: "Ayarlar",
