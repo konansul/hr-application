@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
+import time
+import asyncio
 import httpx
+from dataclasses import dataclass, field
 from fastapi import APIRouter, Query
 
 router = APIRouter()
@@ -9,6 +12,57 @@ router = APIRouter()
 ADZUNA_APP_ID  = os.getenv("ADZUNA_APP_ID", "")
 ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "")
 RAPIDAPI_KEY   = os.getenv("RAPIDAPI_KEY", "")
+
+# ---------------------------------------------------------------------------
+# In-process response cache
+# TTL is intentionally kept short (1 hour) to serve fresh job data while
+# avoiding redundant API calls for repeated identical searches.
+# Entries older than CACHE_TTL_SECONDS are evicted lazily on next access.
+# The cache is bounded to MAX_CACHE_ENTRIES to prevent unbounded memory growth;
+# once full, the oldest entry is evicted before inserting a new one.
+# ---------------------------------------------------------------------------
+CACHE_TTL_SECONDS = int(os.getenv("JOB_CACHE_TTL", "3600"))
+MAX_CACHE_ENTRIES = int(os.getenv("JOB_CACHE_MAX", "500"))
+
+@dataclass
+class _CacheEntry:
+    result: dict
+    stored_at: float = field(default_factory=time.monotonic)
+
+    def is_fresh(self) -> bool:
+        return (time.monotonic() - self.stored_at) < CACHE_TTL_SECONDS
+
+# key → _CacheEntry; insertion order preserved (Python 3.7+) for LRU eviction
+_cache: dict[str, _CacheEntry] = {}
+_cache_lock = asyncio.Lock()
+
+
+def _cache_key(query: str, loc: str, emp: str, page: int) -> str:
+    return f"{query.lower().strip()}|{loc}|{emp}|{page}"
+
+
+async def _cache_get(key: str) -> dict | None:
+    async with _cache_lock:
+        entry = _cache.get(key)
+        if entry is None:
+            return None
+        if not entry.is_fresh():
+            del _cache[key]
+            return None
+        # Move to end to mark as recently used
+        _cache.move_to_end(key)
+        return entry.result
+
+
+async def _cache_set(key: str, result: dict) -> None:
+    async with _cache_lock:
+        if key in _cache:
+            _cache.move_to_end(key)
+        else:
+            if len(_cache) >= MAX_CACHE_ENTRIES:
+                # Evict oldest entry
+                _cache.popitem(last=False)
+        _cache[key] = _CacheEntry(result=result)
 
 _ADZUNA_LOC: dict[str, tuple[str, str]] = {
     "remote":      ("gb", ""),
@@ -292,6 +346,20 @@ async def debug_jsearch(q: str = Query("developer"), loc: str = Query("portugal"
     return {"status": r.status_code, "params_sent": params, "body": r.json() if r.is_success else r.text[:500]}
 
 
+@router.get("/api/external-jobs/cache-stats")
+async def cache_stats():
+    """Returns current cache size and TTL configuration (for ops/debugging)."""
+    async with _cache_lock:
+        total = len(_cache)
+        fresh = sum(1 for e in _cache.values() if e.is_fresh())
+    return {
+        "entries_total": total,
+        "entries_fresh": fresh,
+        "ttl_seconds": CACHE_TTL_SECONDS,
+        "max_entries": MAX_CACHE_ENTRIES,
+    }
+
+
 @router.get("/api/external-jobs/search")
 async def search_external_jobs(
     q: str = Query(""),
@@ -315,21 +383,33 @@ async def search_external_jobs(
     strip_words = _JSEARCH_LOC[loc][1] if loc in _JSEARCH_LOC else loc.replace("-", " ")
     clean_query = _strip_location_words(query, strip_words) if strip_words else query
 
+    cache_key = _cache_key(clean_query, loc, emp, page)
+    cached = await _cache_get(cache_key)
+    if cached is not None:
+        return {**cached, "cached": True}
+
     try:
+        result: dict | None = None
+
         if RAPIDAPI_KEY and loc in _JSEARCH_LOC:
             try:
                 result = await _search_jsearch(query, loc, emp, page)
-                if result.get("jobs"):
-                    return result
+                if not result.get("jobs"):
+                    result = None
             except Exception:
-                pass  # fall through to Adzuna
+                result = None  # fall through to Adzuna
 
-        if ADZUNA_APP_ID and ADZUNA_APP_KEY:
-            return await _search_adzuna(clean_query, loc, emp, page)
+        if result is None and ADZUNA_APP_ID and ADZUNA_APP_KEY:
+            result = await _search_adzuna(clean_query, loc, emp, page)
 
-        return {
-            "jobs": [], "total": 0, "page": page, "source": "error",
-            "error": "No API credentials configured. Set ADZUNA_APP_ID/ADZUNA_APP_KEY or RAPIDAPI_KEY.",
-        }
+        if result is None:
+            return {
+                "jobs": [], "total": 0, "page": page, "source": "error",
+                "error": "No API credentials configured. Set ADZUNA_APP_ID/ADZUNA_APP_KEY or RAPIDAPI_KEY.",
+            }
+
+        await _cache_set(cache_key, result)
+        return {**result, "cached": False}
+
     except Exception as exc:
         return {"jobs": [], "total": 0, "page": page, "error": str(exc), "source": "error"}
