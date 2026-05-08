@@ -628,13 +628,13 @@ export function ResumeUploadTab() {
   const [sendEmailPreviewUrl, setSendEmailPreviewUrl] = useState<string | null>(null);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [isAttachingPdf, setIsAttachingPdf] = useState(false);
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [_isSendingEmail, _setIsSendingEmail] = useState(false);
   const [sendEmailStatus, setSendEmailStatus] = useState<'idle' | 'success' | 'error' | 'not_configured'>('idle');
-  const [sendEmailError, setSendEmailError] = useState('');
+  const [sendEmailError, _setSendEmailError] = useState('');
   const [shareAttachment, setShareAttachment] = useState<{ base64: string; filename: string } | null>(null);
   const [shareAttachmentPreviewUrl, setShareAttachmentPreviewUrl] = useState<string | null>(null);
   const [isAttachingSharePdf, setIsAttachingSharePdf] = useState(false);
-  const [isSendingShare, setIsSendingShare] = useState(false);
+  const [_isSendingShare, _setIsSendingShare] = useState(false);
   const [shareEmailStatus, setShareEmailStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -975,53 +975,6 @@ export function ResumeUploadTab() {
       // ignore — user can retry
     } finally {
       setIsAttachingSharePdf(false);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (!selectedResume || !sendEmailTo.trim() || !sendEmailAttachment) return;
-    setIsSendingEmail(true);
-    setSendEmailStatus('idle');
-    setSendEmailError('');
-    try {
-      const subject = sendEmailSubject.trim() || `CV: ${selectedResume.title || 'My Resume'}`;
-      await resumesApi.sendEmail({ to: sendEmailTo.trim(), subject, message: sendEmailMessage, pdf_base64: sendEmailAttachment.base64, filename: sendEmailAttachment.filename });
-      setSendEmailStatus('success');
-      setSendEmailTo('');
-      setSendEmailSubject('');
-      setSendEmailMessage('');
-      setSendEmailAttachment(null);
-      if (sendEmailPreviewUrl) { URL.revokeObjectURL(sendEmailPreviewUrl); setSendEmailPreviewUrl(null); setShowEmailPreview(false); }
-    } catch (err: any) {
-      console.error('Send CV error:', err, err?.response?.data);
-      const detail = err?.response?.data?.detail;
-      if (detail === 'Email service not configured') {
-        setSendEmailStatus('not_configured');
-      } else {
-        setSendEmailStatus('error');
-        const msg = typeof detail === 'string' ? detail
-          : Array.isArray(detail) ? JSON.stringify(detail)
-          : err?.message || 'Failed to send. Please try again.';
-        setSendEmailError(msg);
-      }
-    } finally {
-      setIsSendingEmail(false);
-    }
-  };
-
-  const handleSendShare = async (to: string, subject: string, message: string) => {
-    if (!shareAttachment || !to.trim()) return;
-    setIsSendingShare(true);
-    setShareEmailStatus('idle');
-    try {
-      await resumesApi.sendEmail({ to: to.trim(), subject, message, pdf_base64: shareAttachment.base64, filename: shareAttachment.filename });
-      setShareEmailStatus('success');
-      setShareAttachment(null);
-      if (shareAttachmentPreviewUrl) { URL.revokeObjectURL(shareAttachmentPreviewUrl); setShareAttachmentPreviewUrl(null); }
-    } catch {
-      setShareEmailStatus('error');
-    } finally {
-      setIsSendingShare(false);
     }
   };
 
@@ -2302,7 +2255,7 @@ export function ResumeUploadTab() {
                     : eb.hiringManager;
                   const cvPublicUrl = `${BASE}/?cv=${selectedResume.resume_id}`;
                   const emailBody = `${recipientGreeting}\n\n${eb.line1}\n\n${eb.line2link}\n${cvPublicUrl}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`;
-                  const subject = `CV: ${selectedResume.title || 'My Resume'}`;
+                  // const subject = `CV: ${selectedResume.title || 'My Resume'}`;
                   return (
                     <div className="space-y-3">
                       {shareEmailStatus === 'success' ? (
