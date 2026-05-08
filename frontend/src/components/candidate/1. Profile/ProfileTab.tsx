@@ -160,7 +160,7 @@ export function ProfileTab() {
       const result = await authApi.importFromUrl(urlImportValue.trim());
       if (result.profile_data) {
         const pd = result.profile_data;
-        const prev = profileData;
+        // const prev = profileData;
         const next = { ...pd, references: pd.references || [] };
         setProfileData(next);
         const sections = new Set<string>();
