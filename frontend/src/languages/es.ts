@@ -38,7 +38,11 @@ export const es = {
     consentStart: "Acepto los",
     consentAnd: "y la",
     tos: "Términos de Servicio",
-    pp: "Política de Privacidad"
+    pp: "Política de Privacidad",
+    hrPreUseNotice1: "Utilizamos herramientas con inteligencia artificial para procesar y emparejar datos de candidatos y empleos.",
+    hrPreUseNotice2: "Al registrarse, acepta nuestros Términos de Servicio y Política de Privacidad, incluido el uso responsable de la información de los candidatos.",
+    hrPreUseNotice3: "Los usuarios de RR.HH. tienen estrictamente prohibido recopilar, exportar, revender o hacer un uso indebido de los datos de candidatos fuera de los fines legítimos de contratación.",
+    hrPp: "Política de Privacidad de RR.HH."
   },
   settings: {
     title: "Ajustes",

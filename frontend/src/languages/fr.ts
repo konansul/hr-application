@@ -38,7 +38,11 @@ export const fr = {
     consentStart: "J'accepte les",
     consentAnd: "et la",
     tos: "Conditions d'utilisation",
-    pp: "Politique de confidentialité"
+    pp: "Politique de confidentialité",
+    hrPreUseNotice1: "Nous utilisons des outils basés sur l'IA pour traiter et mettre en correspondance les données des candidats et des offres d'emploi.",
+    hrPreUseNotice2: "En vous inscrivant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité, y compris l'utilisation responsable des informations des candidats.",
+    hrPreUseNotice3: "Il est strictement interdit aux utilisateurs RH de collecter, exporter, revendre ou utiliser à mauvais escient les données des candidats en dehors des fins légitimes de recrutement.",
+    hrPp: "Politique de confidentialité RH"
   },
   settings: {
     title: "Paramètres",

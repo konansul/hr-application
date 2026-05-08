@@ -238,10 +238,10 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-widest ml-1">{t.accountType}</label>
                   <div className="grid grid-cols-2 gap-3">
                     <div
-                      onClick={() => setRole('hr')}
+                      onClick={() => { setRole('hr'); setConsentChecked(false); }}
                       className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center gap-2 overflow-hidden group ${
-                        role === 'hr' 
-                        ? 'border-blue-500 dark:border-indigo-500 bg-blue-50/50 dark:bg-indigo-500/10 shadow-sm' 
+                        role === 'hr'
+                        ? 'border-blue-500 dark:border-indigo-500 bg-blue-50/50 dark:bg-indigo-500/10 shadow-sm'
                         : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700'
                       }`}
                     >
@@ -253,10 +253,10 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     </div>
 
                     <div
-                      onClick={() => setRole('candidate')}
+                      onClick={() => { setRole('candidate'); setConsentChecked(false); }}
                       className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center gap-2 overflow-hidden group ${
-                        role === 'candidate' 
-                        ? 'border-blue-500 dark:border-indigo-500 bg-blue-50/50 dark:bg-indigo-500/10 shadow-sm' 
+                        role === 'candidate'
+                        ? 'border-blue-500 dark:border-indigo-500 bg-blue-50/50 dark:bg-indigo-500/10 shadow-sm'
                         : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700'
                       }`}
                     >
@@ -282,6 +282,44 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     />
                   </div>
                 )}
+              </div>
+            )}
+
+            {mode === 'Register' && role === 'hr' && (
+              <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl space-y-1.5">
+                <div className="flex gap-2">
+                  <svg className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">{t.hrPreUseNotice1}</p>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">{t.hrPreUseNotice2}</p>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed font-semibold">{t.hrPreUseNotice3}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {mode === 'Register' && role === 'hr' && (
+              <div className="flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="hr-consent-checkbox"
+                  checked={consentChecked}
+                  onChange={e => setConsentChecked(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 rounded border-zinc-300 dark:border-zinc-700 accent-blue-600 cursor-pointer"
+                />
+                <label htmlFor="hr-consent-checkbox" className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed cursor-pointer select-none">
+                  {t.consentStart}{' '}
+                  <a href="/terms-of-service.docx" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:no-underline" onClick={e => e.stopPropagation()}>
+                    {t.tos}
+                  </a>
+                  {' '}{t.consentAnd}{' '}
+                  <a href="/hr-privacy-policy.docx" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:no-underline" onClick={e => e.stopPropagation()}>
+                    {t.hrPp}
+                  </a>
+                  .
+                </label>
               </div>
             )}
 
@@ -326,7 +364,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={mode === 'Register' && role === 'candidate' && !consentChecked}
+                disabled={mode === 'Register' && !consentChecked}
                 className="relative w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold rounded-xl shadow-lg shadow-zinc-900/20 dark:shadow-white/10 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-900/30 dark:hover:shadow-white/20 active:scale-[0.98] transition-all overflow-hidden group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
               >
                 <div className="absolute inset-0 bg-white/20 dark:bg-black/10 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-500 ease-in-out"></div>

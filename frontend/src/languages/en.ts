@@ -38,7 +38,11 @@ export const en = {
     consentStart: "I agree to the",
     consentAnd: "and",
     tos: "Terms of Service",
-    pp: "Privacy Policy"
+    pp: "Privacy Policy",
+    hrPreUseNotice1: "We use AI-powered tools to help process and match candidate and job data.",
+    hrPreUseNotice2: "By registering, you agree to our Terms of Service and Privacy Policy, including the responsible use of candidate information.",
+    hrPreUseNotice3: "HR users are strictly prohibited from harvesting, exporting, reselling, or misusing candidate data outside legitimate recruitment purposes.",
+    hrPp: "HR Privacy Policy"
   },
   settings: {
     title: "Settings",

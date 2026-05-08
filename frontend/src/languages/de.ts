@@ -38,7 +38,11 @@ export const de = {
     consentStart: "Ich akzeptiere die",
     consentAnd: "und die",
     tos: "Nutzungsbedingungen",
-    pp: "Datenschutzrichtlinie"
+    pp: "Datenschutzrichtlinie",
+    hrPreUseNotice1: "Wir verwenden KI-gestützte Tools zur Verarbeitung und Zuordnung von Kandidaten- und Stellendaten.",
+    hrPreUseNotice2: "Mit der Registrierung stimmen Sie unseren Nutzungsbedingungen und Datenschutzrichtlinien zu, einschließlich des verantwortungsvollen Umgangs mit Kandidateninformationen.",
+    hrPreUseNotice3: "HR-Nutzern ist es streng untersagt, Kandidatendaten außerhalb legitimer Rekrutierungszwecke zu sammeln, zu exportieren, weiterzuverkaufen oder zu missbrauchen.",
+    hrPp: "HR-Datenschutzrichtlinie"
   },
   settings: {
     title: "Einstellungen",

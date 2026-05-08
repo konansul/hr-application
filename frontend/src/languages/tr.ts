@@ -38,7 +38,11 @@ export const tr = {
     consentStart: "Kabul ediyorum:",
     consentAnd: "ve",
     tos: "Kullanım Şartları",
-    pp: "Gizlilik Politikası"
+    pp: "Gizlilik Politikası",
+    hrPreUseNotice1: "Aday ve iş verilerini işlemek ve eşleştirmek için yapay zeka destekli araçlar kullanıyoruz.",
+    hrPreUseNotice2: "Kayıt olarak, aday bilgilerinin sorumlu kullanımı da dahil olmak üzere Hizmet Koşullarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz.",
+    hrPreUseNotice3: "İK kullanıcılarının aday verilerini meşru işe alım amaçları dışında toplaması, dışa aktarması, yeniden satması veya kötüye kullanması kesinlikle yasaktır.",
+    hrPp: "İK Gizlilik Politikası"
   },
   settings: {
     title: "Ayarlar",
