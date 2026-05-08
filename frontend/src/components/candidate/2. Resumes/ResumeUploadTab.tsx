@@ -1783,6 +1783,15 @@ export function ResumeUploadTab() {
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         {t.pdfCard.regenerateBtn}
                       </button>
+                      <button
+                        onClick={() => { setSendEmailStatus('idle'); setShowSendEmailModal(true); }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 dark:bg-sky-900/20 dark:hover:bg-sky-900/30 dark:text-sky-400 text-sm font-semibold rounded-xl border border-sky-100 dark:border-sky-800/50 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {t.sendEmail.title}
+                      </button>
                     </div>
                   </>
                 ) : (
@@ -1797,19 +1806,6 @@ export function ResumeUploadTab() {
                     </button>
                   </>
                 )}
-                <div className="border-t border-gray-100 dark:border-neutral-800 pt-4">
-                  <button
-                    onClick={() => { setSendEmailStatus('idle'); setShowSendEmailModal(true); }}
-                    disabled={!selectedResume?.generated_document_id}
-                    title={!selectedResume?.generated_document_id ? 'Save a PDF first to send by email' : undefined}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {t.sendEmail.title}
-                  </button>
-                </div>
               </div>
             </div>
           )}
@@ -2047,7 +2043,7 @@ export function ResumeUploadTab() {
 
       {showPdfModal && selectedResume && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
-          <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
+          <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-sm'}`} onClick={e => e.stopPropagation()}>
             <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
@@ -2104,10 +2100,12 @@ export function ResumeUploadTab() {
                               closePdfModals();
                             } finally { setIsGeneratingPdf(false); }
                           }}
-                          className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-60 flex items-center gap-1"
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40 transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
                         >
-                          {isGeneratingPdf ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                          Download
+                          {isGeneratingPdf
+                            ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                          Generate
                         </button>
                       </div>
                     </div>
@@ -2132,7 +2130,7 @@ export function ResumeUploadTab() {
 
       {showSavePdfModal && selectedResume && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
-          <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-lg'}`} onClick={e => e.stopPropagation()}>
+          <div className={`bg-white rounded-3xl shadow-2xl border border-gray-200 w-full overflow-hidden flex transition-all duration-300 ${previewBlobUrl ? 'max-w-5xl' : 'max-w-sm'}`} onClick={e => e.stopPropagation()}>
             <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
@@ -2191,9 +2189,11 @@ export function ResumeUploadTab() {
                               setMessage({ text: 'Could not save the PDF. Please try again.', type: 'error' });
                             } finally { setSavingPdfTemplateId(null); }
                           }}
-                          className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-60 flex items-center gap-1"
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40 transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
                         >
-                          {savingPdfTemplateId === t.id ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                          {savingPdfTemplateId === t.id
+                            ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>}
                           Save
                         </button>
                       </div>
