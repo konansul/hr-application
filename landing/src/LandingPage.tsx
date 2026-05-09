@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 const APP_URL = 'https://orange-forest-05793170f.7.azurestaticapps.net/';
 
@@ -157,7 +158,7 @@ export function LandingPage() {
       <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? (isDark ? 'bg-[#08090c]/85 backdrop-blur-2xl border-b border-white/[0.07] py-3 shadow-2xl shadow-black/30' : 'bg-white/85 backdrop-blur-2xl border-b border-slate-200/60 py-3 shadow-lg shadow-slate-200/30') : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center">
           <div className="flex justify-start">
-            <a href="#" className="flex items-center gap-2.5 group">
+            <Link to="/" className="flex items-center gap-2.5 group">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${isDark ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-indigo-500/25' : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30'}`}>
                 <BoltIcon />
                 <svg className="w-5 h-5 text-white absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,13 +166,21 @@ export function LandingPage() {
                 </svg>
               </div>
               <span className={`font-black text-xl tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>HR.App</span>
-            </a>
+            </Link>
           </div>
 
-          <nav className={`hidden md:flex justify-center items-center gap-1 px-2 py-1.5 rounded-2xl border backdrop-blur-md mx-auto ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
-            {['Overview', 'Features', 'Workflow'].map((item, i) => (
-              <a key={i} href={`#${item.toLowerCase()}`} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>{item}</a>
-            ))}
+          {/* НАСТРОЕННАЯ НАВИГАЦИЯ В ШАПКЕ С НОВЫМИ ССЫЛКАМИ */}
+          <nav className={`hidden lg:flex justify-center items-center gap-1 px-2 py-1.5 rounded-2xl border backdrop-blur-md mx-auto ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
+            <a href="#overview" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Overview</a>
+            <a href="#features" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Features</a>
+            <a href="#workflow" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Workflow</a>
+
+            {/* Разделитель */}
+            <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-slate-300'}`} />
+
+            {/* Ссылки на документы */}
+            <Link to="/privacy" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Privacy</Link>
+            <Link to="/terms" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Terms</Link>
           </nav>
 
           <div className="flex justify-end items-center gap-3">
@@ -182,10 +191,10 @@ export function LandingPage() {
             >
               {isDark ? <SunIcon /> : <MoonIcon />}
             </button>
-            <a href={APP_URL} className={`hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${isDark ? 'text-slate-300 border-white/10 hover:border-white/20 hover:text-white bg-white/[0.04] hover:bg-white/[0.08]' : 'text-slate-600 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm'}`}>
+            <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${isDark ? 'text-slate-300 border-white/10 hover:border-white/20 hover:text-white bg-white/[0.04] hover:bg-white/[0.08]' : 'text-slate-600 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm'}`}>
               Log In
             </a>
-            <a href={APP_URL} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${isDark ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/20 hover:shadow-indigo-500/30' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/30 hover:shadow-indigo-500/40'}`}>
+            <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${isDark ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/20 hover:shadow-indigo-500/30' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/30 hover:shadow-indigo-500/40'}`}>
               Get Started
               <ArrowRightIcon />
             </a>
@@ -197,7 +206,7 @@ export function LandingPage() {
 
         <section className="pt-36 pb-24 px-6 max-w-7xl mx-auto">
           <div ref={heroSection.ref} className={`flex flex-col items-center text-center ${transitionClass(heroSection.visible)}`}>
-            <a href={APP_URL} className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border text-xs font-semibold mb-10 transition-all hover:scale-[1.02] shadow-sm ${isDark ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/15' : 'bg-white border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200'}`}>
+            <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border text-xs font-semibold mb-10 transition-all hover:scale-[1.02] shadow-sm ${isDark ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/15' : 'bg-white border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200'}`}>
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
@@ -219,7 +228,7 @@ export function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
-              <a href={APP_URL} className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl ${isDark ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/20' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/30'}`}>
+              <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl ${isDark ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/20' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/30'}`}>
                 Launch Platform
                 <ArrowRightIcon />
               </a>
@@ -347,7 +356,7 @@ export function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <a href={APP_URL} className={`mt-9 inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3 ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
+                  <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`mt-9 inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3 ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
                     Start screening candidates <ArrowRightIcon className="w-4 h-4" />
                   </a>
                 </div>
@@ -374,7 +383,7 @@ export function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <a href={APP_URL} className={`mt-9 inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3 ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'}`}>
+                  <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`mt-9 inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3 ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'}`}>
                     Analyze your resume <ArrowRightIcon className="w-4 h-4" />
                   </a>
                 </div>
@@ -486,7 +495,7 @@ export function LandingPage() {
 
                   <div className={`p-5 border-t flex items-center justify-between ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
                     <div className={`text-xs ${muted}`}>Showing 5 of 247 results</div>
-                    <a href={APP_URL} className={`inline-flex items-center gap-1.5 text-xs font-bold ${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'}`}>
+                    <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-1.5 text-xs font-bold ${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'}`}>
                       View all in Dashboard <ArrowRightIcon className="w-3 h-3" />
                     </a>
                   </div>
@@ -539,11 +548,11 @@ export function LandingPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10">
-                <a href={APP_URL} className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4.5 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl text-sm ${isDark ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/25' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/30'}`} style={{ paddingTop: '1.125rem', paddingBottom: '1.125rem' }}>
+                <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-4.5 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl text-sm ${isDark ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/25' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/30'}`} style={{ paddingTop: '1.125rem', paddingBottom: '1.125rem' }}>
                   Get Started for Free
                   <ArrowRightIcon />
                 </a>
-                <a href={APP_URL} className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 rounded-2xl font-bold transition-all border text-sm ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`} style={{ paddingTop: '1.125rem', paddingBottom: '1.125rem' }}>
+                <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 rounded-2xl font-bold transition-all border text-sm ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`} style={{ paddingTop: '1.125rem', paddingBottom: '1.125rem' }}>
                   Log In to Dashboard
                 </a>
               </div>
@@ -556,16 +565,18 @@ export function LandingPage() {
       <footer className={`border-t relative z-10 ${isDark ? 'bg-[#050608] border-white/[0.06]' : 'bg-white border-slate-200/60'}`}>
         <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-gradient-to-br from-indigo-600 to-violet-700'}`}>
-              <BoltIcon />
-            </div>
-            <span className={`font-black text-lg tracking-tighter ${text}`}>HR.App</span>
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-gradient-to-br from-indigo-600 to-violet-700'}`}>
+                <BoltIcon />
+              </div>
+              <span className={`font-black text-lg tracking-tighter ${text}`}>HR.App</span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-6">
-            {['Privacy', 'Terms', 'Support'].map((label) => (
-              <a key={label} href="#" className={`text-xs font-semibold transition-colors ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}>{label}</a>
-            ))}
+            <Link to="/privacy" className={`text-xs font-semibold transition-colors ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}>Privacy</Link>
+            <Link to="/terms" className={`text-xs font-semibold transition-colors ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}>Terms</Link>
+            <a href="mailto:info@boldgeneric.com" className={`text-xs font-semibold transition-colors ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}>Support</a>
           </div>
 
           <div className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
