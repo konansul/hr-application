@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -43,5 +45,15 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Inactive user",
         )
+
+    try:
+        now = datetime.now(timezone.utc)
+        user.last_active_at = now
+        if user.inactivity_warning_sent_at is not None:
+            user.inactivity_warning_sent_at = None
+            user.reactivation_token = None
+        db.commit()
+    except Exception:
+        db.rollback()
 
     return user

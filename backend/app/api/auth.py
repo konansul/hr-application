@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
+from backend.app.core.config import settings
 from backend.app.schemas import RegisterRequest, LoginRequest, TokenResponse, UserMeResponse
 from backend.database.storage import new_id
 from backend.database.db import get_db
@@ -115,3 +117,46 @@ def me(current: User = Depends(get_current_user), db: Session = Depends(get_db))
 @router.post("/auth/logout")
 def logout():
     return {"ok": True}
+
+
+@router.get("/auth/reactivate")
+def reactivate_account(token: str = Query(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.reactivation_token == token).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Invalid or expired reactivation link")
+
+    user.inactivity_warning_sent_at = None
+    user.reactivation_token = None
+    user.last_active_at = datetime.now(timezone.utc)
+    db.commit()
+
+    if settings.FRONTEND_URL:
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}?reactivated=1", status_code=302)
+
+    return HTMLResponse(
+        content="""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Account Reactivated</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;
+       background:#f4f4f5;margin:0;}
+  .card{background:#fff;border-radius:12px;padding:48px 40px;text-align:center;
+        box-shadow:0 2px 12px rgba(0,0,0,.1);max-width:400px;}
+  h1{color:#16a34a;font-size:24px;margin:0 0 12px;}
+  p{color:#6b7280;margin:0 0 24px;}
+  a{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#0ea5e9,#3b82f6);
+    color:#fff;text-decoration:none;border-radius:8px;font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>&#10003; Account reactivated</h1>
+    <p>Your account is active again. You can now log in as usual.</p>
+    <a href="/">Go to login</a>
+  </div>
+</body>
+</html>""",
+        status_code=200,
+    )

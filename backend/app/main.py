@@ -1,8 +1,24 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api import auth, users, jobs, applications, screening, improvement, documents, resumes, external_jobs, profiles, public
+from backend.app.scheduler import run_inactivity_loop
 
-app = FastAPI(title="HR Application API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(run_inactivity_loop())
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(title="HR Application API", lifespan=lifespan)
 
 origins = [
     "https://happy-hill-018c19800.4.azurestaticapps.net",

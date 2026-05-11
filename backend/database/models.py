@@ -48,6 +48,9 @@ class User(Base):
     ai_quota = Column(Integer, default=10)
     ai_used = Column(Integer, default=0)
     last_quota_reset = Column(Date, default=date.today)
+    last_active_at = Column(DateTime(timezone=True), nullable=True)
+    inactivity_warning_sent_at = Column(DateTime(timezone=True), nullable=True)
+    reactivation_token = Column(String(128), nullable=True, index=True)
 
     organization = relationship("Organization", back_populates="users")
     person_profile = relationship("Person", back_populates="user", uselist=False)
