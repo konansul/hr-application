@@ -648,6 +648,7 @@ export function ResumeUploadTab() {
   const [docViewerUrl, setDocViewerUrl] = useState<string | null>(null);
   const [docViewerLoading, setDocViewerLoading] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const createMenuRef = useRef<HTMLDivElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -742,6 +743,18 @@ export function ResumeUploadTab() {
   }, [resumeVersions, selectedResumeId]);
 
   const isAiGenerated = ['job_description', 'profile', 'profile_extract', 'cv_upload'].includes(selectedResume?.source_type ?? '');
+
+  const filteredResumes = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return resumeVersions;
+    return resumeVersions.filter((r) => {
+      const title = (r.title ?? '').toLowerCase();
+      const lang = (r.language ?? '').toLowerCase();
+      const langFull = (LANGUAGE_OPTIONS.find((l) => l.code === r.language)?.label ?? '').toLowerCase();
+      const source = (r.source_type ?? '').toLowerCase();
+      return title.includes(q) || lang.includes(q) || langFull.includes(q) || source.includes(q);
+    });
+  }, [resumeVersions, searchQuery]);
 
   useEffect(() => {
     if (!selectedResume?.resume_id) { setManuallyEditedSections(new Set()); return; }
@@ -1170,9 +1183,30 @@ export function ResumeUploadTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
 
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <div className="relative mx-0.5">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-neutral-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search resumes..."
+              className="w-full pl-9 pr-9 py-2.5 text-sm rounded-xl border border-gray-100 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-gray-300 dark:focus:ring-neutral-600"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            )}
+          </div>
+
           {resumeVersions.length > 0 ? (
-            resumeVersions.map((resume) => {
+            filteredResumes.length > 0 ? (filteredResumes.map((resume) => {
               const isActive = resume.resume_id === selectedResume?.resume_id;
               const isPendingDelete = confirmDeleteId === resume.resume_id;
               return (
@@ -1230,7 +1264,11 @@ export function ResumeUploadTab() {
                   </div>
                 </div>
               );
-            })
+            })) : (
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 p-6 text-sm text-gray-500 dark:text-neutral-400 text-center bg-gray-50/50 dark:bg-neutral-800/50">
+                No resumes match your search.
+              </div>
+            )
           ) : (
             <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 p-6 text-sm text-gray-500 dark:text-neutral-400 text-center bg-gray-50/50 dark:bg-neutral-800/50">
               {t.noVersions}

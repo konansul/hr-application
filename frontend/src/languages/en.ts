@@ -63,6 +63,7 @@ export const en = {
     copy: "Copy",
     copied: "Copied!",
     sendTo: "Send to Recruiter",
+    sendToDesc: "Enter a recruiter's email to share your profile. They'll receive a link giving them direct access to your CV and application details.",
     send: "Send",
     emailPlaceholder: "Enter email address...",
     save: "Save Changes",

@@ -63,6 +63,7 @@ export const tr = {
     copy: "Kopyala",
     copied: "Kopyalandı!",
     sendTo: "İşe Alım Uzmanına Gönder",
+    sendToDesc: "Profilinizi paylaşmak için bir işe alım uzmanının e-posta adresini girin. CV'nize ve başvuru bilgilerinize doğrudan erişim sağlayan bir bağlantı alacaklar.",
     send: "Gönder",
     emailPlaceholder: "E-posta adresini girin...",
     save: "Değişiklikleri Kaydet",

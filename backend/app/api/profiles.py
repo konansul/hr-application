@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from backend.app.api.helpers.ownership import get_current_user
 from backend.app.schemas import ProfileUpdateRequest, HRProfileUpdate
 from backend.database.db import get_db
-from backend.database.models import User, Person, Application, Job
+from backend.database.models import User, Person, Application, Job, Organization
 
 router = APIRouter()
 
@@ -21,7 +21,6 @@ def get_profile(
     if not person:
         raise HTTPException(status_code=404, detail="Person profile not found")
 
-    # Формируем profile_data из JSON поля
     if person.profile_json:
         profile_data = json.loads(person.profile_json)
     else:
@@ -51,7 +50,6 @@ def get_profile(
             "references": []
         }
 
-    # Возвращаем profile_data ВМЕСТЕ с новыми полями приватности из базы
     return {
         "profile_data": profile_data,
         "visibility_level": person.visibility_level,
@@ -98,6 +96,9 @@ def get_hr_profile(
     existing = json.loads(person.profile_json) if person.profile_json else {}
     hr = existing.get("hr_profile", {})
 
+    org = db.query(Organization).filter(Organization.org_id == current_user.org_id).first() if current_user.org_id else None
+    org_profile = existing.get("org_profile", {})
+
     return {
         "email": current_user.email,
         "first_name": person.first_name or "",
@@ -107,10 +108,16 @@ def get_hr_profile(
         "country": person.country or "",
         "bio": hr.get("bio", ""),
         "linkedin_url": hr.get("linkedin_url", ""),
-        "company_name": hr.get("company_name", ""),
+        "company_name": hr.get("company_name", "") or (org.name if org else ""),
         "department": hr.get("department", ""),
         "hr_role_title": hr.get("hr_role_title", ""),
         "timezone": hr.get("timezone", ""),
+        "org_description": org_profile.get("description", ""),
+        "org_website": org_profile.get("website", ""),
+        "org_industry": org_profile.get("industry", ""),
+        "org_size": org_profile.get("size", ""),
+        "org_location": org_profile.get("location", ""),
+        "org_logo_url": org_profile.get("logo_url", ""),
     }
 
 
@@ -141,10 +148,56 @@ def update_hr_profile(
         "hr_role_title": request.hr_role_title,
         "timezone": request.timezone,
     }
+    existing["org_profile"] = {
+        "description": request.org_description,
+        "website": request.org_website,
+        "industry": request.org_industry,
+        "size": request.org_size,
+        "location": request.org_location,
+        "logo_url": request.org_logo_url,
+    }
     person.profile_json = json.dumps(existing, ensure_ascii=False)
 
     db.commit()
     return {"message": "HR profile updated successfully"}
+
+
+@router.get("/organizations/{org_id}/public")
+def get_organization_public(
+        org_id: str,
+        db: Session = Depends(get_db),
+):
+    org = db.query(Organization).filter(Organization.org_id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    # Find the first HR user in this org who has filled in org_profile
+    hr_users = (
+        db.query(User, Person)
+        .join(Person, User.user_id == Person.user_id)
+        .filter(User.org_id == org_id, User.role == "hr")
+        .all()
+    )
+
+    org_profile = {}
+    for user, person in hr_users:
+        if person.profile_json:
+            data = json.loads(person.profile_json)
+            candidate = data.get("org_profile", {})
+            if any(v for v in candidate.values() if v):
+                org_profile = candidate
+                break
+
+    return {
+        "org_id": org.org_id,
+        "name": org.name,
+        "description": org_profile.get("description") or "",
+        "website": org_profile.get("website") or "",
+        "industry": org_profile.get("industry") or "",
+        "size": org_profile.get("size") or "",
+        "location": org_profile.get("location") or "",
+        "logo_url": org_profile.get("logo_url") or "",
+    }
 
 
 @router.get("/hr/candidates")

@@ -63,6 +63,7 @@ export const de = {
     copy: "Kopieren",
     copied: "Kopiert!",
     sendTo: "An Recruiter senden",
+    sendToDesc: "Geben Sie die E-Mail eines Recruiters ein, um Ihr Profil zu teilen. Er erhält einen Link mit direktem Zugang zu Ihrem Lebenslauf und Ihren Bewerbungsdetails.",
     send: "Senden",
     emailPlaceholder: "E-Mail-Adresse eingeben...",
     save: "Änderungen speichern",

@@ -1,5 +1,25 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi } from '../../../api';
+
+type OrgInfo = {
+  org_id: string;
+  name: string;
+  description: string;
+  website: string;
+  industry: string;
+  size: string;
+  location: string;
+  logo_url: string;
+};
+
+type OrgPopover = {
+  jobId: string;
+  orgId: string;
+  loading: boolean;
+  data: OrgInfo | null;
+  top: number;
+  right: number;
+};
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 
@@ -291,6 +311,7 @@ export function JobsTab() {
     const [externalError, setExternalError] = useState('');
     const [externalSource, setExternalSource] = useState('');
     const [externalModalUrl, setExternalModalUrl] = useState<string | null>(null);
+    const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
 
     // Saved jobs tracker
     const LS_KEY = 'candidate_tracked_jobs';
@@ -606,15 +627,6 @@ export function JobsTab() {
         alert(t.successMsg);
     };
 
-    const getStatusNormalized = (status: string) => status?.toUpperCase().replace(/ /g, '_') || '';
-
-    const getStatusStyles = (status: string) => {
-        const s = getStatusNormalized(status);
-        if (s.includes('APPL')) return 'bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-neutral-300 border-gray-200 dark:border-neutral-700';
-        if (s.includes('OFFER') || s.includes('HIRE') || s.includes('ACCEPT')) return 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50';
-        if (s.includes('REJECT') || s.includes('FAIL')) return 'bg-red-100 dark:bg-red-950/30 text-red-800 dark:text-red-400 border-red-200 dark:border-red-900/50';
-        return 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/30';
-    };
 
     const displayedJobs = jobs.filter(job => {
         const jobLevelKey = job.level?.toLowerCase() || '';
@@ -637,6 +649,28 @@ export function JobsTab() {
 
         return matchesLevel && matchesSearch && matchesType && matchesLocation;
     });
+
+    const orgCache = useRef<Record<string, OrgInfo>>({});
+
+    const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLDivElement>, jobId: string, orgId: string) => {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const top = rect.bottom + window.scrollY + 6;
+        const right = window.innerWidth - rect.right;
+        if (orgCache.current[orgId]) {
+            setOrgPopover({ jobId, orgId, loading: false, data: orgCache.current[orgId], top, right });
+            return;
+        }
+        setOrgPopover({ jobId, orgId, loading: true, data: null, top, right });
+        try {
+            const data = await authApi.getOrganizationPublic(orgId);
+            orgCache.current[orgId] = data;
+            setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data, top, right } : prev);
+        } catch {
+            setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data: null, top, right } : prev);
+        }
+    };
+
+    const handleOrgMouseLeave = () => setOrgPopover(null);
 
     if (loading) {
         return (
@@ -1029,19 +1063,7 @@ export function JobsTab() {
                         const jid = job.id || job.job_id;
                         const userApp = applications.find(a => a.job_id === jid);
                         const isExpanded = expandedJobId === jid;
-
-                        const displayStages = [t.stages.applied, t.stages.inProgress, t.stages.decision];
-                        const normalizedStatus = userApp ? getStatusNormalized(userApp.status) : '';
-
-                        let currentStageIdx = 0;
-                        if (normalizedStatus.includes('OFFER') || normalizedStatus.includes('HIRE') || normalizedStatus.includes('REJECT') || normalizedStatus.includes('FAIL') || normalizedStatus.includes('ACCEPT')) {
-                            currentStageIdx = 2; // Decision
-                        } else if (normalizedStatus !== '' && !normalizedStatus.includes('APPLIED')) {
-                            currentStageIdx = 1; // In Progress
-                        }
-
-                        const isRejected = normalizedStatus.includes('REJECT') || normalizedStatus.includes('FAIL');
-                        const isOffer = normalizedStatus.includes('OFFER') || normalizedStatus.includes('HIRE') || normalizedStatus.includes('ACCEPT');
+                        const isClosed = job.status === 'closed' || job.is_active === false;
 
                         return (
                             <div key={jid}
@@ -1050,12 +1072,12 @@ export function JobsTab() {
                                     className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                                     <div className="space-y-4 flex-1">
                                         <div className="flex flex-wrap items-center gap-3">
-                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{job.title}</h3>
-                                            {userApp && (
-                                                <span
-                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors ${getStatusStyles(userApp.status)}`}>
-                          {userApp.status.replace(/_/g, ' ')}
-                        </span>
+                                            <h3 className={`text-xl font-bold ${isClosed ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-900 dark:text-white'}`}>{job.title}</h3>
+                                            {isClosed && (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 border-gray-200 dark:border-neutral-700">
+                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    Closed
+                                                </span>
                                             )}
                                         </div>
 
@@ -1112,18 +1134,24 @@ export function JobsTab() {
                           </span>
                                                 )}
                                                 {job.organization_name && (
-                                                    <span
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
-                                strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                        {job.organization_name}
-                          </span>
+                                                    <div
+                                                        onMouseEnter={(e) => job.org_id && handleOrgMouseEnter(e, jid, job.org_id)}
+                                                        onMouseLeave={handleOrgMouseLeave}
+                                                    >
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap cursor-default transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 dark:hover:border-indigo-800/60">
+                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                            {job.organization_name}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
                                         {/* Apply button */}
-                                        {userApp ? (
+                                        {isClosed ? (
+                                            <div className="w-full text-center bg-gray-50 dark:bg-neutral-800/50 text-gray-400 dark:text-neutral-500 px-6 py-2.5 rounded-xl text-sm font-semibold border border-dashed border-gray-200 dark:border-neutral-700 transition-colors cursor-not-allowed">
+                                                Position Closed
+                                            </div>
+                                        ) : userApp ? (
                                             <div
                                                 className="w-full text-center bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 px-6 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-neutral-700 transition-colors">
                                                 {t.appSubmittedBtn}
@@ -1139,73 +1167,6 @@ export function JobsTab() {
                                     </div>
                                 </div>
 
-                                {userApp && (
-                                    <div
-                                        className="px-6 md:px-12 py-8 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 relative overflow-x-auto custom-scrollbar transition-colors">
-                                        <div
-                                            className="flex justify-between items-center relative min-w-[500px] max-w-3xl mx-auto">
-                                            <div
-                                                className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-800 -translate-y-1/2 z-0 rounded-full"></div>
-                                            <div
-                                                className={`absolute top-1/2 left-0 h-1 ${isRejected ? 'bg-red-500 dark:bg-red-600' : isOffer ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-indigo-500 dark:bg-white'} -translate-y-1/2 z-0 transition-all duration-1000 rounded-full`}
-                                                style={{width: `${Math.min(100, Math.max(0, (currentStageIdx / (displayStages.length - 1)) * 100))}%`}}
-                                            ></div>
-
-                                            {displayStages.map((stage: string, idx: number) => {
-                                                const isActive = idx <= currentStageIdx;
-                                                const isCurrent = idx === currentStageIdx;
-
-                                                let dotClass = 'bg-white dark:bg-black border-gray-300 dark:border-neutral-700';
-                                                let textClass = 'text-gray-400 dark:text-neutral-500';
-
-                                                if (isCurrent) {
-                                                    dotClass = isRejected ? 'bg-white dark:bg-black border-red-500 dark:border-red-600 shadow-sm' : isOffer ? 'bg-white dark:bg-black border-emerald-500 dark:border-emerald-600 shadow-sm' : 'bg-white dark:bg-black border-indigo-500 dark:border-white shadow-sm';
-                                                    textClass = isRejected ? 'text-red-600 dark:text-red-400' : isOffer ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-white';
-                                                } else if (isActive) {
-                                                    dotClass = isRejected ? 'bg-red-500 dark:bg-red-600 border-red-500 dark:border-red-600' : isOffer ? 'bg-emerald-500 dark:bg-emerald-600 border-emerald-500 dark:border-emerald-600' : 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white';
-                                                    textClass = isRejected || isOffer ? 'text-white' : 'text-white dark:text-black';
-                                                }
-
-                                                return (
-                                                    <div key={stage}
-                                                         className="relative z-10 flex flex-col items-center">
-                                                        <div
-                                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${dotClass}`}>
-                                                            {isActive && !isCurrent ? (
-                                                                <svg className={`w-4 h-4 ${textClass}`} fill="none"
-                                                                     viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round"
-                                                                          strokeWidth={3} d="M5 13l4 4L19 7"/>
-                                                                </svg>
-                                                            ) : <span
-                                                                className={`text-xs font-bold ${textClass}`}>{idx + 1}</span>}
-                                                        </div>
-                                                        <span
-                                                            className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isRejected ? 'text-red-700 dark:text-red-400' : isOffer ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
-                              {stage}
-                            </span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {isRejected && (
-                                            <div
-                                                className="absolute inset-0 bg-red-50/80 dark:bg-red-950/80 backdrop-blur-sm flex items-center justify-center z-20 transition-colors">
-                                                <div
-                                                    className="bg-white dark:bg-neutral-900 text-red-600 dark:text-red-400 border border-red-500 dark:border-red-500/50 px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                                         stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round"
-                                                              strokeWidth={2}
-                                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                    </svg>
-                                                    {t.rejectedStamp}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
                             </div>
                         );
                     })
@@ -1443,6 +1404,71 @@ export function JobsTab() {
                             </a>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Org popover — fixed so it's never clipped by card overflow */}
+            {orgPopover && (
+                <div
+                    className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl pointer-events-none"
+                    style={{ top: orgPopover.top, right: orgPopover.right }}
+                >
+                    {orgPopover.loading ? (
+                        <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">
+                            <div className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-500 rounded-full animate-spin shrink-0" />
+                            Loading...
+                        </div>
+                    ) : !orgPopover.data ? (
+                        <p className="px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">Could not load company info.</p>
+                    ) : (
+                        <div className="p-4 space-y-3">
+                            <div className="flex items-center gap-3">
+                                {orgPopover.data.logo_url ? (
+                                    <img src={orgPopover.data.logo_url} alt="" className="w-10 h-10 rounded-xl object-cover border border-gray-200 dark:border-neutral-700 shrink-0" />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 flex items-center justify-center text-lg font-bold text-gray-400 dark:text-neutral-500 shrink-0">
+                                        {orgPopover.data.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="min-w-0">
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">{orgPopover.data.name}</p>
+                                    {orgPopover.data.industry && <p className="text-xs text-gray-500 dark:text-neutral-400">{orgPopover.data.industry}</p>}
+                                </div>
+                            </div>
+
+                            {orgPopover.data.description && (
+                                <p className="text-xs text-gray-600 dark:text-neutral-300 leading-relaxed line-clamp-3">{orgPopover.data.description}</p>
+                            )}
+
+                            {(orgPopover.data.size || orgPopover.data.location) && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {orgPopover.data.size && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-md text-[10px] font-medium">
+                                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            {orgPopover.data.size}
+                                        </span>
+                                    )}
+                                    {orgPopover.data.location && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-md text-[10px] font-medium">
+                                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            {orgPopover.data.location}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {orgPopover.data.website && (
+                                <p className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                    <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    {orgPopover.data.website}
+                                </p>
+                            )}
+
+                            {!orgPopover.data.description && !orgPopover.data.website && !orgPopover.data.size && !orgPopover.data.location && (
+                                <p className="text-xs text-gray-400 dark:text-neutral-500 italic">No company description added yet.</p>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

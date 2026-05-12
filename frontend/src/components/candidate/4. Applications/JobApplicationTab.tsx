@@ -1,9 +1,31 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { jobsApi, screeningApi } from '../../../api';
+import { jobsApi, screeningApi, authApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 
-const STAGES = [
+type OrgInfo = {
+  org_id: string;
+  name: string;
+  description: string;
+  website: string;
+  industry: string;
+  size: string;
+  location: string;
+  logo_url: string;
+};
+
+type OrgPopover = {
+  jobId: string;
+  orgId: string;
+  loading: boolean;
+  data: OrgInfo | null;
+  top: number;
+  right: number;
+};
+
+const DISPLAY_STAGES = ['Applied', 'In Progress', 'Decision'];
+
+const SELF_STAGES = [
   { value: 'Saved',          label: 'Saved' },
   { value: 'Applied',        label: 'Applied' },
   { value: 'Shortlisted',    label: 'Shortlisted' },
@@ -12,7 +34,14 @@ const STAGES = [
   { value: 'Offer',          label: 'Offer' },
 ];
 const REJECTED_VALUE = 'Rejected';
-const ALL_STAGE_VALUES = [...STAGES.map(s => s.value), REJECTED_VALUE];
+const ALL_STAGE_VALUES = [...SELF_STAGES.map(s => s.value), REJECTED_VALUE];
+
+function getDisplayStageIdx(status: string) {
+  const n = status?.toUpperCase().replace(/ /g, '_') || '';
+  if (n.includes('OFFER') || n.includes('HIRE') || n.includes('ACCEPT') || n.includes('REJECT') || n.includes('FAIL')) return 2;
+  if (n !== '' && !n.includes('APPLIED') && !n.includes('NOT_APPLIED')) return 1;
+  return 0;
+}
 
 function stageIcon(norm: string, size = 'w-4 h-4') {
   const p = { className: size, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', strokeWidth: 1.8 } as any;
@@ -70,7 +99,7 @@ function normalizeStatus(s: string) {
 
 function getStageIndex(s: string) {
   const n = normalizeStatus(s);
-  return STAGES.findIndex(st => normalizeStatus(st.value) === n);
+  return SELF_STAGES.findIndex(st => normalizeStatus(st.value) === n);
 }
 
 export function JobApplicationTab() {
@@ -94,6 +123,28 @@ export function JobApplicationTab() {
   const [searchQuery, setSearchQuery]   = useState('');
 
   const firstLoad = useRef(true);
+  const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
+  const orgCache = useRef<Record<string, OrgInfo>>({});
+
+  const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLDivElement>, jobId: string, orgId: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const top   = rect.bottom + window.scrollY + 6;
+    const right = window.innerWidth - rect.right;
+    if (orgCache.current[orgId]) {
+      setOrgPopover({ jobId, orgId, loading: false, data: orgCache.current[orgId], top, right });
+      return;
+    }
+    setOrgPopover({ jobId, orgId, loading: true, data: null, top, right });
+    try {
+      const data = await authApi.getOrganizationPublic(orgId);
+      orgCache.current[orgId] = data;
+      setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data, top, right } : prev);
+    } catch {
+      setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data: null, top, right } : prev);
+    }
+  };
+
+  const handleOrgMouseLeave = () => setOrgPopover(null);
 
   const fetchApplications = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -115,9 +166,12 @@ export function JobApplicationTab() {
         if (app) {
           return {
             ...app,
-            job_title:       app.job_title  || job.title,
-            job_region:      app.job_region || job.region,
-            job_description: job.description ?? null,
+            job_title:         app.job_title  || job.title,
+            job_region:        app.job_region || job.region,
+            job_description:   job.description ?? null,
+            job_status:        job.status ?? null,
+            organization_name: job.organization_name ?? null,
+            org_id:            job.org_id ?? null,
           };
         }
 
@@ -127,6 +181,9 @@ export function JobApplicationTab() {
           job_title: job.title,
           job_region: job.region,
           job_description: job.description ?? null,
+          job_status: job.status ?? null,
+          organization_name: job.organization_name ?? null,
+          org_id: job.org_id ?? null,
           status: 'Not Applied',
           created_at: null,
           screening: null,
@@ -198,11 +255,11 @@ export function JobApplicationTab() {
 
   const matchesStageFilter = (jobStatus: string) => {
     if (stageFilter === 'all') return true;
+    const norm       = normalizeStatus(jobStatus);
     const filterNorm = normalizeStatus(stageFilter);
-    const jobNorm    = normalizeStatus(jobStatus);
-    if (filterNorm === 'REJECTED') return jobNorm === 'REJECTED';
-    if (jobNorm    === 'REJECTED') return false;
-    return getStageIndex(jobStatus) >= getStageIndex(stageFilter);
+    if (filterNorm === 'REJECTED') return norm.includes('REJECT') || norm.includes('FAIL');
+    if (norm.includes('REJECT') || norm.includes('FAIL')) return false;
+    return getDisplayStageIdx(jobStatus) >= getDisplayStageIdx(stageFilter);
   };
 
   const filteredApi = useMemo(() => {
@@ -246,10 +303,10 @@ export function JobApplicationTab() {
       );
     }
 
-    const norm = normalizeStatus(app.status);
-    const idx  = getStageIndex(app.status);
-    const isRejected = norm === 'REJECTED';
-    const isOffer    = norm === 'OFFER';
+    const norm       = normalizeStatus(app.status);
+    const isRejected = norm.includes('REJECT') || norm.includes('FAIL');
+    const isOffer    = norm.includes('OFFER') || norm.includes('HIRE') || norm.includes('ACCEPT');
+    const idx        = getDisplayStageIdx(app.status);
 
     if (isRejected) {
       return (
@@ -268,16 +325,16 @@ export function JobApplicationTab() {
           <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-800 -translate-y-1/2 z-0 rounded-full" />
           <div
             className={`absolute top-1/2 left-0 h-1 ${isOffer ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-indigo-500 dark:bg-white'} -translate-y-1/2 z-0 transition-all duration-700 rounded-full`}
-            style={{ width: `${Math.min(100, Math.max(0, (idx / (STAGES.length - 1)) * 100))}%` }}
+            style={{ width: `${Math.min(100, Math.max(0, (idx / (DISPLAY_STAGES.length - 1)) * 100))}%` }}
           />
-          {STAGES.map((stage, i) => {
+          {DISPLAY_STAGES.map((label, i) => {
             const isActive  = i <= idx;
             const isCurrent = i === idx;
             let dot = 'bg-white dark:bg-black border-gray-300 dark:border-neutral-700';
             if (isCurrent) dot = isOffer ? 'bg-white dark:bg-black border-emerald-500 dark:border-emerald-600 shadow-sm' : 'bg-white dark:bg-black border-indigo-500 dark:border-white shadow-sm';
             else if (isActive) dot = isOffer ? 'bg-emerald-500 dark:bg-emerald-600 border-emerald-500 dark:border-emerald-600' : 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white';
             return (
-              <div key={stage.value} className="relative z-10 flex flex-col items-center">
+              <div key={label} className="relative z-10 flex flex-col items-center">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${dot}`}>
                   {isActive && !isCurrent
                     ? <svg className="w-3.5 h-3.5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
@@ -285,7 +342,7 @@ export function JobApplicationTab() {
                   }
                 </div>
                 <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isOffer ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
-                  {stage.label}
+                  {label}
                 </span>
               </div>
             );
@@ -311,7 +368,7 @@ export function JobApplicationTab() {
         </p>
 
         <div className="flex items-stretch gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-          {STAGES.map((stage, idx) => {
+          {SELF_STAGES.map((stage, idx) => {
             const sNorm     = normalizeStatus(stage.value);
             const isCurrent = !isRejected && idx === currentIdx;
             const isPast    = !isRejected && idx < currentIdx;
@@ -492,7 +549,7 @@ export function JobApplicationTab() {
               }`}
             >
               <option value="all">{t.allStages}</option>
-              {ALL_STAGE_VALUES.map(s => (
+              {[...DISPLAY_STAGES, 'Rejected'].map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
@@ -541,10 +598,11 @@ export function JobApplicationTab() {
         <div className="grid grid-cols-1 gap-4">
 
           {filteredApi.map(app => {
-            const norm = normalizeStatus(app.status);
-            const isRejected = norm === 'REJECTED';
-            const isOffer    = norm === 'OFFER';
+            const norm       = normalizeStatus(app.status);
+            const isRejected = norm.includes('REJECT') || norm.includes('FAIL');
+            const isOffer    = norm.includes('OFFER') || norm.includes('HIRE') || norm.includes('ACCEPT');
             const notApplied = app._notApplied === true;
+            const isClosed   = app.job_status === 'closed';
             return (
               <div
                 key={app.job_id}
@@ -566,13 +624,21 @@ export function JobApplicationTab() {
                           </svg>
                           {t.hrManaged}
                         </span>
+                        {isClosed && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 shrink-0 transition-colors">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Closed
+                          </span>
+                        )}
                         {notApplied && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 shrink-0 transition-colors">
                             {t.notApplied}
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 dark:text-neutral-500 font-medium transition-colors">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 dark:text-neutral-500 font-medium transition-colors">
                         {app.job_region && (
                           <span className="flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -584,8 +650,16 @@ export function JobApplicationTab() {
                         {!notApplied && app.created_at && (
                           <span>{t.appliedOn} {new Date(app.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         )}
-                        {app.screening?.score != null && (
-                          <span className="text-gray-600 dark:text-neutral-400 font-semibold">{t.match}: {app.screening.score}%</span>
+                        {app.organization_name && (
+                          <div
+                            onMouseEnter={(e) => app.org_id && handleOrgMouseEnter(e, app.job_id, app.org_id)}
+                            onMouseLeave={handleOrgMouseLeave}
+                          >
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap cursor-default transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 dark:hover:border-indigo-800/60">
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                              {app.organization_name}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -782,6 +856,67 @@ export function JobApplicationTab() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Org popover — fixed so it's never clipped by card overflow */}
+      {orgPopover && (
+        <div
+          className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl pointer-events-none"
+          style={{ top: orgPopover.top, right: orgPopover.right }}
+        >
+          {orgPopover.loading ? (
+            <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">
+              <div className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-500 rounded-full animate-spin shrink-0" />
+              Loading...
+            </div>
+          ) : !orgPopover.data ? (
+            <p className="px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">Could not load company info.</p>
+          ) : (
+            <div className="p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                {orgPopover.data.logo_url ? (
+                  <img src={orgPopover.data.logo_url} alt="" className="w-10 h-10 rounded-xl object-cover border border-gray-200 dark:border-neutral-700 shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 flex items-center justify-center text-lg font-bold text-gray-400 dark:text-neutral-500 shrink-0">
+                    {orgPopover.data.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">{orgPopover.data.name}</p>
+                  {orgPopover.data.industry && <p className="text-xs text-gray-500 dark:text-neutral-400">{orgPopover.data.industry}</p>}
+                </div>
+              </div>
+              {orgPopover.data.description && (
+                <p className="text-xs text-gray-600 dark:text-neutral-300 leading-relaxed line-clamp-3">{orgPopover.data.description}</p>
+              )}
+              {(orgPopover.data.size || orgPopover.data.location) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {orgPopover.data.size && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-md text-[10px] font-medium">
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                      {orgPopover.data.size}
+                    </span>
+                  )}
+                  {orgPopover.data.location && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-md text-[10px] font-medium">
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                      {orgPopover.data.location}
+                    </span>
+                  )}
+                </div>
+              )}
+              {orgPopover.data.website && (
+                <p className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  {orgPopover.data.website}
+                </p>
+              )}
+              {!orgPopover.data.description && !orgPopover.data.website && !orgPopover.data.size && !orgPopover.data.location && (
+                <p className="text-xs text-gray-400 dark:text-neutral-500 italic">No company description added yet.</p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

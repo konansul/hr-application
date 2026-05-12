@@ -41,6 +41,11 @@ export const authApi = {
     return response.data;
   },
 
+  getOrganizationPublic: async (orgId: string) => {
+    const response = await apiClient.get(`/v1/organizations/${orgId}/public`);
+    return response.data;
+  },
+
   listCandidates: async () => {
     const response = await apiClient.get('/v1/hr/candidates');
     return response.data;

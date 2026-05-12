@@ -63,6 +63,7 @@ export const pt = {
     copy: "Copiar",
     copied: "Copiado!",
     sendTo: "Enviar para Recrutador",
+    sendToDesc: "Insira o e-mail de um recrutador para compartilhar seu perfil. Ele receberá um link com acesso direto ao seu CV e aos detalhes da sua candidatura.",
     send: "Enviar",
     emailPlaceholder: "Digite o endereço de e-mail...",
     save: "Salvar Alterações",

@@ -129,6 +129,7 @@ def create_job(
         requirements=db_job.requirements,
         created_at=db_job.created_at,
         organization_name=db_job.organization.name if db_job.organization else None,
+        org_id=db_job.org_id,
     )
 
 
@@ -181,6 +182,7 @@ def list_jobs(
             requirements=job.requirements,
             created_at=job.created_at,
             organization_name=job.organization.name if job.organization else None,
+            org_id=job.org_id,
         ))
     return results
 
@@ -227,6 +229,7 @@ def get_job(
         requirements=job.requirements,
         created_at=job.created_at,
         organization_name=job.organization.name if job.organization else None,
+        org_id=job.org_id,
     )
 
 
@@ -328,4 +331,5 @@ def update_job(
         requirements=job.requirements,
         created_at=job.created_at,
         organization_name=job.organization.name if job.organization else None,
+        org_id=job.org_id,
     )

@@ -74,6 +74,7 @@ class JobOut(BaseModel):
     requirements: Optional[JobRequirementsBase] = None
     created_at: Optional[datetime] = None
     organization_name: Optional[str] = None
+    org_id: Optional[str] = None
 
     class Config:
         from_attributes = True

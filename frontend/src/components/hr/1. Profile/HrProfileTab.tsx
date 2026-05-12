@@ -32,6 +32,12 @@ interface HrProfile {
   department: string;
   hr_role_title: string;
   timezone: string;
+  org_description: string;
+  org_website: string;
+  org_industry: string;
+  org_size: string;
+  org_location: string;
+  org_logo_url: string;
 }
 
 const EMPTY_PROFILE: HrProfile = {
@@ -47,6 +53,12 @@ const EMPTY_PROFILE: HrProfile = {
   department: '',
   hr_role_title: '',
   timezone: '',
+  org_description: '',
+  org_website: '',
+  org_industry: '',
+  org_size: '',
+  org_location: '',
+  org_logo_url: '',
 };
 
 export function HrProfileTab() {
@@ -58,6 +70,7 @@ export function HrProfileTab() {
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingWork, setIsEditingWork] = useState(false);
+  const [isEditingOrg, setIsEditingOrg] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -290,6 +303,73 @@ export function HrProfileTab() {
                   </FormField>
                   <FormField label={t.fields.city}>
                     <input type="text" value={profile.city} onChange={e => setField('city', e.target.value)} className={inputCls} />
+                  </FormField>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Company Profile section */}
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+            <SectionHeader
+              label="Company Profile"
+              dot="bg-violet-500 dark:bg-violet-400"
+              isEditing={isEditingOrg}
+              onEdit={() => setIsEditingOrg(true)}
+              onCancel={() => setIsEditingOrg(false)}
+            />
+            <div className="p-6">
+              {!isEditingOrg ? (
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
+                    <DetailRow label="Description" value={profile.org_description} />
+                    <DetailRow label="Website" value={profile.org_website} />
+                    <DetailRow label="Industry" value={profile.org_industry} />
+                    <DetailRow label="Company Size" value={profile.org_size} />
+                    <DetailRow label="Location" value={profile.org_location} />
+                  </div>
+                  {!profile.org_description && !profile.org_website && !profile.org_industry && (
+                    <p className="text-sm text-gray-400 dark:text-neutral-500 italic pt-2">No company info yet. Candidates see this when they click your company name on a job posting.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="px-4 py-3 bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/50 rounded-xl text-xs text-violet-700 dark:text-violet-400">
+                    This information is shown to candidates when they click your company name on a job listing.
+                  </div>
+                  <FormField label="Description">
+                    <textarea
+                      value={profile.org_description}
+                      onChange={e => setField('org_description', e.target.value)}
+                      rows={3}
+                      placeholder="Tell candidates about your company, culture, and mission..."
+                      className={inputCls + ' resize-none'}
+                    />
+                  </FormField>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField label="Website">
+                      <input type="text" value={profile.org_website} onChange={e => setField('org_website', e.target.value)} placeholder="https://yourcompany.com" className={inputCls} />
+                    </FormField>
+                    <FormField label="Industry">
+                      <input type="text" value={profile.org_industry} onChange={e => setField('org_industry', e.target.value)} placeholder="e.g. Software, Finance, Healthcare" className={inputCls} />
+                    </FormField>
+                    <FormField label="Company Size">
+                      <select value={profile.org_size} onChange={e => setField('org_size', e.target.value)} className={inputCls}>
+                        <option value="">Select size...</option>
+                        <option value="1–10">1–10 employees</option>
+                        <option value="11–50">11–50 employees</option>
+                        <option value="51–200">51–200 employees</option>
+                        <option value="201–500">201–500 employees</option>
+                        <option value="501–1000">501–1000 employees</option>
+                        <option value="1000+">1000+ employees</option>
+                      </select>
+                    </FormField>
+                    <FormField label="Location">
+                      <input type="text" value={profile.org_location} onChange={e => setField('org_location', e.target.value)} placeholder="e.g. Berlin, Germany" className={inputCls} />
+                    </FormField>
+                  </div>
+                  <FormField label="Logo URL">
+                    <input type="text" value={profile.org_logo_url} onChange={e => setField('org_logo_url', e.target.value)} placeholder="https://yourcompany.com/logo.png" className={inputCls} />
                   </FormField>
                 </div>
               )}

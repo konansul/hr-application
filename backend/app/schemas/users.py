@@ -43,6 +43,13 @@ class HRProfileUpdate(BaseModel):
     department: Optional[str] = None
     hr_role_title: Optional[str] = None
     timezone: Optional[str] = None
+    # Organization public profile fields
+    org_description: Optional[str] = None
+    org_website: Optional[str] = None
+    org_industry: Optional[str] = None
+    org_size: Optional[str] = None
+    org_location: Optional[str] = None
+    org_logo_url: Optional[str] = None
 
 class PublicProfileOut(BaseModel):
     person_id: str
