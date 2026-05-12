@@ -4,6 +4,26 @@ import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 import { OnboardingWizard } from './OnboardingWizard';
 
+const REQUIRED_PI_FIELDS: { key: string; label: string; isEnum: boolean }[] = [
+  { key: 'first_name', label: 'First Name', isEnum: false },
+  { key: 'last_name', label: 'Last Name', isEnum: false },
+  { key: 'phone', label: 'Phone', isEnum: false },
+  { key: 'city', label: 'City', isEnum: false },
+  { key: 'country', label: 'Country', isEnum: false },
+  { key: 'visa_status', label: 'Visa Status', isEnum: true },
+  { key: 'work_preference', label: 'Work Preference', isEnum: true },
+];
+
+function getMissingKeys(profileData: any): string[] {
+  const pi = profileData.personal_info || {};
+  return REQUIRED_PI_FIELDS.filter(f => {
+    const v = pi[f.key];
+    if (!v || v === '') return true;
+    if (f.isEnum && v === 'UNKNOWN') return true;
+    return false;
+  }).map(f => f.key);
+}
+
 export function ProfileTab() {
   const { language } = useStore();
   const t = DICT[language as keyof typeof DICT]?.profile || DICT.en.profile;
@@ -42,6 +62,7 @@ export function ProfileTab() {
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isEditingCertifications, setIsEditingCertifications] = useState(false);
   const [isEditingReferences, setIsEditingReferences] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -193,6 +214,9 @@ export function ProfileTab() {
 
   const handlePersonalInputChange = (field: string, value: any) => {
     setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, [field]: value } }));
+    if (validationErrors.has(field)) {
+      setValidationErrors(prev => { const next = new Set(prev); next.delete(field); return next; });
+    }
   };
 
   const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'references', index: number, field: string, value: any) => {
@@ -229,6 +253,16 @@ export function ProfileTab() {
   };
 
   const handleSaveProfile = async () => {
+    const missing = getMissingKeys(profileData);
+    if (missing.length > 0) {
+      setValidationErrors(new Set(missing));
+      setIsEditingPersonalInfo(true);
+      const labels = missing.map(k => REQUIRED_PI_FIELDS.find(f => f.key === k)?.label).join(', ');
+      setMessage({ text: `Please complete required fields: ${labels}`, type: 'error' });
+      document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    setValidationErrors(new Set());
     setIsUploading(true);
     try {
       await authApi.updateProfile(profileData);
@@ -288,6 +322,45 @@ export function ProfileTab() {
     </div>
   );
 
+  const RequiredDetailRow = ({ label, value, fieldKey }: { label: string; value: any; fieldKey: string }) => {
+    const isMissing = getMissingKeys(profileData).includes(fieldKey);
+    return (
+      <div className="flex flex-col border-b border-gray-100 dark:border-neutral-800 py-3">
+        <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+          {label}
+          <span className="text-red-400 dark:text-red-500 text-[10px] ml-0.5">*</span>
+        </span>
+        {isMissing ? (
+          <button
+            onClick={() => { setIsEditingPersonalInfo(true); document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            className="text-left text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+          >
+            <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Not completed — click to fill in
+          </button>
+        ) : (
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{value}</span>
+        )}
+      </div>
+    );
+  };
+
+  const inputClass = (fieldKey: string, extra = '') =>
+    `w-full px-3 py-2 rounded-xl text-sm transition-all outline-none dark:text-white ${extra} ${
+      validationErrors.has(fieldKey)
+        ? 'bg-red-50 dark:bg-red-950/20 border-2 border-red-400 dark:border-red-500 focus:ring-2 focus:ring-red-400 dark:focus:ring-red-500'
+        : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white'
+    }`;
+
+  const selectClass = (fieldKey: string) =>
+    `w-full px-3 py-2 rounded-xl text-sm transition-all outline-none dark:text-white ${
+      validationErrors.has(fieldKey)
+        ? 'bg-red-50 dark:bg-red-950/20 border-2 border-red-400 dark:border-red-500 focus:ring-2 focus:ring-red-400 dark:focus:ring-red-500'
+        : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white'
+    }`;
+
   return (
     <div className="w-full max-w-none mx-auto animate-in fade-in duration-300 pb-32">
       <div className="mb-8">
@@ -315,7 +388,7 @@ export function ProfileTab() {
 
         <div className="lg:col-span-8 space-y-6">
 
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+          <div id="personal-info-section" className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
@@ -341,15 +414,15 @@ export function ProfileTab() {
             <div className="p-6">
               {!isEditingPersonalInfo ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                  <DetailRow label={t.personal.firstName} value={profileData.personal_info.first_name} />
-                  <DetailRow label={t.personal.lastName} value={profileData.personal_info.last_name} />
+                  <RequiredDetailRow label={t.personal.firstName} fieldKey="first_name" value={profileData.personal_info.first_name} />
+                  <RequiredDetailRow label={t.personal.lastName} fieldKey="last_name" value={profileData.personal_info.last_name} />
                   <DetailRow label={t.personal.email} value={profileData.personal_info.email} />
-                  <DetailRow label={t.personal.phone} value={profileData.personal_info.phone} />
-                  <DetailRow label={t.personal.city} value={profileData.personal_info.city} />
-                  <DetailRow label={t.personal.country} value={profileData.personal_info.country} />
+                  <RequiredDetailRow label={t.personal.phone} fieldKey="phone" value={profileData.personal_info.phone} />
+                  <RequiredDetailRow label={t.personal.city} fieldKey="city" value={profileData.personal_info.city} />
+                  <RequiredDetailRow label={t.personal.country} fieldKey="country" value={profileData.personal_info.country} />
                   <DetailRow label={t.personal.nationality} value={profileData.personal_info.nationality} />
-                  <DetailRow label={t.personal.visa} value={profileData.personal_info.visa_status?.replace(/_/g, ' ')} />
-                  <DetailRow label={t.personal.workPref} value={profileData.personal_info.work_preference} />
+                  <RequiredDetailRow label={t.personal.visa} fieldKey="visa_status" value={profileData.personal_info.visa_status === 'UNKNOWN' ? '' : profileData.personal_info.visa_status?.replace(/_/g, ' ')} />
+                  <RequiredDetailRow label={t.personal.workPref} fieldKey="work_preference" value={profileData.personal_info.work_preference === 'UNKNOWN' ? '' : profileData.personal_info.work_preference} />
                   <DetailRow label={t.personal.linkedin} value={profileData.personal_info.linkedin_url} />
                   <DetailRow label={t.personal.github} value={profileData.personal_info.github_url} />
                   <DetailRow label={t.personal.portfolio} value={profileData.personal_info.portfolio_url} />
@@ -368,36 +441,42 @@ export function ProfileTab() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.firstName}</label>
-                    <input type="text" value={profileData.personal_info.first_name || ''} onChange={(e) => handlePersonalInputChange('first_name', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.firstName}<span className="text-red-400">*</span></label>
+                    <input type="text" value={profileData.personal_info.first_name || ''} onChange={(e) => handlePersonalInputChange('first_name', e.target.value)} className={inputClass('first_name')} />
+                    {validationErrors.has('first_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.lastName}</label>
-                    <input type="text" value={profileData.personal_info.last_name || ''} onChange={(e) => handlePersonalInputChange('last_name', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.lastName}<span className="text-red-400">*</span></label>
+                    <input type="text" value={profileData.personal_info.last_name || ''} onChange={(e) => handlePersonalInputChange('last_name', e.target.value)} className={inputClass('last_name')} />
+                    {validationErrors.has('last_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.email}</label>
                     <input type="email" value={profileData.personal_info.email || ''} onChange={(e) => handlePersonalInputChange('email', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.phone}</label>
-                    <input type="text" value={profileData.personal_info.phone || ''} onChange={(e) => handlePersonalInputChange('phone', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.phone}<span className="text-red-400">*</span></label>
+                    <input type="text" value={profileData.personal_info.phone || ''} onChange={(e) => handlePersonalInputChange('phone', e.target.value)} className={inputClass('phone')} />
+                    {validationErrors.has('phone') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.city}</label>
-                    <input type="text" value={profileData.personal_info.city || ''} onChange={(e) => handlePersonalInputChange('city', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.city}<span className="text-red-400">*</span></label>
+                    <input type="text" value={profileData.personal_info.city || ''} onChange={(e) => handlePersonalInputChange('city', e.target.value)} className={inputClass('city')} />
+                    {validationErrors.has('city') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.country}</label>
-                    <input type="text" value={profileData.personal_info.country || ''} onChange={(e) => handlePersonalInputChange('country', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.country}<span className="text-red-400">*</span></label>
+                    <input type="text" value={profileData.personal_info.country || ''} onChange={(e) => handlePersonalInputChange('country', e.target.value)} className={inputClass('country')} />
+                    {validationErrors.has('country') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.nationality}</label>
                     <input type="text" value={profileData.personal_info.nationality || ''} onChange={(e) => handlePersonalInputChange('nationality', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.visa}</label>
-                    <select value={profileData.personal_info.visa_status || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('visa_status', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white">
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.visa}<span className="text-red-400">*</span></label>
+                    <select value={profileData.personal_info.visa_status || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('visa_status', e.target.value)} className={selectClass('visa_status')}>
+                      <option value="UNKNOWN" disabled>— Select visa status —</option>
                       <option value="CITIZEN">Citizen</option>
                       <option value="PERMANENT_RESIDENT">Permanent Resident</option>
                       <option value="WORK_PERMIT">Work Permit</option>
@@ -405,18 +484,19 @@ export function ProfileTab() {
                       <option value="SPONSORED_VISA">Sponsored Visa</option>
                       <option value="NO_WORK_AUTHORIZATION">No Work Authorization</option>
                       <option value="OTHER">Other</option>
-                      <option value="UNKNOWN">Unknown</option>
                     </select>
+                    {validationErrors.has('visa_status') && <p className="text-[10px] text-red-500 font-semibold mt-1">Please select a visa status</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.workPref}</label>
-                    <select value={profileData.personal_info.work_preference || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('work_preference', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white">
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.workPref}<span className="text-red-400">*</span></label>
+                    <select value={profileData.personal_info.work_preference || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('work_preference', e.target.value)} className={selectClass('work_preference')}>
+                      <option value="UNKNOWN" disabled>— Select preference —</option>
                       <option value="ONSITE">Onsite</option>
                       <option value="HYBRID">Hybrid</option>
                       <option value="REMOTE">Remote</option>
                       <option value="FLEXIBLE">Flexible</option>
-                      <option value="UNKNOWN">Unknown</option>
                     </select>
+                    {validationErrors.has('work_preference') && <p className="text-[10px] text-red-500 font-semibold mt-1">Please select a work preference</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.linkedin}</label>
@@ -928,6 +1008,65 @@ export function ProfileTab() {
               Redo setup wizard
             </button>
           </div>
+
+          {(() => {
+            const missing = getMissingKeys(profileData);
+            const completed = REQUIRED_PI_FIELDS.length - missing.length;
+            const total = REQUIRED_PI_FIELDS.length;
+            const pct = Math.round((completed / total) * 100);
+            const isComplete = missing.length === 0;
+            return (
+              <div className={`bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors ${isComplete ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-amber-200 dark:border-amber-700/50'}`}>
+                <div className="px-5 py-4">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">Profile Completeness</span>
+                    <span className={`text-xs font-bold ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{pct}%</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-400' : 'bg-red-400'}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  {isComplete ? (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      All required fields complete
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">Missing required fields:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {missing.map(key => {
+                          const label = REQUIRED_PI_FIELDS.find(f => f.key === key)?.label ?? key;
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => {
+                                setIsEditingPersonalInfo(true);
+                                document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
+                              className="px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700/50 rounded-lg text-[10px] font-bold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors flex items-center gap-1"
+                            >
+                              <svg className="w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {profileData.skills?.length === 0 && profileData.experience?.length === 0 && (
+                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 pt-1">Also consider adding experience and skills.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
