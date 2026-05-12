@@ -34,7 +34,7 @@ const SELF_STAGES = [
   { value: 'Offer',          label: 'Offer' },
 ];
 const REJECTED_VALUE = 'Rejected';
-const ALL_STAGE_VALUES = [...SELF_STAGES.map(s => s.value), REJECTED_VALUE];
+// const ALL_STAGE_VALUES = [...SELF_STAGES.map(s => s.value), REJECTED_VALUE];
 
 function getDisplayStageIdx(status: string) {
   const n = status?.toUpperCase().replace(/ /g, '_') || '';

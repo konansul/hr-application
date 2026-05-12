@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi } from '../../../api';
+import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi, resumesApi } from '../../../api';
 
 type OrgInfo = {
   org_id: string;
@@ -294,6 +294,8 @@ export function JobsTab() {
     const [myDocuments, setMyDocuments] = useState<any[]>([]);
     const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
     const [pendingApp, setPendingApp] = useState<{ jobId: string, answers: any } | null>(null);
+    const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
 
     const [selectedLevelKey, setSelectedLevelKey] = useState<string>('all');
     const [selectedType, setSelectedType] = useState<string>('all');
@@ -566,18 +568,41 @@ export function JobsTab() {
         proceedWithApplication(jid, answers);
     };
 
+    const loadPreviewForResume = async (resume: any) => {
+        setPreviewBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+        if (!resume.generated_document_id) { setPreviewLoading(false); return; }
+        setPreviewLoading(true);
+        try {
+            const url = await documentsApi.getDocumentFileUrl(resume.generated_document_id);
+            setPreviewBlobUrl(url);
+        } catch {
+            // preview stays null
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
+
+    const handleSelectResume = (resume: any) => {
+        setSelectedResumeId(resume.resume_id);
+        loadPreviewForResume(resume);
+    };
+
+    const closeResumeSelector = () => {
+        setShowResumeSelector(false);
+        setPreviewBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+    };
+
     const proceedWithApplication = async (jobId: string, finalAnswers: any = null) => {
         try {
-            const myDocs = await documentsApi.getMyDocuments();
-            setPendingApp({jobId, answers: finalAnswers}); // Запоминаем, куда откликаемся
-
-            if (myDocs.length > 0) {
-                // Если резюме есть, показываем окно выбора
-                setMyDocuments(myDocs);
-                setSelectedResumeId(myDocs[0].resume_id); // Выбираем первое по умолчанию
+            const resumes = await resumesApi.list();
+            setPendingApp({ jobId, answers: finalAnswers });
+            if (resumes && resumes.length > 0) {
+                setMyDocuments(resumes);
+                const first = resumes[0];
+                setSelectedResumeId(first.resume_id);
                 setShowResumeSelector(true);
+                loadPreviewForResume(first);
             } else {
-                // Если резюме вообще нет, просим загрузить
                 fileInputRef.current?.click();
             }
         } catch (err: any) {
@@ -586,15 +611,10 @@ export function JobsTab() {
     };
 
     const submitApplicationFinal = async () => {
-        if (!pendingApp || !selectedResumeId) {
-            alert("Please select a resume first");
-            return;
-        }
-
-        console.log("SENDING APPLICATION WITH RESUME_ID:", selectedResumeId);
-
+        if (!pendingApp || !selectedResumeId) return;
         try {
             await screeningApi.applyToJob(pendingApp.jobId, pendingApp.answers, selectedResumeId);
+            setPreviewBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
             setShowResumeSelector(false);
             completeApplication();
         } catch (err: any) {
@@ -698,26 +718,34 @@ export function JobsTab() {
                 </div>
 
                 {/* Mode switcher */}
-                <div className="flex gap-1 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-fit transition-colors">
+                <div className="flex gap-2">
                     <button
                         onClick={() => setSearchMode('internal')}
-                        className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${searchMode === 'internal' ? 'bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-200'}`}
+                        className={`flex items-start gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-all ${searchMode === 'internal' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-                        </svg>
-                        Company Postings
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${searchMode === 'internal' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p className={`text-xs font-bold leading-snug ${searchMode === 'internal' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Platform Jobs</p>
+                            <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-0.5 leading-relaxed">Positions posted directly<br/>by HR teams on this platform</p>
+                        </div>
                     </button>
                     <button
                         onClick={() => setSearchMode('external')}
-                        className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${searchMode === 'external' ? 'bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-200'}`}
+                        className={`flex items-start gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-all ${searchMode === 'external' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Job Market
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${searchMode === 'external' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p className={`text-xs font-bold leading-snug ${searchMode === 'external' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Job Market</p>
+                            <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-0.5 leading-relaxed">Live listings aggregated<br/>from job boards worldwide</p>
+                        </div>
                     </button>
                 </div>
 
@@ -1236,137 +1264,113 @@ export function JobsTab() {
             )}
 
             {showResumeSelector && (
-                <div
-                    className="fixed inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-md z-[70] flex items-center justify-center p-4">
-                    <div
-                        className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl w-full max-w-lg rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/10 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 transition-all">
+                <div className="fixed inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-neutral-900 w-full max-w-4xl rounded-3xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 transition-colors" style={{ height: 'min(88vh, 720px)' }}>
 
-                        <div
-                            className="px-8 py-6 border-b border-gray-100/50 dark:border-neutral-800/50 flex justify-between items-center">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/50 flex items-center justify-between shrink-0 transition-colors">
                             <div>
-                                <h3 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Select
-                                    Resume</h3>
-                                <p className="text-sm text-gray-500 dark:text-neutral-400 font-medium mt-1">
-                                    Choose the CV for this application
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white">Apply with Resume</h3>
+                                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
+                                    {applyingJob?.title && <span className="font-semibold text-gray-700 dark:text-neutral-300">{applyingJob.title} · </span>}
+                                    Select a CV and review the PDF before submitting
                                 </p>
                             </div>
-                            <button onClick={() => setShowResumeSelector(false)}
-                                    className="p-2.5 text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-50 hover:bg-gray-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 rounded-full transition-all">
+                            <button onClick={closeResumeSelector}
+                                    className="p-2 text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                                          d="M6 18L18 6M6 6l12 12"/>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <div className="p-8 overflow-y-auto max-h-[55vh] space-y-4 custom-scrollbar">
-                            {myDocuments.map((doc) => {
-                                const isSelected = selectedResumeId === doc.resume_id;
-                                const isAI = doc.source_type.includes('IMPROVE') || doc.source_type.includes('generated');
+                        {/* Body: left list + right PDF preview */}
+                        <div className="flex flex-1 overflow-hidden">
 
-                                return (
-                                    <label
-                                        key={doc.resume_id}
-                                        onClick={() => setSelectedResumeId(doc.resume_id)}
-                                        className={`group relative flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-300 ${
-                                            isSelected
-                                                ? 'bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-indigo-200 dark:border-indigo-800 shadow-sm scale-[1.02]'
-                                                : 'bg-white dark:bg-neutral-800/50 border-gray-100 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:shadow-sm'
-                                        } border-2`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="resume_selection"
-                                            value={doc.resume_id}
-                                            checked={isSelected}
-                                            onChange={() => setSelectedResumeId(doc.resume_id)}
-                                            className="sr-only"
-                                        />
-
-                                        <div
-                                            className={`flex shrink-0 items-center justify-center w-12 h-12 rounded-full transition-colors ${
-                                                isSelected ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300'
-                                            }`}>
-                                            {isAI ? (
-                                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                                                     stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                                          d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                                </svg>
-                                            ) : (
-                                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                                                     stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                                </svg>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-bold truncate transition-colors ${isSelected ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-white'}`}>
-                                                {doc.filename}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest ${
-                      isAI
-                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                          : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400'
-                  }`}>
-                    {doc.source_type.replace('_', ' ')}
-                  </span>
-                                            </div>
-                                        </div>
-
-                                        <div
-                                            className={`flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors ${
-                                                isSelected ? 'border-indigo-600 dark:border-indigo-400 bg-indigo-600 dark:bg-indigo-400' : 'border-gray-300 dark:border-neutral-600 bg-transparent'
-                                            }`}>
-                                            {isSelected &&
-                                                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24"
-                                                     stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
-                                                          d="M5 13l4 4L19 7"/>
-                                                </svg>}
-                                        </div>
-                                    </label>
-                                );
-                            })}
-
-                            <div className="pt-2">
-                                <button
-                                    onClick={() => {
-                                        setShowResumeSelector(false);
-                                        fileInputRef.current?.click();
-                                    }}
-                                    className="group w-full py-4 bg-gray-50/50 dark:bg-neutral-800/20 border-2 border-dashed border-gray-200 dark:border-neutral-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex flex-col items-center justify-center gap-2"
-                                >
-                                    <div
-                                        className="w-10 h-10 rounded-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 flex items-center justify-center text-gray-400 group-hover:text-indigo-500 group-hover:scale-110 transition-all shadow-sm">
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                        </svg>
-                                    </div>
-                                    <span
-                                        className="text-sm font-bold text-gray-600 dark:text-neutral-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-              Upload a new CV instead
-            </span>
+                            {/* Left: resume list */}
+                            <div className="w-72 shrink-0 border-r border-gray-100 dark:border-neutral-800 overflow-y-auto flex flex-col gap-1 p-3">
+                                <button onClick={() => { closeResumeSelector(); fileInputRef.current?.click(); }}
+                                        className="w-full mb-1 py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-2xl text-[10px] font-bold text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-white hover:border-gray-300 dark:hover:border-neutral-600 transition-all flex items-center justify-center gap-1.5">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                    </svg>
+                                    Upload new CV
                                 </button>
+                                {myDocuments.map((resume: any, index: number) => {
+                                    const isSelected = selectedResumeId === resume.resume_id;
+                                    const isAI = resume.source_type?.includes('IMPROVE') || resume.source_type?.includes('generated') || resume.source_type?.includes('profile');
+                                    const versionLabel = resume.title || `Resume ${myDocuments.length - index}`;
+                                    const sourceLabel = (resume.source_type || '').replace(/_/g, ' ');
+                                    return (
+                                        <button key={resume.resume_id}
+                                                onClick={() => handleSelectResume(resume)}
+                                                className={`w-full flex items-start gap-2.5 p-3 rounded-2xl text-left border-2 transition-all ${
+                                                    isSelected
+                                                        ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800'
+                                                        : 'border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800/60'
+                                                }`}>
+                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                                isSelected ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'
+                                            }`}>
+                                                {isAI ? (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-xs font-semibold truncate leading-snug ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-neutral-300'}`}>
+                                                    {versionLabel}
+                                                </p>
+                                                <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate mt-0.5 capitalize">
+                                                    {sourceLabel}{resume.language ? ` · ${resume.language.toUpperCase()}` : ''}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+
+                            </div>
+
+                            {/* Right: PDF preview */}
+                            <div className="flex-1 bg-gray-100 dark:bg-neutral-800 overflow-hidden">
+                                {previewLoading ? (
+                                    <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-neutral-500">
+                                        <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin"/>
+                                        <p className="text-sm font-medium">Loading preview…</p>
+                                    </div>
+                                ) : previewBlobUrl ? (
+                                    <iframe src={previewBlobUrl} className="w-full h-full border-0" title="Resume Preview"/>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center gap-3 text-center px-8">
+                                        <svg className="w-14 h-14 text-gray-200 dark:text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">No PDF preview available</p>
+                                            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1 leading-relaxed">Generate a PDF from the Resumes tab first,<br/>or this CV will still be submitted as-is.</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        <div
-                            className="px-8 py-5 border-t border-gray-100/50 dark:border-neutral-800/50 bg-gray-50/80 dark:bg-neutral-900/80 backdrop-blur-md flex gap-4">
-                            <button onClick={() => setShowResumeSelector(false)}
-                                    className="flex-1 py-3 text-sm font-bold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 hover:text-gray-900 dark:hover:text-white shadow-sm transition-all active:scale-[0.98]">
-                                Cancel
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/50 flex gap-3 shrink-0 transition-colors">
+                            <button onClick={closeResumeSelector}
+                                    className="flex-1 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors">
+                                {t.cancel}
                             </button>
                             <button onClick={submitApplicationFinal}
-                                    className="flex-[2] py-3 text-sm font-bold text-white dark:text-black bg-gray-900 dark:bg-white border border-transparent rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 shadow-lg shadow-gray-900/20 dark:shadow-white/10 hover:shadow-xl transition-all active:scale-[0.98]">
+                                    disabled={!selectedResumeId}
+                                    className="flex-[2] py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
                                 Submit Application
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}

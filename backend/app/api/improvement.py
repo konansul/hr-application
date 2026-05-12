@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from typing import List, Optional
+from datetime import datetime
+
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend.app.api.helpers.extract import extract_cv_text, sha256_bytes
@@ -15,12 +19,36 @@ from backend.app.api.helpers.quota import consume_ai_quota
 
 router = APIRouter()
 
+
+class ImprovementHistoryItem(BaseModel):
+    improvement_id: str
+    filename: Optional[str]
+    overall_score: int
+    created_at: datetime
+    full_result_json: str
+
+
+@router.get("/improve-cv-history", response_model=List[ImprovementHistoryItem])
+def get_improvement_history(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    results = (
+        db.query(CVImprovementResultDB)
+        .filter(CVImprovementResultDB.owner_user_id == current_user.user_id)
+        .order_by(CVImprovementResultDB.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    return results
+
+
 @router.post("/improve-cv-file", response_model=CVImprovementResult)
 async def improve_cv_file(
-    file: UploadFile = File(...),
-    job_description: str = Form(""),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+        file: UploadFile = File(...),
+        job_description: str = Form(""),
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
 ):
     data = await file.read()
 
@@ -90,10 +118,19 @@ async def improve_cv_existing(
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
 
-    doc_id = resume.generated_document_id or resume.source_document_id
-    doc = db.query(Document).filter(Document.document_id == doc_id).first() if doc_id else None
+    cv_text = ""
 
-    cv_text = doc.raw_text if doc else str(resume.payload)
+    if resume.payload and len(resume.payload.strip()) > 10:
+        cv_text = str(resume.payload)
+
+    if not cv_text and resume.source_document_id:
+        doc = db.query(Document).filter(Document.document_id == resume.source_document_id).first()
+        if doc and doc.raw_text:
+            cv_text = doc.raw_text
+
+    if not cv_text or not cv_text.strip():
+        raise HTTPException(status_code=400, detail="The resume content is empty and cannot be improved.")
+
     filename = resume.title or "Existing_CV"
 
     consume_ai_quota(db, current_user)

@@ -37,11 +37,29 @@ interface ImproveResult {
   improvements?: string[];
   improved_summary?: string;
   rewritten_bullets?: { original: string; improved: string }[];
-  cv_text_preview?: string;
+}
+
+interface HistoryItem {
+  improvement_id: string;
+  filename: string | null;
+  overall_score: number;
+  created_at: string;
+  full_result_json: string;
 }
 
 interface ImproveCvTabProps {
   initialJobDescription: string;
+}
+
+function scoreColor(score: number): string {
+  if (score >= 70) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
+  if (score >= 50) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+  return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
@@ -56,21 +74,29 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<ImproveResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
+
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     documentsApi.getMyDocuments()
       .then(setMyDocuments)
       .catch(console.error);
+
+    screeningApi.getImprovementHistory()
+      .then((data: HistoryItem[]) => setHistory(data))
+      .catch(console.error)
+      .finally(() => setHistoryLoading(false));
   }, []);
 
   const handleSelectResume = (resumeId: string) => {
     setSelectedResumeId(resumeId);
     setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +112,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
     setIsProcessing(true);
     setError(null);
     setResult(null);
+    setActiveHistoryId(null);
 
     try {
       let data;
@@ -98,6 +125,13 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       setResult(data);
       setAiLimits(aiQuota, aiUsed + 1);
 
+      // refresh history to include the new item
+      screeningApi.getImprovementHistory()
+        .then((data: HistoryItem[]) => setHistory(data))
+        .catch(console.error);
+
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+
     } catch (err: any) {
       if (err.response?.status === 429) {
         setError("⏳ You have reached your daily AI limit. Please come back tomorrow!");
@@ -106,6 +140,17 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       }
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleLoadHistory = (item: HistoryItem) => {
+    try {
+      const parsed: ImproveResult = JSON.parse(item.full_result_json);
+      setResult(parsed);
+      setActiveHistoryId(item.improvement_id);
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    } catch {
+      // malformed json — ignore
     }
   };
 
@@ -118,9 +163,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{t.title}</h2>
-          <p className="text-sm text-gray-500 dark:text-neutral-400">
-            {t.desc}
-          </p>
+          <p className="text-sm text-gray-500 dark:text-neutral-400">{t.desc}</p>
         </div>
       </div>
 
@@ -128,7 +171,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-6">
 
           <div className="lg:col-span-8 space-y-6">
-
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-300">Select CV to Improve</label>
 
@@ -139,8 +181,8 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                       key={doc.resume_id}
                       onClick={() => handleSelectResume(doc.resume_id)}
                       className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                        selectedResumeId === doc.resume_id 
-                          ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm' 
+                        selectedResumeId === doc.resume_id
+                          ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm'
                           : 'border-gray-100 dark:border-neutral-800 bg-white dark:bg-black hover:border-gray-300 dark:hover:border-neutral-600'
                       }`}
                     >
@@ -229,8 +271,69 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
         )}
       </div>
 
+      {/* History */}
+      {(historyLoading || history.length > 0) && (
+        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Analysis History
+            </h3>
+            {history.length > 0 && (
+              <span className="text-xs font-bold text-gray-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
+                {history.length}
+              </span>
+            )}
+          </div>
+
+          {historyLoading ? (
+            <div className="flex items-center gap-2 py-4 text-sm text-gray-400 dark:text-neutral-500">
+              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              Loading history...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {history.map(item => (
+                <button
+                  key={item.improvement_id}
+                  onClick={() => handleLoadHistory(item)}
+                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-sm ${
+                    activeHistoryId === item.improvement_id
+                      ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800'
+                      : 'border-gray-100 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 bg-white dark:bg-black'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate flex-1">
+                      {item.filename || 'Untitled'}
+                    </p>
+                    <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${scoreColor(item.overall_score)}`}>
+                      {item.overall_score}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 dark:text-neutral-500">
+                    {formatDate(item.created_at)}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {result && (
-        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+        <div ref={resultRef} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+
+          {activeHistoryId && (
+            <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Viewing from history — {history.find(h => h.improvement_id === activeHistoryId)?.filename || 'Untitled'} · {formatDate(history.find(h => h.improvement_id === activeHistoryId)?.created_at || '')}
+            </div>
+          )}
 
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start transition-colors">
             <div className="w-full md:w-48 shrink-0">
@@ -354,17 +457,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               <p className="text-sm text-gray-500 dark:text-neutral-500 italic">{t.noRewrites}</p>
             )}
           </div>
-
-          {result.cv_text_preview && (
-            <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mb-3">{t.parsedText}</h3>
-              <textarea
-                value={result.cv_text_preview}
-                disabled
-                className="w-full min-h-[200px] p-4 text-xs text-gray-500 dark:text-neutral-400 font-mono bg-gray-50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700 rounded-xl resize-none outline-none"
-              />
-            </div>
-          )}
 
         </div>
       )}

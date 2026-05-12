@@ -72,4 +72,9 @@ export const screeningApi = {
     const response = await apiClient.post('/v1/improve-cv-existing', formData);
     return response.data;
   },
+
+  getImprovementHistory: async () => {
+    const response = await apiClient.get('/v1/improve-cv-history');
+    return response.data;
+  },
 };
