@@ -30,9 +30,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  // === ССЫЛКИ НА ДОКУМЕНТЫ НА ЛЕНДИНГЕ ===
-  const PRIVACY_URL = "http://green-sand-06294590f.7.azurestaticapps.net/privacy";
-  const TERMS_URL = "http://green-sand-06294590f.7.azurestaticapps.net/terms";
+  const PRIVACY_URL = "https://www.hraipp.com/privacy";
+  const TERMS_URL = "https://www.hraipp.com/terms";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
