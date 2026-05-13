@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-const APP_URL = 'https://orange-forest-05793170f.7.azurestaticapps.net/';
+const APP_URL = 'https://app.hraipp.com';
 
 const SunIcon = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +169,6 @@ export function LandingPage() {
             </Link>
           </div>
 
-          {/* НАСТРОЕННАЯ НАВИГАЦИЯ В ШАПКЕ С НОВЫМИ ССЫЛКАМИ */}
           <nav className={`hidden lg:flex justify-center items-center gap-1 px-2 py-1.5 rounded-2xl border backdrop-blur-md mx-auto ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
             <a href="#overview" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Overview</a>
             <a href="#features" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Features</a>
