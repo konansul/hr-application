@@ -204,14 +204,15 @@ def run_job_refinement(
 def translate_resume_data(resume_data: dict, language_code: str) -> dict:
     language_name = LANGUAGE_NAMES.get(language_code, language_code)
     prompt = build_translate_resume_prompt(resume_data, language_name)
-
-    result_text = gemini.generate_text(prompt, temperature=0.1, max_output_tokens=8192)
-    result_text = result_text.strip()
-    if result_text.startswith("```"):
-        lines = result_text.splitlines()
-        inner = lines[1:-1] if lines and lines[-1].strip() == "```" else lines[1:]
-        result_text = "\n".join(inner)
-    return json.loads(result_text)
+    return gemini.generate_free_json(
+        prompt,
+        temperature=0.1,
+        system=(
+            f"You are a professional CV/resume translator. "
+            f"Translate the resume JSON into {language_name} following all rules in the user prompt. "
+            f"Respond ONLY with a valid JSON object preserving the exact same structure."
+        ),
+    )
 
 
 def _strip_json_fences(text: str) -> str:
@@ -271,10 +272,16 @@ def adapt_resume_for_job(
 ) -> Dict[str, Any]:
     language_name = LANGUAGE_NAMES.get(language_code, language_code)
     prompt = build_adapt_resume_prompt(resume_data, job_description, language_name)
-
-    result_text = gemini.generate_text(prompt, temperature=0.3, max_output_tokens=8192)
-    result_text = _strip_json_fences(result_text)
-    return json.loads(result_text)
+    return gemini.generate_free_json(
+        prompt,
+        temperature=0.3,
+        system=(
+            f"You are an expert CV writer and career coach. "
+            f"Adapt the resume JSON for the job description following all rules in the user prompt. "
+            f"Write all text content in {language_name}. "
+            f"Respond ONLY with a valid JSON object preserving the exact same structure."
+        ),
+    )
 
 
 def run_cv_parsing(cv_text: str) -> dict:

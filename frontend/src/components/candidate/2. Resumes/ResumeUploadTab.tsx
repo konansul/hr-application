@@ -3,7 +3,7 @@ import { authApi, documentsApi, resumesApi } from '../../../api';
 import { DICT } from '../../../internationalization.ts';
 import { useStore } from '../../../store';
 import { resumeToSlug, slugToResumeId } from '../../../utils/urlRouting';
-import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, type TemplateId } from './ResumePdfTemplates';
+import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, getPdfLabels, type TemplateId } from './ResumePdfTemplates';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
 
@@ -743,7 +743,7 @@ export function ResumeUploadTab() {
     return resumeVersions.find((r) => r.resume_id === selectedResumeId) ?? null;
   }, [resumeVersions, selectedResumeId]);
 
-  const isAiGenerated = ['job_description', 'profile', 'profile_extract', 'cv_upload'].includes(selectedResume?.source_type ?? '');
+  const isAiGenerated = ['job_description', 'profile', 'profile_extract', 'cv_upload', 'duplicate'].includes(selectedResume?.source_type ?? '');
 
   const filteredResumes = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -899,36 +899,40 @@ export function ResumeUploadTab() {
     setShowDocViewerModal(false);
   };
 
+  const openOriginalPdf = async (documentId: string) => {
+    setDocViewerLoading(true);
+    setShowDocViewerModal(true);
+    setDocViewerUrl(null);
+    try {
+      const tempUrl = await documentsApi.getDocumentFileUrl(documentId);
+      const res = await fetch(tempUrl);
+      URL.revokeObjectURL(tempUrl);
+      const blob = await res.blob();
+      setDocViewerUrl(URL.createObjectURL(blob));
+    } catch {
+      setShowDocViewerModal(false);
+    } finally {
+      setDocViewerLoading(false);
+    }
+  };
+
   const handleResumeClick = async (resume: ResumeVersion) => {
     setSelectedResumeId(resume.resume_id);
     setConfirmDeleteId(null);
     setMessage(null);
     if (resume.generated_document_id) {
-      setDocViewerLoading(true);
-      setShowDocViewerModal(true);
-      setDocViewerUrl(null);
-      try {
-        const tempUrl = await documentsApi.getDocumentFileUrl(resume.generated_document_id);
-        const res = await fetch(tempUrl);
-        URL.revokeObjectURL(tempUrl);
-        const blob = await res.blob();
-        setDocViewerUrl(URL.createObjectURL(blob));
-      } catch {
-        setShowDocViewerModal(false);
-      } finally {
-        setDocViewerLoading(false);
-      }
+      await openOriginalPdf(resume.generated_document_id);
     } else {
       setShowPdfModal(true);
     }
   };
 
-  const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string) => {
+  const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string, language?: string) => {
     if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
     setPreviewingTemplateId(templateId);
     setPreviewBlobUrl(null);
     try {
-      const blob = await generateResumePdfBlob(templateId as TemplateId, resumeData, title, photo);
+      const blob = await generateResumePdfBlob(templateId as TemplateId, resumeData, title, photo, language);
       setPreviewBlobUrl(URL.createObjectURL(blob));
     } catch {
       setPreviewingTemplateId(null);
@@ -1334,6 +1338,17 @@ export function ResumeUploadTab() {
                     </>
                   ) : (
                     <>
+                      {selectedResume.generated_document_id && (
+                        <button
+                          onClick={() => openOriginalPdf(selectedResume.generated_document_id!)}
+                          className="px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View Original PDF
+                        </button>
+                      )}
                       <button
                         onClick={() => setShowPdfModal(true)}
                         className="px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
@@ -1626,7 +1641,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
-                            {t.sections.languages}
+                            {getPdfLabels(selectedResume.language).languages}
                             {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
@@ -1660,7 +1675,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                            {t.sections.certifications}
+                            {getPdfLabels(selectedResume.language).certifications}
                             {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
@@ -1694,7 +1709,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            References
+                            {getPdfLabels(selectedResume.language).references}
                           </p>
                           {isEditingContent && (
                             editDraft?.hide_references
@@ -1704,7 +1719,7 @@ export function ResumeUploadTab() {
                         </div>
                         {editDraft?.hide_references && isEditingContent
                           ? <p className="text-xs text-gray-400 dark:text-neutral-500 italic">Hidden from resume.</p>
-                          : <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">References available upon request</p>
+                          : <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{getPdfLabels(selectedResume.language).referencesNote}</p>
                         }
                       </div>
                       )}
@@ -2060,23 +2075,56 @@ export function ResumeUploadTab() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 min-h-0 relative">
-              {docViewerLoading ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-3 border-gray-200 dark:border-neutral-700 border-t-indigo-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
-                    <p className="text-sm text-gray-500 dark:text-neutral-400">Loading PDF…</p>
+            <div className="flex-1 min-h-0 flex">
+              <div className="flex-1 min-h-0 relative">
+                {docViewerLoading ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-3 border-gray-200 dark:border-neutral-700 border-t-indigo-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+                      <p className="text-sm text-gray-500 dark:text-neutral-400">Loading PDF…</p>
+                    </div>
                   </div>
-                </div>
-              ) : docViewerUrl ? (
-                <iframe src={docViewerUrl} className="w-full h-full" title="Resume PDF" />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-8">
-                  <svg className="w-10 h-10 text-gray-300 dark:text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">Could not load PDF</p>
-                  <button onClick={() => { closeDocViewer(); setShowPdfModal(true); }} className="text-xs text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:no-underline">Generate a new PDF instead</button>
-                </div>
-              )}
+                ) : docViewerUrl ? (
+                  <iframe src={docViewerUrl} className="w-full h-full" title="Resume PDF" />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-8">
+                    <svg className="w-10 h-10 text-gray-300 dark:text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">Could not load PDF</p>
+                    <button onClick={() => { closeDocViewer(); setShowPdfModal(true); }} className="text-xs text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:no-underline">Generate a new PDF instead</button>
+                  </div>
+                )}
+              </div>
+              {isAiGenerated && (() => {
+                const pdfLabels = getPdfLabels(selectedResume.language);
+                const sections = [
+                  { key: 'personal_info', label: t.sections.summary },
+                  { key: 'experience', label: t.sections.experience },
+                  { key: 'skills', label: t.sections.skills },
+                  { key: 'education', label: t.sections.education },
+                  { key: 'languages', label: pdfLabels.languages },
+                  { key: 'certifications', label: pdfLabels.certifications },
+                ];
+                return (
+                  <div className="w-44 shrink-0 border-l border-gray-100 dark:border-neutral-800 overflow-y-auto bg-gray-50/50 dark:bg-neutral-900 p-3 flex flex-col gap-1">
+                    <p className="text-[9px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-2">AI Content</p>
+                    {sections.map(({ key, label }) => {
+                      const isManual = manuallyEditedSections.has(key);
+                      return (
+                        <div key={key} className="flex items-center justify-between gap-1.5 py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700">
+                          <span className="text-[11px] text-gray-700 dark:text-neutral-300 font-medium truncate">{label}</span>
+                          {isManual ? (
+                            <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="Manually edited">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          ) : (
+                            <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -2118,7 +2166,7 @@ export function ResumeUploadTab() {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
-                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined)}
+                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
                           disabled={previewingTemplateId === t.id && !previewBlobUrl}
                           className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
@@ -2134,9 +2182,10 @@ export function ResumeUploadTab() {
                               await downloadResumePdf(
   t.id as TemplateId,
   selectedResume.resume_data ?? {},
-  selectedResume.resume_id, // <-- ИСПРАВЛЕНО: передаем ID (res_...), а не заголовок
-  selectedResume.title,     // <-- ДОБАВЛЕНО: теперь заголовок идет четвертым аргументом
-  pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined
+  selectedResume.resume_id,
+  selectedResume.title,
+  pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined,
+  selectedResume.language
 );
                               closePdfModals();
                             } finally { setIsGeneratingPdf(false); }
@@ -2205,7 +2254,7 @@ export function ResumeUploadTab() {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
-                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined)}
+                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
                           disabled={previewingTemplateId === t.id && !previewBlobUrl}
                           className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
@@ -2219,7 +2268,7 @@ export function ResumeUploadTab() {
                             setSavingPdfTemplateId(t.id);
                             try {
                               const photo = pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined;
-                              const blob = await generateResumePdfBlob(t.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, photo);
+                              const blob = await generateResumePdfBlob(t.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, photo, selectedResume.language);
                               const file = new File([blob], `${selectedResume.title || 'resume'}.pdf`, { type: 'application/pdf' });
                               const uploaded = await documentsApi.upload(file);
                               await resumesApi.update(selectedResume.resume_id, { resume_data: selectedResume.resume_data ?? {}, generated_document_id: uploaded.document_id });

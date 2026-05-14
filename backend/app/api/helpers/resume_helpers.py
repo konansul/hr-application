@@ -66,8 +66,8 @@ def apply_translation(resume_data: Dict[str, Any], language: str) -> Dict[str, A
     try:
         return translate_resume_data(resume_data, language)
     except Exception as e:
-        logger.warning(f"Translation to '{language}' failed, using original: {e}")
-        return resume_data
+        logger.error(f"Translation to '{language}' FAILED: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Resume translation to '{language}' failed: {str(e)}")
 
 
 def resume_response(resume: Resume) -> Dict[str, Any]:

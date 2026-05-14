@@ -41,12 +41,39 @@ function contactParts(info: any): string[] {
   ].filter(Boolean) as string[];
 }
 
-function dateRange(e: any) {
+function dateRange(e: any, present = 'Present') {
   if (!e.start_date && !e.end_date) return '';
-  return `${e.start_date || ''}${e.end_date ? ` – ${e.end_date}` : e.start_date ? ' – Present' : ''}`;
+  return `${e.start_date || ''}${e.end_date ? ` – ${e.end_date}` : e.start_date ? ` – ${present}` : ''}`;
 }
 
 function hasList(arr: any[]) { return arr && arr.length > 0; }
+
+const PDF_LABELS: Record<string, {
+  profile: string; about: string; aboutMe: string; contact: string;
+  experience: string; education: string; skills: string;
+  languages: string; certifications: string; references: string;
+  referencesNote: string; present: string;
+}> = {
+  en: { profile:'Profile', about:'About', aboutMe:'About Me', contact:'Contact', experience:'Experience', education:'Education', skills:'Skills', languages:'Languages', certifications:'Certifications', references:'References', referencesNote:'References available upon request', present:'Present' },
+  ru: { profile:'Профиль', about:'О себе', aboutMe:'Обо мне', contact:'Контакты', experience:'Опыт работы', education:'Образование', skills:'Навыки', languages:'Языки', certifications:'Сертификаты', references:'Рекомендации', referencesNote:'Рекомендации предоставляются по запросу', present:'н.в.' },
+  de: { profile:'Profil', about:'Über mich', aboutMe:'Über mich', contact:'Kontakt', experience:'Berufserfahrung', education:'Ausbildung', skills:'Fähigkeiten', languages:'Sprachen', certifications:'Zertifikate', references:'Referenzen', referencesNote:'Referenzen auf Anfrage erhältlich', present:'heute' },
+  fr: { profile:'Profil', about:'À propos', aboutMe:'À propos de moi', contact:'Contact', experience:'Expérience', education:'Formation', skills:'Compétences', languages:'Langues', certifications:'Certifications', references:'Références', referencesNote:'Références disponibles sur demande', present:'présent' },
+  es: { profile:'Perfil', about:'Sobre mí', aboutMe:'Sobre mí', contact:'Contacto', experience:'Experiencia', education:'Educación', skills:'Habilidades', languages:'Idiomas', certifications:'Certificaciones', references:'Referencias', referencesNote:'Referencias disponibles a solicitud', present:'actualidad' },
+  tr: { profile:'Profil', about:'Hakkımda', aboutMe:'Hakkımda', contact:'İletişim', experience:'Deneyim', education:'Eğitim', skills:'Beceriler', languages:'Diller', certifications:'Sertifikalar', references:'Referanslar', referencesNote:'Referanslar talep üzerine sunulur', present:'Günümüz' },
+  pl: { profile:'Profil', about:'O mnie', aboutMe:'O mnie', contact:'Kontakt', experience:'Doświadczenie', education:'Wykształcenie', skills:'Umiejętności', languages:'Języki', certifications:'Certyfikaty', references:'Referencje', referencesNote:'Referencje dostępne na żądanie', present:'obecnie' },
+  pt: { profile:'Perfil', about:'Sobre mim', aboutMe:'Sobre mim', contact:'Contato', experience:'Experiência', education:'Educação', skills:'Habilidades', languages:'Idiomas', certifications:'Certificações', references:'Referências', referencesNote:'Referências disponíveis mediante solicitação', present:'presente' },
+  it: { profile:'Profilo', about:'Chi sono', aboutMe:'Chi sono', contact:'Contatto', experience:'Esperienza', education:'Istruzione', skills:'Competenze', languages:'Lingue', certifications:'Certificazioni', references:'Referenze', referencesNote:'Referenze disponibili su richiesta', present:'presente' },
+  ar: { profile:'الملف الشخصي', about:'عني', aboutMe:'عني', contact:'التواصل', experience:'الخبرة', education:'التعليم', skills:'المهارات', languages:'اللغات', certifications:'الشهادات', references:'المراجع', referencesNote:'المراجع متاحة عند الطلب', present:'الحاضر' },
+  zh: { profile:'个人简介', about:'关于我', aboutMe:'关于我', contact:'联系方式', experience:'工作经历', education:'教育背景', skills:'技能', languages:'语言', certifications:'证书', references:'推荐人', referencesNote:'推荐信可应要求提供', present:'至今' },
+  ja: { profile:'プロフィール', about:'自己紹介', aboutMe:'自己紹介', contact:'連絡先', experience:'職歴', education:'学歴', skills:'スキル', languages:'語学', certifications:'資格・認定', references:'参照', referencesNote:'推薦状は要請に応じて提供可能', present:'現在' },
+  ko: { profile:'프로필', about:'소개', aboutMe:'자기소개', contact:'연락처', experience:'경력', education:'학력', skills:'기술', languages:'언어', certifications:'자격증', references:'추천인', referencesNote:'추천서는 요청 시 제공 가능', present:'현재' },
+  nl: { profile:'Profiel', about:'Over mij', aboutMe:'Over mij', contact:'Contact', experience:'Ervaring', education:'Opleiding', skills:'Vaardigheden', languages:'Talen', certifications:'Certificaten', references:'Referenties', referencesNote:'Referenties beschikbaar op verzoek', present:'heden' },
+  sv: { profile:'Profil', about:'Om mig', aboutMe:'Om mig', contact:'Kontakt', experience:'Erfarenhet', education:'Utbildning', skills:'Färdigheter', languages:'Språk', certifications:'Certifieringar', references:'Referenser', referencesNote:'Referenser tillgängliga på begäran', present:'nuvarande' },
+};
+
+export function getPdfLabels(lang?: string) {
+  return PDF_LABELS[lang ?? 'en'] ?? PDF_LABELS['en'];
+}
 
 function skillLevel(s: any): number | null {
   const raw = s?.level ?? s?.proficiency;
@@ -131,13 +158,14 @@ const CL = StyleSheet.create({
   photo:     { width: 68, height: 68, borderRadius: 4, marginLeft: 14 },
 });
 
-function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function ClassicPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info  = data.personal_info ?? {};
   const exp   = data.experience    ?? [];
   const edu   = data.education     ?? [];
   const sk    = data.skills        ?? [];
   const la    = data.languages     ?? [];
   const ce    = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   return (
     <Document>
@@ -157,7 +185,7 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
 
         {info.summary ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>Profile</Text>
+            <Text style={CL.secTitle}>{L.profile}</Text>
             <View style={CL.thinRule} />
             <Text style={CL.summary}>{info.summary}</Text>
           </View>
@@ -165,13 +193,13 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
 
         {hasList(exp) ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>Experience</Text>
+            <Text style={CL.secTitle}>{L.experience}</Text>
             <View style={CL.thinRule} />
             {exp.map((e: any, i: number) => (
               <View key={i} style={CL.entry}>
                 <View style={CL.row}>
                   <Text style={CL.bold}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
-                  <Text style={CL.dates}>{dateRange(e)}</Text>
+                  <Text style={CL.dates}>{dateRange(e, L.present)}</Text>
                 </View>
                 {e.description ? <Text style={CL.desc}>{e.description}</Text> : null}
               </View>
@@ -181,7 +209,7 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
 
         {hasList(edu) ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>Education</Text>
+            <Text style={CL.secTitle}>{L.education}</Text>
             <View style={CL.thinRule} />
             {edu.map((e: any, i: number) => {
               const label = eduLabel(e); const inst = clean(e.institution);
@@ -198,7 +226,7 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
 
         {hasList(sk) ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>Skills</Text>
+            <Text style={CL.secTitle}>{L.skills}</Text>
             <View style={CL.thinRule} />
             <SkillBars skills={sk} barColor="#111" />
           </View>
@@ -208,14 +236,14 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
           <View style={{ flexDirection: 'row' }}>
             {hasList(la) ? (
               <View style={[CL.section, { flex: 1, marginRight: 20 }]}>
-                <Text style={CL.secTitle}>Languages</Text>
+                <Text style={CL.secTitle}>{L.languages}</Text>
                 <View style={CL.thinRule} />
                 <Text style={CL.misc}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
             {hasList(ce) ? (
               <View style={[CL.section, { flex: 1 }]}>
-                <Text style={CL.secTitle}>Certifications</Text>
+                <Text style={CL.secTitle}>{L.certifications}</Text>
                 <View style={CL.thinRule} />
                 <Text style={CL.misc}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
               </View>
@@ -224,9 +252,9 @@ function ClassicPdf({ data, title, photo }: { data: any; title?: string | null; 
         ) : null}
 
         <View style={CL.section}>
-          <Text style={CL.secTitle}>References</Text>
+          <Text style={CL.secTitle}>{L.references}</Text>
           <View style={CL.thinRule} />
-          <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>References available upon request</Text>
+          <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</Text>
         </View>
       </Page>
     </Document>
@@ -261,13 +289,14 @@ const MO = StyleSheet.create({
   mDesc:   { fontSize: 8.5, color: '#374151', lineHeight: 1.55, marginTop: 3 },
 });
 
-function ModernPdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function ModernPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience    ?? [];
   const edu  = data.education     ?? [];
   const sk   = data.skills        ?? [];
   const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   const photoExtra  = photo ? 88 : 0;
   const effectiveN  = sk.length + Math.round(photoExtra / 17);
@@ -286,20 +315,20 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
           {title ? <Text style={MO.sRole}>{title}</Text> : null}
 
           <View style={[MO.sSec, { marginBottom: secMb }]}>
-            <Text style={MO.sSecT}>Contact</Text>
+            <Text style={MO.sSecT}>{L.contact}</Text>
             {contactParts(info).map((c, i) => <Text key={i} style={MO.sCon}>{c}</Text>)}
           </View>
 
           {info.summary ? (
             <View style={[MO.sSec, { marginBottom: secMb }]}>
-              <Text style={MO.sSecT}>Profile</Text>
+              <Text style={MO.sSecT}>{L.profile}</Text>
               <Text style={MO.sSumm}>{info.summary}</Text>
             </View>
           ) : null}
 
           {hasList(sk) ? (
             <View style={[MO.sSec, { marginBottom: secMb }]}>
-              <Text style={MO.sSecT}>Skills</Text>
+              <Text style={MO.sSecT}>{L.skills}</Text>
               {usePlainText ? (
                 <Text style={{ fontSize: 7.5, color: '#e2e8f0', lineHeight: 1.5 }}>
                   {sk.map(skillName).filter(Boolean).join('  ·  ')}
@@ -318,7 +347,7 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(la) ? (
             <View style={[MO.sSec, { marginBottom: secMb }]}>
-              <Text style={MO.sSecT}>Languages</Text>
+              <Text style={MO.sSecT}>{L.languages}</Text>
               <Text style={MO.sSumm}>{la.map(langName).filter(Boolean).join('\n')}</Text>
             </View>
           ) : null}
@@ -327,12 +356,12 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
         <View style={MO.main}>
           {hasList(exp) ? (
             <View style={MO.mSec}>
-              <Text style={MO.mSecT}>Experience</Text>
+              <Text style={MO.mSecT}>{L.experience}</Text>
               {exp.map((e: any, i: number) => (
                 <View key={i} style={MO.mEntry}>
                   <View style={MO.mRow}>
                     <Text style={MO.mBold}>{e.title || 'Role'}</Text>
-                    <Text style={MO.mDates}>{dateRange(e)}</Text>
+                    <Text style={MO.mDates}>{dateRange(e, L.present)}</Text>
                   </View>
                   {e.company ? <Text style={MO.mSub}>{e.company}</Text> : null}
                   {e.description ? <Text style={MO.mDesc}>{e.description}</Text> : null}
@@ -343,7 +372,7 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(edu) ? (
             <View style={MO.mSec}>
-              <Text style={MO.mSecT}>Education</Text>
+              <Text style={MO.mSecT}>{L.education}</Text>
               {edu.map((e: any, i: number) => {
                 const label = eduLabel(e); const inst = clean(e.institution);
                 if (!label && !inst) return null;
@@ -359,7 +388,7 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(ce) ? (
             <View style={MO.mSec}>
-              <Text style={MO.mSecT}>Certifications</Text>
+              <Text style={MO.mSecT}>{L.certifications}</Text>
               {ce.map((c: any, i: number) => (
                 <View key={i} style={MO.mEntry}>
                   <Text style={MO.mBold}>{certName(c)}</Text>
@@ -369,8 +398,8 @@ function ModernPdf({ data, title, photo }: { data: any; title?: string | null; p
           ) : null}
 
           <View style={MO.mSec}>
-            <Text style={MO.mSecT}>References</Text>
-            <Text style={{ fontSize: 8.5, color: '#6b7280', fontStyle: 'italic' }}>References available upon request</Text>
+            <Text style={MO.mSecT}>{L.references}</Text>
+            <Text style={{ fontSize: 8.5, color: '#6b7280', fontStyle: 'italic' }}>{L.referencesNote}</Text>
           </View>
         </View>
       </Page>
@@ -402,13 +431,14 @@ const MI = StyleSheet.create({
   photo:   { width: 72, height: 72, borderRadius: 36, marginBottom: 12 },
 });
 
-function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?: string }) {
+function MinimalPdf({ data, title, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience    ?? [];
   const edu  = data.education     ?? [];
   const sk   = data.skills        ?? [];
   const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   return (
     <Document>
@@ -423,19 +453,19 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
 
         {info.summary ? (
           <View style={MI.sec}>
-            <Text style={MI.secT}>About</Text>
+            <Text style={MI.secT}>{L.about}</Text>
             <Text style={MI.summary}>{info.summary}</Text>
           </View>
         ) : null}
 
         {hasList(exp) ? (
           <View style={MI.sec}>
-            <Text style={MI.secT}>Experience</Text>
+            <Text style={MI.secT}>{L.experience}</Text>
             {exp.map((e: any, i: number) => (
               <View key={i} style={MI.entry}>
                 <View style={MI.row}>
                   <Text style={MI.bold}>{e.title || 'Role'}{e.company ? `, ${e.company}` : ''}</Text>
-                  <Text style={MI.dates}>{dateRange(e)}</Text>
+                  <Text style={MI.dates}>{dateRange(e, L.present)}</Text>
                 </View>
                 {e.description ? <Text style={MI.desc}>{e.description}</Text> : null}
               </View>
@@ -445,7 +475,7 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
 
         {hasList(edu) ? (
           <View style={MI.sec}>
-            <Text style={MI.secT}>Education</Text>
+            <Text style={MI.secT}>{L.education}</Text>
             {edu.map((e: any, i: number) => {
               const label = eduLabel(e); const inst = clean(e.institution);
               if (!label && !inst) return null;
@@ -461,7 +491,7 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
 
         {hasList(sk) ? (
           <View style={MI.sec}>
-            <Text style={MI.secT}>Skills</Text>
+            <Text style={MI.secT}>{L.skills}</Text>
             <SkillBars skills={sk} barColor="#555" />
           </View>
         ) : null}
@@ -470,13 +500,13 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
           <View style={{ flexDirection: 'row' }}>
             {hasList(la) ? (
               <View style={[MI.sec, { flex: 1, marginRight: 24 }]}>
-                <Text style={MI.secT}>Languages</Text>
+                <Text style={MI.secT}>{L.languages}</Text>
                 <Text style={MI.misc}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
             {hasList(ce) ? (
               <View style={[MI.sec, { flex: 1 }]}>
-                <Text style={MI.secT}>Certifications</Text>
+                <Text style={MI.secT}>{L.certifications}</Text>
                 <Text style={MI.misc}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
@@ -484,8 +514,8 @@ function MinimalPdf({ data, title }: { data: any; title?: string | null; photo?:
         ) : null}
 
         <View style={MI.sec}>
-          <Text style={MI.secT}>References</Text>
-          <Text style={{ fontSize: 9, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>References available upon request</Text>
+          <Text style={MI.secT}>{L.references}</Text>
+          <Text style={{ fontSize: 9, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>{L.referencesNote}</Text>
         </View>
       </Page>
     </Document>
@@ -521,13 +551,14 @@ const RE = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
 });
 
-function ResearcherPdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function ResearcherPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience    ?? [];
   const edu  = data.education     ?? [];
   const sk   = data.skills        ?? [];
   const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   return (
     <Document>
@@ -548,14 +579,14 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
           <View style={RE.left}>
             {info.summary ? (
               <View style={RE.sec}>
-                <Text style={RE.secT}>Profile</Text>
+                <Text style={RE.secT}>{L.profile}</Text>
                 <Text style={RE.summ}>{info.summary}</Text>
               </View>
             ) : null}
 
             {hasList(edu) ? (
               <View style={RE.sec}>
-                <Text style={RE.secT}>Education</Text>
+                <Text style={RE.secT}>{L.education}</Text>
                 {edu.map((e: any, i: number) => {
                   const label = eduLabel(e); const inst = clean(e.institution);
                   if (!label && !inst) return null;
@@ -571,21 +602,21 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
 
             {hasList(sk) ? (
               <View style={RE.sec}>
-                <Text style={RE.secT}>Skills</Text>
+                <Text style={RE.secT}>{L.skills}</Text>
                 <SkillBars skills={sk} barColor="#1a3a5c" />
               </View>
             ) : null}
 
             {hasList(la) ? (
               <View style={RE.sec}>
-                <Text style={RE.secT}>Languages</Text>
+                <Text style={RE.secT}>{L.languages}</Text>
                 <Text style={RE.misc}>{la.map(langName).filter(Boolean).join('\n')}</Text>
               </View>
             ) : null}
 
             {hasList(ce) ? (
               <View style={RE.sec}>
-                <Text style={RE.secT}>Certifications</Text>
+                <Text style={RE.secT}>{L.certifications}</Text>
                 <Text style={RE.misc}>{ce.map(certName).filter(Boolean).join('\n')}</Text>
               </View>
             ) : null}
@@ -594,12 +625,12 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
           <View style={RE.right}>
             {hasList(exp) ? (
               <View style={RE.sec}>
-                <Text style={RE.secT}>Experience</Text>
+                <Text style={RE.secT}>{L.experience}</Text>
                 {exp.map((e: any, i: number) => (
                   <View key={i} style={RE.entry}>
                     <View style={RE.row}>
                       <Text style={RE.bold}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
-                      <Text style={RE.dates}>{dateRange(e)}</Text>
+                      <Text style={RE.dates}>{dateRange(e, L.present)}</Text>
                     </View>
                     {e.description ? <Text style={RE.desc}>{e.description}</Text> : null}
                   </View>
@@ -610,8 +641,8 @@ function ResearcherPdf({ data, title, photo }: { data: any; title?: string | nul
         </View>
 
         <View style={RE.sec}>
-          <Text style={RE.secT}>References</Text>
-          <Text style={{ fontSize: 8, color: '#6b7280', fontStyle: 'italic' }}>References available upon request</Text>
+          <Text style={RE.secT}>{L.references}</Text>
+          <Text style={{ fontSize: 8, color: '#6b7280', fontStyle: 'italic' }}>{L.referencesNote}</Text>
         </View>
       </Page>
     </Document>
@@ -646,13 +677,14 @@ const FR = StyleSheet.create({
   bSumm:    { fontSize: 9, color: '#444', lineHeight: 1.6 },
 });
 
-function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function FriggeriFdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience    ?? [];
   const edu  = data.education     ?? [];
   const sk   = data.skills        ?? [];
   const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   return (
     <Document>
@@ -663,20 +695,20 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
           {title ? <Text style={FR.sRole}>{title}</Text> : null}
 
           <View style={FR.sSec}>
-            <Text style={FR.sSecT}>Contact</Text>
+            <Text style={FR.sSecT}>{L.contact}</Text>
             {contactParts(info).map((c, i) => <Text key={i} style={FR.sCon}>{c}</Text>)}
           </View>
 
           {hasList(sk) ? (
             <View style={FR.sSec}>
-              <Text style={FR.sSecT}>Skills</Text>
+              <Text style={FR.sSecT}>{L.skills}</Text>
               <SkillBars skills={sk} barColor="#ddd" />
             </View>
           ) : null}
 
           {hasList(la) ? (
             <View style={FR.sSec}>
-              <Text style={FR.sSecT}>Languages</Text>
+              <Text style={FR.sSecT}>{L.languages}</Text>
               <Text style={FR.sSumm}>{la.map(langName).filter(Boolean).join('\n')}</Text>
             </View>
           ) : null}
@@ -685,7 +717,7 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
         <View style={FR.body}>
           {info.summary ? (
             <View style={FR.bSec}>
-              <Text style={FR.bSecT}>About Me</Text>
+              <Text style={FR.bSecT}>{L.aboutMe}</Text>
               <View style={FR.bRule} />
               <Text style={FR.bSumm}>{info.summary}</Text>
             </View>
@@ -693,13 +725,13 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
 
           {hasList(exp) ? (
             <View style={FR.bSec}>
-              <Text style={FR.bSecT}>Experience</Text>
+              <Text style={FR.bSecT}>{L.experience}</Text>
               <View style={FR.bRule} />
               {exp.map((e: any, i: number) => (
                 <View key={i} style={FR.bEntry}>
                   <View style={FR.bRow}>
                     <Text style={FR.bBold}>{e.title || 'Role'}</Text>
-                    <Text style={FR.bDates}>{dateRange(e)}</Text>
+                    <Text style={FR.bDates}>{dateRange(e, L.present)}</Text>
                   </View>
                   {e.company ? <Text style={FR.bSub}>{e.company}</Text> : null}
                   {e.description ? <Text style={FR.bDesc}>{e.description}</Text> : null}
@@ -710,7 +742,7 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
 
           {hasList(edu) ? (
             <View style={FR.bSec}>
-              <Text style={FR.bSecT}>Education</Text>
+              <Text style={FR.bSecT}>{L.education}</Text>
               <View style={FR.bRule} />
               {edu.map((e: any, i: number) => {
                 const label = eduLabel(e); const inst = clean(e.institution);
@@ -727,7 +759,7 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
 
           {hasList(ce) ? (
             <View style={FR.bSec}>
-              <Text style={FR.bSecT}>Certifications</Text>
+              <Text style={FR.bSecT}>{L.certifications}</Text>
               <View style={FR.bRule} />
               {ce.map((c: any, i: number) => (
                 <View key={i} style={FR.bEntry}>
@@ -738,9 +770,9 @@ function FriggeriFdf({ data, title, photo }: { data: any; title?: string | null;
           ) : null}
 
           <View style={FR.bSec}>
-            <Text style={FR.bSecT}>References</Text>
+            <Text style={FR.bSecT}>{L.references}</Text>
             <View style={FR.bRule} />
-            <Text style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>References available upon request</Text>
+            <Text style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{L.referencesNote}</Text>
           </View>
         </View>
       </Page>
@@ -780,13 +812,14 @@ const HI = StyleSheet.create({
   accentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
 });
 
-function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function HipsterPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience    ?? [];
   const edu  = data.education     ?? [];
   const sk   = data.skills        ?? [];
   const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   return (
     <Document>
@@ -813,7 +846,7 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
             <View style={HI.left}>
               {hasList(edu) ? (
                 <>
-                  <Text style={HI.secT}>Education</Text>
+                  <Text style={HI.secT}>{L.education}</Text>
                   <View style={HI.rule} />
                   {edu.map((e: any, i: number) => {
                     const label = eduLabel(e); const inst = clean(e.institution);
@@ -830,7 +863,7 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
 
               {hasList(sk) ? (
                 <>
-                  <Text style={HI.secT}>Skills</Text>
+                  <Text style={HI.secT}>{L.skills}</Text>
                   <View style={HI.rule} />
                   <SkillBars skills={sk} barColor="#0f766e" />
                 </>
@@ -838,7 +871,7 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
 
               {hasList(la) ? (
                 <>
-                  <Text style={HI.secT}>Languages</Text>
+                  <Text style={HI.secT}>{L.languages}</Text>
                   <View style={HI.rule} />
                   <Text style={HI.misc}>{la.map(langName).filter(Boolean).join('\n')}</Text>
                 </>
@@ -846,7 +879,7 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
 
               {hasList(ce) ? (
                 <>
-                  <Text style={HI.secT}>Certifications</Text>
+                  <Text style={HI.secT}>{L.certifications}</Text>
                   <View style={HI.rule} />
                   <Text style={HI.misc}>{ce.map(certName).filter(Boolean).join('\n')}</Text>
                 </>
@@ -856,13 +889,13 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
             <View style={HI.right}>
               {hasList(exp) ? (
                 <>
-                  <Text style={HI.secT}>Experience</Text>
+                  <Text style={HI.secT}>{L.experience}</Text>
                   <View style={HI.rule} />
                   {exp.map((e: any, i: number) => (
                     <View key={i} style={HI.entry}>
                       <View style={HI.row}>
                         <Text style={HI.bold}>{e.title || 'Role'}</Text>
-                        <Text style={HI.dates}>{dateRange(e)}</Text>
+                        <Text style={HI.dates}>{dateRange(e, L.present)}</Text>
                       </View>
                       {e.company ? <Text style={HI.sub}>{e.company}</Text> : null}
                       {e.description ? <Text style={HI.desc}>{e.description}</Text> : null}
@@ -874,9 +907,9 @@ function HipsterPdf({ data, title, photo }: { data: any; title?: string | null; 
           </View>
 
           <View>
-            <Text style={HI.secT}>References</Text>
+            <Text style={HI.secT}>{L.references}</Text>
             <View style={HI.rule} />
-            <Text style={{ fontSize: 8.5, color: '#374151', fontStyle: 'italic' }}>References available upon request</Text>
+            <Text style={{ fontSize: 8.5, color: '#374151', fontStyle: 'italic' }}>{L.referencesNote}</Text>
           </View>
         </View>
       </Page>
@@ -941,13 +974,14 @@ const AC = StyleSheet.create({
   mMisc:     { fontSize: 8.5, color: '#475569', lineHeight: 1.65 },
 });
 
-function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; photo?: string }) {
+function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
   const info = data.personal_info ?? {};
   const exp  = data.experience     ?? [];
   const edu  = data.education      ?? [];
   const sk   = data.skills         ?? [];
   const la   = data.languages      ?? [];
   const ce   = data.certifications ?? [];
+  const L = getPdfLabels(language);
 
   const totalSkillRows = sk.length + la.length;
   const rowMb   = totalSkillRows > 18 ? 2 : totalSkillRows > 13 ? 3 : totalSkillRows > 9 ? 4 : 6;
@@ -966,13 +1000,13 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
           <View style={AC.sDivider} />
 
           <View style={[AC.sSec, { marginBottom: secMb }]}>
-            <Text style={AC.sSecT}>Contact</Text>
+            <Text style={AC.sSecT}>{L.contact}</Text>
             {contactParts(info).map((c, i) => <Text key={i} style={AC.sCon}>{c}</Text>)}
           </View>
 
           {info.summary ? (
             <View style={[AC.sSec, { marginBottom: secMb }]}>
-              <Text style={AC.sSecT}>Profile</Text>
+              <Text style={AC.sSecT}>{L.profile}</Text>
               <View style={AC.sDivider} />
               <Text style={AC.sSumm}>{info.summary}</Text>
             </View>
@@ -980,7 +1014,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(sk) ? (
             <View style={[AC.sSec, { marginBottom: secMb }]}>
-              <Text style={AC.sSecT}>Skills</Text>
+              <Text style={AC.sSecT}>{L.skills}</Text>
               <View style={AC.sDivider} />
               {sk.map((s: any, i: number) => (
                 <View key={i} style={[AC.sSkillRow, { marginBottom: rowMb }]}>
@@ -993,7 +1027,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(la) ? (
             <View style={[AC.sSec, { marginBottom: secMb }]}>
-              <Text style={AC.sSecT}>Languages</Text>
+              <Text style={AC.sSecT}>{L.languages}</Text>
               <View style={AC.sDivider} />
               {la.map((l: any, i: number) => (
                 <View key={i} style={[AC.sSkillRow, { marginBottom: rowMb }]}>
@@ -1011,7 +1045,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(exp) ? (
             <View style={AC.mSec}>
-              <Text style={AC.mSecT}>Experience</Text>
+              <Text style={AC.mSecT}>{L.experience}</Text>
               {exp.map((e: any, i: number) => (
                 <View key={i} style={AC.mEntry}>
                   <View style={AC.mDot}>
@@ -1020,7 +1054,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
                   <View style={AC.mContent}>
                     <Text style={AC.mBold}>{e.title || 'Role'}</Text>
                     {e.company ? <Text style={AC.mSub}>{e.company}</Text> : null}
-                    {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e)}</Text> : null}
+                    {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
                     {e.description ? <Text style={AC.mDesc}>{e.description}</Text> : null}
                   </View>
                 </View>
@@ -1030,7 +1064,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(edu) ? (
             <View style={AC.mSec}>
-              <Text style={AC.mSecT}>Education</Text>
+              <Text style={AC.mSecT}>{L.education}</Text>
               {edu.map((e: any, i: number) => {
                 const label = eduLabel(e); const inst = clean(e.institution);
                 if (!label && !inst) return null;
@@ -1042,7 +1076,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
                     <View style={AC.mContent}>
                       {label ? <Text style={AC.mBold}>{label}</Text> : null}
                       {inst  ? <Text style={AC.mSub}>{inst}</Text>   : null}
-                      {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e)}</Text> : null}
+                      {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
                     </View>
                   </View>
                 );
@@ -1052,7 +1086,7 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
 
           {hasList(ce) ? (
             <View style={AC.mSec}>
-              <Text style={AC.mSecT}>Certifications</Text>
+              <Text style={AC.mSecT}>{L.certifications}</Text>
               {ce.map((c: any, i: number) => (
                 <View key={i} style={AC.mEntry}>
                   <View style={AC.mDot}>
@@ -1067,8 +1101,8 @@ function AltaCVPdf({ data, title, photo }: { data: any; title?: string | null; p
           ) : null}
 
           <View style={AC.mSec}>
-            <Text style={AC.mSecT}>References</Text>
-            <Text style={{ fontSize: 8.5, color: '#475569', fontStyle: 'italic' }}>References available upon request</Text>
+            <Text style={AC.mSecT}>{L.references}</Text>
+            <Text style={{ fontSize: 8.5, color: '#475569', fontStyle: 'italic' }}>{L.referencesNote}</Text>
           </View>
         </View>
       </Page>
@@ -1100,8 +1134,9 @@ export async function generateResumePdfBlob(
   resumeData: any,
   title?: string | null,
   photo?: string,
+  language?: string,
 ): Promise<Blob> {
-  const props = { data: resumeData, title, photo };
+  const props = { data: resumeData, title, photo, language };
   const doc =
     templateId === 'classic'    ? <ClassicPdf    {...props} /> :
     templateId === 'modern'     ? <ModernPdf     {...props} /> :
@@ -1120,8 +1155,9 @@ export async function downloadResumePdf(
   resumeId: string,
   title?: string | null,
   photo?: string,
+  language?: string,
 ) {
-  const props = { data: resumeData, title, photo };
+  const props = { data: resumeData, title, photo, language };
 
   const doc =
     templateId === 'classic'    ? <ClassicPdf    {...props} /> :

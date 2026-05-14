@@ -43,9 +43,11 @@ Translate the following resume data JSON into {language_name}.
 
 Rules:
 - Translate all free-text content: summaries, descriptions, job titles, degree names, skill names, certification names.
+- ALWAYS translate spoken/written language names using their name in {language_name} (e.g. in French: "English"→"Anglais", "German"→"Allemand", "Spanish"→"Espagnol", "French"→"Français"). These are NOT proper nouns — they must be translated.
 - Keep proper nouns UNCHANGED: company names, institution names, people's names, URLs, email addresses, phone numbers, programming language names, software/tool names, and technology names.
 - Keep all date strings UNCHANGED (e.g. "2020-01", "Present", "2019").
 - Keep all JSON field/key names UNCHANGED (keys must stay in English).
+- Keep ALL enum/status values UNCHANGED exactly as-is: visa_status values (CITIZEN, PERMANENT_RESIDENT, WORK_PERMIT, STUDENT_VISA, SPONSORED_VISA, NO_WORK_AUTHORIZATION, OTHER, UNKNOWN), work_preference values (ONSITE, HYBRID, REMOTE, FLEXIBLE, UNKNOWN), skill level values (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT, UNKNOWN), language level values (BASIC, INTERMEDIATE, ADVANCED, FLUENT, NATIVE, UNKNOWN), boolean values (true, false), and null values.
 - Do NOT add or remove any fields.
 - Output ONLY the translated JSON object. No markdown, no explanation.
 
@@ -66,8 +68,9 @@ Rules:
 4. If certifications or education entries are relevant to the job, briefly mention them in the summary.
 5. Keep all factual data unchanged: company names, institution names, dates, URLs, email, phone.
 6. Keep all JSON field names unchanged (keys stay in English).
-7. Write all text content in {language_name}.
-8. Output ONLY the adapted resume as a valid JSON object. No markdown, no explanation.
+7. Keep ALL enum/status values UNCHANGED exactly as-is: visa_status values (CITIZEN, PERMANENT_RESIDENT, WORK_PERMIT, STUDENT_VISA, SPONSORED_VISA, NO_WORK_AUTHORIZATION, OTHER, UNKNOWN), work_preference values (ONSITE, HYBRID, REMOTE, FLEXIBLE, UNKNOWN), skill level values (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT, UNKNOWN), language level values (BASIC, INTERMEDIATE, ADVANCED, FLUENT, NATIVE, UNKNOWN), boolean values, and null values.
+8. Write all free-text content in {language_name}: summary, experience descriptions, job titles, degree names, skill names, certification names. For spoken/written language names, ALWAYS translate them to their {language_name} equivalent (e.g. in French: "English"→"Anglais", "German"→"Allemand", "Spanish"→"Espagnol", "French"→"Français").
+9. Output ONLY the adapted resume as a valid JSON object. No markdown, no explanation.
 
 Job Description:
 {job_description}

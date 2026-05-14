@@ -38,6 +38,39 @@ class GeminiClient:
             logger.exception("OpenRouter text generation failed")
             raise RuntimeError(f"OpenRouter API error: {str(e)}")
 
+    def generate_free_json(
+            self,
+            prompt: str,
+            temperature: float = 0.1,
+            system: str = "You must respond ONLY with a valid JSON object.",
+    ) -> Dict[str, Any]:
+        try:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=temperature,
+                max_tokens=32768,
+                # No response_format — avoids JSON-mode token budget issues with
+                # extended-thinking models (e.g. Gemini 2.5 Pro) where JSON mode can
+                # truncate output. We enforce JSON via the system prompt instead.
+            )
+            text = (response.choices[0].message.content or "").strip()
+            # Strip markdown code fences if the model wraps output in them
+            if text.startswith("```"):
+                lines = text.splitlines()
+                end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
+                text = "\n".join(lines[1:end])
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            logger.exception("Failed to parse JSON from free JSON generation")
+            raise RuntimeError(f"Model returned invalid JSON: {str(e)}")
+        except Exception as e:
+            logger.exception("OpenRouter free JSON generation failed")
+            raise RuntimeError(f"OpenRouter API error: {str(e)}")
+
     def generate_json(
             self,
             prompt: str,

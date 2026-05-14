@@ -7,7 +7,6 @@ import { PublicProfileView } from './components/public/PublicProfileView';
 import { PublicJobView } from './components/public/PublicJobView';
 import { authApi } from './api';
 import { useStore } from './store';
-import { pathToNavState, hrPathToNavState } from './utils/urlRouting';
 
 const cvToken = new URLSearchParams(window.location.search).get('cv');
 
@@ -46,6 +45,11 @@ function App() {
           if (user.ai_quota !== undefined && user.ai_used !== undefined) {
              setAiLimits(user.ai_quota, user.ai_used);
           }
+
+          if (window.location.pathname === '/' && user.role === 'candidate') {
+            setActiveTab('profile');
+            window.history.replaceState({}, '', '/profile');
+          }
         } catch (error) {
           localStorage.removeItem('auth_token');
           setIsLoggedIn(false);
@@ -78,10 +82,12 @@ function App() {
              setAiLimits(user.ai_quota, user.ai_used);
           }
 
-          const navState = user.role === 'candidate'
-            ? pathToNavState(window.location.pathname)
-            : hrPathToNavState(window.location.pathname);
-          setActiveTab(navState?.tab as any ?? (user.role === 'hr' ? 'job' : 'profile'));
+          if (user.role === 'candidate') {
+            setActiveTab('profile');
+            window.history.replaceState({}, '', '/profile');
+          } else {
+            setActiveTab('job');
+          }
         }}
       />
     );
