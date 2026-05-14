@@ -19,7 +19,7 @@ const isPublicProfile = pathname.startsWith('/p/') && !isPublicJob;
 const publicSlug = isPublicProfile ? pathname.split('/')[2] : null;
 
 function App() {
-  const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserRole, setActiveTab, setAiLimits } = useStore();
+  const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserId, setUserRole, setActiveTab, setAiLimits } = useStore();
 
   const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob);
 
@@ -40,6 +40,7 @@ function App() {
         try {
           const user = await authApi.getMe();
           setUserRole(user.role as 'hr' | 'candidate');
+          setUserId(user.user_id ?? '');
           setIsLoggedIn(true);
 
           if (user.ai_quota !== undefined && user.ai_used !== undefined) {
@@ -76,6 +77,7 @@ function App() {
       <AuthPage
         onLoginSuccess={(user: any) => {
           setUserRole(user.role as 'hr' | 'candidate');
+          setUserId(user.user_id ?? '');
           setIsLoggedIn(true);
 
           if (user.ai_quota !== undefined && user.ai_used !== undefined) {

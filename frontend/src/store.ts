@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 interface AppState {
   isLoggedIn: boolean;
+  userId: string;
   userRole: 'hr' | 'candidate' | null;
   activeTab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications' | 'talent' | 'settings';
   globalJobDescription: string;
@@ -18,6 +19,7 @@ interface AppState {
   setAiLimits: (quota: number, used: number) => void;
   setLanguage: (lang: string) => void;
   setIsLoggedIn: (status: boolean) => void;
+  setUserId: (id: string) => void;
   setUserRole: (role: 'hr' | 'candidate' | null) => void;
   setActiveTab: (tab: 'profile' | 'job' | 'screen' | 'compare' | 'improve' | 'kanban' | 'upload-cv' | 'history' | 'jobs' | 'applications' | 'talent' | 'settings') => void;
   setGlobalJobDescription: (desc: string) => void;
@@ -34,6 +36,7 @@ export const useStore = create<AppState>()(
   persist(
     (set) => ({
       isLoggedIn: false,
+      userId: '',
       userRole: null,
       activeTab: 'profile',
       globalJobDescription: '',
@@ -48,6 +51,7 @@ export const useStore = create<AppState>()(
       aiUsed: 0,
       setAiLimits: (quota, used) => set({ aiQuota: quota, aiUsed: used }),
       setIsLoggedIn: (status) => set({ isLoggedIn: status }),
+      setUserId: (id) => set({ userId: id }),
       setUserRole: (role) => set({ userRole: role }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setGlobalJobDescription: (desc) => set({ globalJobDescription: desc }),
@@ -63,6 +67,7 @@ export const useStore = create<AppState>()(
       setLanguage: (lang) => set({ language: lang }),
       logoutStore: () => set({
         isLoggedIn: false,
+        userId: '',
         userRole: null,
         activeTab: 'profile',
         globalJobDescription: '',

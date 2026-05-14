@@ -65,7 +65,8 @@ function CheckIcon() {
   );
 }
 
-const LS_KEY = 'candidate_tracked_jobs';
+const OLD_LS_KEY = 'candidate_tracked_jobs';
+const lsKey = (userId: string) => `candidate_tracked_jobs_${userId}`;
 
 interface TrackedJob {
   id: string;
@@ -80,13 +81,25 @@ interface TrackedJob {
   created_at: string;
 }
 
-function loadTrackedJobs(): TrackedJob[] {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-  catch { return []; }
+function loadTrackedJobs(userId: string): TrackedJob[] {
+  if (!userId) return [];
+  const key = lsKey(userId);
+  const existing = localStorage.getItem(key);
+  if (existing) {
+    try { return JSON.parse(existing); } catch { return []; }
+  }
+  // One-time migration from the old shared key to the user-specific key
+  const oldData = localStorage.getItem(OLD_LS_KEY);
+  if (oldData) {
+    localStorage.setItem(key, oldData);
+    localStorage.removeItem(OLD_LS_KEY);
+    try { return JSON.parse(oldData); } catch { return []; }
+  }
+  return [];
 }
 
-function saveTrackedJobs(jobs: TrackedJob[]) {
-  localStorage.setItem(LS_KEY, JSON.stringify(jobs));
+function saveTrackedJobs(userId: string, jobs: TrackedJob[]) {
+  localStorage.setItem(lsKey(userId), JSON.stringify(jobs));
 }
 
 function makeId() {
@@ -103,7 +116,7 @@ function getStageIndex(s: string) {
 }
 
 export function JobApplicationTab() {
-  const { activeTab, language } = useStore();
+  const { activeTab, language, userId } = useStore();
   const t: Record<string, string> = DICT[language as keyof typeof DICT]?.applications || DICT.en.applications;
 
   const [apiApplications, setApiApplications] = useState<any[]>([]);
@@ -184,15 +197,16 @@ export function JobApplicationTab() {
   };
 
   useEffect(() => {
+    if (!userId) return;
     fetchApplications(false);
-    setTrackedJobs(loadTrackedJobs());
-  }, []);
+    setTrackedJobs(loadTrackedJobs(userId));
+  }, [userId]);
 
   useEffect(() => {
-    const handler = () => setTrackedJobs(loadTrackedJobs());
+    const handler = () => setTrackedJobs(loadTrackedJobs(userId));
     window.addEventListener('tracked-jobs-updated', handler);
     return () => window.removeEventListener('tracked-jobs-updated', handler);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (firstLoad.current) {
@@ -201,7 +215,7 @@ export function JobApplicationTab() {
     }
     if (activeTab === 'applications') {
       fetchApplications(true);
-      setTrackedJobs(loadTrackedJobs());
+      setTrackedJobs(loadTrackedJobs(userId));
     }
   }, [activeTab]);
 
@@ -216,7 +230,7 @@ export function JobApplicationTab() {
       created_at: new Date().toISOString(),
     };
     const updated = [job, ...trackedJobs];
-    saveTrackedJobs(updated);
+    saveTrackedJobs(userId, updated);
     setTrackedJobs(updated);
     setShowAddModal(false);
     setNewJobTitle('');
@@ -226,13 +240,13 @@ export function JobApplicationTab() {
 
   const handleTrackedStageUpdate = (id: string, newStatus: string) => {
     const updated = trackedJobs.map(j => j.id === id ? { ...j, status: newStatus } : j);
-    saveTrackedJobs(updated);
+    saveTrackedJobs(userId, updated);
     setTrackedJobs(updated);
   };
 
   const handleDeleteTracked = (id: string) => {
     const updated = trackedJobs.filter(j => j.id !== id);
-    saveTrackedJobs(updated);
+    saveTrackedJobs(userId, updated);
     setTrackedJobs(updated);
     window.dispatchEvent(new Event('tracked-jobs-updated'));
   };
