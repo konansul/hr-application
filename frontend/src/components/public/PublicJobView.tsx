@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, type ChangeEvent } from 'react';
 import { publicApi } from '../../api';
+import { HtmlContent } from '../shared/HtmlContent';
 
 interface PublicJobViewProps {
   jobId: string;
@@ -220,9 +221,7 @@ export function PublicJobView({ jobId }: PublicJobViewProps) {
         <div className="bg-white dark:bg-neutral-900 rounded-[2.5rem] shadow-sm border border-gray-200 dark:border-neutral-800 p-8 sm:p-12 lg:p-16 transition-colors">
 
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">About the Role</h2>
-          <div className="prose prose-lg prose-gray dark:prose-invert max-w-none text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
-            {description}
-          </div>
+          <HtmlContent html={description} className="prose-lg text-gray-700 dark:text-neutral-300" />
 
           {(reqs.mandatorySkills || reqs.mandatoryTechnologies || reqs.languageRequirements || reqs.minEducation) && (
             <hr className="my-12 border-gray-100 dark:border-neutral-800" />

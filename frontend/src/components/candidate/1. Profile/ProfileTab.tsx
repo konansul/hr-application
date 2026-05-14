@@ -78,7 +78,7 @@ export function ProfileTab() {
   const [urlImportValue, setUrlImportValue] = useState('');
   const [isImportingUrl, setIsImportingUrl] = useState(false);
 
-  const [aiParsedSections, setAiParsedSections] = useState<Set<string>>(new Set());
+  const [_aiParsedSections, setAiParsedSections] = useState<Set<string>>(new Set());
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
@@ -124,7 +124,7 @@ export function ProfileTab() {
             if (stored) setAiParsedSections(new Set(JSON.parse(stored)));
             const storedPf = localStorage.getItem(`hrai_ai_personal_fields_${userData.user_id}`);
             if (storedPf) setAiPersonalFields(new Set(JSON.parse(storedPf)));
-          } catch {}
+          } catch { /* empty */ }
         }
 
         await loadProfile(userData);
@@ -300,7 +300,7 @@ export function ProfileTab() {
       const dataUrl = ev.target?.result as string;
       const updated = { ...profileData, personal_info: { ...profileData.personal_info, photo: dataUrl } };
       setProfileData(updated);
-      try { await authApi.updateProfile(updated); } catch (_) {}
+      try { await authApi.updateProfile(updated); } catch (_) { /* empty */ }
     };
     reader.readAsDataURL(f);
   };

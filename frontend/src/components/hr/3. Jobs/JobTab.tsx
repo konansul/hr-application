@@ -2,6 +2,8 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { jobsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
+import { RichTextEditor } from '../../shared/RichTextEditor';
+import { textToHtml } from '../../../utils/html';
 
 interface ScreeningQuestion {
   id: string;
@@ -190,7 +192,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     }
     setIsCreating(true);
     try {
-      const newJob = await jobsApi.create(draftTitle, draftDescription, draftRegion, draftLevel);
+      const newJob = await jobsApi.create(draftTitle, textToHtml(draftDescription), draftRegion, draftLevel);
       setCurrentJob(newJob);
       setSelectedJobId(newJob.id);
       setActiveTitle(newJob.title);
@@ -240,7 +242,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       const options = { region: activeRegion };
       const data = await jobsApi.refine(activeTitle, activeDescription, options);
       if (data.improved_description) {
-        setActiveDescription(data.improved_description);
+        setActiveDescription(textToHtml(data.improved_description));
         setMessage(t.aiSuccess);
       }
       if (data.extracted_requirements) {
@@ -551,15 +553,20 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
                 <div className="h-px bg-gray-100 dark:bg-neutral-800 w-full shrink-0"></div>
-                <textarea value={activeDescription} onChange={(e) => setActiveDescription(e.target.value)} placeholder="Start writing the detailed description..." className={`w-full flex-1 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed border-none focus:ring-0 p-0 resize-none transition-colors custom-scrollbar bg-transparent outline-none ${isRefining ? 'text-indigo-400 dark:text-indigo-500' : ''}`} />
+                <div className={`flex-1 transition-opacity ${isRefining ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <RichTextEditor
+                    value={activeDescription}
+                    onChange={setActiveDescription}
+                    placeholder="Start writing the detailed description..."
+                    disabled={isRefining}
+                    minHeight="300px"
+                  />
+                </div>
                 <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 flex justify-between items-center text-[10px] text-gray-400 dark:text-neutral-600 font-mono uppercase tracking-widest shrink-0 transition-colors">
                   <button onClick={handleDeleteJob} className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors font-bold">
                     {t.deleteBtn}
                   </button>
-                  <div className="flex gap-4">
-                    <span>ID: {currentJob.id.slice(0, 15)}</span>
-                    <span>Length: {activeDescription.length}</span>
-                  </div>
+                  <span>ID: {currentJob.id.slice(0, 15)}</span>
                 </div>
               </div>
             ) : (
@@ -752,14 +759,14 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in transition-colors">
-          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border dark:border-neutral-800">
-            <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50 dark:bg-neutral-950 transition-colors">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border dark:border-neutral-800">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50 dark:bg-neutral-950 transition-colors shrink-0">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t.modal.title}</h3>
               <button onClick={() => setIsCreateModalOpen(false)} className="p-2 text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleCreateJob} className="p-6 space-y-5">
+            <form onSubmit={handleCreateJob} className="p-6 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.jobTitle}</label>
                 <input type="text" placeholder="e.g. Senior Frontend Engineer" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" autoFocus />
@@ -780,7 +787,12 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.initDesc}</label>
-                <textarea placeholder={t.modal.descPlaceholder} value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} className="w-full h-32 px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none transition-all custom-scrollbar dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" />
+                <RichTextEditor
+                  value={draftDescription}
+                  onChange={setDraftDescription}
+                  placeholder={t.modal.descPlaceholder}
+                  minHeight="220px"
+                />
               </div>
               <div className="pt-2">
                 <button type="submit" disabled={isCreating} className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi, resumesApi } from '../../../api';
+import { HtmlContent } from '../../shared/HtmlContent';
+import { stripHtml } from '../../../utils/html';
 
 type OrgInfo = {
   org_id: string;
@@ -651,7 +653,7 @@ export function JobsTab() {
     const displayedJobs = jobs.filter(job => {
         const jobLevelKey = job.level?.toLowerCase() || '';
         const jobRegion = (job.region || '').toLowerCase();
-        const jobDesc = (job.description || '').toLowerCase();
+        const jobDesc = stripHtml(job.description || '').toLowerCase();
         const jobTitle = (job.title || '').toLowerCase();
 
         const matchesLevel = selectedLevelKey === 'all' || jobLevelKey === selectedLevelKey;
@@ -978,7 +980,7 @@ export function JobsTab() {
                                             </div>
 
                                             {job.description && (
-                                                <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed line-clamp-2">{job.description}</p>
+                                                <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed line-clamp-2">{stripHtml(job.description)}</p>
                                             )}
 
                                             {job.tags && job.tags.length > 0 && (
@@ -1133,9 +1135,10 @@ export function JobsTab() {
                                             )}
                                         </div>
 
-                                        <p className={`text-sm text-gray-600 dark:text-neutral-300 leading-relaxed max-w-3xl whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-2'}`}>
-                                            {job.description}
-                                        </p>
+                                        {isExpanded
+                                            ? <HtmlContent html={job.description || ''} className="text-sm text-gray-600 dark:text-neutral-300 max-w-3xl" />
+                                            : <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed max-w-3xl line-clamp-2">{stripHtml(job.description || '')}</p>
+                                        }
 
                                         <button onClick={() => setExpandedJobId(isExpanded ? null : jid)}
                                                 className="text-xs font-bold text-indigo-600 dark:text-white hover:text-indigo-700 dark:hover:text-neutral-300 transition-colors">
