@@ -212,12 +212,17 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
             <Text style={CL.secTitle}>{L.education}</Text>
             <View style={CL.thinRule} />
             {edu.map((e: any, i: number) => {
-              const label = eduLabel(e); const inst = clean(e.institution);
+              const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
               if (!label && !inst) return null;
               return (
                 <View key={i} style={CL.entry}>
-                  {label ? <Text style={CL.bold}>{label}</Text> : null}
+                  <View style={CL.row}>
+                    {label ? <Text style={CL.bold}>{label}</Text> : null}
+                    {(e.start_date || e.end_date) ? <Text style={CL.dates}>{dateRange(e, L.present)}</Text> : null}
+                  </View>
                   {inst  ? <Text style={CL.sub}>{inst}</Text>  : null}
+                  {grade ? <Text style={CL.sub}>{grade}</Text> : null}
+                  {desc  ? <Text style={CL.desc}>{desc}</Text> : null}
                 </View>
               );
             })}
@@ -374,12 +379,17 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
             <View style={MO.mSec}>
               <Text style={MO.mSecT}>{L.education}</Text>
               {edu.map((e: any, i: number) => {
-                const label = eduLabel(e); const inst = clean(e.institution);
+                const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                 if (!label && !inst) return null;
                 return (
                   <View key={i} style={MO.mEntry}>
-                    {label ? <Text style={MO.mBold}>{label}</Text> : null}
+                    <View style={MO.mRow}>
+                      {label ? <Text style={MO.mBold}>{label}</Text> : null}
+                      {(e.start_date || e.end_date) ? <Text style={MO.mDates}>{dateRange(e, L.present)}</Text> : null}
+                    </View>
                     {inst  ? <Text style={MO.mSub}>{inst}</Text>  : null}
+                    {grade ? <Text style={MO.mSub}>{grade}</Text> : null}
+                    {desc  ? <Text style={MO.mDesc}>{desc}</Text> : null}
                   </View>
                 );
               })}
@@ -477,12 +487,17 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
           <View style={MI.sec}>
             <Text style={MI.secT}>{L.education}</Text>
             {edu.map((e: any, i: number) => {
-              const label = eduLabel(e); const inst = clean(e.institution);
+              const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
               if (!label && !inst) return null;
               return (
                 <View key={i} style={MI.entry}>
-                  {label ? <Text style={MI.bold}>{label}</Text> : null}
-                  {inst  ? <Text style={MI.sub}>{inst}</Text>   : null}
+                  <View style={MI.row}>
+                    {label ? <Text style={MI.bold}>{label}</Text> : null}
+                    {(e.start_date || e.end_date) ? <Text style={MI.dates}>{dateRange(e, L.present)}</Text> : null}
+                  </View>
+                  {inst  ? <Text style={MI.sub}>{inst}</Text>  : null}
+                  {grade ? <Text style={MI.sub}>{grade}</Text> : null}
+                  {desc  ? <Text style={MI.desc}>{desc}</Text> : null}
                 </View>
               );
             })}
@@ -588,12 +603,17 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
               <View style={RE.sec}>
                 <Text style={RE.secT}>{L.education}</Text>
                 {edu.map((e: any, i: number) => {
-                  const label = eduLabel(e); const inst = clean(e.institution);
+                  const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                   if (!label && !inst) return null;
                   return (
                     <View key={i} style={RE.entry}>
-                      {label ? <Text style={RE.bold}>{label}</Text> : null}
-                      {inst  ? <Text style={RE.sub}>{inst}</Text>   : null}
+                      <View style={RE.row}>
+                        {label ? <Text style={RE.bold}>{label}</Text> : null}
+                        {(e.start_date || e.end_date) ? <Text style={RE.dates}>{dateRange(e, L.present)}</Text> : null}
+                      </View>
+                      {inst  ? <Text style={RE.sub}>{inst}</Text>  : null}
+                      {grade ? <Text style={RE.sub}>{grade}</Text> : null}
+                      {desc  ? <Text style={RE.desc}>{desc}</Text> : null}
                     </View>
                   );
                 })}
@@ -745,12 +765,17 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
               <Text style={FR.bSecT}>{L.education}</Text>
               <View style={FR.bRule} />
               {edu.map((e: any, i: number) => {
-                const label = eduLabel(e); const inst = clean(e.institution);
+                const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                 if (!label && !inst) return null;
                 return (
                   <View key={i} style={FR.bEntry}>
-                    {label ? <Text style={FR.bBold}>{label}</Text> : null}
-                    {inst  ? <Text style={FR.bSub}>{inst}</Text>   : null}
+                    <View style={FR.bRow}>
+                      {label ? <Text style={FR.bBold}>{label}</Text> : null}
+                      {(e.start_date || e.end_date) ? <Text style={FR.bDates}>{dateRange(e, L.present)}</Text> : null}
+                    </View>
+                    {inst  ? <Text style={FR.bSub}>{inst}</Text>  : null}
+                    {grade ? <Text style={FR.bSub}>{grade}</Text> : null}
+                    {desc  ? <Text style={FR.bDesc}>{desc}</Text> : null}
                   </View>
                 );
               })}
@@ -849,12 +874,17 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
                   <Text style={HI.secT}>{L.education}</Text>
                   <View style={HI.rule} />
                   {edu.map((e: any, i: number) => {
-                    const label = eduLabel(e); const inst = clean(e.institution);
+                    const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                     if (!label && !inst) return null;
                     return (
                       <View key={i} style={HI.entry}>
-                        {label ? <Text style={HI.bold}>{label}</Text> : null}
-                        {inst  ? <Text style={HI.sub}>{inst}</Text>   : null}
+                        <View style={HI.row}>
+                          {label ? <Text style={HI.bold}>{label}</Text> : null}
+                          {(e.start_date || e.end_date) ? <Text style={HI.dates}>{dateRange(e, L.present)}</Text> : null}
+                        </View>
+                        {inst  ? <Text style={HI.sub}>{inst}</Text>  : null}
+                        {grade ? <Text style={HI.sub}>{grade}</Text> : null}
+                        {desc  ? <Text style={HI.desc}>{desc}</Text> : null}
                       </View>
                     );
                   })}
@@ -1066,7 +1096,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
             <View style={AC.mSec}>
               <Text style={AC.mSecT}>{L.education}</Text>
               {edu.map((e: any, i: number) => {
-                const label = eduLabel(e); const inst = clean(e.institution);
+                const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                 if (!label && !inst) return null;
                 return (
                   <View key={i} style={AC.mEntry}>
@@ -1077,6 +1107,8 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
                       {label ? <Text style={AC.mBold}>{label}</Text> : null}
                       {inst  ? <Text style={AC.mSub}>{inst}</Text>   : null}
                       {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
+                      {grade ? <Text style={AC.mSub}>{grade}</Text>  : null}
+                      {desc  ? <Text style={{ fontSize: 8.5, color: '#475569', lineHeight: 1.55, marginTop: 2 }}>{desc}</Text> : null}
                     </View>
                   </View>
                 );

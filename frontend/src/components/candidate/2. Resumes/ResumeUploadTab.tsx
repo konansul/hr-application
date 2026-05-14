@@ -1613,7 +1613,14 @@ export function ResumeUploadTab() {
                               <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
                             </div>
                             <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                            <input value={edu.field_of_study ?? ''} onChange={e => updateEduField(i, 'field_of_study', e.target.value)} placeholder="Field of Study / Specialization" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                             <input value={edu.institution ?? ''} onChange={e => updateEduField(i, 'institution', e.target.value)} placeholder="Institution" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                            <div className="grid grid-cols-2 gap-2">
+                              <input value={edu.start_date ?? ''} onChange={e => updateEduField(i, 'start_date', e.target.value)} placeholder="Start (e.g. 2018-09)" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                              <input value={edu.end_date ?? ''} onChange={e => updateEduField(i, 'end_date', e.target.value)} placeholder="End (or blank if current)" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                            </div>
+                            <input value={edu.grade ?? ''} onChange={e => updateEduField(i, 'grade', e.target.value)} placeholder="Grade / GPA (optional)" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                            <textarea value={edu.description ?? ''} onChange={e => updateEduField(i, 'description', e.target.value)} placeholder="Description (thesis, honours, activities…)" rows={2} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none" />
                           </div>
                         ))}
                         <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addEdu}</button>
@@ -1622,9 +1629,13 @@ export function ResumeUploadTab() {
                       <>
                         {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
                           <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
-                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{edu.degree || 'Degree'}</h4>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                              {edu.degree || 'Degree'}{edu.field_of_study ? ` in ${edu.field_of_study}` : ''}
+                            </h4>
                             {edu.institution && <p className="text-xs font-medium text-gray-500 dark:text-neutral-400">{edu.institution}</p>}
                             {(edu.start_date || edu.end_date) && <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}</p>}
+                            {edu.grade && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{edu.grade}</p>}
+                            {edu.description && <p className="text-xs text-gray-600 dark:text-neutral-300 mt-1 leading-relaxed whitespace-pre-line">{edu.description}</p>}
                           </div>
                         )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noEdu}</p>}
                       </>
