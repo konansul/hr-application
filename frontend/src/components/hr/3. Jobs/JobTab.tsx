@@ -109,6 +109,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [activeRequirements, setActiveRequirements] = useState<JobRequirements>(DEFAULT_REQUIREMENTS);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
 
@@ -132,12 +133,12 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setGlobalJobTitle(activeTitle);
   }, [currentJob, activeTitle, activeDescription, setGlobalJobDescription, setGlobalJobId, setGlobalJobTitle]);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (skipAutoLoad = false) => {
     try {
       const data: Job[] = await jobsApi.list();
       setJobs(data);
 
-      if (data.length > 0) {
+      if (!skipAutoLoad && data.length > 0) {
         if (!selectedJobId && !currentJob) {
           const jobToLoad = initialTargetId ? data.find((j: Job) => j.id === initialTargetId) : null;
           if (jobToLoad) {
@@ -180,12 +181,14 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   const handleCreateJob = async (e: FormEvent) => {
     e.preventDefault();
+    if (isCreating) return;
     setError(null);
     setMessage(null);
     if (!draftTitle.trim() || !draftDescription.trim()) {
       setError("Please provide a title and a basic description.");
       return;
     }
+    setIsCreating(true);
     try {
       const newJob = await jobsApi.create(draftTitle, draftDescription, draftRegion, draftLevel);
       setCurrentJob(newJob);
@@ -203,10 +206,12 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setDraftLevel('Middle');
       setDraftRegion('Global');
       setIsCreateModalOpen(false);
-      fetchJobs();
+      fetchJobs(true);
       window.history.replaceState(null, '', `/hr/jobs/${newJob.id}`);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Create failed');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -778,9 +783,12 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 <textarea placeholder={t.modal.descPlaceholder} value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} className="w-full h-32 px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none transition-all custom-scrollbar dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" />
               </div>
               <div className="pt-2">
-                <button type="submit" className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                  {t.modal.submit}
+                <button type="submit" disabled={isCreating} className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                  {isCreating
+                    ? <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                    : <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  }
+                  {isCreating ? 'Creating…' : t.modal.submit}
                 </button>
                 <p className="text-center text-[10px] text-gray-400 dark:text-neutral-600 mt-3 font-medium">
                   {t.modal.notice}

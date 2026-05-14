@@ -3,6 +3,13 @@ import { jobsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT, LANGUAGES } from '../../../internationalization.ts';
 
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  pipeline_stages?: string[];
+}
+
 export function SettingsTab() {
   const {
     globalJobId,
@@ -19,25 +26,46 @@ export function SettingsTab() {
   const t = DICT[language as keyof typeof DICT]?.hrSettings || DICT.en.hrSettings;
   const candidateT = DICT[language as keyof typeof DICT]?.jobs?.stages || DICT.en.jobs.stages;
 
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [localJobId, setLocalJobId] = useState<string>(globalJobId || '');
+  const [localJob, setLocalJob] = useState<Job | null>(null);
+
   const [editedStages, setEditedStages] = useState<string[]>([]);
   const [newStageName, setNewStageName] = useState('');
   const [newStageCategory, setNewStageCategory] = useState('In Progress');
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingJob, setIsLoadingJob] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setEditedStages(
-      globalJobStages.length > 0
-        ? globalJobStages
-        : ["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJECTED"]
-    );
-  }, [globalJobStages]);
+    jobsApi.list().then((data: Job[]) => {
+      setJobs(data || []);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!localJobId) {
+      setLocalJob(null);
+      setEditedStages(globalJobStages.length > 0 ? globalJobStages : ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED']);
+      return;
+    }
+    if (localJobId === globalJobId) {
+      const stages = globalJobStages.length > 0 ? globalJobStages : ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED'];
+      setLocalJob({ id: globalJobId, title: globalJobTitle, description: globalJobDescription, pipeline_stages: stages });
+      setEditedStages(stages);
+      return;
+    }
+    setIsLoadingJob(true);
+    jobsApi.getById(localJobId).then((job: Job) => {
+      setLocalJob(job);
+      setEditedStages(job.pipeline_stages && job.pipeline_stages.length > 0 ? job.pipeline_stages : ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED']);
+    }).catch(() => {}).finally(() => setIsLoadingJob(false));
+  }, [localJobId, globalJobId, globalJobTitle, globalJobDescription, globalJobStages]);
 
   const handleAddStage = (e: React.FormEvent) => {
     e.preventDefault();
     const formattedName = newStageName.trim().toUpperCase().replace(/\s+/g, '_');
-
     if (formattedName) {
       const exists = editedStages.some(s => s.split(':')[0] === formattedName);
       if (!exists) {
@@ -60,18 +88,20 @@ export function SettingsTab() {
   };
 
   const handleSaveSettings = async () => {
-    if (!globalJobId) {
+    if (!localJobId || !localJob) {
       alert(t.jobError);
       return;
     }
     setIsSaving(true);
     try {
-      await jobsApi.update(globalJobId, {
-        title: globalJobTitle,
-        description: globalJobDescription,
+      await jobsApi.update(localJobId, {
+        title: localJob.title,
+        description: localJob.description,
         pipeline_stages: editedStages
       });
-      setGlobalJobStages(editedStages);
+      if (localJobId === globalJobId) {
+        setGlobalJobStages(editedStages);
+      }
       setMessage(t.success);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
@@ -124,7 +154,7 @@ export function SettingsTab() {
           )}
           <button
             onClick={handleSaveSettings}
-            disabled={isSaving}
+            disabled={isSaving || !localJobId}
             className="px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all disabled:bg-gray-400 dark:disabled:bg-neutral-800 active:scale-95"
           >
             {isSaving ? t.saving : t.saveBtn}
@@ -141,14 +171,26 @@ export function SettingsTab() {
                 <svg className="w-5 h-5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 {t.pipelineTitle}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-                {t.pipelineDesc} <span className="font-bold text-gray-700 dark:text-white">{globalJobTitle || t.noJobSelected}</span>
-              </p>
+              <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1 mb-3">{t.pipelineDesc}</p>
+              <select
+                value={localJobId}
+                onChange={e => setLocalJobId(e.target.value)}
+                className="w-full px-3 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer font-semibold"
+              >
+                <option value="">{t.noJobSelected || 'Select a job...'}</option>
+                {jobs.map(job => (
+                  <option key={job.id} value={job.id}>{job.title || 'Untitled'}</option>
+                ))}
+              </select>
             </div>
 
-            {!globalJobId ? (
+            {!localJobId ? (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50 dark:bg-neutral-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 transition-colors">
                 <p className="text-sm text-gray-500 dark:text-neutral-400 font-medium">{t.jobSelectWarning}</p>
+              </div>
+            ) : isLoadingJob ? (
+              <div className="flex-1 flex items-center justify-center">
+                <svg className="w-5 h-5 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
               </div>
             ) : (
               <>
