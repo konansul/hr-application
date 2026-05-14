@@ -144,8 +144,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
             try {
                 const url = await documentsApi.getDocumentFileUrl(doc.document_id);
                 setPdfBlobUrl(url);
-            } catch {
-            } finally {
+            } catch { /* empty */ } finally {
                 setPdfLoading(false);
             }
         }

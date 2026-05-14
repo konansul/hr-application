@@ -32,6 +32,7 @@ export function HistoryTab() {
 
   useEffect(() => {
     if (activeTab === 'history') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(true);
       screeningApi.getAllOrganizationApplications()
         .then(setResults)

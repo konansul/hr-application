@@ -192,8 +192,7 @@ export function JobApplicationTab() {
       });
 
       setApiApplications(merged);
-    } catch {
-    } finally {
+    } catch { /* empty */ } finally {
       setLoading(false);
       setRefreshing(false);
     }

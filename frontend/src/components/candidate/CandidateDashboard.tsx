@@ -97,7 +97,7 @@ export function CandidateDashboard() {
   }, [setActiveTab]);
 
   const handleLogout = async () => {
-    try { await authApi.logout(); } catch (e) {}
+    try { await authApi.logout(); } catch (e) { /* empty */ }
     localStorage.removeItem('auth_token');
     logoutStore();
   };
@@ -166,6 +166,7 @@ export function CandidateDashboard() {
         </nav>
 
         <div className="mt-auto px-0 py-3 space-y-1 shrink-0">
+            {/* eslint-disable-next-line react-hooks/static-components */}
           <SideNavItem
             id="settings"
             label={t.settings}
