@@ -11,6 +11,7 @@ const REQUIRED_PI_FIELDS: { key: string; label: string; isEnum: boolean }[] = [
   { key: 'phone', label: 'Phone', isEnum: false },
   { key: 'city', label: 'City', isEnum: false },
   { key: 'country', label: 'Country', isEnum: false },
+  { key: 'nationality', label: 'Nationality', isEnum: false },
   { key: 'visa_status', label: 'Visa Status', isEnum: true },
   { key: 'work_preference', label: 'Work Preference', isEnum: true },
 ];
@@ -481,7 +482,7 @@ export function ProfileTab() {
                   <RequiredDetailRow label={t.personal.phone} fieldKey="phone" value={profileData.personal_info.phone} isAi={aiPersonalFields.has('phone')} />
                   <RequiredDetailRow label={t.personal.city} fieldKey="city" value={profileData.personal_info.city} isAi={aiPersonalFields.has('city')} />
                   <RequiredDetailRow label={t.personal.country} fieldKey="country" value={profileData.personal_info.country} isAi={aiPersonalFields.has('country')} />
-                  <DetailRow label={t.personal.nationality} value={profileData.personal_info.nationality} isAi={aiPersonalFields.has('nationality')} />
+                  <RequiredDetailRow label={t.personal.nationality} fieldKey="nationality" value={profileData.personal_info.nationality} isAi={aiPersonalFields.has('nationality')} />
                   <RequiredDetailRow label={t.personal.visa} fieldKey="visa_status" value={profileData.personal_info.visa_status === 'UNKNOWN' ? '' : profileData.personal_info.visa_status?.replace(/_/g, ' ')} isAi={aiPersonalFields.has('visa_status')} />
                   <RequiredDetailRow label={t.personal.workPref} fieldKey="work_preference" value={profileData.personal_info.work_preference === 'UNKNOWN' ? '' : profileData.personal_info.work_preference} isAi={aiPersonalFields.has('work_preference')} />
                   <DetailRow label={t.personal.linkedin} value={profileData.personal_info.linkedin_url} isAi={aiPersonalFields.has('linkedin_url')} />
@@ -532,8 +533,9 @@ export function ProfileTab() {
                     {validationErrors.has('country') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.nationality}</label>
-                    <input type="text" value={profileData.personal_info.nationality || ''} onChange={(e) => handlePersonalInputChange('nationality', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.nationality}<span className="text-red-400">*</span></label>
+                    <input type="text" value={profileData.personal_info.nationality || ''} onChange={(e) => handlePersonalInputChange('nationality', e.target.value)} className={inputClass('nationality')} />
+                    {validationErrors.has('nationality') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.visa}<span className="text-red-400">*</span></label>
@@ -858,7 +860,7 @@ export function ProfileTab() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">{cert.name}{cert._ai_generated && <AiInfoBadge />}</p>
-                          {cert.issuer && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{cert.issuer}</p>}
+                          {cert.issuer && cert.issuer.toLowerCase() !== 'unknown' && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{cert.issuer}</p>}
                           {(cert.issue_date || cert.expiration_date) && (
                             <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
                               {cert.issue_date || ''}
