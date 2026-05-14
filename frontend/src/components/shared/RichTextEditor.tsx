@@ -70,7 +70,9 @@ export function RichTextEditor({ value, onChange, placeholder, disabled, minHeig
     const current = editor.getHTML();
     const incoming = value || '';
     if (incoming !== current && !(incoming === '' && current === '<p></p>')) {
-      editor.commands.setContent(incoming, false);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+        editor.commands.setContent(incoming, false);
     }
   }, [value, editor]);
 
