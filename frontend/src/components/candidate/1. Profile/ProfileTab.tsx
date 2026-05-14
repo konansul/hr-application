@@ -7,12 +7,37 @@ import { OnboardingWizard } from './OnboardingWizard';
 const REQUIRED_PI_FIELDS: { key: string; label: string; isEnum: boolean }[] = [
   { key: 'first_name', label: 'First Name', isEnum: false },
   { key: 'last_name', label: 'Last Name', isEnum: false },
+  { key: 'email', label: 'Email', isEnum: false },
   { key: 'phone', label: 'Phone', isEnum: false },
   { key: 'city', label: 'City', isEnum: false },
   { key: 'country', label: 'Country', isEnum: false },
   { key: 'visa_status', label: 'Visa Status', isEnum: true },
   { key: 'work_preference', label: 'Work Preference', isEnum: true },
 ];
+
+const AI_PERSONAL_FIELDS = ['first_name','last_name','email','phone','city','country','nationality','summary','linkedin_url','github_url','portfolio_url','visa_status','work_preference'] as const;
+
+function computeAiPersonalFields(personal: any): Set<string> {
+  const result = new Set<string>();
+  AI_PERSONAL_FIELDS.forEach(f => {
+    const v = personal?.[f];
+    if (v && v !== '' && v !== 'UNKNOWN') result.add(f);
+  });
+  return result;
+}
+
+function sanitizeProfileForSave(pd: any): any {
+  const strip = (items: any[]) => (items || []).map(({ _ai_generated, ...rest }: any) => rest);
+  return {
+    ...pd,
+    experience: strip(pd.experience),
+    education: strip(pd.education),
+    skills: strip(pd.skills),
+    languages: strip(pd.languages),
+    certifications: strip(pd.certifications),
+    references: strip(pd.references),
+  };
+}
 
 function getMissingKeys(profileData: any): string[] {
   const pi = profileData.personal_info || {};
@@ -63,6 +88,7 @@ export function ProfileTab() {
   const [isEditingCertifications, setIsEditingCertifications] = useState(false);
   const [isEditingReferences, setIsEditingReferences] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
+  const [aiPersonalFields, setAiPersonalFields] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +122,8 @@ export function ProfileTab() {
           try {
             const stored = localStorage.getItem(`hrai_ai_sections_${userData.user_id}`);
             if (stored) setAiParsedSections(new Set(JSON.parse(stored)));
+            const storedPf = localStorage.getItem(`hrai_ai_personal_fields_${userData.user_id}`);
+            if (storedPf) setAiPersonalFields(new Set(JSON.parse(storedPf)));
           } catch {}
         }
 
@@ -131,18 +159,19 @@ export function ProfileTab() {
       if (syncWithProfile && response.parsed_data) {
         const pd = response.parsed_data;
         const prev = profileData;
+        const markAi = (items: any[]) => (items || []).map((item: any) => ({ ...item, _ai_generated: true }));
         const updatedProfile = {
           ...prev,
           personal_info: { ...prev.personal_info, ...pd.personal_info },
-          skills: pd.skills?.length ? pd.skills : prev.skills,
-          experience: pd.experience?.length ? pd.experience : prev.experience,
-          education: pd.education?.length ? pd.education : prev.education,
-          languages: pd.languages?.length ? pd.languages : prev.languages,
-          certifications: pd.certifications?.length ? pd.certifications : prev.certifications,
+          skills: pd.skills?.length ? markAi(pd.skills) : prev.skills,
+          experience: pd.experience?.length ? markAi(pd.experience) : prev.experience,
+          education: pd.education?.length ? markAi(pd.education) : prev.education,
+          languages: pd.languages?.length ? markAi(pd.languages) : prev.languages,
+          certifications: pd.certifications?.length ? markAi(pd.certifications) : prev.certifications,
           references: prev.references
         };
         setProfileData(updatedProfile);
-        await authApi.updateProfile(updatedProfile);
+        await authApi.updateProfile(sanitizeProfileForSave(updatedProfile));
         const sections = new Set<string>();
         if (pd.experience?.length) sections.add('experience');
         if (pd.education?.length) sections.add('education');
@@ -153,7 +182,12 @@ export function ProfileTab() {
         const personalFields = ['first_name','last_name','phone','city','country','nationality','summary'] as const;
         if (personalFields.some(f => newPersonal[f])) sections.add('personal');
         setAiParsedSections(sections);
-        if (user?.user_id) localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...sections]));
+        const newAiPf = computeAiPersonalFields(newPersonal);
+        setAiPersonalFields(newAiPf);
+        if (user?.user_id) {
+          localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...sections]));
+          localStorage.setItem(`hrai_ai_personal_fields_${user.user_id}`, JSON.stringify([...newAiPf]));
+        }
         setMessage({ text: 'Resume uploaded and Master Profile synced successfully!', type: 'success' });
       } else {
         setMessage({ text: 'New resume version uploaded securely!', type: 'success' });
@@ -181,8 +215,16 @@ export function ProfileTab() {
       const result = await authApi.importFromUrl(urlImportValue.trim());
       if (result.profile_data) {
         const pd = result.profile_data;
-        // const prev = profileData;
-        const next = { ...pd, references: pd.references || [] };
+        const markAi = (items: any[]) => (items || []).map((item: any) => ({ ...item, _ai_generated: true }));
+        const next = {
+          ...pd,
+          experience: markAi(pd.experience),
+          education: markAi(pd.education),
+          skills: markAi(pd.skills),
+          languages: markAi(pd.languages),
+          certifications: markAi(pd.certifications),
+          references: pd.references || [],
+        };
         setProfileData(next);
         const sections = new Set<string>();
         if (pd.experience?.length) sections.add('experience');
@@ -194,7 +236,12 @@ export function ProfileTab() {
         const personalFields = ['first_name','last_name','phone','city','country','nationality','summary'] as const;
         if (personalFields.some(f => newPersonal[f])) sections.add('personal');
         setAiParsedSections(sections);
-        if (user?.user_id) localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...sections]));
+        const newAiPf = computeAiPersonalFields(newPersonal);
+        setAiPersonalFields(newAiPf);
+        if (user?.user_id) {
+          localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...sections]));
+          localStorage.setItem(`hrai_ai_personal_fields_${user.user_id}`, JSON.stringify([...newAiPf]));
+        }
       }
       setMessage({ text: 'Profile imported successfully!', type: 'success' });
       setShowUrlImportInput(false);
@@ -217,12 +264,18 @@ export function ProfileTab() {
     if (validationErrors.has(field)) {
       setValidationErrors(prev => { const next = new Set(prev); next.delete(field); return next; });
     }
+    if (aiPersonalFields.has(field)) {
+      const next = new Set(aiPersonalFields);
+      next.delete(field);
+      setAiPersonalFields(next);
+      if (user?.user_id) localStorage.setItem(`hrai_ai_personal_fields_${user.user_id}`, JSON.stringify([...next]));
+    }
   };
 
   const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'references', index: number, field: string, value: any) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
-      newArray[index] = { ...newArray[index], [field]: value };
+      newArray[index] = { ...newArray[index], [field]: value, _ai_generated: false };
       return { ...prev, [section]: newArray };
     });
   };
@@ -265,9 +318,13 @@ export function ProfileTab() {
     setValidationErrors(new Set());
     setIsUploading(true);
     try {
-      await authApi.updateProfile(profileData);
+      await authApi.updateProfile(sanitizeProfileForSave(profileData));
       setAiParsedSections(new Set());
-      if (user?.user_id) localStorage.removeItem(`hrai_ai_sections_${user.user_id}`);
+      setAiPersonalFields(new Set());
+      if (user?.user_id) {
+        localStorage.removeItem(`hrai_ai_sections_${user.user_id}`);
+        localStorage.removeItem(`hrai_ai_personal_fields_${user.user_id}`);
+      }
       setMessage({ text: 'Profile saved successfully!', type: 'success' });
       setIsEditingPersonalInfo(false);
       setIsEditingExperience(false);
@@ -315,20 +372,24 @@ export function ProfileTab() {
     );
   };
 
-  const DetailRow = ({ label, value }: { label: string; value: any }) => (
+  const DetailRow = ({ label, value, isAi }: { label: string; value: any; isAi?: boolean }) => (
     <div className="flex flex-col border-b border-gray-100 dark:border-neutral-800 py-3">
-      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1">{label}</span>
+      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+        {label}
+        {isAi && <AiInfoBadge />}
+      </span>
       <span className="text-sm font-medium text-gray-900 dark:text-white">{value || <span className="text-gray-300 dark:text-neutral-600 italic">{t.notSpecified}</span>}</span>
     </div>
   );
 
-  const RequiredDetailRow = ({ label, value, fieldKey }: { label: string; value: any; fieldKey: string }) => {
+  const RequiredDetailRow = ({ label, value, fieldKey, isAi }: { label: string; value: any; fieldKey: string; isAi?: boolean }) => {
     const isMissing = getMissingKeys(profileData).includes(fieldKey);
     return (
       <div className="flex flex-col border-b border-gray-100 dark:border-neutral-800 py-3">
         <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1 flex items-center gap-1">
           {label}
           <span className="text-red-400 dark:text-red-500 text-[10px] ml-0.5">*</span>
+          {isAi && <AiInfoBadge />}
         </span>
         {isMissing ? (
           <button
@@ -393,7 +454,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.personal.title}</h3>
-                {aiParsedSections.has('personal') && <AiInfoBadge />}
+                {aiPersonalFields.size > 0 && <AiInfoBadge />}
               </div>
 
               {!isEditingPersonalInfo ? (
@@ -414,18 +475,18 @@ export function ProfileTab() {
             <div className="p-6">
               {!isEditingPersonalInfo ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                  <RequiredDetailRow label={t.personal.firstName} fieldKey="first_name" value={profileData.personal_info.first_name} />
-                  <RequiredDetailRow label={t.personal.lastName} fieldKey="last_name" value={profileData.personal_info.last_name} />
-                  <DetailRow label={t.personal.email} value={profileData.personal_info.email} />
-                  <RequiredDetailRow label={t.personal.phone} fieldKey="phone" value={profileData.personal_info.phone} />
-                  <RequiredDetailRow label={t.personal.city} fieldKey="city" value={profileData.personal_info.city} />
-                  <RequiredDetailRow label={t.personal.country} fieldKey="country" value={profileData.personal_info.country} />
-                  <DetailRow label={t.personal.nationality} value={profileData.personal_info.nationality} />
-                  <RequiredDetailRow label={t.personal.visa} fieldKey="visa_status" value={profileData.personal_info.visa_status === 'UNKNOWN' ? '' : profileData.personal_info.visa_status?.replace(/_/g, ' ')} />
-                  <RequiredDetailRow label={t.personal.workPref} fieldKey="work_preference" value={profileData.personal_info.work_preference === 'UNKNOWN' ? '' : profileData.personal_info.work_preference} />
-                  <DetailRow label={t.personal.linkedin} value={profileData.personal_info.linkedin_url} />
-                  <DetailRow label={t.personal.github} value={profileData.personal_info.github_url} />
-                  <DetailRow label={t.personal.portfolio} value={profileData.personal_info.portfolio_url} />
+                  <RequiredDetailRow label={t.personal.firstName} fieldKey="first_name" value={profileData.personal_info.first_name} isAi={aiPersonalFields.has('first_name')} />
+                  <RequiredDetailRow label={t.personal.lastName} fieldKey="last_name" value={profileData.personal_info.last_name} isAi={aiPersonalFields.has('last_name')} />
+                  <RequiredDetailRow label={t.personal.email} fieldKey="email" value={profileData.personal_info.email} isAi={aiPersonalFields.has('email')} />
+                  <RequiredDetailRow label={t.personal.phone} fieldKey="phone" value={profileData.personal_info.phone} isAi={aiPersonalFields.has('phone')} />
+                  <RequiredDetailRow label={t.personal.city} fieldKey="city" value={profileData.personal_info.city} isAi={aiPersonalFields.has('city')} />
+                  <RequiredDetailRow label={t.personal.country} fieldKey="country" value={profileData.personal_info.country} isAi={aiPersonalFields.has('country')} />
+                  <DetailRow label={t.personal.nationality} value={profileData.personal_info.nationality} isAi={aiPersonalFields.has('nationality')} />
+                  <RequiredDetailRow label={t.personal.visa} fieldKey="visa_status" value={profileData.personal_info.visa_status === 'UNKNOWN' ? '' : profileData.personal_info.visa_status?.replace(/_/g, ' ')} isAi={aiPersonalFields.has('visa_status')} />
+                  <RequiredDetailRow label={t.personal.workPref} fieldKey="work_preference" value={profileData.personal_info.work_preference === 'UNKNOWN' ? '' : profileData.personal_info.work_preference} isAi={aiPersonalFields.has('work_preference')} />
+                  <DetailRow label={t.personal.linkedin} value={profileData.personal_info.linkedin_url} isAi={aiPersonalFields.has('linkedin_url')} />
+                  <DetailRow label={t.personal.github} value={profileData.personal_info.github_url} isAi={aiPersonalFields.has('github_url')} />
+                  <DetailRow label={t.personal.portfolio} value={profileData.personal_info.portfolio_url} isAi={aiPersonalFields.has('portfolio_url')} />
 
                   <div className="md:col-span-2 flex gap-6 pt-4">
                     <div className="flex items-center gap-2">
@@ -451,8 +512,9 @@ export function ProfileTab() {
                     {validationErrors.has('last_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.email}</label>
-                    <input type="email" value={profileData.personal_info.email || ''} onChange={(e) => handlePersonalInputChange('email', e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.email}<span className="text-red-400">*</span></label>
+                    <input type="email" value={profileData.personal_info.email || ''} onChange={(e) => handlePersonalInputChange('email', e.target.value)} className={inputClass('email')} />
+                    {validationErrors.has('email') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.phone}<span className="text-red-400">*</span></label>
@@ -531,7 +593,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.experience.title}</h3>
-                {aiParsedSections.has('experience') && <AiInfoBadge />}
+                {profileData.experience?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingExperience ? (
                 <button onClick={() => setIsEditingExperience(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -551,7 +613,7 @@ export function ProfileTab() {
                     {profileData.experience.map((exp: any, i: number) => (
                       <div key={i} className="relative">
                         <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white">{exp.title}</h4>
+                        <h4 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">{exp.title}{exp._ai_generated && <AiInfoBadge />}</h4>
                         <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">{exp.company} • {exp.start_date || 'N/A'} - {exp.is_current ? t.experience.present : (exp.end_date || 'N/A')}</p>
                         <ExpandableText text={exp.description} />
                       </div>
@@ -599,7 +661,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.education.title}</h3>
-                {aiParsedSections.has('education') && <AiInfoBadge />}
+                {profileData.education?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingEducation ? (
                 <button onClick={() => setIsEditingEducation(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -619,7 +681,7 @@ export function ProfileTab() {
                     {profileData.education.map((edu: any, i: number) => (
                       <div key={i} className="relative">
                         <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white">{edu.institution}</h4>
+                        <h4 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">{edu.institution}{edu._ai_generated && <AiInfoBadge />}</h4>
                         <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">
                           {[edu.degree, edu.field_of_study].filter(v => v && v !== 'UNKNOWN').join(' in ')}
                           {' • '}{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}
@@ -663,7 +725,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.skills.title}</h3>
-                {aiParsedSections.has('skills') && <AiInfoBadge />}
+                {profileData.skills?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingSkills ? (
                 <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -680,8 +742,8 @@ export function ProfileTab() {
               {!isEditingSkills ? (
                 <div className="flex flex-wrap gap-2">
                   {profileData.skills?.length > 0 ? profileData.skills.map((s: any, i: number) => (
-                    <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold shadow-sm transition-colors">
-                      {s.name} {s.level && <span className="text-gray-400 dark:text-neutral-500 text-[10px] ml-1">{s.level}</span>}
+                    <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold shadow-sm transition-colors inline-flex items-center gap-1.5">
+                      {s.name} {s.level && <span className="text-gray-400 dark:text-neutral-500 text-[10px] ml-1">{s.level}</span>}{s._ai_generated && <AiInfoBadge />}
                     </span>
                   )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">{t.skills.noSkills}</span>}
                 </div>
@@ -716,7 +778,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Languages</h3>
-                {aiParsedSections.has('languages') && <AiInfoBadge />}
+                {profileData.languages?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingLanguages ? (
                 <button onClick={() => setIsEditingLanguages(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -733,9 +795,10 @@ export function ProfileTab() {
               {!isEditingLanguages ? (
                 <div className="flex flex-wrap gap-2">
                   {profileData.languages?.length > 0 ? profileData.languages.map((lang: any, i: number) => (
-                    <span key={i} className="px-3 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300 border border-teal-100 dark:border-teal-800/50 rounded-lg text-xs font-semibold shadow-sm">
+                    <span key={i} className="px-3 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300 border border-teal-100 dark:border-teal-800/50 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5">
                       {lang.name}
                       {lang.level && lang.level !== 'UNKNOWN' && <span className="text-teal-500 dark:text-teal-400 text-[10px] ml-1">{lang.level}</span>}
+                      {lang._ai_generated && <AiInfoBadge />}
                     </span>
                   )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">No languages added yet</span>}
                 </div>
@@ -771,7 +834,7 @@ export function ProfileTab() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.certifications.title}</h3>
-                {aiParsedSections.has('certifications') && <AiInfoBadge />}
+                {profileData.certifications?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingCertifications ? (
                 <button onClick={() => setIsEditingCertifications(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -794,7 +857,7 @@ export function ProfileTab() {
                           <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{cert.name}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">{cert.name}{cert._ai_generated && <AiInfoBadge />}</p>
                           {cert.issuer && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{cert.issuer}</p>}
                           {(cert.issue_date || cert.expiration_date) && (
                             <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
