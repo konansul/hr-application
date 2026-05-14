@@ -160,10 +160,11 @@ export function JobApplicationTab() {
         appByJobId.set(app.job_id, app);
       }
 
-      const merged = (allJobs as any[]).map((job: any) => {
-        const jobId = job.id || job.job_id;
-        const app = appByJobId.get(jobId);
-        if (app) {
+      const merged = (allJobs as any[])
+        .filter((job: any) => appByJobId.has(job.id || job.job_id))
+        .map((job: any) => {
+          const jobId = job.id || job.job_id;
+          const app = appByJobId.get(jobId);
           return {
             ...app,
             job_title:         app.job_title  || job.title,
@@ -173,23 +174,7 @@ export function JobApplicationTab() {
             organization_name: job.organization_name ?? null,
             org_id:            job.org_id ?? null,
           };
-        }
-
-        return {
-          application_id: null,
-          job_id: jobId,
-          job_title: job.title,
-          job_region: job.region,
-          job_description: job.description ?? null,
-          job_status: job.status ?? null,
-          organization_name: job.organization_name ?? null,
-          org_id: job.org_id ?? null,
-          status: 'Not Applied',
-          created_at: null,
-          screening: null,
-          _notApplied: true,
-        };
-      });
+        });
 
       setApiApplications(merged);
     } catch { /* empty */ } finally {
@@ -477,6 +462,17 @@ export function JobApplicationTab() {
           {t.newApp}
         </button>
       </div>
+
+      {(typeFilter === 'hr' || (typeFilter === 'all' && hrCount > 0)) && (
+        <div className="flex items-start gap-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl px-4 py-3 transition-colors">
+          <svg className="w-4 h-4 text-blue-500 dark:text-blue-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 110 20A10 10 0 0112 2z" />
+          </svg>
+          <p className="text-xs text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+            <span className="font-bold">{t.hrManagedNotice1}</span>{t.hrManagedNotice2}
+          </p>
+        </div>
+      )}
 
       {(typeFilter === 'self' || (typeFilter === 'all' && selfCount > 0)) && (
         <div className="flex items-start gap-3 bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30 rounded-2xl px-4 py-3 transition-colors">

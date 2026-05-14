@@ -721,34 +721,42 @@ export function JobsTab() {
 
                 {/* Mode switcher */}
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => setSearchMode('internal')}
-                        className={`flex items-start gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-all ${searchMode === 'internal' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
-                    >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${searchMode === 'internal' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-                            </svg>
+                    <div className="relative group">
+                        <button
+                            onClick={() => setSearchMode('internal')}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'internal' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
+                        >
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'internal' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
+                                </svg>
+                            </div>
+                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Platform Jobs</span>
+                        </button>
+                        <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                            <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
+                                Positions posted directly by HR teams on this platform
+                            </div>
                         </div>
-                        <div>
-                            <p className={`text-xs font-bold leading-snug ${searchMode === 'internal' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Platform Jobs</p>
-                            <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-0.5 leading-relaxed">Positions posted directly<br/>by HR teams on this platform</p>
+                    </div>
+                    <div className="relative group">
+                        <button
+                            onClick={() => setSearchMode('external')}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'external' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
+                        >
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'external' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Job Market</span>
+                        </button>
+                        <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                            <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
+                                Live listings aggregated from job boards worldwide
+                            </div>
                         </div>
-                    </button>
-                    <button
-                        onClick={() => setSearchMode('external')}
-                        className={`flex items-start gap-3 px-4 py-3 rounded-2xl border-2 text-left transition-all ${searchMode === 'external' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
-                    >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${searchMode === 'external' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p className={`text-xs font-bold leading-snug ${searchMode === 'external' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Job Market</p>
-                            <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-0.5 leading-relaxed">Live listings aggregated<br/>from job boards worldwide</p>
-                        </div>
-                    </button>
+                    </div>
                 </div>
 
                 {/* Smart prompt bar */}

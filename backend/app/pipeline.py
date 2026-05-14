@@ -167,28 +167,31 @@ def run_job_refinement(
     try:
         refined_text = gemini.generate_text(prompt)
 
+        def _clause_html(heading: str, body: str) -> str:
+            return f"<h3>{heading}</h3><p>{body}</p>"
+
         clauses = []
         if include_di_clause:
-            clauses.append(f"Diversity & Inclusion\n{LEGAL_TEMPLATES['DIVERSITY_GLOBAL']}")
+            clauses.append(_clause_html("Diversity &amp; Inclusion", LEGAL_TEMPLATES['DIVERSITY_GLOBAL']))
         if include_anti_scam:
-            clauses.append(f"Recruitment Security Alert\n{LEGAL_TEMPLATES['ANTI_SCAM']}")
+            clauses.append(_clause_html("Recruitment Security Alert", LEGAL_TEMPLATES['ANTI_SCAM']))
 
         if region == "US":
             if include_eeo_statement:
-                clauses.append(f"Equal Opportunity Employer\n{LEGAL_TEMPLATES['EEO_US']}")
+                clauses.append(_clause_html("Equal Opportunity Employer", LEGAL_TEMPLATES['EEO_US']))
             if include_pay_transparency:
-                clauses.append(f"Pay Transparency\n{LEGAL_TEMPLATES['PAY_TRANSPARENCY_US']}")
+                clauses.append(_clause_html("Pay Transparency", LEGAL_TEMPLATES['PAY_TRANSPARENCY_US']))
         elif region == "EU":
             if include_gdpr_notice:
-                clauses.append(f"Data Privacy\n{LEGAL_TEMPLATES['GDPR_EU']}")
+                clauses.append(_clause_html("Data Privacy", LEGAL_TEMPLATES['GDPR_EU']))
             if include_eu_salary_law:
-                clauses.append(f"Salary Information (KV)\n{LEGAL_TEMPLATES['KV_AUSTRIA']}")
+                clauses.append(_clause_html("Salary Information (KV)", LEGAL_TEMPLATES['KV_AUSTRIA']))
         elif region == "Asia":
             if include_visa_sponsorship:
-                clauses.append(f"Visa & Work Authorization\n{LEGAL_TEMPLATES['VISA_SPONSORSHIP_ASIA']}")
+                clauses.append(_clause_html("Visa &amp; Work Authorization", LEGAL_TEMPLATES['VISA_SPONSORSHIP_ASIA']))
 
         if clauses:
-            refined_text += "\n\n---\n\n" + "\n\n".join(clauses)
+            refined_text += "<hr>" + "".join(clauses)
 
         return refined_text
 

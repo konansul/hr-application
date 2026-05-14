@@ -113,7 +113,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false);
-  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
 
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
@@ -311,39 +310,6 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const shareJob = (platform: string) => {
-    if (!currentJob) return;
-
-    const url = `${window.location.origin}/p/jobs/${currentJob.id}`;
-    const salary = activeRequirements.salaryMin && activeRequirements.salaryMax
-      ? `\n💰 Salary: ${activeRequirements.salaryMin}-${activeRequirements.salaryMax} ${activeRequirements.currency}`
-      : '';
-    const format = activeRequirements.workFormat !== 'Any'
-      ? `\n📍 Format: ${activeRequirements.workFormat}`
-      : '';
-
-    const text = `We are hiring a ${activeTitle}!${format}${salary}\n\nApply here:`;
-
-    let shareUrl = '';
-    switch (platform) {
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-        break;
-      case 'telegram':
-        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-        break;
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-        break;
-      case 'whatsapp':
-        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
-        break;
-    }
-
-    if (shareUrl) window.open(shareUrl, '_blank');
-    setIsShareMenuOpen(false);
-  };
-
   const getStatusBadgeStyles = (status?: string) => {
     switch (status) {
       case 'active': return 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50';
@@ -481,43 +447,8 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
                   <button onClick={handleCopyLink} className="flex items-center gap-1.5 px-4 py-1.5 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 text-gray-700 dark:text-neutral-300 border border-gray-200 dark:border-neutral-700 rounded-xl text-xs font-bold transition-all shadow-sm">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                    Copy Link
+                    Share Public Link
                   </button>
-
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 rounded-xl text-xs font-bold transition-all shadow-sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                      Share Job
-                    </button>
-
-                    {isShareMenuOpen && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setIsShareMenuOpen(false)}></div>
-                        {/* Меню с right-0, чтобы открывалось влево и не обрезалось */}
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                          <button onClick={() => shareJob('linkedin')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-3 transition-colors">
-                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                             LinkedIn
-                          </button>
-                          <button onClick={() => shareJob('telegram')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-sky-50 dark:hover:bg-sky-900/20 hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-3 transition-colors border-t border-gray-50 dark:border-neutral-800/50">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a5.96 5.96 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.123-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.888-.667 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                             Telegram
-                          </button>
-                          <button onClick={() => shareJob('twitter')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white flex items-center gap-3 transition-colors border-t border-gray-50 dark:border-neutral-800/50">
-                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-                             X (Twitter)
-                          </button>
-                          <button onClick={() => shareJob('whatsapp')} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-700 dark:text-neutral-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-3 transition-colors border-t border-gray-50 dark:border-neutral-800/50">
-                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.876 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                             WhatsApp
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
 
                   <button onClick={() => setIsRequirementsModalOpen(true)} className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-bold transition-all shadow-sm">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
@@ -533,7 +464,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               )}
             </div>
             {currentJob ? (
-              <div className="p-6 flex flex-col flex-1 gap-5 overflow-hidden">
+              <div className="p-6 flex flex-col gap-5 overflow-y-auto flex-1 custom-scrollbar">
                 <div className="flex flex-col xl:flex-row xl:items-start gap-4 justify-between shrink-0">
                   <input type="text" value={activeTitle} onChange={(e) => setActiveTitle(e.target.value)} className="flex-1 text-3xl font-bold text-gray-900 dark:text-white border-none focus:ring-0 p-0 placeholder-gray-300 dark:placeholder-neutral-700 bg-transparent" placeholder={t.untitled} />
                   <div className="flex flex-wrap items-center gap-2 shrink-0 bg-gray-50 dark:bg-black p-1.5 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
@@ -553,13 +484,13 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                   </div>
                 </div>
                 <div className="h-px bg-gray-100 dark:bg-neutral-800 w-full shrink-0"></div>
-                <div className={`flex-1 transition-opacity ${isRefining ? 'opacity-40 pointer-events-none' : ''}`}>
+                <div className={`transition-opacity ${isRefining ? 'opacity-40 pointer-events-none' : ''}`}>
                   <RichTextEditor
                     value={activeDescription}
                     onChange={setActiveDescription}
                     placeholder="Start writing the detailed description..."
                     disabled={isRefining}
-                    minHeight="300px"
+                    minHeight="400px"
                   />
                 </div>
                 <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 flex justify-between items-center text-[10px] text-gray-400 dark:text-neutral-600 font-mono uppercase tracking-widest shrink-0 transition-colors">

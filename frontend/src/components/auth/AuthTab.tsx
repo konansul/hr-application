@@ -370,10 +370,9 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <button
                 type="submit"
                 disabled={mode === 'Register' && !consentChecked}
-                className="relative w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold rounded-xl shadow-lg shadow-zinc-900/20 dark:shadow-white/10 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-900/30 dark:hover:shadow-white/20 active:scale-[0.98] transition-all overflow-hidden group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
+                className="w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold rounded-xl shadow-lg shadow-zinc-900/20 dark:shadow-white/10 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-900/30 dark:hover:shadow-white/20 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
               >
-                <div className="absolute inset-0 bg-white/20 dark:bg-black/10 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-500 ease-in-out"></div>
-                <span className="relative z-10">{mode === 'Login' ? t.signIn : t.createAccount}</span>
+                {mode === 'Login' ? t.signIn : t.createAccount}
               </button>
             </div>
 
