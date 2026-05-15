@@ -2120,12 +2120,13 @@ export function ResumeUploadTab() {
                     <p className="text-[9px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-2">AI Content</p>
                     {sections.map(({ key, label }) => {
                       const isManual = manuallyEditedSections.has(key);
-                      return (
+                        return (
                         <div key={key} className="flex items-center justify-between gap-1.5 py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700">
                           <span className="text-[11px] text-gray-700 dark:text-neutral-300 font-medium truncate">{label}</span>
                           {isManual ? (
-                            <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="Manually edited">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <title>Manually edited</title>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
                           ) : (
                             <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />
