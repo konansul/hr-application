@@ -278,7 +278,7 @@ function LocationCombobox({
 }
 
 export function JobsTab() {
-    const {language} = useStore();
+    const { language, userId } = useStore();
     const t = DICT[language as keyof typeof DICT]?.jobs || DICT.en.jobs;
     const tl = (t as any);
 
@@ -317,29 +317,28 @@ export function JobsTab() {
     const [externalModalUrl, setExternalModalUrl] = useState<string | null>(null);
     const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
 
-    // Saved jobs tracker
-    const LS_KEY = 'candidate_tracked_jobs';
-    const [savedJobIds, setSavedJobIds] = useState<Set<string>>(() => {
-        try {
-            const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-            return new Set(items.filter(j => j.source_job_id).map(j => j.source_job_id as string));
-        } catch { return new Set(); }
-    });
+    // Saved jobs tracker — user-specific key matches JobApplicationTab
+    const lsKey = userId ? `candidate_tracked_jobs_${userId}` : null;
+    const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         const handler = () => {
+            if (!lsKey) return;
             try {
-                const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+                const items: any[] = JSON.parse(localStorage.getItem(lsKey) || '[]');
                 setSavedJobIds(new Set(items.filter(j => j.source_job_id).map(j => j.source_job_id as string)));
             } catch { /* ignore */ }
         };
+        // Seed immediately when userId/lsKey is first available
+        handler();
         window.addEventListener('tracked-jobs-updated', handler);
         return () => window.removeEventListener('tracked-jobs-updated', handler);
-    }, []);
+    }, [lsKey]);
 
     const saveJobToTracker = (job: any, status: string) => {
+        if (!lsKey) return;
         try {
-            const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+            const items: any[] = JSON.parse(localStorage.getItem(lsKey) || '[]');
             const sourceJobId = String(job.job_id || job.id || '');
             const existing = items.findIndex(j => j.source_job_id === sourceJobId);
             const entry = {
@@ -359,17 +358,18 @@ export function JobsTab() {
             } else {
                 items.unshift(entry);
             }
-            localStorage.setItem(LS_KEY, JSON.stringify(items));
+            localStorage.setItem(lsKey, JSON.stringify(items));
             setSavedJobIds(prev => new Set([...prev, sourceJobId]));
             window.dispatchEvent(new Event('tracked-jobs-updated'));
         } catch { /* ignore */ }
     };
 
     const unsaveJob = (sourceJobId: string) => {
+        if (!lsKey) return;
         try {
-            const items: any[] = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+            const items: any[] = JSON.parse(localStorage.getItem(lsKey) || '[]');
             const updated = items.filter(j => j.source_job_id !== sourceJobId);
-            localStorage.setItem(LS_KEY, JSON.stringify(updated));
+            localStorage.setItem(lsKey, JSON.stringify(updated));
             setSavedJobIds(prev => { const next = new Set(prev); next.delete(sourceJobId); return next; });
             window.dispatchEvent(new Event('tracked-jobs-updated'));
         } catch { /* ignore */ }
@@ -642,8 +642,10 @@ export function JobsTab() {
     };
 
     const completeApplication = async () => {
+        const appliedJob = applyingJob;
         const updatedApps = await screeningApi.getMyApplications();
         setApplications(updatedApps);
+        if (appliedJob) saveJobToTracker(appliedJob, 'Applied');
         setApplyingJob(null);
         setAnswers({});
         alert(t.successMsg);
