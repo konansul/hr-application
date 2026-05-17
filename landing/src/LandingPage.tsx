@@ -156,8 +156,11 @@ export function LandingPage() {
       </div>
 
       <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? (isDark ? 'bg-[#08090c]/85 backdrop-blur-2xl border-b border-white/[0.07] py-3 shadow-2xl shadow-black/30' : 'bg-white/85 backdrop-blur-2xl border-b border-slate-200/60 py-3 shadow-lg shadow-slate-200/30') : 'bg-transparent py-5'}`}>
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center">
-          <div className="flex justify-start">
+        {/* ИЗМЕНЕНИЕ ЗДЕСЬ: Используем relative и flex justify-between для идеального позиционирования */}
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative">
+
+          {/* Левый блок (Лого) */}
+          <div className="flex justify-start z-10">
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${isDark ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-indigo-500/25' : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30'}`}>
                 <BoltIcon />
@@ -165,24 +168,25 @@ export function LandingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className={`font-black text-xl tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>HR.App</span>
+              <span className={`font-black text-xl tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>HR AI App</span>
             </Link>
           </div>
 
-          <nav className={`hidden lg:flex justify-center items-center gap-1 px-2 py-1.5 rounded-2xl border backdrop-blur-md mx-auto ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
+          {/* Центральный блок (Меню) - ИЗМЕНЕНИЕ ЗДЕСЬ: absolute left-1/2 -translate-x-1/2 жестко центрирует элемент */}
+          <nav className={`hidden lg:flex absolute left-1/2 -translate-x-1/2 z-10 justify-center items-center gap-1 px-2 py-1.5 rounded-2xl border backdrop-blur-md ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
             <a href="#overview" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Overview</a>
             <a href="#features" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Features</a>
             <a href="#workflow" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Workflow</a>
 
-            {/* Разделитель */}
             <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-slate-300'}`} />
 
-            {/* Ссылки на документы */}
+            <Link to="/guide" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>HR Guide</Link>
             <Link to="/privacy" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Privacy</Link>
             <Link to="/terms" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Terms</Link>
           </nav>
 
-          <div className="flex justify-end items-center gap-3">
+          {/* Правый блок (Кнопки) */}
+          <div className="flex justify-end items-center gap-3 z-10">
             <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               aria-label="Toggle theme"
@@ -204,6 +208,7 @@ export function LandingPage() {
       <main className="relative z-10">
 
         <section className="pt-36 pb-24 px-6 max-w-7xl mx-auto">
+            {/* eslint-disable-next-line react-hooks/refs */}
           <div ref={heroSection.ref} className={`flex flex-col items-center text-center ${transitionClass(heroSection.visible)}`}>
             <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border text-xs font-semibold mb-10 transition-all hover:scale-[1.02] shadow-sm ${isDark ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/15' : 'bg-white border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200'}`}>
               <span className="relative flex h-2 w-2">
@@ -234,6 +239,9 @@ export function LandingPage() {
               <a href="#workflow" className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold transition-all border ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
                 See how it works
               </a>
+              <Link to="/guide" className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold transition-all border ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
+                HR Guide
+              </Link>
             </div>
 
             <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>No credit card required &nbsp;·&nbsp; Free to get started</p>
@@ -249,7 +257,7 @@ export function LandingPage() {
                   </div>
                   <div className={`mx-auto flex items-center gap-2 px-4 py-1.5 rounded-lg border text-xs font-mono ${isDark ? 'bg-[#08090c] border-white/[0.08] text-slate-500' : 'bg-white border-slate-200 text-slate-400 shadow-sm'}`}>
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    app.hr-platform.com/dashboard
+                    app.hraipp.com/dashboard
                   </div>
                 </div>
 
@@ -321,6 +329,7 @@ export function LandingPage() {
 
         <section id="about" className={`py-32 border-t border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200/60'}`}>
           <div className="max-w-7xl mx-auto px-6">
+              {/* eslint-disable-next-line react-hooks/refs */}
             <div ref={aboutSection.ref} className={transitionClass(aboutSection.visible)}>
               <div className="text-center mb-16">
                 <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold mb-5 ${isDark ? 'bg-violet-500/10 border-violet-500/25 text-violet-300' : 'bg-violet-50 border-violet-200 text-violet-700'}`}>
@@ -393,6 +402,7 @@ export function LandingPage() {
 
         <section id="features" className={`py-32 ${bg}`}>
           <div className="max-w-7xl mx-auto px-6">
+              {/* eslint-disable-next-line react-hooks/refs */}
             <div ref={featuresSection.ref} className={transitionClass(featuresSection.visible)}>
               <div className="text-center mb-16">
                 <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold mb-5 ${isDark ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}>
@@ -423,6 +433,7 @@ export function LandingPage() {
         <section id="workflow" className={`py-32 border-t border-b relative overflow-hidden ${isDark ? 'bg-[#0a0b10] border-white/[0.06]' : 'bg-white border-slate-200/60'}`}>
           <div className={`absolute right-0 top-1/3 w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none ${isDark ? 'bg-indigo-600/8' : 'bg-indigo-200/40'}`} />
           <div className="max-w-7xl mx-auto px-6 relative z-10">
+              {/* eslint-disable-next-line react-hooks/refs */}
             <div ref={workflowSection.ref} className={`flex flex-col lg:flex-row gap-14 items-start ${transitionClass(workflowSection.visible)}`}>
               <div className="w-full lg:w-1/2 lg:sticky lg:top-28">
                 <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold mb-6 ${isDark ? 'bg-fuchsia-500/10 border-fuchsia-500/25 text-fuchsia-300' : 'bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700'}`}>
@@ -526,6 +537,7 @@ export function LandingPage() {
 
         <section className={`py-36 relative overflow-hidden ${isDark ? 'bg-[#08090c]' : 'bg-[#f8f9fc]'}`}>
           <div className={`absolute inset-0 pointer-events-none ${isDark ? 'bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(99,102,241,0.08),transparent)]' : 'bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(99,102,241,0.06),transparent)]'}`} />
+            {/* eslint-disable-next-line react-hooks/refs */}
           <div ref={ctaSection.ref} className={`max-w-4xl mx-auto px-6 text-center relative z-10 ${transitionClass(ctaSection.visible)}`}>
             <div className={`p-12 md:p-20 rounded-[2.5rem] border overflow-hidden relative ${isDark ? 'bg-gradient-to-br from-[#0f1117] via-[#0d0f16] to-[#111622] border-white/[0.08]' : 'bg-gradient-to-br from-white to-slate-50/80 border-slate-200 shadow-2xl shadow-slate-200/60'}`}>
               <div className={`absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent`} />
@@ -568,7 +580,7 @@ export function LandingPage() {
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-gradient-to-br from-indigo-600 to-violet-700'}`}>
                 <BoltIcon />
               </div>
-              <span className={`font-black text-lg tracking-tighter ${text}`}>HR.App</span>
+              <span className={`font-black text-lg tracking-tighter ${text}`}>HR AI App</span>
             </Link>
           </div>
 
@@ -579,7 +591,7 @@ export function LandingPage() {
           </div>
 
           <div className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-            <span>© 2026 HR Application.</span>
+            <span>© 2026 HR AI App.</span>
             <span>Built by</span>
             <a href="https://boldgeneric.com/" target="_blank" rel="noreferrer" className={`font-bold transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
               Bold Generic
