@@ -717,7 +717,7 @@ export function JobsTab() {
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">{t.title}</h2>
                     <p className="text-sm text-gray-500 dark:text-neutral-400 font-medium">
-                        {t.subtitle.replace('{name}', user?.email?.split('@')[0] || 'User')}
+                        {t.subtitle.replace('{name}', [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'User')}
                     </p>
                 </div>
 
@@ -806,6 +806,7 @@ export function JobsTab() {
                             placeholder={t.searchPlaceholder}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && searchMode === 'external') fetchExternalJobs(1); }}
                             className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 w-52"
                         />
                     </div>
@@ -893,6 +894,30 @@ export function JobsTab() {
                                 className="text-xs text-gray-400 dark:text-neutral-500">{tl.smartLabel || 'Smart Filter'}</span>
                         )}
                     </div>
+
+                    {/* Apply button */}
+                    <button
+                        onClick={() => { if (searchMode === 'external') fetchExternalJobs(1); }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-semibold rounded-xl transition-all"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Apply
+                    </button>
+
+                    {/* Clear All button — only shown when filters are active */}
+                    {(searchQuery !== '' || selectedLevelKey !== 'all' || selectedType !== 'all' || selectedLocation !== 'all' || smartTags.length > 0) && (
+                        <button
+                            onClick={clearSmartFilters}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-800/50 text-xs font-semibold rounded-xl transition-all"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Clear All
+                        </button>
+                    )}
                 </div>
             </div>
 
