@@ -251,13 +251,28 @@ export function JobApplicationTab() {
     window.dispatchEvent(new Event('tracked-jobs-updated'));
   };
 
-  const matchesStageFilter = (jobStatus: string) => {
+  const matchesHrStageFilter = (appStatus: string) => {
     if (stageFilter === 'all') return true;
-    const norm       = normalizeStatus(jobStatus);
+    const norm       = normalizeStatus(appStatus);
     const filterNorm = normalizeStatus(stageFilter);
     if (filterNorm === 'REJECTED') return norm.includes('REJECT') || norm.includes('FAIL');
     if (norm.includes('REJECT') || norm.includes('FAIL')) return false;
-    return getDisplayStageIdx(jobStatus) >= getDisplayStageIdx(stageFilter);
+    // If the selected stage belongs only to the self-tracked pipeline, no HR app matches
+    const isHrStage = DISPLAY_STAGES.some(s => normalizeStatus(s) === filterNorm);
+    if (!isHrStage) return false;
+    return getDisplayStageIdx(appStatus) >= getDisplayStageIdx(stageFilter);
+  };
+
+  const matchesSelfStageFilter = (jobStatus: string) => {
+    if (stageFilter === 'all') return true;
+    const norm       = normalizeStatus(jobStatus);
+    const filterNorm = normalizeStatus(stageFilter);
+    if (filterNorm === 'REJECTED') return norm === 'REJECTED';
+    if (norm === 'REJECTED') return false;
+    // If the selected stage belongs only to the HR pipeline, no self-tracked app matches
+    const isSelfStage = SELF_STAGES.some(s => normalizeStatus(s.value) === filterNorm);
+    if (!isSelfStage) return false;
+    return getStageIndex(jobStatus) >= getStageIndex(stageFilter);
   };
 
   const filteredApi = useMemo(() => {
@@ -267,7 +282,7 @@ export function JobApplicationTab() {
       if (searchQuery && !title.includes(searchQuery.toLowerCase())) return false;
       if (stageFilter !== 'all') {
         if (app._notApplied) return false;
-        if (!matchesStageFilter(app.status)) return false;
+        if (!matchesHrStageFilter(app.status)) return false;
       }
       return true;
     });
@@ -277,7 +292,7 @@ export function JobApplicationTab() {
     return trackedJobs.filter(job => {
       if (typeFilter === 'hr') return false;
       if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      if (!matchesStageFilter(job.status)) return false;
+      if (!matchesSelfStageFilter(job.status)) return false;
       return true;
     });
   }, [trackedJobs, typeFilter, searchQuery, stageFilter]);
@@ -558,9 +573,15 @@ export function JobApplicationTab() {
               }`}
             >
               <option value="all">{t.allStages}</option>
-              {[...DISPLAY_STAGES, 'Rejected'].map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+              <option value="Saved">Saved</option>
+              <option value="Applied">Applied</option>
+              <option value="Shortlisted">Shortlisted</option>
+              <option value="In Progress">In Progress</option>
+              <option value="HR Interview">HR Interview</option>
+              <option value="Tech Interview">Tech Interview</option>
+              <option value="Decision">Decision</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
             </select>
             <svg className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${stageFilter !== 'all' ? 'text-white dark:text-black' : 'text-gray-400 dark:text-neutral-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
