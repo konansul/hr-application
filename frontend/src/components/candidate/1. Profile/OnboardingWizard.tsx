@@ -1,19 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { documentsApi, authApi } from '../../../api';
+import { useStore } from '../../../store';
+import { DICT } from '../../../internationalization.ts';
 
 interface Props {
   userId: string;
   onComplete: () => void;
 }
 
-const PROFILE_SECTIONS = [
-  { label: 'Personal Info',  icon: '👤', desc: 'Name, contact, location' },
-  { label: 'Experience',     icon: '💼', desc: 'Work history & roles' },
-  { label: 'Education',      icon: '🎓', desc: 'Degrees & institutions' },
-  { label: 'Skills',         icon: '⚡', desc: 'Technical & soft skills' },
-];
-
 export function OnboardingWizard({ userId, onComplete }: Props) {
+  const { language } = useStore();
+  const w = (DICT[language as keyof typeof DICT]?.wizard || DICT.en.wizard) as any;
+
   const [step, setStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
@@ -42,7 +40,7 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
       setUploadDone(true);
       setTimeout(complete, 1200);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Import failed. Please try again.');
+      setError(err?.response?.data?.detail || w.importError);
     } finally {
       setIsImportingUrl(false);
     }
@@ -59,11 +57,18 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
       setUploadDone(true);
       setTimeout(complete, 1200);
     } catch {
-      setError('Upload failed. Please try again.');
+      setError(w.uploadError);
     } finally {
       setUploading(false);
     }
   };
+
+  const PROFILE_SECTIONS = [
+    { label: w.sections?.personalInfo ?? 'Personal Info',  icon: '👤', desc: w.sections?.personalInfoDesc ?? 'Name, contact, location' },
+    { label: w.sections?.experience ?? 'Experience',       icon: '💼', desc: w.sections?.experienceDesc ?? 'Work history & roles' },
+    { label: w.sections?.education ?? 'Education',         icon: '🎓', desc: w.sections?.educationDesc ?? 'Degrees & institutions' },
+    { label: w.sections?.skills ?? 'Skills',               icon: '⚡', desc: w.sections?.skillsDesc ?? 'Technical & soft skills' },
+  ];
 
   return (
     <div
@@ -96,10 +101,10 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
                 </svg>
               </div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1.5">
-                Welcome! Let's build your profile
+                {w.welcomeTitle ?? "Welcome! Let's build your profile"}
               </h1>
               <p className="text-sm text-gray-500 dark:text-neutral-400">
-                Your profile is your digital resume. Complete it once and apply to any job in seconds.
+                {w.welcomeDesc ?? 'Your profile is your digital resume. Complete it once and apply to any job in seconds.'}
               </p>
             </div>
 
@@ -121,7 +126,7 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
             <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 rounded-2xl px-4 py-3 mb-6 flex items-start gap-3">
               <span className="text-base mt-0.5">💡</span>
               <p className="text-xs text-indigo-700 dark:text-indigo-300 font-medium">
-                Upload your CV on the next step and we'll fill everything in automatically using AI.
+                {w.aiHint ?? "Upload your CV on the next step and we'll fill everything in automatically using AI."}
               </p>
             </div>
 
@@ -129,13 +134,13 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
               onClick={() => setStep(2)}
               className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-2xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all active:scale-[0.98]"
             >
-              Get Started →
+              {w.getStarted ?? 'Get Started →'}
             </button>
             <button
               onClick={complete}
               className="w-full mt-2 text-xs text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300 py-1.5 transition-colors"
             >
-              Skip for now
+              {w.skipForNow ?? 'Skip for now'}
             </button>
           </div>
         )}
@@ -145,10 +150,10 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
           <div className="p-7">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1.5">
-                Upload your CV
+                {w.uploadTitle ?? 'Upload your CV'}
               </h2>
               <p className="text-sm text-gray-500 dark:text-neutral-400">
-                Upload your CV or paste a URL — we'll extract your experience, education, and skills automatically.
+                {w.uploadDesc ?? "Upload your CV or paste a URL — we'll extract your experience, education, and skills automatically."}
               </p>
             </div>
 
@@ -189,18 +194,18 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
 
               {uploadDone ? (
                 <>
-                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">CV uploaded successfully!</p>
-                  <p className="text-xs text-emerald-600/70 dark:text-emerald-500/70">Your profile is being filled in…</p>
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{w.uploadSuccess ?? 'CV uploaded successfully!'}</p>
+                  <p className="text-xs text-emerald-600/70 dark:text-emerald-500/70">{w.uploadSuccessDesc ?? 'Your profile is being filled in…'}</p>
                 </>
               ) : uploading ? (
                 <>
-                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">Uploading…</p>
-                  <p className="text-xs text-gray-400 dark:text-neutral-500">Please wait</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">{w.uploading ?? 'Uploading…'}</p>
+                  <p className="text-xs text-gray-400 dark:text-neutral-500">{w.uploadWait ?? 'Please wait'}</p>
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">Click to choose your CV</p>
-                  <p className="text-xs text-gray-400 dark:text-neutral-500">PDF, DOCX or TXT supported</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">{w.uploadClick ?? 'Click to choose your CV'}</p>
+                  <p className="text-xs text-gray-400 dark:text-neutral-500">{w.uploadFormats ?? 'PDF, DOCX or TXT supported'}</p>
                 </>
               )}
             </button>
@@ -216,7 +221,7 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
 
             <div className="flex items-center gap-3 mt-5">
               <div className="flex-1 h-px bg-gray-100 dark:bg-neutral-800" />
-              <span className="text-xs text-gray-400 dark:text-neutral-500">or import from URL</span>
+              <span className="text-xs text-gray-400 dark:text-neutral-500">{w.orImportUrl ?? 'or import from URL'}</span>
               <div className="flex-1 h-px bg-gray-100 dark:bg-neutral-800" />
             </div>
 
@@ -226,7 +231,7 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
                 value={importUrl}
                 onChange={e => setImportUrl(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleUrlImport()}
-                placeholder="Paste your resume/portfolio URL"
+                placeholder={w.urlPlaceholder ?? 'Paste your resume/portfolio URL'}
                 disabled={isImportingUrl || uploadDone}
                 className="flex-1 px-3 py-2.5 text-sm border border-gray-200 dark:border-neutral-700 rounded-2xl bg-white dark:bg-neutral-800 text-gray-800 dark:text-neutral-100 placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 disabled:opacity-50"
               />
@@ -237,13 +242,13 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
               >
                 {isImportingUrl ? (
                   <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : 'Import'}
+                ) : (w.importBtn ?? 'Import')}
               </button>
             </div>
 
             <div className="flex items-center gap-3 mt-4">
               <div className="flex-1 h-px bg-gray-100 dark:bg-neutral-800" />
-              <span className="text-xs text-gray-400 dark:text-neutral-500">or</span>
+              <span className="text-xs text-gray-400 dark:text-neutral-500">{w.orDivider ?? 'or'}</span>
               <div className="flex-1 h-px bg-gray-100 dark:bg-neutral-800" />
             </div>
 
@@ -251,7 +256,7 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
               onClick={complete}
               className="w-full mt-4 py-2.5 border border-gray-200 dark:border-neutral-700 text-sm font-medium text-gray-600 dark:text-neutral-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
             >
-              I'll fill in my profile manually
+              {w.fillManually ?? "I'll fill in my profile manually"}
             </button>
 
             <div className="flex items-center justify-between mt-4">
@@ -259,13 +264,13 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
                 onClick={() => setStep(1)}
                 className="text-xs text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors"
               >
-                ← Back
+                {w.back ?? '← Back'}
               </button>
               <button
                 onClick={complete}
                 className="text-xs text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors"
               >
-                Skip
+                {w.skip ?? 'Skip'}
               </button>
             </div>
           </div>

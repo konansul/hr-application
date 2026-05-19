@@ -68,7 +68,25 @@ export const de = {
     emailPlaceholder: "E-Mail-Adresse eingeben...",
     save: "Änderungen speichern",
     saving: "Wird gespeichert...",
-    successSave: "Einstellungen erfolgreich gespeichert!"
+    successSave: "Einstellungen erfolgreich gespeichert!",
+    linkCreated: "Link erstellt und gespeichert!",
+    linkDisabled: "Link deaktiviert, Profil ist privat",
+    profileShared: "Profil an {email} gesendet",
+    deleteAccount: {
+      title: "Konto löschen",
+      desc: "Ihr Konto, Profil und alle CV-Dateien dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+      btn: "Konto löschen",
+      modalTitle: "Konto löschen?",
+      modalDesc: "Dadurch werden Ihre E-Mail, Profildaten und alle CV-Dateien dauerhaft aus unseren Systemen entfernt. Diese Daten können nicht wiederhergestellt werden.",
+      typeLabel: "Geben Sie",
+      keyword: "DELETE",
+      typeSuffix: "zur Bestätigung ein",
+      placeholder: "DELETE",
+      cancelBtn: "Abbrechen",
+      confirmBtn: "Mein Konto löschen",
+      deleting: "Löschen…",
+      error: "Löschen fehlgeschlagen. Bitte erneut versuchen oder Support kontaktieren."
+    }
   },
   profile: {
     title: "Profil-Dashboard",
@@ -78,6 +96,8 @@ export const de = {
     cancel: "Abbrechen",
     saveChanges: "Änderungen speichern",
     aiParsedTooltip: "Dies wurde von KI analysiert. Bitte überprüfen Sie die Richtigkeit.",
+    showMore: "Mehr anzeigen",
+    showLess: "Weniger anzeigen",
     personal: {
       title: "Persönliche Informationen",
       firstName: "Vorname",
@@ -118,6 +138,11 @@ export const de = {
       end: "Ende",
       desc: "Beschreibung oder Erfolge"
     },
+    languages: {
+      title: "Sprachen",
+      noLang: "Noch keine Sprachen hinzugefügt.",
+      addLang: "+ Sprache hinzufügen"
+    },
     certifications: {
       title: "Zertifikate",
       noCert: "Noch keine Zertifikate hinzugefügt.",
@@ -153,7 +178,15 @@ export const de = {
       fillPrompt: "Füllen Sie Ihr Profil aus, um Ihre Chancen auf Einladungen zu Vorstellungsgesprächen zu erhöhen.",
       autofill: "Automatisches Ausfüllen durch Lebenslauf-Upload",
       resumeLibrary: "Lebenslauf-Bibliothek",
-      noResumes: "Keine Lebensläufe hochgeladen."
+      noResumes: "Keine Lebensläufe hochgeladen.",
+      importFromUrl: "Von URL importieren",
+      importing: "Wird importiert…",
+      importProfile: "Profil importieren",
+      redoWizard: "Setup-Assistent wiederholen",
+      profileCompleteness: "Profilvollständigkeit",
+      allComplete: "Alle Pflichtfelder ausgefüllt",
+      missingFields: "Fehlende Pflichtfelder:",
+      addExpSkills: "Fügen Sie auch Erfahrung und Fähigkeiten hinzu."
     },
     upload: {
       selectedFile: "Ausgewählte Datei",
@@ -161,6 +194,41 @@ export const de = {
       confirm: "Upload bestätigen",
       processing: "Dokument wird verarbeitet..."
     }
+  },
+  wizard: {
+    welcomeTitle: "Willkommen! Lass uns dein Profil erstellen",
+    welcomeDesc: "Dein Profil ist dein digitaler Lebenslauf. Füll es einmal aus und bewirb dich in Sekunden auf jede Stelle.",
+    aiHint: "Lade im nächsten Schritt deinen Lebenslauf hoch und wir füllen alles automatisch per KI aus.",
+    getStarted: "Loslegen →",
+    skipForNow: "Jetzt überspringen",
+    sections: {
+      personalInfo: "Persönliche Daten",
+      personalInfoDesc: "Name, Kontakt, Standort",
+      experience: "Erfahrung",
+      experienceDesc: "Beruflicher Werdegang & Positionen",
+      education: "Ausbildung",
+      educationDesc: "Abschlüsse & Institutionen",
+      skills: "Fähigkeiten",
+      skillsDesc: "Technische & soziale Kompetenzen"
+    },
+    uploadTitle: "Lebenslauf hochladen",
+    uploadDesc: "Lade deinen Lebenslauf hoch oder füge eine URL ein — wir extrahieren automatisch Erfahrung, Ausbildung und Fähigkeiten.",
+    uploadSuccess: "Lebenslauf erfolgreich hochgeladen!",
+    uploadSuccessDesc: "Dein Profil wird gerade ausgefüllt…",
+    uploading: "Hochladen…",
+    uploadWait: "Bitte warten",
+    uploadClick: "Klicke, um deinen Lebenslauf auszuwählen",
+    uploadFormats: "PDF, DOCX oder TXT unterstützt",
+    orImportUrl: "oder per URL importieren",
+    urlPlaceholder: "Lebenslauf- oder Portfolio-URL einfügen",
+    importBtn: "Importieren",
+    importing: "Importieren…",
+    orDivider: "oder",
+    fillManually: "Ich fülle mein Profil manuell aus",
+    back: "← Zurück",
+    skip: "Überspringen",
+    importError: "Import fehlgeschlagen. Bitte erneut versuchen.",
+    uploadError: "Hochladen fehlgeschlagen. Bitte erneut versuchen."
   },
   improve: {
     title: "KI-Lebenslauf-Optimierer",
@@ -191,7 +259,12 @@ export const de = {
     original: "Original",
     improved: "Verbessert (Wirkungsorientiert)",
     noRewrites: "Keine Stichpunkte mussten umgeschrieben werden.",
-    parsedText: "Geparster Dokumenttext"
+    parsedText: "Geparster Dokumenttext",
+    selectCv: "CV zur Verbesserung auswählen",
+    orUploadNew: "ODER NEU HOCHLADEN",
+    analysisHistory: "Analyseverlauf",
+    loadingHistory: "Verlauf wird geladen...",
+    viewingHistory: "Aus dem Verlauf"
   },
   jobs: {
     title: "Jobs Entdecken",
@@ -209,6 +282,31 @@ export const de = {
     loadingDesc: "Bitte warten Sie, während wir die neuesten Jobs abrufen.",
     remote: "Remote",
     fullTime: "Vollzeit",
+    smartPromptPlaceholder: 'z. B. "Senior-Entwickler Jobs in der EU, Vollzeit"',
+    smartApply: "Anwenden",
+    smartClear: "Alle löschen",
+    smartLabel: "Smart-Filter",
+    filterLevel: "Level",
+    filterType: "Typ",
+    filterLocation: "Standort",
+    allLevels: "Alle Level",
+    allTypes: "Alle Typen",
+    allLocations: "Alle Standorte",
+    types: {
+      fullTime: "Vollzeit",
+      partTime: "Teilzeit",
+      contract: "Vertrag",
+      remote: "Remote"
+    },
+    locRemote: "Remote / Von zu Hause arbeiten",
+    locEurope: "Europa (alle Länder)",
+    locGroupQuickPicks: "Schnellauswahl",
+    locGroupEurope: "Europa",
+    locGroupUK: "Vereinigtes Königreich",
+    locGroupUS: "Vereinigte Staaten",
+    locGroupAmericas: "Amerika",
+    locGroupAsiaPacific: "Asien-Pazifik",
+    locGroupMiddleEast: "Naher Osten",
     showLess: "Weniger anzeigen",
     viewDetails: "Details anzeigen",
     appSubmittedBtn: "Bewerbung eingereicht",
@@ -229,7 +327,36 @@ export const de = {
     cvErrorMsg: "Lebenslauf konnte nicht verarbeitet werden.",
     externalRedirectTitle: "Plattform verlassen",
     externalRedirectMsg: "Sie verlassen die Plattform, um Ihre Bewerbung auf einer externen Website fortzusetzen. Bitte lesen Sie deren Datenschutzrichtlinie.",
-    externalRedirectContinue: "Weiter"
+    externalRedirectContinue: "Weiter",
+    platformJobs: "Plattform-Stellen",
+    platformJobsDesc: "Stellen, die direkt von HR-Teams auf dieser Plattform veröffentlicht wurden",
+    jobMarket: "Stellenmarkt",
+    jobMarketDesc: "Aktuelle Angebote aus weltweiten Jobbörsen",
+    clearAll: "Alle löschen",
+    results: "Ergebnisse",
+    searching: "Suche läuft…",
+    noResultsFiltered: "Keine Stellen gefunden. Passen Sie Filter oder Suchbegriffe an.",
+    searchJobMarketTitle: "Stellenmarkt durchsuchen",
+    searchJobMarketDesc: "Nutzen Sie das Suchfeld oben oder setzen Sie einen Filter, um Stellen weltweit zu finden.",
+    remoteTag: "Remote",
+    applyExternal: "Bewerben →",
+    prevPage: "← Zurück",
+    pageLabel: "Seite",
+    nextPage: "Weiter →",
+    closedBadge: "Geschlossen",
+    positionClosed: "Stelle nicht mehr besetzt",
+    applyWithResumeTitle: "Mit Lebenslauf bewerben",
+    selectCvReview: "Wählen Sie einen Lebenslauf und prüfen Sie das PDF vor dem Absenden",
+    uploadNewCv: "Neuen Lebenslauf hochladen",
+    loadingPreview: "Vorschau wird geladen…",
+    noPdfPreview: "Keine PDF-Vorschau verfügbar",
+    noPdfPreviewDesc: "Erstellen Sie zuerst ein PDF im Reiter 'Lebensläufe', oder der Lebenslauf wird so eingereicht.",
+    submitApplication: "Bewerbung absenden",
+    locationSearch: "Stadt, Land oder Region suchen...",
+    fromListings: "Aus Angeboten",
+    customGroup: "Benutzerdefiniert",
+    searchFor: "Suchen nach",
+    noLocationsFound: "Keine Orte gefunden"
   },
   applications: {
     title: "Bewerbungen",
@@ -279,7 +406,21 @@ export const de = {
     loading: "Bewerbungen werden geladen...",
     externalRedirectTitle: "Plattform verlassen",
     externalRedirectMsg: "Sie verlassen die Plattform, um Ihre Bewerbung auf einer externen Website fortzusetzen. Bitte lesen Sie deren Datenschutzrichtlinie.",
-    externalRedirectContinue: "Weiter"
+    externalRedirectContinue: "Weiter",
+    stageLabels: {
+      saved: "Gespeichert",
+      applied: "Beworben",
+      shortlisted: "Vorauswahl",
+      inProgress: "In Bearbeitung",
+      hrInterview: "HR-Gespräch",
+      techInterview: "Technisches Interview",
+      decision: "Entscheidung",
+      offer: "Angebot",
+      rejected: "Abgelehnt"
+    },
+    orgLoading: "Wird geladen...",
+    orgError: "Unternehmensdaten konnten nicht geladen werden.",
+    closedBadge: "Geschlossen"
   },
   resumes: {
     title: "Lebenslauf-Versionen",
@@ -331,7 +472,8 @@ export const de = {
       education: "Ausbildung",
       langCert: "Sprachen & Zertifikate",
       languages: "Sprachen",
-      certifications: "Zertifikate"
+      certifications: "Zertifikate",
+      references: "Referenzen"
     },
     placeholders: {
       noSummary: "Keine Zusammenfassung für diese Version gespeichert.",
@@ -451,6 +593,49 @@ export const de = {
       jobDescription: "Stellenbeschreibung",
       jobDescPlaceholder: "Fügen Sie hier die Stellenbeschreibung ein…",
       cancel: "Abbrechen"
+    },
+    searchPlaceholder: "Lebensläufe durchsuchen...",
+    noSearchResults: "Keine Lebensläufe entsprechen Ihrer Suche.",
+    improveBtn: "Lebenslauf verbessern",
+    createVersionBtn: "Lebenslauf-Version erstellen",
+    showMore: "Mehr anzeigen",
+    showLess: "Weniger anzeigen",
+    viewOriginalPdf: "Original-PDF anzeigen",
+    savedPdfLabel: "Gespeichertes PDF",
+    download: "Herunterladen",
+    cvTips: {
+      title: "CV Best Practices",
+      subtitle: "12 Tipps für ein herausragendes CV — klicken Sie auf einen Tipp zum Erweitern",
+      backToAll: "Zurück zur Übersicht",
+      previous: "Zurück",
+      next: "Weiter",
+      tips: [
+        { title: "Konsistente Formatierung", desc: "Verwenden Sie eine klare Struktur, ausgerichtete Daten und einheitlichen Stil im gesamten Dokument." },
+        { title: "Kurz und prägnant", desc: "Nur 1-2 Seiten — Recruiter überfliegen schnell, Fokus auf das Wesentliche." },
+        { title: "Nur notwendige Angaben", desc: "Konzentrieren Sie sich auf professionelle Informationen, die Ihre Bewerbung unterstützen." },
+        { title: "Professionelle Kontakt-E-Mail", desc: "Wählen Sie ein einfaches Format basierend auf Ihrem Namen." },
+        { title: "Klares Design", desc: "Lesbarkeit vor Dekoration priorisieren — übersichtliches Layout wählen." },
+        { title: "Klare Zusammenfassung am Anfang", desc: "Eine kurze professionelle Zusammenfassung (3–5 Sätze) an den Anfang stellen." },
+        { title: "Foto nur wenn angemessen", desc: "Foto nur hinzufügen, wenn es branchenüblich oder erwartet wird." },
+        { title: "CV anpassen", desc: "Inhalte für jede Stelle anpassen, um Anforderungen und Schlüsselwörter zu treffen." },
+        { title: "Prägnant bleiben", desc: "Kurze, klare Stichpunkte verwenden, die einfach zu überblicken sind." },
+        { title: "Relevanz priorisieren", desc: "Nur Erfahrungen und Fähigkeiten einbeziehen, die zur Stelle passen." },
+        { title: "Konkrete Sprache verwenden", desc: "Allgemeine Formulierungen durch messbare Ergebnisse und spezifische Leistungen ersetzen." },
+        { title: "Referenzen angeben", desc: "Auf Anfrage verfügbare Referenzen ergänzen, wenn relevant." }
+      ]
+    },
+    pdfExport: {
+      title: "Als PDF exportieren",
+      subtitle: "Vorlage ansehen, dann herunterladen",
+      saveTitle: "PDF in Datenbank speichern",
+      saveSubtitle: "Vorlage ansehen, dann speichern",
+      includePhoto: "Foto einschließen",
+      preview: "Vorschau",
+      generate: "Erstellen",
+      loading: "Wird geladen",
+      previewing: "Vorschau",
+      regenerate: "Neu erstellen",
+      save: "Speichern"
     }
   },
   hrNav: {

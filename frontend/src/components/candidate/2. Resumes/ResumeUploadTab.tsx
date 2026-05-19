@@ -47,6 +47,8 @@ function AiInfoBadge({ tooltip }: { tooltip: string }) {
 }
 
 function ExpandableText({ text, limit = 280 }: { text: string; limit?: number }) {
+  const { language } = useStore();
+  const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [expanded, setExpanded] = useState(false);
   if (!text) return null;
   if (text.length <= limit) {
@@ -62,7 +64,7 @@ function ExpandableText({ text, limit = 280 }: { text: string; limit?: number })
         onClick={() => setExpanded(e => !e)}
         className="mt-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
       >
-        {expanded ? 'Show less' : 'Show more'}
+        {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
       </button>
     </div>
   );
@@ -108,11 +110,11 @@ const sourceTypeLabel = (value?: string, t?: { sourceTypes?: { profile?: string;
   }
 };
 
-const formatDate = (value?: string | null) => {
+const formatDate = (value?: string | null, locale?: string) => {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(locale || undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -161,19 +163,31 @@ function LanguageSelect({ value, onChange }: { value: string; onChange: (v: stri
 function SectionToggles({ removedSections, onToggle }: { removedSections: ResumeSectionKey[]; onToggle: (key: ResumeSectionKey) => void }) {
   const { language } = useStore();
   const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
+  const sectionLabel = (section: { key: ResumeSectionKey; label: string }): string => {
+    const s = t.sections as any;
+    const map: Partial<Record<ResumeSectionKey, string>> = {
+      experience: s?.experience,
+      education: s?.education,
+      skills: s?.skills,
+      languages: s?.languages,
+      certifications: s?.certifications,
+    };
+    return map[section.key] ?? section.label;
+  };
   return (
     <div>
       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">{t.modal.excludeSections}</label>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {REMOVABLE_SECTIONS.map((section) => {
           const removed = removedSections.includes(section.key);
+          const label = sectionLabel(section);
           return (
             <label
               key={section.key}
               className={`rounded-2xl border px-4 py-3 text-sm cursor-pointer transition-all select-none ${removed ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}
             >
               <input type="checkbox" className="hidden" checked={removed} onChange={() => onToggle(section.key)} />
-              {removed ? `✕ ${section.label}` : section.label}
+              {removed ? `✕ ${label}` : label}
             </label>
           );
         })}
@@ -302,7 +316,11 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
 
   const canSubmit = !isWorking && !!sourceId && title.trim();
 
-  const langLabel = (code?: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label || code || 'en';
+  const langLabel = (code?: string) => {
+    if (!code) return '';
+    try { return new Intl.DisplayNames([appLanguage], { type: 'language' }).of(code) || code; }
+    catch { return LANGUAGE_OPTIONS.find(l => l.code === code)?.label || code; }
+  };
 
   return (
     <ModalShell title={t.modal.duplicateTitle} subtitle={t.modal.duplicateSubtitle} onClose={onClose}>
@@ -330,7 +348,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
                     {langLabel(r.language)}
                   </span>
                 </div>
-                <p className={`text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(r.source_type, t)} · {formatDate(r.created_at)}</p>
+                <p className={`text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(r.source_type, t)} · {formatDate(r.created_at, appLanguage)}</p>
               </button>
             );
           })}
@@ -425,7 +443,11 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
   const effectiveTitle = title.trim() || fetchedTitle || '';
   const canSubmit = !isWorking && !isFetching && !!effectiveDescription.trim() && !!sourceResumeId;
 
-  const langLabel = (code?: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label || code || 'en';
+  const langLabel = (code?: string) => {
+    if (!code) return '';
+    try { return new Intl.DisplayNames([appLanguage], { type: 'language' }).of(code) || code; }
+    catch { return LANGUAGE_OPTIONS.find(l => l.code === code)?.label || code; }
+  };
 
   return (
     <ModalShell title={t.modal.fromJobTitle} subtitle={t.modal.fromJobSubtitle} onClose={onClose}>
@@ -542,7 +564,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
       )}
       {canSubmit && (
         <div className="rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 px-4 py-3 text-xs text-indigo-700 dark:text-indigo-400 font-medium">
-          AI will adapt the selected resume to match the job requirements and write it in {LANGUAGE_OPTIONS.find((l) => l.code === language)?.label ?? language}.
+          AI will adapt the selected resume to match the job requirements and write it in {langLabel(language)}.
         </div>
       )}
 
@@ -1106,7 +1128,11 @@ export function ResumeUploadTab() {
     </div>
   );
 
-  const langLabel = (code?: string) => LANGUAGE_OPTIONS.find((l) => l.code === code)?.label || code || 'en';
+  const langLabel = (code?: string) => {
+    if (!code) return '';
+    try { return new Intl.DisplayNames([language], { type: 'language' }).of(code) || code; }
+    catch { return LANGUAGE_OPTIONS.find(l => l.code === code)?.label || code; }
+  };
   const noModals = !showProfileModal && !showDuplicateModal && !showJobDescModal;
 
   return (
@@ -1127,14 +1153,14 @@ export function ResumeUploadTab() {
             className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50"
           >
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-            CV Tips
+            {(t as any).cvTips?.title ?? 'CV Tips'}
           </button>
           <button
             onClick={() => setActiveTab('improve')}
             className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50"
           >
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-            Improve CV
+            {(t as any).improveBtn ?? 'Improve CV'}
           </button>
           <div className="relative" ref={createMenuRef}>
             <button
@@ -1143,7 +1169,7 @@ export function ResumeUploadTab() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-semibold rounded-xl shadow-sm transition-all whitespace-nowrap disabled:opacity-60"
             >
               <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Create Resume Version
+              {(t as any).createVersionBtn ?? 'Create Resume Version'}
               <svg className={`w-3 h-3 shrink-0 transition-transform ${showCreateMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
             {showCreateMenu && (
@@ -1197,7 +1223,7 @@ export function ResumeUploadTab() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search resumes..."
+              placeholder={(t as any).searchPlaceholder ?? "Search resumes..."}
               className="w-full pl-9 pr-9 py-2.5 text-sm rounded-xl border border-gray-100 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-gray-300 dark:focus:ring-neutral-600"
             />
             {searchQuery && (
@@ -1228,7 +1254,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center w-full gap-2 min-w-0">
                           <h4 className="text-sm font-semibold leading-snug break-words flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
                           <span className={`text-xs whitespace-nowrap shrink-0 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {resume.created_at ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
+                            {resume.created_at ? new Intl.DateTimeFormat(language, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
                           </span>
                           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${isActive ? 'border-white/20 text-white' : 'border-gray-200 dark:border-neutral-600 text-gray-600 dark:text-neutral-400'}`}>
                             {langLabel(resume.language)}
@@ -1271,7 +1297,7 @@ export function ResumeUploadTab() {
               );
             })) : (
               <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-700 p-6 text-sm text-gray-500 dark:text-neutral-400 text-center bg-gray-50/50 dark:bg-neutral-800/50">
-                No resumes match your search.
+                {(t as any).noSearchResults ?? "No resumes match your search."}
               </div>
             )
           ) : (
@@ -1346,7 +1372,7 @@ export function ResumeUploadTab() {
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
-                          View Original PDF
+                          {(t as any).viewOriginalPdf ?? 'View Original PDF'}
                         </button>
                       )}
                       <button
@@ -1441,7 +1467,7 @@ export function ResumeUploadTab() {
                       )}
                     </div>
 
-                    <InfoTag label={t.metadata.created} value={formatDate(selectedResume.created_at)} />
+                    <InfoTag label={t.metadata.created} value={formatDate(selectedResume.created_at, language)} />
 
                     {(() => {
                       const src = selectedResume.source_resume_id
@@ -1652,7 +1678,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
-                            {getPdfLabels(selectedResume.language).languages}
+                            {(t.sections as any)?.languages ?? getPdfLabels(selectedResume.language).languages}
                             {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
@@ -1686,7 +1712,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                            {getPdfLabels(selectedResume.language).certifications}
+                            {(t.sections as any)?.certifications ?? getPdfLabels(selectedResume.language).certifications}
                             {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
@@ -1720,7 +1746,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            {getPdfLabels(selectedResume.language).references}
+                            {(t.sections as any)?.references ?? getPdfLabels(selectedResume.language).references}
                           </p>
                           {isEditingContent && (
                             editDraft?.hide_references
@@ -1872,20 +1898,22 @@ export function ResumeUploadTab() {
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} resumeVersions={resumeVersions} />
       )}
       {showBestPractices && (() => {
-        const tips = [
-          { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout. Consistent fonts, heading sizes, and spacing signal professionalism and make your CV easy to scan.', color: 'violet' },
-          { title: 'Keep it short and sharp', desc: '1 or 2 pages only — recruiters scan fast. Trim filler and keep only what adds value. A focused CV beats a long one every time.', color: 'indigo' },
-          { title: 'Include essential personal details only', desc: 'Focus on professional information that supports your application. Name, email, phone, location, and LinkedIn are usually enough.', color: 'sky' },
-          { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name. Avoid nicknames or numbers that look unprofessional — first.last@domain.com is a safe choice.', color: 'emerald' },
-          { title: 'Keep the design clean', desc: 'Prioritise readability over decoration. Avoid heavy graphics, multiple fonts, or coloured backgrounds. White space is your friend.', color: 'teal' },
-          { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction. 2–4 sentences that answer: who you are, what you do, and what you are looking for.', color: 'blue' },
-          { title: 'Use a photo only if appropriate', desc: 'Include a photo only when it is standard or expected in your industry or country. In many regions it is optional or even discouraged.', color: 'amber' },
-          { title: 'Tailor your CV', desc: 'Adjust content for each role to match requirements and keywords. Read the job description carefully and mirror the language where your experience aligns.', color: 'orange' },
-          { title: 'Keep it concise', desc: 'Use short, clear bullet points that are easy to scan. Start with an action verb and focus on what you delivered, not just what you did.', color: 'rose' },
-          { title: 'Prioritise relevance', desc: "Include experience and skills that match the role you're targeting. Move the most relevant sections to the top and cut anything that distracts.", color: 'pink' },
-          { title: 'Use specific language', desc: 'Replace generic statements with concrete examples and outcomes. "Increased sales by 30% in Q3" is far stronger than "responsible for sales".', color: 'purple' },
-          { title: 'State references availability', desc: '"References available upon request" is sufficient. There is no need to list referees unless specifically asked — save the space for more important content.', color: 'indigo' },
-        ] as { title: string; desc: string; color: string }[];
+        const tipColors = ['violet','indigo','sky','emerald','teal','blue','amber','orange','rose','pink','purple','indigo'];
+        const rawTips = (t as any).cvTips?.tips as Array<{title:string; desc:string}> | undefined;
+        const tips = (rawTips ?? [
+          { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout. Consistent fonts, heading sizes, and spacing signal professionalism and make your CV easy to scan.' },
+          { title: 'Keep it short and sharp', desc: '1 or 2 pages only — recruiters scan fast. Trim filler and keep only what adds value. A focused CV beats a long one every time.' },
+          { title: 'Include essential personal details only', desc: 'Focus on professional information that supports your application. Name, email, phone, location, and LinkedIn are usually enough.' },
+          { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name. Avoid nicknames or numbers that look unprofessional — first.last@domain.com is a safe choice.' },
+          { title: 'Keep the design clean', desc: 'Prioritise readability over decoration. Avoid heavy graphics, multiple fonts, or coloured backgrounds. White space is your friend.' },
+          { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction. 2–4 sentences that answer: who you are, what you do, and what you are looking for.' },
+          { title: 'Use a photo only if appropriate', desc: 'Include a photo only when it is standard or expected in your industry or country. In many regions it is optional or even discouraged.' },
+          { title: 'Tailor your CV', desc: 'Adjust content for each role to match requirements and keywords. Read the job description carefully and mirror the language where your experience aligns.' },
+          { title: 'Keep it concise', desc: 'Use short, clear bullet points that are easy to scan. Start with an action verb and focus on what you delivered, not just what you did.' },
+          { title: 'Prioritise relevance', desc: "Include experience and skills that match the role you're targeting. Move the most relevant sections to the top and cut anything that distracts." },
+          { title: 'Use specific language', desc: 'Replace generic statements with concrete examples and outcomes. "Increased sales by 30% in Q3" is far stronger than "responsible for sales".' },
+          { title: 'State references availability', desc: '"References available upon request" is sufficient. There is no need to list referees unless specifically asked — save the space for more important content.' },
+        ]).map((tip, i) => ({ ...tip, color: tipColors[i] ?? 'indigo' })) as { title: string; desc: string; color: string }[];
 
         const palette: Record<string, { badge: string; border: string; bg: string; dot: string }> = {
           violet:  { badge: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-700/50 hover:border-violet-400 dark:hover:border-violet-500', bg: 'hover:bg-violet-50 dark:hover:bg-violet-900/20', dot: 'bg-violet-500' },
@@ -1910,8 +1938,8 @@ export function ResumeUploadTab() {
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                   </div>
                   <div>
-                    <p className="text-base font-bold text-white leading-tight">CV Best Practices</p>
-                    <p className="text-xs text-white/65 mt-0.5">12 tips to make your CV stand out — click any tip to expand</p>
+                    <p className="text-base font-bold text-white leading-tight">{(t as any).cvTips?.title ?? 'CV Best Practices'}</p>
+                    <p className="text-xs text-white/65 mt-0.5">{(t as any).cvTips?.subtitle ?? '12 tips to make your CV stand out — click any tip to expand'}</p>
                   </div>
                 </div>
                 <button onClick={() => { setShowBestPractices(false); setSelectedTip(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0">
@@ -1924,7 +1952,7 @@ export function ResumeUploadTab() {
                   <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
                     <button onClick={() => setSelectedTip(null)} className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:hover:text-white mb-5 transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                      Back to all tips
+                      {(t as any).cvTips?.backToAll ?? 'Back to all tips'}
                     </button>
                     <div className="flex items-start gap-5 p-6 rounded-2xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700">
                       <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center text-xl font-black ${palette[selectedTip.color]?.badge ?? palette.indigo.badge}`}>
@@ -1942,7 +1970,7 @@ export function ResumeUploadTab() {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 text-sm font-semibold text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                        Previous
+                        {(t as any).cvTips?.previous ?? 'Previous'}
                       </button>
                       <span className="text-xs text-gray-400 dark:text-neutral-500 self-center">{selectedTip.index + 1} / {tips.length}</span>
                       <button
@@ -1950,7 +1978,7 @@ export function ResumeUploadTab() {
                         disabled={selectedTip.index === tips.length - 1}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 text-sm font-semibold text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {(t as any).cvTips?.next ?? 'Next'}
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
                     </div>
@@ -2061,7 +2089,7 @@ export function ResumeUploadTab() {
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between shrink-0 bg-gray-50/50 dark:bg-neutral-900">
               <div className="min-w-0 flex-1">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">{selectedResume.title || 'Resume'}</h3>
-                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">Saved PDF</p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{(t as any).savedPdfLabel ?? 'Saved PDF'}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0 ml-4">
                 {docViewerUrl && (
@@ -2071,7 +2099,7 @@ export function ResumeUploadTab() {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Download
+                    {(t as any).download ?? 'Download'}
                   </a>
                 )}
                 <button
@@ -2079,7 +2107,7 @@ export function ResumeUploadTab() {
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                  Regenerate
+                  {(t as any).pdfExport?.regenerate ?? 'Regenerate'}
                 </button>
                 <button onClick={closeDocViewer} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-400 dark:text-neutral-500 hover:text-gray-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -2148,14 +2176,14 @@ export function ResumeUploadTab() {
             <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Export as PDF</h3>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">Preview a template, then download</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{(t as any).pdfExport?.title ?? 'Export as PDF'}</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">{(t as any).pdfExport?.subtitle ?? 'Preview a template, then download'}</p>
                   {!!selectedResume.personal_info?.photo && (
                     <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
                       <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
                         <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
                       </span>
-                      Include photo
+                      {(t as any).pdfExport?.includePhoto ?? 'Include photo'}
                     </button>
                   )}
                 </div>
@@ -2164,27 +2192,27 @@ export function ResumeUploadTab() {
                 </button>
               </div>
               <div className="p-4 space-y-2 overflow-y-auto">
-                {TEMPLATES.map(t => {
+                {TEMPLATES.map(tmpl => {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
-                  const isActive = previewingTemplateId === t.id;
+                  const isActive = previewingTemplateId === tmpl.id;
                   return (
-                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
+                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{t.label}</p>
-                          {hasPhoto && t.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
+                          {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{t.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
-                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
-                          disabled={previewingTemplateId === t.id && !previewBlobUrl}
+                          onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
+                          disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
                           className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
-                          {previewingTemplateId === t.id && !previewBlobUrl
-                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />Loading</span>
-                            : isActive ? 'Previewing' : 'Preview'}
+                          {previewingTemplateId === tmpl.id && !previewBlobUrl
+                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
+                            : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
                         </button>
                         <button
                           disabled={isGeneratingPdf}
@@ -2192,7 +2220,7 @@ export function ResumeUploadTab() {
                             setIsGeneratingPdf(true);
                             try {
                               await downloadResumePdf(
-  t.id as TemplateId,
+  tmpl.id as TemplateId,
   selectedResume.resume_data ?? {},
   selectedResume.resume_id,
   selectedResume.title,
@@ -2207,7 +2235,7 @@ export function ResumeUploadTab() {
                           {isGeneratingPdf
                             ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-                          Generate
+                          {(t as any).pdfExport?.generate ?? 'Generate'}
                         </button>
                       </div>
                     </div>
@@ -2236,14 +2264,14 @@ export function ResumeUploadTab() {
             <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Save PDF to Database</h3>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">Preview a template, then save</p>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{(t as any).pdfExport?.saveTitle ?? 'Save PDF to Database'}</h3>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">{(t as any).pdfExport?.saveSubtitle ?? 'Preview a template, then save'}</p>
                   {!!selectedResume.personal_info?.photo && (
                     <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
                       <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
                         <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
                       </span>
-                      Include photo
+                      {(t as any).pdfExport?.includePhoto ?? 'Include photo'}
                     </button>
                   )}
                 </div>
@@ -2252,35 +2280,35 @@ export function ResumeUploadTab() {
                 </button>
               </div>
               <div className="p-4 space-y-2 overflow-y-auto">
-                {TEMPLATES.map(t => {
+                {TEMPLATES.map(tmpl => {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
-                  const isActive = previewingTemplateId === t.id;
+                  const isActive = previewingTemplateId === tmpl.id;
                   return (
-                    <div key={t.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
+                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{t.label}</p>
-                          {hasPhoto && t.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
+                          {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{t.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
-                          onClick={() => handlePreviewTemplate(t.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
-                          disabled={previewingTemplateId === t.id && !previewBlobUrl}
+                          onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
+                          disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
                           className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
-                          {previewingTemplateId === t.id && !previewBlobUrl
-                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />Loading</span>
-                            : isActive ? 'Previewing' : 'Preview'}
+                          {previewingTemplateId === tmpl.id && !previewBlobUrl
+                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
+                            : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
                         </button>
                         <button
                           disabled={savingPdfTemplateId !== null}
                           onClick={async () => {
-                            setSavingPdfTemplateId(t.id);
+                            setSavingPdfTemplateId(tmpl.id);
                             try {
                               const photo = pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined;
-                              const blob = await generateResumePdfBlob(t.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, photo, selectedResume.language);
+                              const blob = await generateResumePdfBlob(tmpl.id as TemplateId, selectedResume.resume_data ?? {}, selectedResume.title, photo, selectedResume.language);
                               const file = new File([blob], `${selectedResume.title || 'resume'}.pdf`, { type: 'application/pdf' });
                               const uploaded = await documentsApi.upload(file);
                               await resumesApi.update(selectedResume.resume_id, { resume_data: selectedResume.resume_data ?? {}, generated_document_id: uploaded.document_id });
@@ -2293,10 +2321,10 @@ export function ResumeUploadTab() {
                           }}
                           className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40 transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
                         >
-                          {savingPdfTemplateId === t.id
+                          {savingPdfTemplateId === tmpl.id
                             ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>}
-                          Save
+                          {(t as any).pdfExport?.save ?? 'Save'}
                         </button>
                       </div>
                     </div>

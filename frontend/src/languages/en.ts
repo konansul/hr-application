@@ -68,7 +68,25 @@ export const en = {
     emailPlaceholder: "Enter email address...",
     save: "Save Changes",
     saving: "Saving...",
-    successSave: "Settings saved successfully!"
+    successSave: "Settings saved successfully!",
+    linkCreated: "Link created and saved!",
+    linkDisabled: "Link disabled and profile is private",
+    profileShared: "Profile shared with {email}",
+    deleteAccount: {
+      title: "Delete Account",
+      desc: "Permanently delete your account, profile, and all CV files. This action cannot be undone.",
+      btn: "Delete Account",
+      modalTitle: "Delete your account?",
+      modalDesc: "This will permanently remove your email, profile data, and all CV files from our systems. There is no way to recover this data.",
+      typeLabel: "Type",
+      keyword: "DELETE",
+      typeSuffix: "to confirm",
+      placeholder: "DELETE",
+      cancelBtn: "Cancel",
+      confirmBtn: "Delete my account",
+      deleting: "Deleting…",
+      error: "Deletion failed. Please try again or contact support."
+    }
   },
   profile: {
     title: "Profile Dashboard",
@@ -78,6 +96,8 @@ export const en = {
     cancel: "Cancel",
     saveChanges: "Save Changes",
     aiParsedTooltip: "This was parsed by AI. Please verify for accuracy.",
+    showMore: "Show more",
+    showLess: "Show less",
     personal: {
       title: "Personal Information",
       firstName: "First Name",
@@ -118,6 +138,11 @@ export const en = {
       end: "End",
       desc: "Description or Achievements"
     },
+    languages: {
+      title: "Languages",
+      noLang: "No languages added yet.",
+      addLang: "+ Add Language"
+    },
     certifications: {
       title: "Certifications",
       noCert: "No certifications added yet.",
@@ -153,7 +178,15 @@ export const en = {
       fillPrompt: "Fill your profile to increase your chances of getting invited to interviews.",
       autofill: "Autofill with CV upload",
       resumeLibrary: "Resume Library",
-      noResumes: "No resumes uploaded."
+      noResumes: "No resumes uploaded.",
+      importFromUrl: "Import from URL",
+      importing: "Importing…",
+      importProfile: "Import profile",
+      redoWizard: "Redo setup wizard",
+      profileCompleteness: "Profile Completeness",
+      allComplete: "All required fields complete",
+      missingFields: "Missing required fields:",
+      addExpSkills: "Also consider adding experience and skills."
     },
     upload: {
       selectedFile: "Selected File",
@@ -161,6 +194,41 @@ export const en = {
       confirm: "Confirm Upload",
       processing: "Processing Document..."
     }
+  },
+  wizard: {
+    welcomeTitle: "Welcome! Let's build your profile",
+    welcomeDesc: "Your profile is your digital resume. Complete it once and apply to any job in seconds.",
+    aiHint: "Upload your CV on the next step and we'll fill everything in automatically using AI.",
+    getStarted: "Get Started →",
+    skipForNow: "Skip for now",
+    sections: {
+      personalInfo: "Personal Info",
+      personalInfoDesc: "Name, contact, location",
+      experience: "Experience",
+      experienceDesc: "Work history & roles",
+      education: "Education",
+      educationDesc: "Degrees & institutions",
+      skills: "Skills",
+      skillsDesc: "Technical & soft skills"
+    },
+    uploadTitle: "Upload your CV",
+    uploadDesc: "Upload your CV or paste a URL — we'll extract your experience, education, and skills automatically.",
+    uploadSuccess: "CV uploaded successfully!",
+    uploadSuccessDesc: "Your profile is being filled in…",
+    uploading: "Uploading…",
+    uploadWait: "Please wait",
+    uploadClick: "Click to choose your CV",
+    uploadFormats: "PDF, DOCX or TXT supported",
+    orImportUrl: "or import from URL",
+    urlPlaceholder: "Paste your resume/portfolio URL",
+    importBtn: "Import",
+    importing: "Importing…",
+    orDivider: "or",
+    fillManually: "I'll fill in my profile manually",
+    back: "← Back",
+    skip: "Skip",
+    importError: "Import failed. Please try again.",
+    uploadError: "Upload failed. Please try again."
   },
   improve: {
     title: "AI Resume Improver",
@@ -191,7 +259,12 @@ export const en = {
     original: "Original",
     improved: "Improved (Impact-driven)",
     noRewrites: "No bullets needed rewriting.",
-    parsedText: "Parsed Document Text"
+    parsedText: "Parsed Document Text",
+    selectCv: "Select CV to Improve",
+    orUploadNew: "OR UPLOAD NEW",
+    analysisHistory: "Analysis History",
+    loadingHistory: "Loading history...",
+    viewingHistory: "Viewing from history"
   },
   jobs: {
     title: "Explore Jobs",
@@ -225,6 +298,15 @@ export const en = {
       contract: "Contract",
       remote: "Remote"
     },
+    locRemote: "Remote / Work from Home",
+    locEurope: "Europe (all countries)",
+    locGroupQuickPicks: "Quick Picks",
+    locGroupEurope: "Europe",
+    locGroupUK: "United Kingdom",
+    locGroupUS: "United States",
+    locGroupAmericas: "Americas",
+    locGroupAsiaPacific: "Asia-Pacific",
+    locGroupMiddleEast: "Middle East",
     showLess: "Show Less",
     viewDetails: "View Details",
     appSubmittedBtn: "Application Submitted",
@@ -245,7 +327,36 @@ export const en = {
     cvErrorMsg: "Failed to process CV.",
     externalRedirectTitle: "Leaving the platform",
     externalRedirectMsg: "You are leaving the platform to continue your application on an external site. Please review their privacy policy.",
-    externalRedirectContinue: "Continue"
+    externalRedirectContinue: "Continue",
+    platformJobs: "Platform Jobs",
+    platformJobsDesc: "Positions posted directly by HR teams on this platform",
+    jobMarket: "Job Market",
+    jobMarketDesc: "Live listings aggregated from job boards worldwide",
+    clearAll: "Clear All",
+    results: "results",
+    searching: "Searching…",
+    noResultsFiltered: "No jobs found. Try adjusting your filters or search terms.",
+    searchJobMarketTitle: "Search the job market",
+    searchJobMarketDesc: "Use the prompt above or set a filter to find jobs worldwide.",
+    remoteTag: "Remote",
+    applyExternal: "Apply →",
+    prevPage: "← Previous",
+    pageLabel: "Page",
+    nextPage: "Next →",
+    closedBadge: "Closed",
+    positionClosed: "Position Closed",
+    applyWithResumeTitle: "Apply with Resume",
+    selectCvReview: "Select a CV and review the PDF before submitting",
+    uploadNewCv: "Upload new CV",
+    loadingPreview: "Loading preview…",
+    noPdfPreview: "No PDF preview available",
+    noPdfPreviewDesc: "Generate a PDF from the Resumes tab first, or this CV will still be submitted as-is.",
+    submitApplication: "Submit Application",
+    locationSearch: "Search city, country, region...",
+    fromListings: "From Listings",
+    customGroup: "Custom",
+    searchFor: "Search for",
+    noLocationsFound: "No locations found"
   },
   applications: {
     title: "Job Applications",
@@ -297,7 +408,21 @@ export const en = {
     loading: "Loading Applications...",
     externalRedirectTitle: "Leaving the platform",
     externalRedirectMsg: "You are leaving the platform to continue your application on an external site. Please review their privacy policy.",
-    externalRedirectContinue: "Continue"
+    externalRedirectContinue: "Continue",
+    stageLabels: {
+      saved: "Saved",
+      applied: "Applied",
+      shortlisted: "Shortlisted",
+      inProgress: "In Progress",
+      hrInterview: "HR Interview",
+      techInterview: "Tech Interview",
+      decision: "Decision",
+      offer: "Offer",
+      rejected: "Rejected"
+    },
+    orgLoading: "Loading...",
+    orgError: "Could not load company info.",
+    closedBadge: "Closed"
   },
   resumes: {
     title: "Resume Versions",
@@ -349,7 +474,8 @@ export const en = {
       education: "Education",
       langCert: "Languages & Certifications",
       languages: "Languages",
-      certifications: "Certifications"
+      certifications: "Certifications",
+      references: "References"
     },
     placeholders: {
       noSummary: "No summary stored for this version.",
@@ -469,6 +595,49 @@ export const en = {
       jobDescription: "Job Description",
       jobDescPlaceholder: "Paste the job description here…",
       cancel: "Cancel"
+    },
+    searchPlaceholder: "Search resumes...",
+    noSearchResults: "No resumes match your search.",
+    improveBtn: "Improve CV",
+    createVersionBtn: "Create Resume Version",
+    showMore: "Show more",
+    showLess: "Show less",
+    viewOriginalPdf: "View Original PDF",
+    savedPdfLabel: "Saved PDF",
+    download: "Download",
+    cvTips: {
+      title: "CV Best Practices",
+      subtitle: "12 tips to make your CV stand out — click any tip to expand",
+      backToAll: "Back to all tips",
+      previous: "Previous",
+      next: "Next",
+      tips: [
+        { title: "Keep formatting consistent", desc: "Use a clean structure, aligned dates, and uniform style throughout. Consistent fonts, heading sizes, and spacing signal professionalism and make your CV easy to scan." },
+        { title: "Keep it short and sharp", desc: "1 or 2 pages only — recruiters scan fast. Trim filler and keep only what adds value. A focused CV beats a long one every time." },
+        { title: "Include essential personal details only", desc: "Focus on professional information that supports your application. Skip date of birth, marital status, and unrelated social media." },
+        { title: "Use a professional contact email", desc: "Choose a simple format based on your name. Avoid usernames or old email addresses — they can hurt first impressions." },
+        { title: "Keep the design clean", desc: "Prioritise readability over decoration. Avoid heavy graphics, complex multi-column layouts, or excessive font variety." },
+        { title: "Start with a clear summary", desc: "A short professional summary (3–5 sentences) at the top helps hiring managers quickly understand your value and direction." },
+        { title: "Use a photo only if appropriate", desc: "Include a photo only when it is standard or expected in your industry or country. In the US and UK, photos are generally not recommended." },
+        { title: "Tailor your CV", desc: "Adjust content for each role to match requirements and keywords. Generic CVs get ignored — targeted ones get noticed." },
+        { title: "Keep it concise", desc: "Use short, clear bullet points that are easy to scan. Each bullet should express one action or achievement without padding." },
+        { title: "Prioritise relevance", desc: "Include only experience and skills that match the target role. Older or unrelated jobs can be summarised or removed." },
+        { title: "Use specific language", desc: "Replace generic statements ('responsible for', 'worked on') with concrete actions and measurable outcomes." },
+        { title: "State references availability", desc: "Add 'References available upon request' when relevant. Avoid listing references directly unless explicitly requested." }
+      ]
+    },
+    pdfExport: {
+      title: "Export as PDF",
+      subtitle: "Preview a template, then download",
+      saveTitle: "Save PDF to Database",
+      saveSubtitle: "Preview a template, then save",
+      includePhoto: "Include photo",
+      preview: "Preview",
+      generate: "Generate",
+      loading: "Loading",
+      previewing: "Previewing",
+      regenerate: "Regenerate",
+      save: "Save"
     }
   },
   hrNav: {

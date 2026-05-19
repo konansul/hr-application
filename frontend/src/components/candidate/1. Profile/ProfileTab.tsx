@@ -367,7 +367,7 @@ export function ProfileTab() {
           onClick={() => setExpanded(v => !v)}
           className="mt-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none"
         >
-          {expanded ? 'Show less' : 'Show more'}
+          {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
         </button>
       </div>
     );
@@ -779,7 +779,7 @@ export function ProfileTab() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400"></div>
-                <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Languages</h3>
+                <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{(t as any).languages?.title ?? 'Languages'}</h3>
                 {profileData.languages?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingLanguages ? (
@@ -802,7 +802,7 @@ export function ProfileTab() {
                       {lang.level && lang.level !== 'UNKNOWN' && <span className="text-teal-500 dark:text-teal-400 text-[10px] ml-1">{lang.level}</span>}
                       {lang._ai_generated && <AiInfoBadge />}
                     </span>
-                  )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">No languages added yet</span>}
+                  )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">{(t as any).languages?.noLang ?? 'No languages added yet'}</span>}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -823,7 +823,7 @@ export function ProfileTab() {
                     </div>
                   ))}
                   <button onClick={() => addArrayItem('languages', { name: '', level: 'UNKNOWN' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
-                    + Add Language
+                    {(t as any).languages?.addLang ?? '+ Add Language'}
                   </button>
                 </div>
               )}
@@ -1027,7 +1027,7 @@ export function ProfileTab() {
                 <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
-                Import from URL
+                {(t as any).sidebar?.importFromUrl ?? 'Import from URL'}
               </button>
 
               {showUrlImportInput && (
@@ -1054,7 +1054,7 @@ export function ProfileTab() {
                     {isImportingUrl && (
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     )}
-                    {isImportingUrl ? 'Importing…' : 'Import profile'}
+                    {isImportingUrl ? ((t as any).sidebar?.importing ?? 'Importing…') : ((t as any).sidebar?.importProfile ?? 'Import profile')}
                   </button>
                 </div>
               )}
@@ -1070,7 +1070,7 @@ export function ProfileTab() {
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Redo setup wizard
+              {(t as any).sidebar?.redoWizard ?? 'Redo setup wizard'}
             </button>
           </div>
 
@@ -1084,7 +1084,7 @@ export function ProfileTab() {
               <div className={`bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors ${isComplete ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-amber-200 dark:border-amber-700/50'}`}>
                 <div className="px-5 py-4">
                   <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">Profile Completeness</span>
+                    <span className="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">{(t as any).sidebar?.profileCompleteness ?? 'Profile Completeness'}</span>
                     <span className={`text-xs font-bold ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{pct}%</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
@@ -1098,11 +1098,11 @@ export function ProfileTab() {
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
-                      All required fields complete
+                      {(t as any).sidebar?.allComplete ?? 'All required fields complete'}
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">Missing required fields:</p>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {missing.map(key => {
                           const label = REQUIRED_PI_FIELDS.find(f => f.key === key)?.label ?? key;
@@ -1124,7 +1124,7 @@ export function ProfileTab() {
                         })}
                       </div>
                       {profileData.skills?.length === 0 && profileData.experience?.length === 0 && (
-                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 pt-1">Also consider adding experience and skills.</p>
+                        <p className="text-[10px] text-gray-400 dark:text-neutral-500 pt-1">{(t as any).sidebar?.addExpSkills ?? 'Also consider adding experience and skills.'}</p>
                       )}
                     </div>
                   )}

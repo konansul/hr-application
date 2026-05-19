@@ -68,7 +68,25 @@ export const es = {
     emailPlaceholder: "Introduce la dirección de correo...",
     save: "Guardar Cambios",
     saving: "Guardando...",
-    successSave: "¡Ajustes guardados con éxito!"
+    successSave: "¡Ajustes guardados con éxito!",
+    linkCreated: "¡Enlace creado y guardado!",
+    linkDisabled: "Enlace desactivado, perfil privado",
+    profileShared: "Perfil compartido con {email}",
+    deleteAccount: {
+      title: "Eliminar Cuenta",
+      desc: "Eliminar permanentemente tu cuenta, perfil y todos los archivos CV. Esta acción no se puede deshacer.",
+      btn: "Eliminar Cuenta",
+      modalTitle: "¿Eliminar tu cuenta?",
+      modalDesc: "Esto eliminará permanentemente tu correo, datos de perfil y todos los archivos CV de nuestros sistemas. No hay forma de recuperar estos datos.",
+      typeLabel: "Escribe",
+      keyword: "DELETE",
+      typeSuffix: "para confirmar",
+      placeholder: "DELETE",
+      cancelBtn: "Cancelar",
+      confirmBtn: "Eliminar mi cuenta",
+      deleting: "Eliminando…",
+      error: "Error al eliminar. Por favor, inténtalo de nuevo o contacta con soporte."
+    }
   },
   profile: {
     title: "Panel de Perfil",
@@ -78,6 +96,8 @@ export const es = {
     cancel: "Cancelar",
     saveChanges: "Guardar Cambios",
     aiParsedTooltip: "Esto fue analizado por IA. Por favor, verifique su precisión.",
+    showMore: "Mostrar más",
+    showLess: "Mostrar menos",
     personal: {
       title: "Información Personal",
       firstName: "Nombre",
@@ -118,6 +138,11 @@ export const es = {
       end: "Fin",
       desc: "Descripción o Logros"
     },
+    languages: {
+      title: "Idiomas",
+      noLang: "Aún no se han añadido idiomas.",
+      addLang: "+ Añadir Idioma"
+    },
     certifications: {
       title: "Certificaciones",
       noCert: "Aún no se han añadido certificaciones.",
@@ -153,7 +178,15 @@ export const es = {
       fillPrompt: "Completa tu perfil para aumentar tus posibilidades de ser invitado a entrevistas.",
       autofill: "Autocompletar al subir CV",
       resumeLibrary: "Biblioteca de Currículums",
-      noResumes: "No hay currículums subidos."
+      noResumes: "No hay currículums subidos.",
+      importFromUrl: "Importar desde URL",
+      importing: "Importando…",
+      importProfile: "Importar perfil",
+      redoWizard: "Rehacer asistente de configuración",
+      profileCompleteness: "Completitud del perfil",
+      allComplete: "Todos los campos obligatorios están completos",
+      missingFields: "Campos obligatorios faltantes:",
+      addExpSkills: "También considera agregar experiencia y habilidades."
     },
     upload: {
       selectedFile: "Archivo Seleccionado",
@@ -161,6 +194,41 @@ export const es = {
       confirm: "Confirmar Subida",
       processing: "Procesando Documento..."
     }
+  },
+  wizard: {
+    welcomeTitle: "¡Bienvenido! Creemos tu perfil",
+    welcomeDesc: "Tu perfil es tu currículum digital. Complétalo una vez y postúlate a cualquier trabajo en segundos.",
+    aiHint: "Sube tu CV en el siguiente paso y lo completaremos todo automáticamente con IA.",
+    getStarted: "Empezar →",
+    skipForNow: "Omitir por ahora",
+    sections: {
+      personalInfo: "Información personal",
+      personalInfoDesc: "Nombre, contacto, ubicación",
+      experience: "Experiencia",
+      experienceDesc: "Historial laboral y puestos",
+      education: "Educación",
+      educationDesc: "Títulos e instituciones",
+      skills: "Habilidades",
+      skillsDesc: "Habilidades técnicas y blandas"
+    },
+    uploadTitle: "Sube tu CV",
+    uploadDesc: "Sube tu CV o pega una URL — extraeremos automáticamente tu experiencia, educación y habilidades.",
+    uploadSuccess: "¡CV subido exitosamente!",
+    uploadSuccessDesc: "Tu perfil se está completando…",
+    uploading: "Subiendo…",
+    uploadWait: "Por favor espera",
+    uploadClick: "Haz clic para elegir tu CV",
+    uploadFormats: "PDF, DOCX o TXT admitidos",
+    orImportUrl: "o importar desde URL",
+    urlPlaceholder: "Pega la URL de tu CV o portafolio",
+    importBtn: "Importar",
+    importing: "Importando…",
+    orDivider: "o",
+    fillManually: "Completaré mi perfil manualmente",
+    back: "← Atrás",
+    skip: "Omitir",
+    importError: "Error al importar. Por favor, inténtalo de nuevo.",
+    uploadError: "Error al subir. Por favor, inténtalo de nuevo."
   },
   improve: {
     title: "Mejorador de CV por IA",
@@ -191,7 +259,12 @@ export const es = {
     original: "Original",
     improved: "Mejorado (Enfoque en impacto)",
     noRewrites: "Ningún punto necesitaba ser reescrito.",
-    parsedText: "Texto del Documento Analizado"
+    parsedText: "Texto del Documento Analizado",
+    selectCv: "Seleccionar CV para Mejorar",
+    orUploadNew: "O SUBIR NUEVO",
+    analysisHistory: "Historial de Análisis",
+    loadingHistory: "Cargando historial...",
+    viewingHistory: "Viendo desde el historial"
   },
   jobs: {
     title: "Explorar Empleos",
@@ -209,6 +282,26 @@ export const es = {
     loadingDesc: "Por favor, espera mientras buscamos los últimos empleos.",
     remote: "Remoto",
     fullTime: "Tiempo Completo",
+    smartPromptPlaceholder: 'p.ej. "Empleos de desarrollador senior en UE, tiempo completo"',
+    smartApply: "Aplicar",
+    smartClear: "Borrar todo",
+    smartLabel: "Filtro inteligente",
+    filterLevel: "Nivel",
+    filterType: "Tipo",
+    filterLocation: "Ubicación",
+    allLevels: "Todos los niveles",
+    allTypes: "Todos los tipos",
+    allLocations: "Todas las ubicaciones",
+    types: { fullTime: "Tiempo Completo", partTime: "Tiempo Parcial", contract: "Contrato", remote: "Remoto" },
+    locRemote: "Remoto / Trabajo desde casa",
+    locEurope: "Europa (todos los países)",
+    locGroupQuickPicks: "Selección rápida",
+    locGroupEurope: "Europa",
+    locGroupUK: "Reino Unido",
+    locGroupUS: "Estados Unidos",
+    locGroupAmericas: "Américas",
+    locGroupAsiaPacific: "Asia-Pacífico",
+    locGroupMiddleEast: "Oriente Medio",
     showLess: "Mostrar Menos",
     viewDetails: "Ver Detalles",
     appSubmittedBtn: "Solicitud Enviada",
@@ -229,7 +322,36 @@ export const es = {
     cvErrorMsg: "No se pudo procesar el CV.",
     externalRedirectTitle: "Salir de la plataforma",
     externalRedirectMsg: "Está abandonando la plataforma para continuar su solicitud en un sitio externo. Revise su política de privacidad.",
-    externalRedirectContinue: "Continuar"
+    externalRedirectContinue: "Continuar",
+    platformJobs: "Empleos de la plataforma",
+    platformJobsDesc: "Posiciones publicadas directamente por equipos de RRHH en esta plataforma",
+    jobMarket: "Mercado laboral",
+    jobMarketDesc: "Anuncios en vivo agregados de bolsas de trabajo de todo el mundo",
+    clearAll: "Borrar todo",
+    results: "resultados",
+    searching: "Buscando…",
+    noResultsFiltered: "No se encontraron empleos. Intente ajustar sus filtros o términos de búsqueda.",
+    searchJobMarketTitle: "Buscar en el mercado laboral",
+    searchJobMarketDesc: "Use el campo de arriba o establezca un filtro para encontrar empleos en todo el mundo.",
+    remoteTag: "Remoto",
+    applyExternal: "Solicitar →",
+    prevPage: "← Anterior",
+    pageLabel: "Página",
+    nextPage: "Siguiente →",
+    closedBadge: "Cerrado",
+    positionClosed: "Posición cerrada",
+    applyWithResumeTitle: "Solicitar con CV",
+    selectCvReview: "Seleccione un CV y revise el PDF antes de enviar",
+    uploadNewCv: "Subir nuevo CV",
+    loadingPreview: "Cargando vista previa…",
+    noPdfPreview: "No hay vista previa PDF disponible",
+    noPdfPreviewDesc: "Genere un PDF desde la pestaña Currículums primero, o este CV se enviará tal como está.",
+    submitApplication: "Enviar solicitud",
+    locationSearch: "Buscar ciudad, país, región...",
+    fromListings: "De anuncios",
+    customGroup: "Personalizado",
+    searchFor: "Buscar",
+    noLocationsFound: "No se encontraron ubicaciones"
   },
   applications: {
     title: "Solicitudes de Empleo",
@@ -279,7 +401,21 @@ export const es = {
     loading: "Cargando Solicitudes...",
     externalRedirectTitle: "Salir de la plataforma",
     externalRedirectMsg: "Está abandonando la plataforma para continuar su solicitud en un sitio externo. Revise su política de privacidad.",
-    externalRedirectContinue: "Continuar"
+    externalRedirectContinue: "Continuar",
+    stageLabels: {
+      saved: "Guardado",
+      applied: "Postulado",
+      shortlisted: "Preseleccionado",
+      inProgress: "En Progreso",
+      hrInterview: "Entrevista de RRHH",
+      techInterview: "Entrevista Técnica",
+      decision: "Decisión",
+      offer: "Oferta",
+      rejected: "Rechazado"
+    },
+    orgLoading: "Cargando...",
+    orgError: "No se pudo cargar la información de la empresa.",
+    closedBadge: "Cerrado"
   },
   resumes: {
     title: "Versiones del Currículum",
@@ -331,7 +467,8 @@ export const es = {
       education: "Educación",
       langCert: "Idiomas y Certificaciones",
       languages: "Idiomas",
-      certifications: "Certificaciones"
+      certifications: "Certificaciones",
+      references: "Referencias"
     },
     placeholders: {
       noSummary: "No hay un resumen guardado para esta versión.",
@@ -451,6 +588,49 @@ export const es = {
       jobDescription: "Descripción del trabajo",
       jobDescPlaceholder: "Pega la descripción del trabajo aquí…",
       cancel: "Cancelar"
+    },
+    searchPlaceholder: "Buscar currículums...",
+    noSearchResults: "Ningún currículum coincide con tu búsqueda.",
+    improveBtn: "Mejorar CV",
+    createVersionBtn: "Crear versión de currículum",
+    showMore: "Mostrar más",
+    showLess: "Mostrar menos",
+    viewOriginalPdf: "Ver PDF Original",
+    savedPdfLabel: "PDF Guardado",
+    download: "Descargar",
+    cvTips: {
+      title: "Mejores Prácticas de CV",
+      subtitle: "12 consejos para destacar tu CV — haz clic en un consejo para expandirlo",
+      backToAll: "Volver a todos los consejos",
+      previous: "Anterior",
+      next: "Siguiente",
+      tips: [
+        { title: "Formato consistente", desc: "Usa una estructura clara, fechas alineadas y estilo uniforme en todo el documento." },
+        { title: "Corto y conciso", desc: "Solo 1-2 páginas — los reclutadores revisan rápido, enfócate en lo esencial." },
+        { title: "Solo datos personales esenciales", desc: "Enfócate en información profesional que apoye tu candidatura." },
+        { title: "Email de contacto profesional", desc: "Elige un formato simple basado en tu nombre para el correo de contacto." },
+        { title: "Diseño limpio", desc: "Prioriza la legibilidad sobre la decoración, elige un diseño ordenado." },
+        { title: "Comienza con un resumen claro", desc: "Un breve resumen profesional (3–5 frases) al inicio del documento." },
+        { title: "Foto solo si es apropiado", desc: "Incluye una foto solo si es estándar o esperado en tu sector." },
+        { title: "Adapta tu CV", desc: "Ajusta el contenido para cada puesto, enfocándote en los requisitos y palabras clave." },
+        { title: "Sé conciso", desc: "Usa puntos cortos y claros que sean fáciles de revisar." },
+        { title: "Prioriza la relevancia", desc: "Incluye solo experiencia y habilidades que correspondan al puesto objetivo." },
+        { title: "Usa lenguaje específico", desc: "Reemplaza afirmaciones genéricas con logros medibles y resultados concretos." },
+        { title: "Menciona referencias", desc: "Agrega 'Referencias disponibles a petición' cuando sea relevante para tu perfil." }
+      ]
+    },
+    pdfExport: {
+      title: "Exportar como PDF",
+      subtitle: "Previsualiza una plantilla, luego descarga",
+      saveTitle: "Guardar PDF en Base de Datos",
+      saveSubtitle: "Previsualiza una plantilla, luego guarda",
+      includePhoto: "Incluir foto",
+      preview: "Previsualizar",
+      generate: "Generar",
+      loading: "Cargando",
+      previewing: "Previsualizando",
+      regenerate: "Regenerar",
+      save: "Guardar"
     }
   },
   hrNav: {

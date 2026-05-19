@@ -117,7 +117,18 @@ function getStageIndex(s: string) {
 
 export function JobApplicationTab() {
   const { activeTab, language, userId } = useStore();
-  const t: Record<string, string> = DICT[language as keyof typeof DICT]?.applications || DICT.en.applications;
+  const t = (DICT[language as keyof typeof DICT]?.applications || DICT.en.applications) as any;
+  const stageLabel = (value: string): string => {
+    const sl = t.stageLabels;
+    if (!sl) return value;
+    const map: Record<string, string> = {
+      'Saved': sl.saved, 'Applied': sl.applied, 'Shortlisted': sl.shortlisted,
+      'In Progress': sl.inProgress, 'HR Interview': sl.hrInterview,
+      'Tech Interview': sl.techInterview, 'Decision': sl.decision,
+      'Offer': sl.offer, 'Rejected': sl.rejected,
+    };
+    return map[value] ?? value;
+  };
 
   const [apiApplications, setApiApplications] = useState<any[]>([]);
   const [trackedJobs, setTrackedJobs]         = useState<TrackedJob[]>([]);
@@ -409,7 +420,7 @@ export function JobApplicationTab() {
                 </div>
 
                 <span className="text-[10px] font-bold uppercase tracking-wide text-center leading-tight whitespace-nowrap">
-                  {stage.label}
+                  {stageLabel(stage.value)}
                 </span>
 
                 <span className={`text-[9px] font-black uppercase tracking-widest leading-none transition-opacity
@@ -573,15 +584,15 @@ export function JobApplicationTab() {
               }`}
             >
               <option value="all">{t.allStages}</option>
-              <option value="Saved">Saved</option>
-              <option value="Applied">Applied</option>
-              <option value="Shortlisted">Shortlisted</option>
-              <option value="In Progress">In Progress</option>
-              <option value="HR Interview">HR Interview</option>
-              <option value="Tech Interview">Tech Interview</option>
-              <option value="Decision">Decision</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
+              <option value="Saved">{stageLabel('Saved')}</option>
+              <option value="Applied">{stageLabel('Applied')}</option>
+              <option value="Shortlisted">{stageLabel('Shortlisted')}</option>
+              <option value="In Progress">{stageLabel('In Progress')}</option>
+              <option value="HR Interview">{stageLabel('HR Interview')}</option>
+              <option value="Tech Interview">{stageLabel('Tech Interview')}</option>
+              <option value="Decision">{stageLabel('Decision')}</option>
+              <option value="Offer">{stageLabel('Offer')}</option>
+              <option value="Rejected">{stageLabel('Rejected')}</option>
             </select>
             <svg className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${stageFilter !== 'all' ? 'text-white dark:text-black' : 'text-gray-400 dark:text-neutral-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -659,7 +670,7 @@ export function JobApplicationTab() {
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            Closed
+                            {t.closedBadge ?? 'Closed'}
                           </span>
                         )}
                         {notApplied && (
@@ -898,10 +909,10 @@ export function JobApplicationTab() {
           {orgPopover.loading ? (
             <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">
               <div className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-500 rounded-full animate-spin shrink-0" />
-              Loading...
+              {t.orgLoading ?? 'Loading...'}
             </div>
           ) : !orgPopover.data ? (
-            <p className="px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">Could not load company info.</p>
+            <p className="px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">{t.orgError ?? 'Could not load company info.'}</p>
           ) : (
             <div className="p-4 space-y-3">
               <div className="flex items-center gap-3">

@@ -30,39 +30,41 @@ interface LocationOption {
   label: string;
   keywords: string[];
   group: string;
+  regionCode?: string;
+  labelKey?: string;
 }
 
 const LOCATION_OPTIONS: LocationOption[] = [
   // Quick Picks
-  { value: 'remote',  label: 'Remote / Work from Home', keywords: ['remote', 'wfh', 'work from home', 'anywhere'], group: 'Quick Picks' },
-  { value: 'europe',  label: 'Europe (all countries)',  keywords: ['eu', 'europe', 'european', 'germany', 'france', 'netherlands', 'poland', 'spain', 'italy', 'sweden', 'finland', 'norway', 'denmark', 'austria', 'belgium', 'czech', 'portugal', 'hungary', 'romania', 'bulgaria', 'ukraine', 'switzerland', 'latvia', 'lithuania', 'estonia', 'croatia', 'greece', 'ireland', 'serbia', 'slovakia', 'slovenia'], group: 'Quick Picks' },
-  { value: 'usa',     label: 'United States',           keywords: ['usa', 'united states', 'america', 'new york', 'california', 'texas', 'florida', 'seattle', 'boston', 'chicago', 'denver', 'austin', 'san francisco', 'los angeles', 'washington dc', 'silicon valley', 'nyc'], group: 'Quick Picks' },
-  { value: 'uk',      label: 'United Kingdom',          keywords: ['uk', 'united kingdom', 'britain', 'london', 'england', 'scotland', 'wales', 'northern ireland', 'manchester', 'birmingham', 'edinburgh', 'leeds', 'bristol'], group: 'Quick Picks' },
-  { value: 'canada',  label: 'Canada',                  keywords: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'edmonton'], group: 'Quick Picks' },
+  { value: 'remote',  label: 'Remote / Work from Home', keywords: ['remote', 'wfh', 'work from home', 'anywhere'], group: 'Quick Picks', labelKey: 'locRemote' },
+  { value: 'europe',  label: 'Europe (all countries)',  keywords: ['eu', 'europe', 'european', 'germany', 'france', 'netherlands', 'poland', 'spain', 'italy', 'sweden', 'finland', 'norway', 'denmark', 'austria', 'belgium', 'czech', 'portugal', 'hungary', 'romania', 'bulgaria', 'ukraine', 'switzerland', 'latvia', 'lithuania', 'estonia', 'croatia', 'greece', 'ireland', 'serbia', 'slovakia', 'slovenia'], group: 'Quick Picks', labelKey: 'locEurope' },
+  { value: 'usa',     label: 'United States',           keywords: ['usa', 'united states', 'america', 'new york', 'california', 'texas', 'florida', 'seattle', 'boston', 'chicago', 'denver', 'austin', 'san francisco', 'los angeles', 'washington dc', 'silicon valley', 'nyc'], group: 'Quick Picks', regionCode: 'US' },
+  { value: 'uk',      label: 'United Kingdom',          keywords: ['uk', 'united kingdom', 'britain', 'london', 'england', 'scotland', 'wales', 'northern ireland', 'manchester', 'birmingham', 'edinburgh', 'leeds', 'bristol'], group: 'Quick Picks', regionCode: 'GB' },
+  { value: 'canada',  label: 'Canada',                  keywords: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'edmonton'], group: 'Quick Picks', regionCode: 'CA' },
   // Europe
-  { value: 'germany',     label: 'Germany',        keywords: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt', 'cologne', 'stuttgart', 'düsseldorf'], group: 'Europe' },
-  { value: 'france',      label: 'France',         keywords: ['france', 'paris', 'lyon', 'marseille', 'toulouse', 'nice', 'bordeaux'], group: 'Europe' },
-  { value: 'netherlands', label: 'Netherlands',    keywords: ['netherlands', 'holland', 'amsterdam', 'rotterdam', 'eindhoven', 'utrecht'], group: 'Europe' },
-  { value: 'poland',      label: 'Poland',         keywords: ['poland', 'warsaw', 'krakow', 'wroclaw', 'gdansk', 'poznan'], group: 'Europe' },
-  { value: 'spain',       label: 'Spain',          keywords: ['spain', 'madrid', 'barcelona', 'valencia', 'seville', 'bilbao'], group: 'Europe' },
-  { value: 'italy',       label: 'Italy',          keywords: ['italy', 'rome', 'milan', 'florence', 'naples', 'turin'], group: 'Europe' },
-  { value: 'sweden',      label: 'Sweden',         keywords: ['sweden', 'stockholm', 'gothenburg', 'malmo'], group: 'Europe' },
-  { value: 'norway',      label: 'Norway',         keywords: ['norway', 'oslo', 'bergen', 'trondheim'], group: 'Europe' },
-  { value: 'denmark',     label: 'Denmark',        keywords: ['denmark', 'copenhagen', 'aarhus'], group: 'Europe' },
-  { value: 'finland',     label: 'Finland',        keywords: ['finland', 'helsinki', 'espoo', 'tampere'], group: 'Europe' },
-  { value: 'switzerland', label: 'Switzerland',    keywords: ['switzerland', 'zurich', 'geneva', 'basel', 'bern'], group: 'Europe' },
-  { value: 'austria',     label: 'Austria',        keywords: ['austria', 'vienna', 'graz', 'salzburg'], group: 'Europe' },
-  { value: 'portugal',    label: 'Portugal',       keywords: ['portugal', 'lisbon', 'porto', 'braga'], group: 'Europe' },
-  { value: 'belgium',     label: 'Belgium',        keywords: ['belgium', 'brussels', 'antwerp', 'ghent'], group: 'Europe' },
-  { value: 'ireland',     label: 'Ireland',        keywords: ['ireland', 'dublin', 'cork', 'galway'], group: 'Europe' },
-  { value: 'czech',       label: 'Czech Republic', keywords: ['czech', 'czechia', 'prague', 'brno', 'ostrava'], group: 'Europe' },
-  { value: 'ukraine',     label: 'Ukraine',        keywords: ['ukraine', 'kyiv', 'kiev', 'lviv', 'kharkiv', 'odessa'], group: 'Europe' },
-  { value: 'romania',     label: 'Romania',        keywords: ['romania', 'bucharest', 'cluj', 'timisoara'], group: 'Europe' },
-  { value: 'greece',      label: 'Greece',         keywords: ['greece', 'athens', 'thessaloniki'], group: 'Europe' },
-  { value: 'hungary',     label: 'Hungary',        keywords: ['hungary', 'budapest', 'debrecen'], group: 'Europe' },
-  { value: 'latvia',      label: 'Latvia',         keywords: ['latvia', 'riga'], group: 'Europe' },
-  { value: 'lithuania',   label: 'Lithuania',      keywords: ['lithuania', 'vilnius', 'kaunas'], group: 'Europe' },
-  { value: 'estonia',     label: 'Estonia',        keywords: ['estonia', 'tallinn', 'tartu'], group: 'Europe' },
+  { value: 'germany',     label: 'Germany',        keywords: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt', 'cologne', 'stuttgart', 'düsseldorf'], group: 'Europe', regionCode: 'DE' },
+  { value: 'france',      label: 'France',         keywords: ['france', 'paris', 'lyon', 'marseille', 'toulouse', 'nice', 'bordeaux'], group: 'Europe', regionCode: 'FR' },
+  { value: 'netherlands', label: 'Netherlands',    keywords: ['netherlands', 'holland', 'amsterdam', 'rotterdam', 'eindhoven', 'utrecht'], group: 'Europe', regionCode: 'NL' },
+  { value: 'poland',      label: 'Poland',         keywords: ['poland', 'warsaw', 'krakow', 'wroclaw', 'gdansk', 'poznan'], group: 'Europe', regionCode: 'PL' },
+  { value: 'spain',       label: 'Spain',          keywords: ['spain', 'madrid', 'barcelona', 'valencia', 'seville', 'bilbao'], group: 'Europe', regionCode: 'ES' },
+  { value: 'italy',       label: 'Italy',          keywords: ['italy', 'rome', 'milan', 'florence', 'naples', 'turin'], group: 'Europe', regionCode: 'IT' },
+  { value: 'sweden',      label: 'Sweden',         keywords: ['sweden', 'stockholm', 'gothenburg', 'malmo'], group: 'Europe', regionCode: 'SE' },
+  { value: 'norway',      label: 'Norway',         keywords: ['norway', 'oslo', 'bergen', 'trondheim'], group: 'Europe', regionCode: 'NO' },
+  { value: 'denmark',     label: 'Denmark',        keywords: ['denmark', 'copenhagen', 'aarhus'], group: 'Europe', regionCode: 'DK' },
+  { value: 'finland',     label: 'Finland',        keywords: ['finland', 'helsinki', 'espoo', 'tampere'], group: 'Europe', regionCode: 'FI' },
+  { value: 'switzerland', label: 'Switzerland',    keywords: ['switzerland', 'zurich', 'geneva', 'basel', 'bern'], group: 'Europe', regionCode: 'CH' },
+  { value: 'austria',     label: 'Austria',        keywords: ['austria', 'vienna', 'graz', 'salzburg'], group: 'Europe', regionCode: 'AT' },
+  { value: 'portugal',    label: 'Portugal',       keywords: ['portugal', 'lisbon', 'porto', 'braga'], group: 'Europe', regionCode: 'PT' },
+  { value: 'belgium',     label: 'Belgium',        keywords: ['belgium', 'brussels', 'antwerp', 'ghent'], group: 'Europe', regionCode: 'BE' },
+  { value: 'ireland',     label: 'Ireland',        keywords: ['ireland', 'dublin', 'cork', 'galway'], group: 'Europe', regionCode: 'IE' },
+  { value: 'czech',       label: 'Czech Republic', keywords: ['czech', 'czechia', 'prague', 'brno', 'ostrava'], group: 'Europe', regionCode: 'CZ' },
+  { value: 'ukraine',     label: 'Ukraine',        keywords: ['ukraine', 'kyiv', 'kiev', 'lviv', 'kharkiv', 'odessa'], group: 'Europe', regionCode: 'UA' },
+  { value: 'romania',     label: 'Romania',        keywords: ['romania', 'bucharest', 'cluj', 'timisoara'], group: 'Europe', regionCode: 'RO' },
+  { value: 'greece',      label: 'Greece',         keywords: ['greece', 'athens', 'thessaloniki'], group: 'Europe', regionCode: 'GR' },
+  { value: 'hungary',     label: 'Hungary',        keywords: ['hungary', 'budapest', 'debrecen'], group: 'Europe', regionCode: 'HU' },
+  { value: 'latvia',      label: 'Latvia',         keywords: ['latvia', 'riga'], group: 'Europe', regionCode: 'LV' },
+  { value: 'lithuania',   label: 'Lithuania',      keywords: ['lithuania', 'vilnius', 'kaunas'], group: 'Europe', regionCode: 'LT' },
+  { value: 'estonia',     label: 'Estonia',        keywords: ['estonia', 'tallinn', 'tartu'], group: 'Europe', regionCode: 'EE' },
   // United Kingdom cities
   { value: 'london',      label: 'London',         keywords: ['london'], group: 'United Kingdom' },
   { value: 'manchester',  label: 'Manchester',     keywords: ['manchester'], group: 'United Kingdom' },
@@ -84,16 +86,16 @@ const LOCATION_OPTIONS: LocationOption[] = [
   { value: 'toronto',   label: 'Toronto, Canada',   keywords: ['toronto', 'ontario'], group: 'Americas' },
   { value: 'vancouver', label: 'Vancouver, Canada', keywords: ['vancouver', 'british columbia'], group: 'Americas' },
   { value: 'montreal',  label: 'Montréal, Canada',  keywords: ['montreal', 'québec'], group: 'Americas' },
-  { value: 'brazil',    label: 'Brazil',            keywords: ['brazil', 'são paulo', 'sao paulo', 'rio de janeiro', 'brasilia'], group: 'Americas' },
-  { value: 'mexico',    label: 'Mexico',            keywords: ['mexico', 'mexico city', 'guadalajara', 'monterrey'], group: 'Americas' },
+  { value: 'brazil',    label: 'Brazil',            keywords: ['brazil', 'são paulo', 'sao paulo', 'rio de janeiro', 'brasilia'], group: 'Americas', regionCode: 'BR' },
+  { value: 'mexico',    label: 'Mexico',            keywords: ['mexico', 'mexico city', 'guadalajara', 'monterrey'], group: 'Americas', regionCode: 'MX' },
   // Asia-Pacific
-  { value: 'australia',  label: 'Australia',  keywords: ['australia', 'sydney', 'melbourne', 'brisbane', 'perth'], group: 'Asia-Pacific' },
-  { value: 'singapore',  label: 'Singapore',  keywords: ['singapore'], group: 'Asia-Pacific' },
-  { value: 'india',      label: 'India',      keywords: ['india', 'bangalore', 'bengaluru', 'mumbai', 'delhi', 'hyderabad', 'pune', 'chennai'], group: 'Asia-Pacific' },
-  { value: 'japan',      label: 'Japan',      keywords: ['japan', 'tokyo', 'osaka'], group: 'Asia-Pacific' },
+  { value: 'australia',  label: 'Australia',  keywords: ['australia', 'sydney', 'melbourne', 'brisbane', 'perth'], group: 'Asia-Pacific', regionCode: 'AU' },
+  { value: 'singapore',  label: 'Singapore',  keywords: ['singapore'], group: 'Asia-Pacific', regionCode: 'SG' },
+  { value: 'india',      label: 'India',      keywords: ['india', 'bangalore', 'bengaluru', 'mumbai', 'delhi', 'hyderabad', 'pune', 'chennai'], group: 'Asia-Pacific', regionCode: 'IN' },
+  { value: 'japan',      label: 'Japan',      keywords: ['japan', 'tokyo', 'osaka'], group: 'Asia-Pacific', regionCode: 'JP' },
   // Middle East
-  { value: 'uae',    label: 'UAE / Dubai', keywords: ['uae', 'dubai', 'abu dhabi', 'sharjah'], group: 'Middle East' },
-  { value: 'israel', label: 'Israel',      keywords: ['israel', 'tel aviv', 'jerusalem', 'haifa'], group: 'Middle East' },
+  { value: 'uae',    label: 'UAE / Dubai', keywords: ['uae', 'dubai', 'abu dhabi', 'sharjah'], group: 'Middle East', regionCode: 'AE' },
+  { value: 'israel', label: 'Israel',      keywords: ['israel', 'tel aviv', 'jerusalem', 'haifa'], group: 'Middle East', regionCode: 'IL' },
 ];
 
 function locationMatchesJob(locValue: string, jobRegion: string): boolean {
@@ -116,6 +118,8 @@ function LocationCombobox({
   jobLocations: string[];
   allLabel: string;
 }) {
+  const { language } = useStore();
+  const tl = (DICT[language as keyof typeof DICT]?.jobs || DICT.en.jobs) as any;
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,6 +136,26 @@ function LocationCombobox({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const getLabel = (opt: LocationOption): string => {
+    if (opt.regionCode) {
+      try { return new Intl.DisplayNames([language], { type: 'region' }).of(opt.regionCode) || opt.label; }
+      catch { return opt.label; }
+    }
+    if (opt.labelKey) return tl[opt.labelKey] ?? opt.label;
+    return opt.label;
+  };
+
+  const groupKeyMap: Record<string, string> = {
+    'Quick Picks': 'locGroupQuickPicks',
+    'Europe': 'locGroupEurope',
+    'United Kingdom': 'locGroupUK',
+    'United States': 'locGroupUS',
+    'Americas': 'locGroupAmericas',
+    'Asia-Pacific': 'locGroupAsiaPacific',
+    'Middle East': 'locGroupMiddleEast',
+  };
+  const getGroupLabel = (group: string): string => tl[groupKeyMap[group]] ?? group;
+
   const openDropdown = () => { setIsOpen(true); setTimeout(() => inputRef.current?.focus(), 0); };
   const select = (value: string) => { setSelectedLocation(value); setIsOpen(false); setSearch(''); };
 
@@ -139,7 +163,7 @@ function LocationCombobox({
     if (selectedLocation === 'all') return allLabel;
     if (selectedLocation.startsWith('custom:')) return `"${selectedLocation.slice(7)}"`;
     const opt = LOCATION_OPTIONS.find(o => o.value === selectedLocation);
-    return opt ? opt.label : selectedLocation;
+    return opt ? getLabel(opt) : selectedLocation;
   })();
 
   const searchLower = search.toLowerCase();
@@ -211,7 +235,7 @@ function LocationCombobox({
                   if (e.key === 'Escape') { setIsOpen(false); setSearch(''); }
                   if (e.key === 'Enter' && showCustom) select(`custom:${search}`);
                 }}
-                placeholder="Search city, country, region..."
+                placeholder={tl.locationSearch ?? 'Search city, country, region...'}
                 className="w-full pl-7 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-lg outline-none placeholder-gray-400 dark:placeholder-neutral-500"
               />
             </div>
@@ -227,14 +251,14 @@ function LocationCombobox({
 
             {groups.map(group => (
               <div key={group}>
-                <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{group}</div>
+                <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{getGroupLabel(group)}</div>
                 {filteredOptions.filter(o => o.group === group).map(opt => (
                   <button
                     key={opt.value}
                     onClick={() => select(opt.value)}
                     className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selectedLocation === opt.value ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
                   >
-                    {opt.label}
+                    {getLabel(opt)}
                   </button>
                 ))}
               </div>
@@ -242,7 +266,7 @@ function LocationCombobox({
 
             {jobOnlyLocations.length > 0 && (
               <div>
-                <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">From Listings</div>
+                <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{tl.fromListings ?? 'From Listings'}</div>
                 {jobOnlyLocations.map(loc => (
                   <button
                     key={loc}
@@ -257,18 +281,18 @@ function LocationCombobox({
 
             {showCustom && (
               <div>
-                <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">Custom</div>
+                <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{tl.customGroup ?? 'Custom'}</div>
                 <button
                   onClick={() => select(`custom:${search}`)}
                   className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
-                  Search for <span className="font-semibold text-gray-900 dark:text-white">"{search}"</span>
+                  {tl.searchFor ?? 'Search for'} <span className="font-semibold text-gray-900 dark:text-white">"{search}"</span>
                 </button>
               </div>
             )}
 
             {filteredOptions.length === 0 && jobOnlyLocations.length === 0 && !showCustom && (
-              <p className="px-3 py-4 text-sm text-center text-gray-400 dark:text-neutral-500">No locations found</p>
+              <p className="px-3 py-4 text-sm text-center text-gray-400 dark:text-neutral-500">{tl.noLocationsFound ?? 'No locations found'}</p>
             )}
           </div>
         </div>
@@ -733,11 +757,11 @@ export function JobsTab() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
                                 </svg>
                             </div>
-                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Platform Jobs</span>
+                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.platformJobs ?? 'Platform Jobs'}</span>
                         </button>
                         <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
-                                Positions posted directly by HR teams on this platform
+                                {tl.platformJobsDesc ?? 'Positions posted directly by HR teams on this platform'}
                             </div>
                         </div>
                     </div>
@@ -751,11 +775,11 @@ export function JobsTab() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>Job Market</span>
+                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.jobMarket ?? 'Job Market'}</span>
                         </button>
                         <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
-                                Live listings aggregated from job boards worldwide
+                                {tl.jobMarketDesc ?? 'Live listings aggregated from job boards worldwide'}
                             </div>
                         </div>
                     </div>
@@ -903,7 +927,7 @@ export function JobsTab() {
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                        Apply
+                        {tl.smartApply ?? 'Apply'}
                     </button>
 
                     {/* Clear All button — only shown when filters are active */}
@@ -915,7 +939,7 @@ export function JobsTab() {
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                             </svg>
-                            Clear All
+                            {tl.clearAll ?? 'Clear All'}
                         </button>
                     )}
                 </div>
@@ -928,9 +952,9 @@ export function JobsTab() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                                Job Market
+                                {tl.jobMarket ?? 'Job Market'}
                                 {externalTotal > 0 && <span
-                                    className="ml-2 text-xs text-gray-400 dark:text-neutral-500 font-normal">{externalTotal.toLocaleString()} results</span>}
+                                    className="ml-2 text-xs text-gray-400 dark:text-neutral-500 font-normal">{externalTotal.toLocaleString()} {tl.results ?? 'results'}</span>}
                             </h3>
                             {externalSource && (
                                 <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-0.5">
@@ -942,7 +966,7 @@ export function JobsTab() {
                             <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500">
                                 <div
                                     className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-600 dark:border-t-neutral-300 rounded-full animate-spin"/>
-                                Searching…
+                                {tl.searching ?? 'Searching…'}
                             </div>
                         )}
                     </div>
@@ -958,13 +982,10 @@ export function JobsTab() {
                         <div
                             className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
                             {searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all'
-                                ? <p className="text-gray-500 dark:text-neutral-400 font-medium">No jobs found. Try
-                                    adjusting your filters or search terms.</p>
+                                ? <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsFiltered ?? 'No jobs found. Try adjusting your filters or search terms.'}</p>
                                 : <>
-                                    <p className="text-gray-700 dark:text-white font-semibold mb-1">Search the job
-                                        market</p>
-                                    <p className="text-sm text-gray-400 dark:text-neutral-500">Use the prompt above or
-                                        set a filter to find jobs worldwide.</p>
+                                    <p className="text-gray-700 dark:text-white font-semibold mb-1">{tl.searchJobMarketTitle ?? 'Search the job market'}</p>
+                                    <p className="text-sm text-gray-400 dark:text-neutral-500">{tl.searchJobMarketDesc ?? 'Use the prompt above or set a filter to find jobs worldwide.'}</p>
                                 </>
                             }
                         </div>
@@ -1005,7 +1026,7 @@ export function JobsTab() {
                                                     )}
                                                     {job.remote && (
                                                         <span
-                                                            className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded-md text-[10px] font-bold uppercase tracking-wide">Remote</span>
+                                                            className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded-md text-[10px] font-bold uppercase tracking-wide">{tl.remoteTag ?? 'Remote'}</span>
                                                     )}
                                                     {salaryText && (
                                                         <span
@@ -1040,7 +1061,7 @@ export function JobsTab() {
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
                                   strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                            {new Date(job.created_at).toLocaleDateString('en-US', {
+                                                            {new Date(job.created_at).toLocaleDateString(language, {
                                                                 month: 'short',
                                                                 day: 'numeric',
                                                                 year: 'numeric'
@@ -1082,7 +1103,7 @@ export function JobsTab() {
                                                     onClick={() => setExternalModalUrl(job.url)}
                                                     className="px-5 py-2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
                                                 >
-                                                    Apply →
+                                                    {tl.applyExternal ?? 'Apply →'}
                                                 </button>
                                             </div>
                                         </div>
@@ -1100,16 +1121,16 @@ export function JobsTab() {
                                 disabled={externalPage <= 1 || externalLoading}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
-                                ← Previous
+                                {tl.prevPage ?? '← Previous'}
                             </button>
                             <span
-                                className="text-sm text-gray-500 dark:text-neutral-400 px-2">Page {externalPage}</span>
+                                className="text-sm text-gray-500 dark:text-neutral-400 px-2">{tl.pageLabel ?? 'Page'} {externalPage}</span>
                             <button
                                 onClick={() => fetchExternalJobs(externalPage + 1)}
                                 disabled={externalPage * 20 >= externalTotal || externalLoading}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
-                                Next →
+                                {tl.nextPage ?? 'Next →'}
                             </button>
                         </div>
                     )}
@@ -1141,7 +1162,7 @@ export function JobsTab() {
                                             {isClosed && (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 border-gray-200 dark:border-neutral-700">
                                                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                    Closed
+                                                    {tl.closedBadge ?? 'Closed'}
                                                 </span>
                                             )}
                                         </div>
@@ -1192,7 +1213,7 @@ export function JobsTab() {
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
                                 strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                        {new Date(job.created_at).toLocaleDateString('en-US', {
+                                                        {new Date(job.created_at).toLocaleDateString(language, {
                                                             month: 'short',
                                                             day: 'numeric',
                                                             year: 'numeric'
@@ -1215,7 +1236,7 @@ export function JobsTab() {
                                         {/* Apply button */}
                                         {isClosed ? (
                                             <div className="w-full text-center bg-gray-50 dark:bg-neutral-800/50 text-gray-400 dark:text-neutral-500 px-6 py-2.5 rounded-xl text-sm font-semibold border border-dashed border-gray-200 dark:border-neutral-700 transition-colors cursor-not-allowed">
-                                                Position Closed
+                                                {tl.positionClosed ?? 'Position Closed'}
                                             </div>
                                         ) : userApp ? (
                                             <div
@@ -1308,10 +1329,10 @@ export function JobsTab() {
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/50 flex items-center justify-between shrink-0 transition-colors">
                             <div>
-                                <h3 className="text-base font-bold text-gray-900 dark:text-white">Apply with Resume</h3>
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white">{tl.applyWithResumeTitle ?? 'Apply with Resume'}</h3>
                                 <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
                                     {applyingJob?.title && <span className="font-semibold text-gray-700 dark:text-neutral-300">{applyingJob.title} · </span>}
-                                    Select a CV and review the PDF before submitting
+                                    {tl.selectCvReview ?? 'Select a CV and review the PDF before submitting'}
                                 </p>
                             </div>
                             <button onClick={closeResumeSelector}
@@ -1332,7 +1353,7 @@ export function JobsTab() {
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                     </svg>
-                                    Upload new CV
+                                    {tl.uploadNewCv ?? 'Upload new CV'}
                                 </button>
                                 {myDocuments.map((resume: any, index: number) => {
                                     const isSelected = selectedResumeId === resume.resume_id;
@@ -1379,7 +1400,7 @@ export function JobsTab() {
                                 {previewLoading ? (
                                     <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-neutral-500">
                                         <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin"/>
-                                        <p className="text-sm font-medium">Loading preview…</p>
+                                        <p className="text-sm font-medium">{tl.loadingPreview ?? 'Loading preview…'}</p>
                                     </div>
                                 ) : previewBlobUrl ? (
                                     <iframe src={previewBlobUrl} className="w-full h-full border-0" title="Resume Preview"/>
@@ -1389,8 +1410,8 @@ export function JobsTab() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
                                         <div>
-                                            <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">No PDF preview available</p>
-                                            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1 leading-relaxed">Generate a PDF from the Resumes tab first,<br/>or this CV will still be submitted as-is.</p>
+                                            <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">{tl.noPdfPreview ?? 'No PDF preview available'}</p>
+                                            <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1 leading-relaxed">{tl.noPdfPreviewDesc ?? 'Generate a PDF from the Resumes tab first, or this CV will still be submitted as-is.'}</p>
                                         </div>
                                     </div>
                                 )}
@@ -1406,7 +1427,7 @@ export function JobsTab() {
                             <button onClick={submitApplicationFinal}
                                     disabled={!selectedResumeId}
                                     className="flex-[2] py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
-                                Submit Application
+                                {tl.submitApplication ?? 'Submit Application'}
                             </button>
                         </div>
                     </div>

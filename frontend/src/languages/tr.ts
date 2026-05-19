@@ -68,7 +68,25 @@ export const tr = {
     emailPlaceholder: "E-posta adresini girin...",
     save: "Değişiklikleri Kaydet",
     saving: "Kaydediliyor...",
-    successSave: "Ayarlar başarıyla kaydedildi!"
+    successSave: "Ayarlar başarıyla kaydedildi!",
+    linkCreated: "Bağlantı oluşturuldu ve kaydedildi!",
+    linkDisabled: "Bağlantı devre dışı, profil gizli",
+    profileShared: "Profil {email} ile paylaşıldı",
+    deleteAccount: {
+      title: "Hesabı Sil",
+      desc: "Hesabınızı, profilinizi ve tüm CV dosyalarını kalıcı olarak silin. Bu işlem geri alınamaz.",
+      btn: "Hesabı Sil",
+      modalTitle: "Hesabınızı silin?",
+      modalDesc: "Bu işlem e-postanızı, profil verilerinizi ve tüm CV dosyalarınızı sistemlerimizden kalıcı olarak kaldıracaktır. Bu veriler kurtarılamaz.",
+      typeLabel: "Yazın",
+      keyword: "DELETE",
+      typeSuffix: "onaylamak için",
+      placeholder: "DELETE",
+      cancelBtn: "İptal",
+      confirmBtn: "Hesabımı sil",
+      deleting: "Siliniyor…",
+      error: "Silme başarısız oldu. Lütfen tekrar deneyin veya destek ile iletişime geçin."
+    }
   },
   profile: {
     title: "Profil Paneli",
@@ -78,6 +96,8 @@ export const tr = {
     cancel: "İptal",
     saveChanges: "Değişiklikleri Kaydet",
     aiParsedTooltip: "Bu, yapay zeka tarafından ayrıştırıldı. Lütfen doğruluğunu kontrol edin.",
+    showMore: "Daha fazla göster",
+    showLess: "Daha az göster",
     personal: {
       title: "Kişisel Bilgiler",
       firstName: "Ad",
@@ -118,6 +138,11 @@ export const tr = {
       end: "Bitiş",
       desc: "Açıklama veya Başarılar"
     },
+    languages: {
+      title: "Diller",
+      noLang: "Henüz dil eklenmedi.",
+      addLang: "+ Dil Ekle"
+    },
     certifications: {
       title: "Sertifikalar",
       noCert: "Henüz sertifika eklenmedi.",
@@ -153,7 +178,15 @@ export const tr = {
       fillPrompt: "Mülakatlara davet edilme şansınızı artırmak için profilinizi doldurun.",
       autofill: "CV yükleyerek otomatik doldur",
       resumeLibrary: "Özgeçmiş Kütüphanesi",
-      noResumes: "Yüklü özgeçmiş yok."
+      noResumes: "Yüklü özgeçmiş yok.",
+      importFromUrl: "URL'den İçe Aktar",
+      importing: "İçe aktarılıyor…",
+      importProfile: "Profili içe aktar",
+      redoWizard: "Kurulum sihirbazını yeniden yap",
+      profileCompleteness: "Profil Tamamlanması",
+      allComplete: "Tüm zorunlu alanlar dolduruldu",
+      missingFields: "Eksik zorunlu alanlar:",
+      addExpSkills: "Ayrıca deneyim ve beceri eklemeyi düşünün."
     },
     upload: {
       selectedFile: "Seçilen Dosya",
@@ -161,6 +194,41 @@ export const tr = {
       confirm: "Yüklemeyi Onayla",
       processing: "Belge İşleniyor..."
     }
+  },
+  wizard: {
+    welcomeTitle: "Hoş geldiniz! Profilinizi oluşturalım",
+    welcomeDesc: "Profiliniz dijital özgeçmişinizdir. Bir kez doldurun ve saniyeler içinde herhangi bir işe başvurun.",
+    aiHint: "Bir sonraki adımda CV'nizi yükleyin, yapay zeka ile her şeyi otomatik dolduralım.",
+    getStarted: "Başlayalım →",
+    skipForNow: "Şimdilik atla",
+    sections: {
+      personalInfo: "Kişisel Bilgiler",
+      personalInfoDesc: "Ad, iletişim, konum",
+      experience: "Deneyim",
+      experienceDesc: "İş geçmişi ve pozisyonlar",
+      education: "Eğitim",
+      educationDesc: "Dereceler ve kurumlar",
+      skills: "Beceriler",
+      skillsDesc: "Teknik ve sosyal beceriler"
+    },
+    uploadTitle: "CV'nizi yükleyin",
+    uploadDesc: "CV'nizi yükleyin veya bir URL yapıştırın — deneyim, eğitim ve becerilerinizi otomatik olarak çıkaracağız.",
+    uploadSuccess: "CV başarıyla yüklendi!",
+    uploadSuccessDesc: "Profiliniz dolduruluyor…",
+    uploading: "Yükleniyor…",
+    uploadWait: "Lütfen bekleyin",
+    uploadClick: "CV'nizi seçmek için tıklayın",
+    uploadFormats: "PDF, DOCX veya TXT desteklenir",
+    orImportUrl: "veya URL'den içe aktar",
+    urlPlaceholder: "CV veya portföy URL'nizi yapıştırın",
+    importBtn: "İçe Aktar",
+    importing: "İçe aktarılıyor…",
+    orDivider: "veya",
+    fillManually: "Profilimi manuel dolduracağım",
+    back: "← Geri",
+    skip: "Atla",
+    importError: "İçe aktarma başarısız. Lütfen tekrar deneyin.",
+    uploadError: "Yükleme başarısız. Lütfen tekrar deneyin."
   },
   improve: {
     title: "Yapay Zeka CV Geliştirici",
@@ -191,7 +259,12 @@ export const tr = {
     original: "Orijinal",
     improved: "Geliştirilmiş (Etki odaklı)",
     noRewrites: "Yeniden yazılması gereken madde yok.",
-    parsedText: "Ayrıştırılan Belge Metni"
+    parsedText: "Ayrıştırılan Belge Metni",
+    selectCv: "Geliştirmek İçin CV Seçin",
+    orUploadNew: "VEYA YENİ YÜKLE",
+    analysisHistory: "Analiz Geçmişi",
+    loadingHistory: "Geçmiş yükleniyor...",
+    viewingHistory: "Geçmişten görüntüleniyor"
   },
   jobs: {
     title: "İşleri Keşfet",
@@ -209,6 +282,26 @@ export const tr = {
     loadingDesc: "En son işleri getirirken lütfen bekleyin.",
     remote: "Uzaktan (Remote)",
     fullTime: "Tam Zamanlı",
+    smartPromptPlaceholder: "örn. \"AB'de kıdemli geliştirici işleri, tam zamanlı\"",
+    smartApply: "Uygula",
+    smartClear: "Tümünü Temizle",
+    smartLabel: "Akıllı Filtre",
+    filterLevel: "Seviye",
+    filterType: "Tür",
+    filterLocation: "Konum",
+    allLevels: "Tüm Seviyeler",
+    allTypes: "Tüm Türler",
+    allLocations: "Tüm Konumlar",
+    types: { fullTime: "Tam Zamanlı", partTime: "Yarı Zamanlı", contract: "Sözleşme", remote: "Uzaktan" },
+    locRemote: "Uzaktan / Evden Çalışma",
+    locEurope: "Avrupa (tüm ülkeler)",
+    locGroupQuickPicks: "Hızlı Seçimler",
+    locGroupEurope: "Avrupa",
+    locGroupUK: "Birleşik Krallık",
+    locGroupUS: "Amerika Birleşik Devletleri",
+    locGroupAmericas: "Amerika",
+    locGroupAsiaPacific: "Asya-Pasifik",
+    locGroupMiddleEast: "Orta Doğu",
     showLess: "Daha Az Göster",
     viewDetails: "Detayları Gör",
     appSubmittedBtn: "Başvuru Gönderildi",
@@ -229,7 +322,36 @@ export const tr = {
     cvErrorMsg: "CV işlenemedi.",
     externalRedirectTitle: "Platformdan ayrılıyorsunuz",
     externalRedirectMsg: "Başvurunuza harici bir sitede devam etmek için platformdan ayrılıyorsunuz. Lütfen gizlilik politikalarını inceleyin.",
-    externalRedirectContinue: "Devam Et"
+    externalRedirectContinue: "Devam Et",
+    platformJobs: "Platform İlanları",
+    platformJobsDesc: "Bu platformda İK ekipleri tarafından doğrudan yayınlanan pozisyonlar",
+    jobMarket: "İş Piyasası",
+    jobMarketDesc: "Dünya genelindeki iş sitelerinden derlenen güncel ilanlar",
+    clearAll: "Tümünü Temizle",
+    results: "sonuç",
+    searching: "Aranıyor…",
+    noResultsFiltered: "İş bulunamadı. Filtrelerinizi veya arama terimlerinizi ayarlamayı deneyin.",
+    searchJobMarketTitle: "İş piyasasında ara",
+    searchJobMarketDesc: "Dünya genelinde iş bulmak için yukarıdaki alanı kullanın veya bir filtre ayarlayın.",
+    remoteTag: "Uzaktan",
+    applyExternal: "Başvur →",
+    prevPage: "← Önceki",
+    pageLabel: "Sayfa",
+    nextPage: "Sonraki →",
+    closedBadge: "Kapalı",
+    positionClosed: "Pozisyon Kapalı",
+    applyWithResumeTitle: "CV ile Başvur",
+    selectCvReview: "Göndermeden önce bir CV seçin ve PDF'yi inceleyin",
+    uploadNewCv: "Yeni CV Yükle",
+    loadingPreview: "Önizleme yükleniyor…",
+    noPdfPreview: "PDF önizlemesi mevcut değil",
+    noPdfPreviewDesc: "Önce Özgeçmişler sekmesinden bir PDF oluşturun, aksi takdirde CV olduğu gibi gönderilecektir.",
+    submitApplication: "Başvuruyu Gönder",
+    locationSearch: "Şehir, ülke veya bölge ara...",
+    fromListings: "İlanlardan",
+    customGroup: "Özel",
+    searchFor: "Ara",
+    noLocationsFound: "Konum bulunamadı"
   },
   applications: {
     title: "İş Başvuruları",
@@ -279,7 +401,21 @@ export const tr = {
     loading: "Başvurular Yükleniyor...",
     externalRedirectTitle: "Platformdan ayrılıyorsunuz",
     externalRedirectMsg: "Başvurunuza harici bir sitede devam etmek için platformdan ayrılıyorsunuz. Lütfen gizlilik politikalarını inceleyin.",
-    externalRedirectContinue: "Devam Et"
+    externalRedirectContinue: "Devam Et",
+    stageLabels: {
+      saved: "Kaydedildi",
+      applied: "Başvuruldu",
+      shortlisted: "Ön Listede",
+      inProgress: "Süreçte",
+      hrInterview: "İK Mülakatı",
+      techInterview: "Teknik Mülakat",
+      decision: "Karar Aşaması",
+      offer: "Teklif",
+      rejected: "Reddedildi"
+    },
+    orgLoading: "Yükleniyor...",
+    orgError: "Şirket bilgisi yüklenemedi.",
+    closedBadge: "Kapalı"
   },
   resumes: {
     title: "Özgeçmiş Versiyonları",
@@ -331,7 +467,8 @@ export const tr = {
       education: "Eğitim",
       langCert: "Diller ve Sertifikalar",
       languages: "Diller",
-      certifications: "Sertifikalar"
+      certifications: "Sertifikalar",
+      references: "Referanslar"
     },
     placeholders: {
       noSummary: "Bu versiyon için özet kaydedilmedi.",
@@ -451,6 +588,49 @@ export const tr = {
       jobDescription: "İş Tanımı",
       jobDescPlaceholder: "İş tanımını buraya yapıştırın…",
       cancel: "İptal"
+    },
+    searchPlaceholder: "Özgeçmişlerde ara...",
+    noSearchResults: "Aramanızla eşleşen özgeçmiş yok.",
+    improveBtn: "CV'yi İyileştir",
+    createVersionBtn: "Özgeçmiş Sürümü Oluştur",
+    showMore: "Daha fazla göster",
+    showLess: "Daha az göster",
+    viewOriginalPdf: "Orijinal PDF'i Görüntüle",
+    savedPdfLabel: "Kaydedilmiş PDF",
+    download: "İndir",
+    cvTips: {
+      title: "CV En İyi Uygulamaları",
+      subtitle: "Öne çıkan bir CV için 12 ipucu — genişletmek için bir ipucuna tıklayın",
+      backToAll: "Tüm ipuçlarına dön",
+      previous: "Önceki",
+      next: "Sonraki",
+      tips: [
+        { title: "Tutarlı biçimlendirme", desc: "Temiz yapı, hizalanmış tarihler ve tek tip stil kullanın." },
+        { title: "Kısa ve öz", desc: "Sadece 1-2 sayfa — işe alım uzmanları hızlı tarar, öze odaklanın." },
+        { title: "Yalnızca temel kişisel bilgiler", desc: "Başvurunuzu destekleyen profesyonel bilgilere odaklanın." },
+        { title: "Profesyonel e-posta kullanın", desc: "Adınıza dayalı basit bir format seçin." },
+        { title: "Temiz tasarım", desc: "Süsleme yerine okunabilirliği önceliklendirin." },
+        { title: "Net bir özet ile başlayın", desc: "Kısa profesyonel özet (3–5 cümle) belgenin başına ekleyin." },
+        { title: "Fotoğrafı yalnızca uygunsa ekleyin", desc: "Standart veya beklenen durumlarda fotoğraf ekleyin." },
+        { title: "CV'nizi uyarlayın", desc: "Her pozisyon için içeriği gereksinimlere ve anahtar kelimelere göre düzenleyin." },
+        { title: "Kısa tutun", desc: "Kolay taranabilir kısa, net madde işaretleri kullanın." },
+        { title: "Alaka düzeyini önceliklendirin", desc: "Yalnızca hedef role uyan deneyim ve becerileri ekleyin." },
+        { title: "Spesifik dil kullanın", desc: "Genel ifadeleri ölçülebilir sonuçlar ve somut başarılarla değiştirin." },
+        { title: "Referansları belirtin", desc: "Uygunsa 'Talep üzerine referans sağlanabilir' ekleyin." }
+      ]
+    },
+    pdfExport: {
+      title: "PDF Olarak Dışa Aktar",
+      subtitle: "Şablonu önizleyin, sonra indirin",
+      saveTitle: "PDF'i Veritabanına Kaydet",
+      saveSubtitle: "Şablonu önizleyin, sonra kaydedin",
+      includePhoto: "Fotoğraf ekle",
+      preview: "Önizleme",
+      generate: "Oluştur",
+      loading: "Yükleniyor",
+      previewing: "Önizleniyor",
+      regenerate: "Yeniden Oluştur",
+      save: "Kaydet"
     }
   },
   hrNav: {

@@ -68,7 +68,25 @@ export const fr = {
     emailPlaceholder: "Entrez l'adresse e-mail...",
     save: "Enregistrer les modifications",
     saving: "Enregistrement...",
-    successSave: "Paramètres enregistrés avec succès !"
+    successSave: "Paramètres enregistrés avec succès !",
+    linkCreated: "Lien créé et enregistré !",
+    linkDisabled: "Lien désactivé, profil privé",
+    profileShared: "Profil partagé avec {email}",
+    deleteAccount: {
+      title: "Supprimer le compte",
+      desc: "Supprimer définitivement votre compte, profil et tous les fichiers CV. Cette action est irréversible.",
+      btn: "Supprimer le compte",
+      modalTitle: "Supprimer votre compte ?",
+      modalDesc: "Cela supprimera définitivement votre e-mail, vos données de profil et tous vos fichiers CV de nos systèmes. Ces données ne pourront pas être récupérées.",
+      typeLabel: "Tapez",
+      keyword: "DELETE",
+      typeSuffix: "pour confirmer",
+      placeholder: "DELETE",
+      cancelBtn: "Annuler",
+      confirmBtn: "Supprimer mon compte",
+      deleting: "Suppression…",
+      error: "Échec de la suppression. Veuillez réessayer ou contacter le support."
+    }
   },
   profile: {
     title: "Tableau de bord du profil",
@@ -78,6 +96,8 @@ export const fr = {
     cancel: "Annuler",
     saveChanges: "Enregistrer les modifications",
     aiParsedTooltip: "Ceci a été analysé par l'IA. Veuillez vérifier l'exactitude.",
+    showMore: "Afficher plus",
+    showLess: "Afficher moins",
     personal: {
       title: "Informations personnelles",
       firstName: "Prénom",
@@ -118,6 +138,11 @@ export const fr = {
       end: "Fin",
       desc: "Description ou réalisations"
     },
+    languages: {
+      title: "Langues",
+      noLang: "Aucune langue ajoutée pour l'instant.",
+      addLang: "+ Ajouter une langue"
+    },
     certifications: {
       title: "Certifications",
       noCert: "Aucune certification ajoutée pour l'instant.",
@@ -153,7 +178,15 @@ export const fr = {
       fillPrompt: "Remplissez votre profil pour augmenter vos chances d'être invité à des entretiens.",
       autofill: "Remplissage automatique avec CV",
       resumeLibrary: "Bibliothèque de CV",
-      noResumes: "Aucun CV téléchargé."
+      noResumes: "Aucun CV téléchargé.",
+      importFromUrl: "Importer depuis une URL",
+      importing: "Importation…",
+      importProfile: "Importer le profil",
+      redoWizard: "Refaire l'assistant de configuration",
+      profileCompleteness: "Complétude du profil",
+      allComplete: "Tous les champs obligatoires sont remplis",
+      missingFields: "Champs obligatoires manquants :",
+      addExpSkills: "Pensez aussi à ajouter de l'expérience et des compétences."
     },
     upload: {
       selectedFile: "Fichier sélectionné",
@@ -161,6 +194,41 @@ export const fr = {
       confirm: "Confirmer l'importation",
       processing: "Traitement du document..."
     }
+  },
+  wizard: {
+    welcomeTitle: "Bienvenue ! Créons votre profil",
+    welcomeDesc: "Votre profil est votre CV numérique. Remplissez-le une fois et postulez à n'importe quel emploi en quelques secondes.",
+    aiHint: "Téléchargez votre CV à l'étape suivante et nous remplirons tout automatiquement grâce à l'IA.",
+    getStarted: "Commencer →",
+    skipForNow: "Passer pour l'instant",
+    sections: {
+      personalInfo: "Informations personnelles",
+      personalInfoDesc: "Nom, contact, localisation",
+      experience: "Expérience",
+      experienceDesc: "Parcours professionnel & postes",
+      education: "Formation",
+      educationDesc: "Diplômes & établissements",
+      skills: "Compétences",
+      skillsDesc: "Compétences techniques & relationnelles"
+    },
+    uploadTitle: "Téléchargez votre CV",
+    uploadDesc: "Téléchargez votre CV ou collez une URL — nous extrairons automatiquement votre expérience, votre formation et vos compétences.",
+    uploadSuccess: "CV téléchargé avec succès !",
+    uploadSuccessDesc: "Votre profil est en cours de remplissage…",
+    uploading: "Téléchargement…",
+    uploadWait: "Veuillez patienter",
+    uploadClick: "Cliquez pour choisir votre CV",
+    uploadFormats: "PDF, DOCX ou TXT acceptés",
+    orImportUrl: "ou importer depuis une URL",
+    urlPlaceholder: "Collez l'URL de votre CV ou portfolio",
+    importBtn: "Importer",
+    importing: "Importation…",
+    orDivider: "ou",
+    fillManually: "Je remplirai mon profil manuellement",
+    back: "← Retour",
+    skip: "Passer",
+    importError: "Échec de l'importation. Veuillez réessayer.",
+    uploadError: "Échec du téléchargement. Veuillez réessayer."
   },
   improve: {
     title: "Améliorateur de CV par l'IA",
@@ -191,7 +259,12 @@ export const fr = {
     original: "Original",
     improved: "Amélioré (Axé sur l'impact)",
     noRewrites: "Aucune puce n'a besoin d'être réécrite.",
-    parsedText: "Texte du document analysé"
+    parsedText: "Texte du document analysé",
+    selectCv: "Sélectionner un CV à améliorer",
+    orUploadNew: "OU TÉLÉCHARGER UN NOUVEAU",
+    analysisHistory: "Historique d'analyse",
+    loadingHistory: "Chargement de l'historique...",
+    viewingHistory: "Visualisation depuis l'historique"
   },
   jobs: {
     title: "Explorer les offres",
@@ -209,6 +282,26 @@ export const fr = {
     loadingDesc: "Veuillez patienter pendant que nous récupérons les dernières offres.",
     remote: "À distance",
     fullTime: "Temps plein",
+    smartPromptPlaceholder: 'ex. "Emplois développeur senior en UE, temps plein"',
+    smartApply: "Appliquer",
+    smartClear: "Tout effacer",
+    smartLabel: "Filtre intelligent",
+    filterLevel: "Niveau",
+    filterType: "Type",
+    filterLocation: "Lieu",
+    allLevels: "Tous les niveaux",
+    allTypes: "Tous les types",
+    allLocations: "Tous les lieux",
+    types: { fullTime: "Temps plein", partTime: "Temps partiel", contract: "Contrat", remote: "Télétravail" },
+    locRemote: "Télétravail / Travail à domicile",
+    locEurope: "Europe (tous les pays)",
+    locGroupQuickPicks: "Sélections rapides",
+    locGroupEurope: "Europe",
+    locGroupUK: "Royaume-Uni",
+    locGroupUS: "États-Unis",
+    locGroupAmericas: "Amériques",
+    locGroupAsiaPacific: "Asie-Pacifique",
+    locGroupMiddleEast: "Moyen-Orient",
     showLess: "Voir moins",
     viewDetails: "Voir les détails",
     appSubmittedBtn: "Candidature envoyée",
@@ -229,7 +322,36 @@ export const fr = {
     cvErrorMsg: "Échec du traitement du CV.",
     externalRedirectTitle: "Quitter la plateforme",
     externalRedirectMsg: "Vous quittez la plateforme pour poursuivre votre candidature sur un site externe. Veuillez consulter leur politique de confidentialité.",
-    externalRedirectContinue: "Continuer"
+    externalRedirectContinue: "Continuer",
+    platformJobs: "Offres de la plateforme",
+    platformJobsDesc: "Postes publiés directement par les équipes RH sur cette plateforme",
+    jobMarket: "Marché de l'emploi",
+    jobMarketDesc: "Annonces en direct agrégées depuis des sites d'emploi du monde entier",
+    clearAll: "Tout effacer",
+    results: "résultats",
+    searching: "Recherche…",
+    noResultsFiltered: "Aucun poste trouvé. Essayez d'ajuster vos filtres ou termes de recherche.",
+    searchJobMarketTitle: "Rechercher sur le marché de l'emploi",
+    searchJobMarketDesc: "Utilisez le champ de recherche ci-dessus ou définissez un filtre pour trouver des emplois dans le monde entier.",
+    remoteTag: "Télétravail",
+    applyExternal: "Postuler →",
+    prevPage: "← Précédent",
+    pageLabel: "Page",
+    nextPage: "Suivant →",
+    closedBadge: "Fermé",
+    positionClosed: "Poste pourvu",
+    applyWithResumeTitle: "Postuler avec un CV",
+    selectCvReview: "Sélectionnez un CV et consultez le PDF avant de soumettre",
+    uploadNewCv: "Télécharger un nouveau CV",
+    loadingPreview: "Chargement de l'aperçu…",
+    noPdfPreview: "Aucun aperçu PDF disponible",
+    noPdfPreviewDesc: "Générez d'abord un PDF dans l'onglet CV, ou ce dossier sera soumis tel quel.",
+    submitApplication: "Soumettre la candidature",
+    locationSearch: "Rechercher une ville, un pays, une région...",
+    fromListings: "Depuis les offres",
+    customGroup: "Personnalisé",
+    searchFor: "Rechercher",
+    noLocationsFound: "Aucun lieu trouvé"
   },
   applications: {
     title: "Candidatures",
@@ -279,7 +401,21 @@ export const fr = {
     loading: "Chargement des candidatures...",
     externalRedirectTitle: "Quitter la plateforme",
     externalRedirectMsg: "Vous quittez la plateforme pour poursuivre votre candidature sur un site externe. Veuillez consulter leur politique de confidentialité.",
-    externalRedirectContinue: "Continuer"
+    externalRedirectContinue: "Continuer",
+    stageLabels: {
+      saved: "Enregistré",
+      applied: "Postulé",
+      shortlisted: "Présélectionné",
+      inProgress: "En cours",
+      hrInterview: "Entretien RH",
+      techInterview: "Entretien technique",
+      decision: "Décision",
+      offer: "Offre",
+      rejected: "Rejeté"
+    },
+    orgLoading: "Chargement...",
+    orgError: "Impossible de charger les informations de l'entreprise.",
+    closedBadge: "Fermé"
   },
   resumes: {
     title: "Versions de CV",
@@ -331,7 +467,8 @@ export const fr = {
       education: "Éducation",
       langCert: "Langues et Certifications",
       languages: "Langues",
-      certifications: "Certifications"
+      certifications: "Certifications",
+      references: "Références"
     },
     placeholders: {
       noSummary: "Aucun résumé enregistré pour cette version.",
@@ -451,6 +588,49 @@ export const fr = {
       jobDescription: "Description du poste",
       jobDescPlaceholder: "Collez la description du poste ici…",
       cancel: "Annuler"
+    },
+    searchPlaceholder: "Rechercher des CVs...",
+    noSearchResults: "Aucun CV ne correspond à votre recherche.",
+    improveBtn: "Améliorer le CV",
+    createVersionBtn: "Créer une version de CV",
+    showMore: "Afficher plus",
+    showLess: "Afficher moins",
+    viewOriginalPdf: "Voir le PDF original",
+    savedPdfLabel: "PDF enregistré",
+    download: "Télécharger",
+    cvTips: {
+      title: "Bonnes pratiques CV",
+      subtitle: "12 conseils pour un CV remarquable — cliquez sur un conseil pour l'afficher",
+      backToAll: "Retour à tous les conseils",
+      previous: "Précédent",
+      next: "Suivant",
+      tips: [
+        { title: "Formatage cohérent", desc: "Utilisez une structure claire, des dates alignées et un style uniforme dans tout le document." },
+        { title: "Court et percutant", desc: "1 ou 2 pages seulement — les recruteurs parcourent rapidement, restez à l'essentiel." },
+        { title: "Informations personnelles essentielles uniquement", desc: "Concentrez-vous sur les informations professionnelles qui soutiennent votre candidature." },
+        { title: "E-mail professionnel", desc: "Choisissez un format simple basé sur votre nom pour votre adresse e-mail." },
+        { title: "Design épuré", desc: "Privilégiez la lisibilité à la décoration — choisissez une mise en page claire." },
+        { title: "Commencer par un résumé clair", desc: "Un court résumé professionnel (3–5 phrases) au début du document." },
+        { title: "Photo uniquement si appropriée", desc: "Incluez une photo seulement si c'est standard ou attendu dans votre secteur." },
+        { title: "Adapter votre CV", desc: "Ajustez le contenu pour chaque poste en ciblant les exigences et mots-clés." },
+        { title: "Rester concis", desc: "Utilisez des points courts et clairs qui se lisent facilement." },
+        { title: "Prioriser la pertinence", desc: "N'incluez que l'expérience et les compétences correspondant au poste ciblé." },
+        { title: "Langage spécifique", desc: "Remplacez les formules génériques par des résultats mesurables et des réalisations concrètes." },
+        { title: "Indiquer les références", desc: "Ajoutez 'Références disponibles sur demande' si pertinent pour votre profil." }
+      ]
+    },
+    pdfExport: {
+      title: "Exporter en PDF",
+      subtitle: "Prévisualiser un modèle, puis télécharger",
+      saveTitle: "Enregistrer le PDF dans la base de données",
+      saveSubtitle: "Prévisualiser un modèle, puis enregistrer",
+      includePhoto: "Inclure la photo",
+      preview: "Aperçu",
+      generate: "Générer",
+      loading: "Chargement",
+      previewing: "Aperçu en cours",
+      regenerate: "Régénérer",
+      save: "Enregistrer"
     }
   },
   hrNav: {

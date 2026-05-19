@@ -66,7 +66,7 @@ export function CandidateSettingsTab() {
     setIsSaving(true);
     try {
       await authApi.updatePrivacy({ visibility_level: 'public', public_url_slug: newSlug });
-      setMessage("Link created and saved!");
+      setMessage((t as any).linkCreated ?? "Link created and saved!");
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       console.error("Failed to save generated link", err);
@@ -83,7 +83,7 @@ export function CandidateSettingsTab() {
     setIsSaving(true);
     try {
       await authApi.updatePrivacy({ visibility_level: 'private', public_url_slug: null });
-      setMessage("Link disabled and profile is private");
+      setMessage((t as any).linkDisabled ?? "Link disabled and profile is private");
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       console.error("Failed to remove link", err);
@@ -100,14 +100,14 @@ export function CandidateSettingsTab() {
       await authApi.deleteAccount();
       window.location.href = '/';
     } catch {
-      setDeleteError('Deletion failed. Please try again or contact support.');
+      setDeleteError((t as any).deleteAccount?.error ?? 'Deletion failed. Please try again or contact support.');
       setIsDeleting(false);
     }
   };
 
   const handleSendEmail = () => {
     if (!emailToShare) return;
-    setMessage(`Profile shared with ${emailToShare}`);
+    setMessage(((t as any).profileShared ?? 'Profile shared with {email}').replace('{email}', emailToShare));
     setEmailToShare('');
     setTimeout(() => setMessage(null), 3000);
   };
@@ -208,13 +208,13 @@ export function CandidateSettingsTab() {
           {/* Delete account */}
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl p-6 shadow-sm transition-colors">
             <p className="text-xs text-gray-500 dark:text-neutral-400 mb-4">
-              Permanently delete your account, profile, and all CV files. This action cannot be undone.
+              {(t as any).deleteAccount?.desc ?? "Permanently delete your account, profile, and all CV files. This action cannot be undone."}
             </p>
             <button
               onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(''); setDeleteError(null); }}
               className="w-full px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl transition-all shadow-sm"
             >
-              Delete Account
+              {(t as any).deleteAccount?.btn ?? "Delete Account"}
             </button>
           </div>
         </div>
@@ -298,13 +298,13 @@ export function CandidateSettingsTab() {
             <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-5">
               <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete your account?</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{(t as any).deleteAccount?.modalTitle ?? "Delete your account?"}</h2>
             <p className="text-sm text-gray-500 dark:text-neutral-400 mb-6 leading-relaxed">
-              This will permanently remove your email, profile data, and all CV files from our systems. There is no way to recover this data.
+              {(t as any).deleteAccount?.modalDesc ?? "This will permanently remove your email, profile data, and all CV files from our systems. There is no way to recover this data."}
             </p>
             <div className="mb-5">
               <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-widest mb-2">
-                Type <span className="text-red-600 dark:text-red-400 font-mono">DELETE</span> to confirm
+                {(t as any).deleteAccount?.typeLabel ?? "Type"} <span className="text-red-600 dark:text-red-400 font-mono">{(t as any).deleteAccount?.keyword ?? "DELETE"}</span> {(t as any).deleteAccount?.typeSuffix ?? "to confirm"}
               </label>
               <input
                 type="text"
@@ -325,7 +325,7 @@ export function CandidateSettingsTab() {
                 disabled={isDeleting}
                 className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 text-sm font-semibold rounded-xl transition-all disabled:opacity-50"
               >
-                Cancel
+                {(t as any).deleteAccount?.cancelBtn ?? 'Cancel'}
               </button>
               <button
                 onClick={handleDeleteAccount}
@@ -333,7 +333,7 @@ export function CandidateSettingsTab() {
                 className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-300 dark:disabled:bg-red-900 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
               >
                 {isDeleting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                {isDeleting ? 'Deleting…' : 'Delete my account'}
+                {isDeleting ? ((t as any).deleteAccount?.deleting ?? 'Deleting…') : ((t as any).deleteAccount?.confirmBtn ?? 'Delete my account')}
               </button>
             </div>
           </div>

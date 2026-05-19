@@ -172,7 +172,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
           <div className="lg:col-span-8 space-y-6">
             <div className="space-y-3">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-300">Select CV to Improve</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-300">{(t as any).selectCv ?? 'Select CV to Improve'}</label>
 
               {myDocuments.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
@@ -207,7 +207,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               {myDocuments.length > 0 && (
                 <div className="flex items-center gap-4 py-2">
                   <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">OR UPLOAD NEW</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{(t as any).orUploadNew ?? 'OR UPLOAD NEW'}</span>
                   <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800"></div>
                 </div>
               )}
@@ -279,7 +279,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Analysis History
+              {(t as any).analysisHistory ?? 'Analysis History'}
             </h3>
             {history.length > 0 && (
               <span className="text-xs font-bold text-gray-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
@@ -291,7 +291,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
           {historyLoading ? (
             <div className="flex items-center gap-2 py-4 text-sm text-gray-400 dark:text-neutral-500">
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              Loading history...
+              {(t as any).loadingHistory ?? 'Loading history...'}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -331,7 +331,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Viewing from history — {history.find(h => h.improvement_id === activeHistoryId)?.filename || 'Untitled'} · {formatDate(history.find(h => h.improvement_id === activeHistoryId)?.created_at || '')}
+              {(t as any).viewingHistory ?? 'Viewing from history'} — {history.find(h => h.improvement_id === activeHistoryId)?.filename || 'Untitled'} · {formatDate(history.find(h => h.improvement_id === activeHistoryId)?.created_at || '')}
             </div>
           )}
 
