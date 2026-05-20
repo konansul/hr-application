@@ -4,7 +4,7 @@ import { useStore } from '../../../store';
 import { LANGUAGES, DICT } from '../../../internationalization.ts';
 
 export function CandidateSettingsTab() {
-  const { theme, setTheme, language, setLanguage } = useStore();
+  const { theme, setTheme, language, setLanguage, logoutStore } = useStore();
 
   const t = DICT[language as keyof typeof DICT]?.settings || DICT.en.settings;
 
@@ -98,6 +98,9 @@ export function CandidateSettingsTab() {
     setDeleteError(null);
     try {
       await authApi.deleteAccount();
+      localStorage.clear();
+      sessionStorage.clear();
+      logoutStore();
       window.location.href = '/';
     } catch {
       setDeleteError((t as any).deleteAccount?.error ?? 'Deletion failed. Please try again or contact support.');
@@ -282,9 +285,15 @@ export function CandidateSettingsTab() {
                  {t.sendTo}
               </h3>
               <p className="text-xs text-gray-500 dark:text-neutral-400 mb-4">{t.sendToDesc}</p>
-              <div className="flex gap-2">
-                <input type="email" placeholder={t.emailPlaceholder} value={emailToShare} onChange={(e) => setEmailToShare(e.target.value)} className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all font-medium placeholder-gray-400 dark:placeholder-neutral-500" />
-                <button onClick={handleSendEmail} disabled={!emailToShare} className="px-6 py-2.5 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-900 dark:text-white rounded-xl text-xs font-bold transition-all disabled:opacity-30 border border-gray-200 dark:border-neutral-700">{t.send}</button>
+              <div className="relative group cursor-not-allowed">
+                <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 px-3 py-1.5 bg-gray-800 dark:bg-neutral-700 text-white text-[11px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Coming soon
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800 dark:border-t-neutral-700" />
+                </div>
+                <div className="flex gap-2 opacity-50 pointer-events-none select-none">
+                  <input type="email" placeholder={t.emailPlaceholder} className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl font-medium placeholder-gray-400 dark:placeholder-neutral-500" readOnly />
+                  <button disabled className="px-6 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-xl text-xs font-bold border border-gray-200 dark:border-neutral-700">{t.send}</button>
+                </div>
               </div>
             </section>
           </div>

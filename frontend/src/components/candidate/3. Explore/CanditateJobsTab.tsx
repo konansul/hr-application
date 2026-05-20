@@ -344,6 +344,8 @@ export function JobsTab() {
     // Saved jobs tracker — user-specific key matches JobApplicationTab
     const lsKey = userId ? `candidate_tracked_jobs_${userId}` : null;
     const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+    const wizardSeenKey = userId ? `hrai_save_job_wizard_seen_${userId}` : null;
+    const [showSaveWizard, setShowSaveWizard] = useState(false);
 
     useEffect(() => {
         const handler = () => {
@@ -385,6 +387,9 @@ export function JobsTab() {
             localStorage.setItem(lsKey, JSON.stringify(items));
             setSavedJobIds(prev => new Set([...prev, sourceJobId]));
             window.dispatchEvent(new Event('tracked-jobs-updated'));
+            if (wizardSeenKey && !localStorage.getItem(wizardSeenKey)) {
+                setShowSaveWizard(true);
+            }
         } catch { /* ignore */ }
     };
 
@@ -797,6 +802,17 @@ export function JobsTab() {
                 </div>
 
                 {/* Smart prompt bar */}
+                <div className="relative group/smartfilter">
+                {/* Tooltip */}
+                <div className="pointer-events-none absolute bottom-full left-0 mb-2 z-50 w-72 opacity-0 group-hover/smartfilter:opacity-100 transition-opacity duration-150">
+                    <div className="bg-blue-600 dark:bg-blue-700 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
+                        {searchMode === 'internal'
+                            ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-blue-200 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
+                            : <><span className="font-semibold">{tl.filterTooltipMarketTitle}</span> {tl.filterTooltipMarketBody}</>
+                        }
+                    </div>
+                    <div className="absolute top-full left-6 border-4 border-transparent border-t-blue-600 dark:border-t-blue-700" />
+                </div>
                 <div
                     className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 focus-within:border-gray-400 dark:focus-within:border-neutral-500 transition-colors">
                     <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24"
@@ -825,11 +841,22 @@ export function JobsTab() {
                         </button>
                     )}
                 </div>
+                </div>
 
                 {/* Filter row */}
                 <div className="flex flex-wrap items-center gap-2">
                     {/* Search */}
-                    <div className="relative">
+                    <div className="relative group/searchfilter">
+                        {/* Tooltip */}
+                        <div className="pointer-events-none absolute bottom-full left-0 mb-2 z-50 w-72 opacity-0 group-hover/searchfilter:opacity-100 transition-opacity duration-150">
+                            <div className="bg-blue-600 dark:bg-blue-700 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
+                                {searchMode === 'internal'
+                                    ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-blue-200 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
+                                    : <><span className="font-semibold">{tl.filterTooltipMarketTitle}</span> {tl.filterTooltipMarketBody}</>
+                                }
+                            </div>
+                            <div className="absolute top-full left-6 border-4 border-transparent border-t-blue-600 dark:border-t-blue-700" />
+                        </div>
                         <svg
                             className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500 pointer-events-none"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1161,7 +1188,13 @@ export function JobsTab() {
                         <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
                         {(smartPrompt.trim() || searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all') && (
                             <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
-                                {tl.noJobsPlatformTryMarket ?? 'No platform jobs match your search. Switch to the Job Market tab to find this position.'}
+                                No platform jobs match your search.{' '}
+                                <button
+                                    onClick={() => setSearchMode('external')}
+                                    className="text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold underline underline-offset-2 transition-colors"
+                                >
+                                    Search in Job Market
+                                </button>
                             </p>
                         )}
                     </div>
@@ -1560,6 +1593,67 @@ export function JobsTab() {
                             )}
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* First-save wizard */}
+            {showSaveWizard && (
+                <div
+                    className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => {
+                        if (wizardSeenKey) localStorage.setItem(wizardSeenKey, '1');
+                        setShowSaveWizard(false);
+                    }}
+                >
+                    <div
+                        className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-neutral-700 w-full max-w-sm p-8 animate-in zoom-in-95 duration-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Icon */}
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center mb-5 mx-auto">
+                            <svg className="w-7 h-7 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                        </div>
+
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-2">Job saved!</h3>
+                        <p className="text-sm text-gray-500 dark:text-neutral-400 text-center leading-relaxed mb-6">
+                            You can find all your saved jobs in the{' '}
+                            <span className="font-semibold text-gray-900 dark:text-white">Applications</span> tab, under the{' '}
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs font-semibold">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                </svg>
+                                Self-Tracked
+                            </span>{' '}
+                            section.
+                        </p>
+
+                        {/* Path illustration */}
+                        <div className="flex items-center justify-center gap-2 mb-7 px-2">
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-neutral-800 rounded-xl text-xs font-semibold text-gray-600 dark:text-neutral-300">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                Applications
+                            </div>
+                            <svg className="w-4 h-4 text-gray-300 dark:text-neutral-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-sm shadow-indigo-300 dark:shadow-indigo-900">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                                Self-Tracked
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                if (wizardSeenKey) localStorage.setItem(wizardSeenKey, '1');
+                                setShowSaveWizard(false);
+                            }}
+                            className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 text-white text-sm font-bold rounded-2xl transition-colors shadow-sm"
+                        >
+                            Got it!
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
