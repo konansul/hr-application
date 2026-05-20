@@ -10,7 +10,7 @@ export function CandidateSettingsTab() {
 
   const [visibility, setVisibility] = useState<'public' | 'private' | null>(null);
   const [publicSlug, setPublicSlug] = useState<string | null>(null);
-  const [emailToShare, setEmailToShare] = useState('');
+  // const [emailToShare, setEmailToShare] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,13 +106,6 @@ export function CandidateSettingsTab() {
       setDeleteError((t as any).deleteAccount?.error ?? 'Deletion failed. Please try again or contact support.');
       setIsDeleting(false);
     }
-  };
-
-  const handleSendEmail = () => {
-    if (!emailToShare) return;
-    setMessage(((t as any).profileShared ?? 'Profile shared with {email}').replace('{email}', emailToShare));
-    setEmailToShare('');
-    setTimeout(() => setMessage(null), 3000);
   };
 
   if (isLoading) {
