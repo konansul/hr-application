@@ -265,6 +265,8 @@ export const pt = {
     analysisHistory: "Histórico de Análise",
     loadingHistory: "Carregando histórico...",
     viewingHistory: "Visualizando do histórico",
+    selectCvPlaceholder: "Selecionar um CV...",
+    uploadNewOption: "Carregar novo arquivo...",
     chooseFile: "Escolher arquivo",
     noFileChosen: "Nenhum arquivo escolhido",
     untitled: "Sem título",
@@ -419,6 +421,8 @@ export const pt = {
     },
     orgLoading: "Carregando...",
     orgError: "Não foi possível carregar as informações da empresa.",
+    orgNoDesc: "Nenhuma descrição da empresa adicionada ainda.",
+    viewJob: "Ver vaga",
     closedBadge: "Fechada"
   },
   resumes: {

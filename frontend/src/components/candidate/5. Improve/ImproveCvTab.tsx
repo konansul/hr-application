@@ -68,6 +68,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
   const [myDocuments, setMyDocuments] = useState<any[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
+  const [dropdownValue, setDropdownValue] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState<string>(initialJobDescription);
 
@@ -84,7 +85,10 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
   useEffect(() => {
     documentsApi.getMyDocuments()
-      .then(setMyDocuments)
+      .then((docs) => {
+        setMyDocuments(docs);
+        if (docs.length === 0) setDropdownValue('upload');
+      })
       .catch(console.error);
 
     screeningApi.getImprovementHistory()
@@ -93,10 +97,17 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       .finally(() => setHistoryLoading(false));
   }, []);
 
-  const handleSelectResume = (resumeId: string) => {
-    setSelectedResumeId(resumeId);
-    setFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleDropdownChange = (val: string) => {
+    setDropdownValue(val);
+    if (val === 'upload') {
+      setSelectedResumeId(null);
+    } else if (val) {
+      setSelectedResumeId(val);
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } else {
+      setSelectedResumeId(null);
+    }
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -174,66 +185,45 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-300">{(t as any).selectCv ?? 'Select CV to Improve'}</label>
 
-              {myDocuments.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
-                  {myDocuments.map(doc => (
-                    <div
-                      key={doc.resume_id}
-                      onClick={() => handleSelectResume(doc.resume_id)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                        selectedResumeId === doc.resume_id
-                          ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm'
-                          : 'border-gray-100 dark:border-neutral-800 bg-white dark:bg-black hover:border-gray-300 dark:hover:border-neutral-600'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                        selectedResumeId === doc.resume_id ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400'
-                      }`}>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold truncate ${selectedResumeId === doc.resume_id ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-900 dark:text-white'}`}>
-                          {doc.filename}
-                        </p>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mt-0.5">
-                          {doc.source_type.replace('_', ' ')}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {myDocuments.length > 0 && (
-                <div className="flex items-center gap-4 py-2">
-                  <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{(t as any).orUploadNew ?? 'OR UPLOAD NEW'}</span>
-                  <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800"></div>
-                </div>
-              )}
-
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".pdf,.docx,.txt"
-                onChange={handleFileChange}
+              <select
+                value={dropdownValue}
+                onChange={(e) => handleDropdownChange(e.target.value)}
                 disabled={isProcessing}
-                className="hidden"
-              />
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => !isProcessing && fileInputRef.current?.click()}
-                onKeyDown={(e) => e.key === 'Enter' && !isProcessing && fileInputRef.current?.click()}
-                className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700'}`}
+                className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <span className="shrink-0 py-2.5 px-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border-r border-gray-300 dark:border-neutral-700 select-none">
-                  {(t as any).chooseFile ?? 'Choose File'}
-                </span>
-                <span className="text-sm text-gray-500 dark:text-neutral-400 truncate px-3">
-                  {file ? file.name : ((t as any).noFileChosen ?? 'No file chosen')}
-                </span>
-              </div>
+                <option value="">{(t as any).selectCvPlaceholder ?? 'Select a CV...'}</option>
+                {myDocuments.map(doc => (
+                  <option key={doc.resume_id} value={doc.resume_id}>{doc.filename}</option>
+                ))}
+                <option value="upload">{(t as any).uploadNewOption ?? 'Upload new file...'}</option>
+              </select>
+
+              {dropdownValue === 'upload' && (
+                <>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".pdf,.docx,.txt"
+                    onChange={handleFileChange}
+                    disabled={isProcessing}
+                    className="hidden"
+                  />
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => !isProcessing && fileInputRef.current?.click()}
+                    onKeyDown={(e) => e.key === 'Enter' && !isProcessing && fileInputRef.current?.click()}
+                    className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700'}`}
+                  >
+                    <span className="shrink-0 py-2.5 px-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border-r border-gray-300 dark:border-neutral-700 select-none">
+                      {(t as any).chooseFile ?? 'Choose File'}
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-neutral-400 truncate px-3">
+                      {file ? file.name : ((t as any).noFileChosen ?? 'No file chosen')}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="space-y-1.5">

@@ -265,6 +265,8 @@ export const de = {
     analysisHistory: "Analyseverlauf",
     loadingHistory: "Verlauf wird geladen...",
     viewingHistory: "Aus dem Verlauf",
+    selectCvPlaceholder: "CV auswählen...",
+    uploadNewOption: "Neue Datei hochladen...",
     chooseFile: "Datei auswählen",
     noFileChosen: "Keine Datei ausgewählt",
     untitled: "Ohne Titel",
@@ -424,6 +426,8 @@ export const de = {
     },
     orgLoading: "Wird geladen...",
     orgError: "Unternehmensdaten konnten nicht geladen werden.",
+    orgNoDesc: "Noch keine Unternehmensbeschreibung vorhanden.",
+    viewJob: "Stelle ansehen",
     closedBadge: "Geschlossen"
   },
   resumes: {

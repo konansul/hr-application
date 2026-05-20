@@ -265,6 +265,8 @@ export const ru = {
     analysisHistory: "История анализов",
     loadingHistory: "Загрузка истории...",
     viewingHistory: "Просмотр из истории",
+    selectCvPlaceholder: "Выберите резюме...",
+    uploadNewOption: "Загрузить новый файл...",
     chooseFile: "Выбрать файл",
     noFileChosen: "Файл не выбран",
     untitled: "Без названия",
@@ -426,6 +428,8 @@ export const ru = {
     },
     orgLoading: "Загрузка...",
     orgError: "Не удалось загрузить данные компании.",
+    orgNoDesc: "Описание компании ещё не добавлено.",
+    viewJob: "Посмотреть вакансию",
     closedBadge: "Закрыто"
   },
   resumes: {

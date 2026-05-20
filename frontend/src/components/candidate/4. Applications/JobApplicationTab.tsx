@@ -130,6 +130,15 @@ export function JobApplicationTab() {
     return map[value] ?? value;
   };
 
+  const displayStageLabel = (s: string): string => {
+    const sl = t.stageLabels;
+    if (!sl) return s;
+    const map: Record<string, string> = {
+      'Applied': sl.applied, 'In Progress': sl.inProgress, 'Decision': sl.decision,
+    };
+    return map[s] ?? s;
+  };
+
   const [apiApplications, setApiApplications] = useState<any[]>([]);
   const [trackedJobs, setTrackedJobs]         = useState<TrackedJob[]>([]);
   const [loading, setLoading]                 = useState(true);
@@ -366,7 +375,7 @@ export function JobApplicationTab() {
                   }
                 </div>
                 <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isOffer ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
-                  {label}
+                  {displayStageLabel(label)}
                 </span>
               </div>
             );
@@ -689,7 +698,7 @@ export function JobApplicationTab() {
                           </span>
                         )}
                         {!notApplied && app.created_at && (
-                          <span>{t.appliedOn} {new Date(app.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          <span>{t.appliedOn} {new Date(app.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         )}
                         {app.organization_name && (
                           <div
@@ -773,13 +782,13 @@ export function JobApplicationTab() {
                             {job.location}
                           </span>
                         )}
-                        <span>{t.added} {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span>{t.added} {new Date(job.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         {job.url && (
                           <button onClick={() => setExternalModalUrl(job.url ?? null)} className="flex items-center gap-1 text-indigo-500 dark:text-indigo-400 hover:underline font-semibold">
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
-                            View job
+                            {t.viewJob ?? 'View job'}
                           </button>
                         )}
                       </div>
@@ -954,7 +963,7 @@ export function JobApplicationTab() {
                 </p>
               )}
               {!orgPopover.data.description && !orgPopover.data.website && !orgPopover.data.size && !orgPopover.data.location && (
-                <p className="text-xs text-gray-400 dark:text-neutral-500 italic">No company description added yet.</p>
+                <p className="text-xs text-gray-400 dark:text-neutral-500 italic">{t.orgNoDesc ?? 'No company description added yet.'}</p>
               )}
             </div>
           )}

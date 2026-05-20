@@ -265,6 +265,8 @@ export const tr = {
     analysisHistory: "Analiz Geçmişi",
     loadingHistory: "Geçmiş yükleniyor...",
     viewingHistory: "Geçmişten görüntüleniyor",
+    selectCvPlaceholder: "Bir CV seçin...",
+    uploadNewOption: "Yeni dosya yükle...",
     chooseFile: "Dosya Seç",
     noFileChosen: "Dosya seçilmedi",
     untitled: "Başlıksız",
@@ -419,6 +421,8 @@ export const tr = {
     },
     orgLoading: "Yükleniyor...",
     orgError: "Şirket bilgisi yüklenemedi.",
+    orgNoDesc: "Henüz şirket açıklaması eklenmedi.",
+    viewJob: "İlanı görüntüle",
     closedBadge: "Kapalı"
   },
   resumes: {

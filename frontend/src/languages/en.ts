@@ -265,6 +265,8 @@ export const en = {
     analysisHistory: "Analysis History",
     loadingHistory: "Loading history...",
     viewingHistory: "Viewing from history",
+    selectCvPlaceholder: "Select a CV...",
+    uploadNewOption: "Upload new file...",
     chooseFile: "Choose File",
     noFileChosen: "No file chosen",
     untitled: "Untitled",
@@ -426,6 +428,8 @@ export const en = {
     },
     orgLoading: "Loading...",
     orgError: "Could not load company info.",
+    orgNoDesc: "No company description added yet.",
+    viewJob: "View job",
     closedBadge: "Closed"
   },
   resumes: {
