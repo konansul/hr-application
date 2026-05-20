@@ -702,6 +702,13 @@ export function JobsTab() {
         return matchesLevel && matchesSearch && matchesType && matchesLocation;
     });
 
+    const JOBS_PER_PAGE = 20;
+    const [jobsPage, setJobsPage] = useState(1);
+    // Reset to page 1 whenever filters change
+    useEffect(() => { setJobsPage(1); }, [searchQuery, smartPrompt, selectedLevelKey, selectedType, selectedLocation]);
+    const totalJobPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
+    const pagedJobs = displayedJobs.slice((jobsPage - 1) * JOBS_PER_PAGE, jobsPage * JOBS_PER_PAGE);
+
     const orgCache = useRef<Record<string, OrgInfo>>({});
     const orgCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1181,136 +1188,174 @@ export function JobsTab() {
             )}
 
             {/* ── Platform Jobs ── */}
-            {searchMode === 'internal' && <div className="grid grid-cols-1 gap-6">
+            {searchMode === 'internal' && <div className="space-y-2">
+                {/* Result count */}
+                {displayedJobs.length > 0 && (
+                    <p className="text-xs text-gray-400 dark:text-neutral-500 px-1 pb-1">
+                        {displayedJobs.length} {displayedJobs.length === 1 ? 'job' : 'jobs'} found
+                        {totalJobPages > 1 && <> · page {jobsPage} of {totalJobPages}</>}
+                    </p>
+                )}
+
                 {displayedJobs.length === 0 ? (
-                    <div
-                        className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
+                    <div className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
                         <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
                         {(smartPrompt.trim() || searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all') && (
                             <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
                                 No platform jobs match your search.{' '}
-                                <button
-                                    onClick={() => setSearchMode('external')}
-                                    className="text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold underline underline-offset-2 transition-colors"
-                                >
+                                <button onClick={() => setSearchMode('external')} className="text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold underline underline-offset-2 transition-colors">
                                     Search in Job Market
                                 </button>
                             </p>
                         )}
                     </div>
                 ) : (
-                    displayedJobs.map((job) => {
-                        const jid = job.id || job.job_id;
-                        const userApp = applications.find(a => a.job_id === jid);
-                        const isExpanded = expandedJobId === jid;
-                        const isClosed = job.status === 'closed' || job.is_active === false;
+                    <>
+                        {/* Compact job list */}
+                        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden divide-y divide-gray-100 dark:divide-neutral-800">
+                            {pagedJobs.map((job) => {
+                                const jid = job.id || job.job_id;
+                                const userApp = applications.find(a => a.job_id === jid);
+                                const isExpanded = expandedJobId === jid;
+                                const isClosed = job.status === 'closed' || job.is_active === false;
 
-                        return (
-                            <div key={jid}
-                                 className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden group">
-                                <div
-                                    className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                    <div className="space-y-4 flex-1">
-                                        <div className="flex flex-wrap items-center gap-3">
-                                            <h3 className={`text-xl font-bold ${isClosed ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-900 dark:text-white'}`}>{job.title}</h3>
-                                            {isClosed && (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 border-gray-200 dark:border-neutral-700">
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                    {tl.closedBadge ?? 'Closed'}
+                                return (
+                                    <div key={jid} className="group">
+                                        {/* Compact row */}
+                                        <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                            {/* Title + badges */}
+                                            <div className="flex-1 min-w-0 flex flex-wrap items-center gap-2">
+                                                <span className={`text-sm font-semibold truncate ${isClosed ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-900 dark:text-white'}`}>
+                                                    {job.title}
                                                 </span>
-                                            )}
-                                        </div>
+                                                {job.level && (
+                                                    <span className="shrink-0 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded text-[9px] font-bold uppercase tracking-wider">
+                                                        {job.level}
+                                                    </span>
+                                                )}
+                                                {isClosed && (
+                                                    <span className="shrink-0 px-1.5 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700 rounded text-[9px] font-bold uppercase tracking-wider">
+                                                        {tl.closedBadge ?? 'Closed'}
+                                                    </span>
+                                                )}
+                                                {userApp && (
+                                                    <span className="shrink-0 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded text-[9px] font-bold uppercase tracking-wider">
+                                                        Applied
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                        <div
-                                            className="flex gap-4 text-xs font-medium text-gray-500 dark:text-neutral-400">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24"
-                             stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                         d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path
-                            strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                          {job.region || t.remote}
-                      </span>
-                                            <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24"
-                             stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                {t.fullTime}
-                      </span>
-                                            {job.level && (
-                                                <span
-                                                    className="flex items-center px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded-md font-bold uppercase tracking-widest text-[9px] transition-colors">
-                          {job.level}
-                        </span>
-                                            )}
-                                        </div>
-
-                                        {isExpanded
-                                            ? <HtmlContent html={job.description || ''} className="text-sm text-gray-600 dark:text-neutral-300 max-w-3xl" />
-                                            : <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed max-w-3xl line-clamp-2">{stripHtml(job.description || '')}</p>
-                                        }
-
-                                        <button onClick={() => setExpandedJobId(isExpanded ? null : jid)}
-                                                className="text-xs font-bold text-indigo-600 dark:text-white hover:text-indigo-700 dark:hover:text-neutral-300 transition-colors">
-                                            {isExpanded ? t.showLess : t.viewDetails}
-                                        </button>
-                                    </div>
-
-                                    <div
-                                        className="shrink-0 w-full md:w-auto mt-4 md:mt-0 flex flex-col items-end gap-3">
-                                        {/* Date + Company in one row */}
-                                        {(job.created_at || job.organization_name) && (
-                                            <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                                                {job.created_at && (
-                                                    <span
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
-                                strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                        {new Date(job.created_at).toLocaleDateString(language, {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric'
-                                                        })}
-                          </span>
+                                            {/* Meta: region + org */}
+                                            <div className="hidden md:flex items-center gap-3 shrink-0 text-xs text-gray-400 dark:text-neutral-500">
+                                                {job.region && (
+                                                    <span className="flex items-center gap-1">
+                                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                        {job.region}
+                                                    </span>
                                                 )}
                                                 {job.organization_name && (
-                                                    <div
+                                                    <span
+                                                        className="flex items-center gap-1 cursor-default"
                                                         onMouseEnter={(e) => job.org_id && handleOrgMouseEnter(e, jid, job.org_id)}
                                                         onMouseLeave={handleOrgMouseLeave}
                                                     >
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap cursor-default transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 dark:hover:border-indigo-800/60">
-                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                            {job.organization_name}
-                                                        </span>
-                                                    </div>
+                                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                        {job.organization_name}
+                                                    </span>
+                                                )}
+                                                {job.created_at && (
+                                                    <span>{new Date(job.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric' })}</span>
                                                 )}
                                             </div>
-                                        )}
-                                        {/* Apply button */}
-                                        {isClosed ? (
-                                            <div className="w-full text-center bg-gray-50 dark:bg-neutral-800/50 text-gray-400 dark:text-neutral-500 px-6 py-2.5 rounded-xl text-sm font-semibold border border-dashed border-gray-200 dark:border-neutral-700 transition-colors cursor-not-allowed">
-                                                {tl.positionClosed ?? 'Position Closed'}
+
+                                            {/* Actions */}
+                                            <div className="shrink-0 flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setExpandedJobId(isExpanded ? null : jid)}
+                                                    className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors whitespace-nowrap"
+                                                >
+                                                    {isExpanded ? t.showLess : t.viewDetails}
+                                                </button>
+                                                {isClosed ? (
+                                                    <span className="text-[11px] text-gray-400 dark:text-neutral-500 font-medium">{tl.positionClosed ?? 'Closed'}</span>
+                                                ) : userApp ? (
+                                                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">{t.appSubmittedBtn}</span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleApplyClick(job)}
+                                                        className="px-3 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 text-white dark:text-black text-[11px] font-bold rounded-lg shadow-sm transition-all active:scale-95"
+                                                    >
+                                                        {t.quickApplyBtn}
+                                                    </button>
+                                                )}
                                             </div>
-                                        ) : userApp ? (
-                                            <div
-                                                className="w-full text-center bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 px-6 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-neutral-700 transition-colors">
-                                                {t.appSubmittedBtn}
+                                        </div>
+
+                                        {/* Expanded description */}
+                                        {isExpanded && (
+                                            <div className="px-4 pb-4 pt-1 bg-gray-50 dark:bg-neutral-800/30 border-t border-gray-100 dark:border-neutral-800">
+                                                <HtmlContent html={job.description || ''} className="text-sm text-gray-600 dark:text-neutral-300 max-w-3xl" />
                                             </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleApplyClick(job)}
-                                                className="w-full md:w-auto px-6 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98]"
-                                            >
-                                                {t.quickApplyBtn}
-                                            </button>
                                         )}
                                     </div>
-                                </div>
+                                );
+                            })}
+                        </div>
 
+                        {/* Pagination */}
+                        {totalJobPages > 1 && (
+                            <div className="flex items-center justify-between pt-2 px-1">
+                                <button
+                                    onClick={() => setJobsPage(p => Math.max(1, p - 1))}
+                                    disabled={jobsPage === 1}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+                                    Previous
+                                </button>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: Math.min(7, totalJobPages) }, (_, i) => {
+                                        let page: number;
+                                        if (totalJobPages <= 7) {
+                                            page = i + 1;
+                                        } else if (jobsPage <= 4) {
+                                            page = i < 6 ? i + 1 : totalJobPages;
+                                        } else if (jobsPage >= totalJobPages - 3) {
+                                            page = i === 0 ? 1 : totalJobPages - 6 + i;
+                                        } else {
+                                            const pages = [1, jobsPage - 2, jobsPage - 1, jobsPage, jobsPage + 1, jobsPage + 2, totalJobPages];
+                                            page = pages[i];
+                                        }
+                                        const isEllipsis = i > 0 && page - (i === 0 ? 0 : Array.from({ length: i }, (_, j) => {
+                                            if (totalJobPages <= 7) return j + 1;
+                                            if (jobsPage <= 4) return j < 6 ? j + 1 : totalJobPages;
+                                            if (jobsPage >= totalJobPages - 3) return j === 0 ? 1 : totalJobPages - 6 + j;
+                                            return [1, jobsPage - 2, jobsPage - 1, jobsPage, jobsPage + 1, jobsPage + 2, totalJobPages][j];
+                                        })[i - 1]) > 1;
+                                        return (
+                                            <span key={i} className="flex items-center">
+                                                {isEllipsis && <span className="px-1 text-xs text-gray-300 dark:text-neutral-600">…</span>}
+                                                <button
+                                                    onClick={() => setJobsPage(page)}
+                                                    className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors ${jobsPage === page ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700'}`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => setJobsPage(p => Math.min(totalJobPages, p + 1))}
+                                    disabled={jobsPage === totalJobPages}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                                </button>
                             </div>
-                        );
-                    })
+                        )}
+                    </>
                 )}
             </div>}
 

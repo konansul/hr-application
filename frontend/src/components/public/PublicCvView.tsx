@@ -192,6 +192,7 @@ export function PublicCvView({ token }: { token: string }) {
         <div className="absolute -bottom-20 left-1/3 w-[300px] h-[300px] bg-fuchsia-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto px-8 pt-16 pb-20">
+
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-10">
 
             {/* photo */}
@@ -257,6 +258,19 @@ export function PublicCvView({ token }: { token: string }) {
                   </a>
                 )}
               </div>
+            </div>
+
+            {/* Download button — right side of header, aligned to bottom */}
+            <div className="shrink-0 self-end pb-1 print:hidden">
+              <button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="flex items-center gap-3 px-8 py-5 bg-white hover:bg-violet-50 text-slate-900 text-base font-extrabold rounded-2xl shadow-2xl transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {isDownloading
+                  ? <><div className="w-5 h-5 border-2 border-slate-300 border-t-violet-600 rounded-full animate-spin" />Generating…</>
+                  : <><DownloadIcon className="w-5 h-5 text-violet-600" />Download CV as PDF</>}
+              </button>
             </div>
           </div>
         </div>
@@ -359,16 +373,6 @@ export function PublicCvView({ token }: { token: string }) {
           {/* ── right column: Skills + Languages + Certs + Contact ────────── */}
           <div className="space-y-6">
 
-            {/* Download button */}
-            <button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 active:from-violet-700 active:to-indigo-700 text-white text-base font-bold rounded-2xl shadow-lg shadow-violet-300 transition-all disabled:opacity-60 disabled:cursor-not-allowed print:hidden"
-            >
-              {isDownloading
-                ? <><div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Generating PDF…</>
-                : <><DownloadIcon className="w-5 h-5" />Download CV as PDF</>}
-            </button>
 
             {skills.length > 0 && (
               <Section id="skills" title="Skills" accentBar="bg-violet-500">
