@@ -252,7 +252,7 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
   const t = DICT[appLanguage as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [title, setTitle] = useState('My Profile Resume');
   const [language, setLanguage] = useState('en');
-  const [validUntil, setValidUntil] = useState('');
+  const [validUntil, _setValidUntil] = useState('');
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const toggle = (key: ResumeSectionKey) => setRemovedSections((p) => p.includes(key) ? p.filter((s) => s !== key) : [...p, key]);
 
@@ -288,7 +288,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
   const [sourceId, setSourceId] = useState(resumeVersions[0]?.resume_id ?? '');
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('en');
-  const [validUntil, setValidUntil] = useState('');
+  const [validUntil, _setValidUntil] = useState('');
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const toggle = (key: ResumeSectionKey) => setRemovedSections((p) => p.includes(key) ? p.filter((s) => s !== key) : [...p, key]);
 
@@ -387,7 +387,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
   const t = DICT[appLanguage as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('en');
-  const [validUntil, setValidUntil] = useState('');
+  const [validUntil, _setValidUntil] = useState('');
   const [removedSections, setRemovedSections] = useState<ResumeSectionKey[]>([]);
   const [sourceResumeId, setSourceResumeId] = useState<string>(resumeVersions[0]?.resume_id ?? '');
 
@@ -621,7 +621,7 @@ export function ResumeUploadTab() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const [_linkCopied, setLinkCopied] = useState(false);
   const [sharePublicLinkCopied, setSharePublicLinkCopied] = useState(false);
   const [inlineLinkVisible, setInlineLinkVisible] = useState(false);
   const [inlineLinkCopied, setInlineLinkCopied] = useState(false);
@@ -1016,19 +1016,19 @@ export function ResumeUploadTab() {
     e.target.value = '';
   };
 
-  const handleCopyLink = (url: string) => {
-    navigator.clipboard.writeText(url).then(() => {
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 2000);
-    });
-  };
-
-  const handleCopyPublicLink = () => {
-    if (!selectedResume) return;
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
-    handleCopyLink(`${base}/?cv=${selectedResume.resume_id}`);
-  };
+  // const handleCopyLink = (url: string) => {
+  //   navigator.clipboard.writeText(url).then(() => {
+  //     setLinkCopied(true);
+  //     setTimeout(() => setLinkCopied(false), 2000);
+  //   });
+  // };
+  //
+  // const handleCopyPublicLink = () => {
+  //   if (!selectedResume) return;
+  //   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  //   const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
+  //   handleCopyLink(`${base}/?cv=${selectedResume.resume_id}`);
+  // };
 
   const startEditingContent = () => {
     if (!selectedResume) return;
