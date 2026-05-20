@@ -342,6 +342,7 @@ export const en = {
     results: "results",
     searching: "Searching…",
     noResultsFiltered: "No jobs found. Try adjusting your filters or search terms.",
+    noResultsNeedLocation: "Add a location to see job results — e.g. \"Backend developer in Berlin\".",
     searchJobMarketTitle: "Search the job market",
     searchJobMarketDesc: "Use the prompt above or set a filter to find jobs worldwide.",
     remoteTag: "Remote",

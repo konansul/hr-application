@@ -342,6 +342,7 @@ export const de = {
     results: "Ergebnisse",
     searching: "Suche läuft…",
     noResultsFiltered: "Keine Stellen gefunden. Passen Sie Filter oder Suchbegriffe an.",
+    noResultsNeedLocation: "Fügen Sie einen Standort hinzu, um Stellen zu sehen — z. B. \"Backend-Entwickler in Berlin\".",
     searchJobMarketTitle: "Stellenmarkt durchsuchen",
     searchJobMarketDesc: "Nutzen Sie das Suchfeld oben oder setzen Sie einen Filter, um Stellen weltweit zu finden.",
     remoteTag: "Remote",

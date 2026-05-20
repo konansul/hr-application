@@ -337,6 +337,7 @@ export const fr = {
     results: "résultats",
     searching: "Recherche…",
     noResultsFiltered: "Aucun poste trouvé. Essayez d'ajuster vos filtres ou termes de recherche.",
+    noResultsNeedLocation: "Ajoutez un lieu pour voir les offres d'emploi — ex. \"Développeur backend à Paris\".",
     searchJobMarketTitle: "Rechercher sur le marché de l'emploi",
     searchJobMarketDesc: "Utilisez le champ de recherche ci-dessus ou définissez un filtre pour trouver des emplois dans le monde entier.",
     remoteTag: "Télétravail",

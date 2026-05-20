@@ -337,6 +337,7 @@ export const tr = {
     results: "sonuç",
     searching: "Aranıyor…",
     noResultsFiltered: "İş bulunamadı. Filtrelerinizi veya arama terimlerinizi ayarlamayı deneyin.",
+    noResultsNeedLocation: "İş sonuçlarını görmek için bir konum ekle — örn. \"Berlin'de backend geliştirici\".",
     searchJobMarketTitle: "İş piyasasında ara",
     searchJobMarketDesc: "Dünya genelinde iş bulmak için yukarıdaki alanı kullanın veya bir filtre ayarlayın.",
     remoteTag: "Uzaktan",

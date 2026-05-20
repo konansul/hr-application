@@ -699,8 +699,10 @@ export function JobsTab() {
     });
 
     const orgCache = useRef<Record<string, OrgInfo>>({});
+    const orgCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLDivElement>, jobId: string, orgId: string) => {
+        if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const top = rect.bottom + window.scrollY + 6;
         const right = window.innerWidth - rect.right;
@@ -718,7 +720,17 @@ export function JobsTab() {
         }
     };
 
-    const handleOrgMouseLeave = () => setOrgPopover(null);
+    const handleOrgMouseLeave = () => {
+        orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
+    };
+
+    const handlePopoverMouseEnter = () => {
+        if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
+    };
+
+    const handlePopoverMouseLeave = () => {
+        orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
+    };
 
     if (loading) {
         return (
@@ -982,7 +994,10 @@ export function JobsTab() {
                         <div
                             className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
                             {searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all'
-                                ? <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsFiltered ?? 'No jobs found. Try adjusting your filters or search terms.'}</p>
+                                ? (searchQuery.trim() && selectedLocation === 'all' && selectedType === 'all' && selectedLevelKey === 'all'
+                                    ? <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results — e.g. "Backend developer in Berlin".'}</p>
+                                    : <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsFiltered ?? 'No jobs found. Try adjusting your filters or search terms.'}</p>
+                                  )
                                 : <>
                                     <p className="text-gray-700 dark:text-white font-semibold mb-1">{tl.searchJobMarketTitle ?? 'Search the job market'}</p>
                                     <p className="text-sm text-gray-400 dark:text-neutral-500">{tl.searchJobMarketDesc ?? 'Use the prompt above or set a filter to find jobs worldwide.'}</p>
@@ -1142,7 +1157,10 @@ export function JobsTab() {
                 {displayedJobs.length === 0 ? (
                     <div
                         className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
-                        <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
+                        {searchQuery.trim() && selectedLocation === 'all' && selectedType === 'all' && selectedLevelKey === 'all'
+                            ? <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results — e.g. "Backend developer in Berlin".'}</p>
+                            : <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
+                        }
                     </div>
                 ) : (
                     displayedJobs.map((job) => {
@@ -1473,8 +1491,10 @@ export function JobsTab() {
             {/* Org popover — fixed so it's never clipped by card overflow */}
             {orgPopover && (
                 <div
-                    className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl pointer-events-none"
+                    className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl"
                     style={{ top: orgPopover.top, right: orgPopover.right }}
+                    onMouseEnter={handlePopoverMouseEnter}
+                    onMouseLeave={handlePopoverMouseLeave}
                 >
                     {orgPopover.loading ? (
                         <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">
@@ -1521,10 +1541,15 @@ export function JobsTab() {
                             )}
 
                             {orgPopover.data.website && (
-                                <p className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                <a
+                                    href={orgPopover.data.website.startsWith('http') ? orgPopover.data.website : `https://${orgPopover.data.website}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 hover:underline transition-colors"
+                                >
                                     <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     {orgPopover.data.website}
-                                </p>
+                                </a>
                             )}
 
                             {!orgPopover.data.description && !orgPopover.data.website && !orgPopover.data.size && !orgPopover.data.location && (

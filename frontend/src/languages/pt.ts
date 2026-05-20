@@ -337,6 +337,7 @@ export const pt = {
     results: "resultados",
     searching: "Pesquisando…",
     noResultsFiltered: "Nenhuma vaga encontrada. Tente ajustar seus filtros ou termos de pesquisa.",
+    noResultsNeedLocation: "Adicione uma localização para ver vagas — ex. \"Desenvolvedor backend em Lisboa\".",
     searchJobMarketTitle: "Pesquisar no mercado de trabalho",
     searchJobMarketDesc: "Use o campo acima ou defina um filtro para encontrar vagas em todo o mundo.",
     remoteTag: "Remoto",
