@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, type ChangeEvent } from 'react';
-import { screeningApi, documentsApi } from '../../../api';
+import { useState, useEffect, useRef, useMemo, type ChangeEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { screeningApi, documentsApi, resumesApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 
@@ -63,7 +64,7 @@ function formatDate(iso: string, locale: string): string {
 }
 
 export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
-  const { language, aiQuota, aiUsed, setAiLimits } = useStore();
+  const { language, aiQuota, aiUsed, setAiLimits, setActiveTab } = useStore();
   const t = DICT[language as keyof typeof DICT]?.improve || DICT.en.improve;
 
   const [myDocuments, setMyDocuments] = useState<any[]>([]);
@@ -80,15 +81,26 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
 
+  const [acceptedSummary, setAcceptedSummary] = useState(false);
+  const [acceptedKeywords, setAcceptedKeywords] = useState<Set<number>>(new Set());
+  const [acceptedImprovements, setAcceptedImprovements] = useState<Set<number>>(new Set());
+  const [acceptedBullets, setAcceptedBullets] = useState<Set<number>>(new Set());
+  const [isGeneratingVersion, setIsGeneratingVersion] = useState(false);
+  const [versionCreated, setVersionCreated] = useState(false);
+  const [generatedResumeId, setGeneratedResumeId] = useState<string | null>(null);
+  const [resumesList, setResumesList] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     documentsApi.getMyDocuments()
-      .then((docs) => {
-        setMyDocuments(docs);
-        if (docs.length === 0) setDropdownValue('upload');
-      })
+      .then((docs) => setMyDocuments(docs))
+      .catch(console.error);
+
+    resumesApi.list()
+      .then((data: any[]) => setResumesList(data))
       .catch(console.error);
 
     screeningApi.getImprovementHistory()
@@ -99,9 +111,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
   const handleDropdownChange = (val: string) => {
     setDropdownValue(val);
-    if (val === 'upload') {
-      setSelectedResumeId(null);
-    } else if (val) {
+    if (val) {
       setSelectedResumeId(val);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -114,7 +124,17 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
       setSelectedResumeId(null);
+      setDropdownValue('');
     }
+  };
+
+  const resetAcceptance = () => {
+    setAcceptedSummary(false);
+    setAcceptedKeywords(new Set());
+    setAcceptedImprovements(new Set());
+    setAcceptedBullets(new Set());
+    setVersionCreated(false);
+    setGeneratedResumeId(null);
   };
 
   const handleAnalyze = async () => {
@@ -124,6 +144,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
     setError(null);
     setResult(null);
     setActiveHistoryId(null);
+    resetAcceptance();
 
     try {
       let data;
@@ -159,11 +180,61 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       const parsed: ImproveResult = JSON.parse(item.full_result_json);
       setResult(parsed);
       setActiveHistoryId(item.improvement_id);
+      resetAcceptance();
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     } catch {
       // malformed json — ignore
     }
   };
+
+  const handleGenerateVersion = async () => {
+    if (!selectedResumeId || !result) return;
+    setIsGeneratingVersion(true);
+    setVersionCreated(false);
+    setGeneratedResumeId(null);
+    setError(null);
+    try {
+      const res = await (screeningApi as any).generateImprovedVersion({
+        resume_id: selectedResumeId,
+        accepted_summary: acceptedSummary ? (result.improved_summary ?? null) : null,
+        accepted_keywords: Array.from(acceptedKeywords).map(i => result.missing_keywords?.[i]).filter((v): v is string => !!v),
+        accepted_improvements: Array.from(acceptedImprovements).map(i => result.improvements?.[i]).filter((v): v is string => !!v),
+        accepted_bullets: Array.from(acceptedBullets).map(i => result.rewritten_bullets?.[i]).filter((v): v is { original: string; improved: string } => !!v),
+      });
+      setVersionCreated(true);
+      setGeneratedResumeId(res?.resume_id ?? null);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || err.message || t.error);
+    } finally {
+      setIsGeneratingVersion(false);
+    }
+  };
+
+  const totalSelected = (acceptedSummary ? 1 : 0) + acceptedKeywords.size + acceptedImprovements.size + acceptedBullets.size;
+
+  const previewPayload = useMemo(() => {
+    if (!result) return null;
+    const base = selectedResumeId ? resumesList.find((r: any) => r.resume_id === selectedResumeId) : null;
+    const c: any = base ? JSON.parse(JSON.stringify(base)) : { _changesOnly: true };
+    if (acceptedSummary && result.improved_summary) {
+      c.personal_info = c.personal_info ?? {};
+      c.personal_info.summary = result.improved_summary;
+      c._summaryNew = true;
+    }
+    if (acceptedBullets.size > 0 && result.rewritten_bullets) {
+      c._acceptedBullets = Array.from(acceptedBullets)
+        .map(i => result.rewritten_bullets![i])
+        .filter(Boolean);
+    }
+    if (acceptedKeywords.size > 0 && result.missing_keywords) {
+      const newKws = Array.from(acceptedKeywords)
+        .map(i => result.missing_keywords![i])
+        .filter(Boolean);
+      c._newKeywords = newKws;
+      c.skills = [...(c.skills ?? []), ...newKws.map((kw: string) => ({ name: kw, _new: true }))];
+    }
+    return c;
+  }, [result, selectedResumeId, resumesList, acceptedSummary, acceptedBullets, acceptedKeywords]);
 
   const selectedDoc = myDocuments.find(d => d.resume_id === selectedResumeId);
   const displayFileName = file ? file.name : (selectedDoc ? selectedDoc.filename : t.none);
@@ -195,35 +266,38 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 {myDocuments.map(doc => (
                   <option key={doc.resume_id} value={doc.resume_id}>{doc.filename}</option>
                 ))}
-                <option value="upload">{(t as any).uploadNewOption ?? 'Upload new file...'}</option>
               </select>
 
-              {dropdownValue === 'upload' && (
-                <>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept=".pdf,.docx,.txt"
-                    onChange={handleFileChange}
-                    disabled={isProcessing}
-                    className="hidden"
-                  />
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => !isProcessing && fileInputRef.current?.click()}
-                    onKeyDown={(e) => e.key === 'Enter' && !isProcessing && fileInputRef.current?.click()}
-                    className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700'}`}
-                  >
-                    <span className="shrink-0 py-2.5 px-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border-r border-gray-300 dark:border-neutral-700 select-none">
-                      {(t as any).chooseFile ?? 'Choose File'}
-                    </span>
-                    <span className="text-sm text-gray-500 dark:text-neutral-400 truncate px-3">
-                      {file ? file.name : ((t as any).noFileChosen ?? 'No file chosen')}
-                    </span>
-                  </div>
-                </>
-              )}
+              <div className="flex items-center gap-3 my-1">
+                <div className="flex-1 border-t border-gray-200 dark:border-neutral-700" />
+                <span className="text-[11px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest select-none">
+                  {(t as any).orUploadNew ?? 'OR UPLOAD NEW'}
+                </span>
+                <div className="flex-1 border-t border-gray-200 dark:border-neutral-700" />
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".pdf,.docx,.txt"
+                onChange={handleFileChange}
+                disabled={isProcessing}
+                className="hidden"
+              />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => !isProcessing && fileInputRef.current?.click()}
+                onKeyDown={(e) => e.key === 'Enter' && !isProcessing && fileInputRef.current?.click()}
+                className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700'}`}
+              >
+                <span className="shrink-0 py-2.5 px-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border-r border-gray-300 dark:border-neutral-700 select-none">
+                  {(t as any).chooseFile ?? 'Choose File'}
+                </span>
+                <span className="text-sm text-gray-500 dark:text-neutral-400 truncate px-3">
+                  {file ? file.name : ((t as any).noFileChosen ?? 'No file chosen')}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -386,16 +460,48 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
-                {t.missingKeywords}
-              </h3>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
+                  {t.missingKeywords}
+                  {result.missing_keywords && result.missing_keywords.length > 0 && (
+                    <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+                      {acceptedKeywords.size}/{result.missing_keywords.length}
+                    </span>
+                  )}
+                </h3>
+                {result.missing_keywords && result.missing_keywords.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (acceptedKeywords.size === result.missing_keywords!.length) {
+                        setAcceptedKeywords(new Set());
+                      } else {
+                        setAcceptedKeywords(new Set(result.missing_keywords!.map((_, i) => i)));
+                      }
+                    }}
+                    className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    {acceptedKeywords.size === result.missing_keywords.length ? 'Clear all' : 'Add all'}
+                  </button>
+                )}
+              </div>
+              {result.missing_keywords && result.missing_keywords.length > 0 && (
+                <p className="text-[11px] text-gray-400 dark:text-neutral-500 mb-3">Click a keyword to add it to your CV</p>
+              )}
               <div className="flex flex-wrap gap-2">
                 {result.missing_keywords && result.missing_keywords.length > 0 ? (
                   result.missing_keywords.map((kw, i) => (
-                    <span key={i} className="px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 text-xs font-medium rounded-md border border-gray-200 dark:border-neutral-700">
+                    <button key={i} type="button"
+                      onClick={() => setAcceptedKeywords(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; })}
+                      className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all flex items-center gap-1.5 ${acceptedKeywords.has(i) ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-300 border-dashed border-gray-300 dark:border-neutral-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
+                    >
+                      {acceptedKeywords.has(i)
+                        ? <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        : <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                      }
                       {kw}
-                    </span>
+                    </button>
                   ))
                 ) : (
                   <span className="text-sm text-gray-400 dark:text-neutral-500 italic">{t.noKeywords}</span>
@@ -408,24 +514,42 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 {t.actionableAdvice}
               </h3>
-              <ul className="space-y-2 text-sm text-gray-700 dark:text-neutral-300 list-disc list-inside marker:text-gray-300 dark:marker:text-neutral-600">
+              <ul className="space-y-1.5">
                 {result.improvements && result.improvements.length > 0 ? (
-                  result.improvements.map((item, i) => <li key={i}>{item}</li>)
+                  result.improvements.map((item, i) => (
+                    <li key={i}
+                      onClick={() => setAcceptedImprovements(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; })}
+                      className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-sm select-none ${acceptedImprovements.has(i) ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-200' : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+                    >
+                      <span className={`mt-0.5 shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${acceptedImprovements.has(i) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300 dark:border-neutral-600'}`}>
+                        {acceptedImprovements.has(i) && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))
                 ) : (
-                  <li className="text-gray-400 dark:text-neutral-500 italic list-none">{t.noAdvice}</li>
+                  <li className="text-sm text-gray-400 dark:text-neutral-500 italic">{t.noAdvice}</li>
                 )}
               </ul>
             </div>
           </div>
 
           {result.improved_summary && (
-            <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-2xl p-6 relative overflow-hidden transition-colors">
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-400 mb-2 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
-                {t.suggestedSummary}
-              </h3>
-              <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">{result.improved_summary}</p>
+            <div
+              onClick={() => setAcceptedSummary(p => !p)}
+              className={`flex items-start gap-3 border rounded-2xl p-6 relative overflow-hidden transition-all cursor-pointer select-none ${acceptedSummary ? 'bg-indigo-50/60 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/60' : 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-800'}`}
+            >
+              <div className={`absolute top-0 left-0 w-1 h-full transition-colors ${acceptedSummary ? 'bg-indigo-500' : 'bg-blue-500'}`}></div>
+              <span className={`mt-0.5 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${acceptedSummary ? 'bg-indigo-500 border-indigo-500' : 'border-blue-300 dark:border-blue-700'}`}>
+                {acceptedSummary && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+              </span>
+              <div className="flex-1">
+                <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${acceptedSummary ? 'text-indigo-900 dark:text-indigo-300' : 'text-blue-900 dark:text-blue-400'}`}>
+                  <svg className={`w-5 h-5 ${acceptedSummary ? 'text-indigo-500' : 'text-blue-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                  {t.suggestedSummary}
+                </h3>
+                <p className={`text-sm leading-relaxed ${acceptedSummary ? 'text-indigo-800 dark:text-indigo-200' : 'text-blue-800 dark:text-blue-200'}`}>{result.improved_summary}</p>
+              </div>
             </div>
           )}
 
@@ -435,19 +559,25 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             {result.rewritten_bullets && result.rewritten_bullets.length > 0 ? (
               <div className="space-y-4">
                 {result.rewritten_bullets.map((bullet, idx) => (
-                  <div key={idx} className="flex flex-col md:flex-row gap-4 p-4 border border-gray-100 dark:border-neutral-800/50 rounded-xl bg-gray-50/50 dark:bg-neutral-800/30 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
-                    <div className="flex-1 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500">{t.original}</span>
-                      <p className="text-sm text-gray-500 dark:text-neutral-400 line-through decoration-gray-300 dark:decoration-neutral-600">{bullet.original}</p>
-                    </div>
-
-                    <div className="hidden md:flex items-center justify-center text-gray-300 dark:text-neutral-600">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">{t.improved}</span>
-                      <p className="text-sm text-gray-900 dark:text-white font-medium">{bullet.improved}</p>
+                  <div key={idx}
+                    onClick={() => setAcceptedBullets(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n; })}
+                    className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-all select-none ${acceptedBullets.has(idx) ? 'border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/20' : 'border-gray-100 dark:border-neutral-800/50 bg-gray-50/50 dark:bg-neutral-800/30 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+                  >
+                    <span className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${acceptedBullets.has(idx) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300 dark:border-neutral-600'}`}>
+                      {acceptedBullets.has(idx) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                    </span>
+                    <div className="flex-1 flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 space-y-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500">{t.original}</span>
+                        <p className="text-sm text-gray-500 dark:text-neutral-400 line-through decoration-gray-300 dark:decoration-neutral-600">{bullet.original}</p>
+                      </div>
+                      <div className="hidden md:flex items-center justify-center text-gray-300 dark:text-neutral-600">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">{t.improved}</span>
+                        <p className="text-sm text-gray-900 dark:text-white font-medium">{bullet.improved}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -457,7 +587,245 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             )}
           </div>
 
+        {/* ── Generate from selected action bar ── */}
+        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-5 shadow-sm transition-colors">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                {(t as any).generateFromSelected ?? 'Generate Resume from Selected'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
+                {totalSelected > 0
+                  ? `${totalSelected} ${(t as any).selectedCount ?? 'selected'}`
+                  : ((t as any).noneSelected ?? 'Select at least one suggestion to generate a version.')}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {!selectedResumeId && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 max-w-xs">
+                  {(t as any).requiresSavedCv ?? 'To generate a version, select a saved CV from the dropdown above.'}
+                </p>
+              )}
+              {versionCreated && (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                    ✓ {(t as any).versionCreated ?? 'New resume version created!'}
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('upload-cv')}
+                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors whitespace-nowrap"
+                  >
+                    View in Resumes →
+                  </button>
+                </div>
+              )}
+              {result && (
+                <button
+                  onClick={() => setShowPreview(true)}
+                  className="px-5 py-2.5 border border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-neutral-800 text-sm font-semibold rounded-xl focus:outline-none transition-all flex items-center gap-2 whitespace-nowrap"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.057 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  {(t as any).previewBtn ?? 'Preview'}
+                </button>
+              )}
+              <div className="relative group">
+                <button
+                  onClick={handleGenerateVersion}
+                  disabled={!selectedResumeId || totalSelected === 0 || isGeneratingVersion}
+                  className="px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                >
+                {isGeneratingVersion ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-current" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    {(t as any).generatingVersion ?? 'Generating…'}
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    {(t as any).generateFromSelected ?? 'Generate Resume from Selected'}
+                  </>
+                )}
+                </button>
+                <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 px-3 py-2 bg-gray-900 dark:bg-neutral-700 text-white text-[11px] leading-snug rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity text-center z-10">
+                  The generated resume will appear in the <span className="font-semibold">Resumes</span> tab.
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-neutral-700" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        </div>
+      )}
+
+      {showPreview && result && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPreview(false); }}
+        >
+          <div className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 shrink-0">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <svg className="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.057 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                {(t as any).previewTitle ?? 'CV Preview with Changes'}
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+
+              {/* Full CV header if structured data is available */}
+              {(() => {
+                const info = previewPayload?.personal_info ?? {};
+                const fullName = [info.first_name, info.last_name].filter(Boolean).join(' ');
+                const contacts = [info.email, info.phone, info.location, info.linkedin].filter(Boolean);
+                return (fullName || contacts.length > 0) ? (
+                  <div className="text-center border-b border-gray-100 dark:border-neutral-800 pb-4">
+                    {fullName && <h2 className="text-xl font-bold text-gray-900 dark:text-white">{fullName}</h2>}
+                    {contacts.length > 0 && (
+                      <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5">
+                        {contacts.map((c, i) => <span key={i}>{c as string}</span>)}
+                      </p>
+                    )}
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Suggested Summary */}
+              {result.improved_summary && (
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500 mb-2 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                    {t.suggestedSummary}
+                  </h4>
+                  <p className={`text-sm leading-relaxed rounded-lg px-3 py-2.5 border transition-colors ${acceptedSummary ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800/50' : 'bg-gray-50 dark:bg-neutral-800/40 text-gray-600 dark:text-neutral-400 border-gray-200 dark:border-neutral-700'}`}>
+                    {acceptedSummary && (
+                      <span className="inline-block mr-2 text-[9px] font-bold bg-indigo-500 text-white px-1.5 py-0.5 rounded uppercase tracking-wider align-middle">
+                        {(t as any).newBadge ?? 'New'}
+                      </span>
+                    )}
+                    {result.improved_summary}
+                  </p>
+                </div>
+              )}
+
+              {/* Bullet Rewrites */}
+              {result.rewritten_bullets && result.rewritten_bullets.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500 mb-2 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    {t.bulletRewrites}
+                    <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
+                      {acceptedBullets.size}/{result.rewritten_bullets.length} {(t as any).selectedCount ?? 'selected'}
+                    </span>
+                  </h4>
+                  <div className="space-y-2">
+                    {result.rewritten_bullets.map((b, i) => {
+                      const accepted = acceptedBullets.has(i);
+                      return (
+                        <div key={i} className={`rounded-lg overflow-hidden border transition-colors ${accepted ? 'border-indigo-200 dark:border-indigo-800/50' : 'border-gray-200 dark:border-neutral-700 opacity-50'}`}>
+                          <div className="px-3 py-2 bg-gray-50 dark:bg-neutral-800/50 text-xs text-gray-500 dark:text-neutral-400 line-through">
+                            {b.original}
+                          </div>
+                          <div className={`px-3 py-2 text-xs font-medium flex items-start gap-1.5 ${accepted ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-200' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-400'}`}>
+                            {accepted && (
+                              <span className="text-[9px] font-bold bg-indigo-500 text-white px-1 py-0.5 rounded uppercase tracking-wider shrink-0 mt-0.5">
+                                {(t as any).newBadge ?? 'New'}
+                              </span>
+                            )}
+                            {b.improved}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Missing Keywords */}
+              {result.missing_keywords && result.missing_keywords.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500 mb-2 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
+                    {t.missingKeywords}
+                    <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
+                      {acceptedKeywords.size}/{result.missing_keywords.length} {(t as any).selectedCount ?? 'selected'}
+                    </span>
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {result.missing_keywords.map((kw, i) => {
+                      const accepted = acceptedKeywords.has(i);
+                      return (
+                        <span key={i} className={`px-2.5 py-1 text-xs rounded-md font-medium border transition-all ${accepted ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 border-gray-200 dark:border-neutral-700 opacity-50'}`}>
+                          {accepted && <span className="mr-1">+</span>}
+                          {kw}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Actionable Improvements */}
+              {result.improvements && result.improvements.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500 mb-2 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    {t.actionableAdvice}
+                    <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
+                      {acceptedImprovements.size}/{result.improvements.length} {(t as any).selectedCount ?? 'selected'}
+                    </span>
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {result.improvements.map((item, i) => {
+                      const accepted = acceptedImprovements.has(i);
+                      return (
+                        <li key={i} className={`flex items-start gap-2.5 p-2 rounded-lg text-sm transition-colors ${accepted ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-200' : 'text-gray-400 dark:text-neutral-500 opacity-60'}`}>
+                          <span className={`mt-0.5 shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center ${accepted ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300 dark:border-neutral-600'}`}>
+                            {accepted && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                          </span>
+                          <span>{item}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!result.improved_summary && !result.rewritten_bullets?.length && !result.missing_keywords?.length && !result.improvements?.length && (
+                <div className="text-center py-8 text-sm text-gray-400 dark:text-neutral-500">
+                  No suggestions available in this analysis.
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 shrink-0 flex justify-between items-center">
+              <span className="text-xs text-gray-400 dark:text-neutral-500">
+                {totalSelected} {(t as any).selectedCount ?? 'selected'}
+              </span>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-neutral-300 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -270,7 +270,16 @@ export const en = {
     chooseFile: "Choose File",
     noFileChosen: "No file chosen",
     untitled: "Untitled",
-    dailyLimitReached: "⏳ You have reached your daily AI limit. Please come back tomorrow!"
+    dailyLimitReached: "⏳ You have reached your daily AI limit. Please come back tomorrow!",
+    generateFromSelected: "Generate Resume from Selected",
+    generatingVersion: "Generating…",
+    versionCreated: "New resume version created! View it in the Resumes tab.",
+    noneSelected: "Select at least one suggestion to generate a version.",
+    selectedCount: "selected",
+    requiresSavedCv: "To generate a version, select a saved CV from the dropdown above.",
+    previewTitle: "CV Preview with Changes",
+    previewBtn: "Preview",
+    newBadge: "New"
   },
   jobs: {
     title: "Explore Jobs",
@@ -343,6 +352,7 @@ export const en = {
     searching: "Searching…",
     noResultsFiltered: "No jobs found. Try adjusting your filters or search terms.",
     noResultsNeedLocation: "Add a location to see job results — e.g. \"Backend developer in Berlin\".",
+    noJobsPlatformTryMarket: "No platform jobs match your search. Switch to the Job Market tab to find this position.",
     searchJobMarketTitle: "Search the job market",
     searchJobMarketDesc: "Use the prompt above or set a filter to find jobs worldwide.",
     remoteTag: "Remote",

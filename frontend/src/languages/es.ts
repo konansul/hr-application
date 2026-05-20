@@ -270,7 +270,16 @@ export const es = {
     chooseFile: "Elegir archivo",
     noFileChosen: "Ningún archivo elegido",
     untitled: "Sin título",
-    dailyLimitReached: "⏳ Has alcanzado tu límite diario de IA. ¡Vuelve mañana!"
+    dailyLimitReached: "⏳ Has alcanzado tu límite diario de IA. ¡Vuelve mañana!",
+    generateFromSelected: "Generar CV desde selección",
+    generatingVersion: "Generando versión…",
+    versionCreated: "¡Nueva versión de CV creada! Puedes verla en la pestaña Currículums.",
+    noneSelected: "Selecciona al menos una sugerencia.",
+    selectedCount: "seleccionado(s)",
+    requiresSavedCv: "Para generar una versión, selecciona un CV guardado del menú de arriba.",
+    previewTitle: "Vista previa del CV con cambios",
+    previewBtn: "Vista previa",
+    newBadge: "Nuevo"
   },
   jobs: {
     title: "Explorar Empleos",
@@ -338,6 +347,7 @@ export const es = {
     searching: "Buscando…",
     noResultsFiltered: "No se encontraron empleos. Intente ajustar sus filtros o términos de búsqueda.",
     noResultsNeedLocation: "Añade una ubicación para ver empleos — p.ej. \"Desarrollador backend en Madrid\".",
+    noJobsPlatformTryMarket: "Ningún empleo en la plataforma coincide. Ve a la pestaña Mercado laboral para encontrar esta posición.",
     searchJobMarketTitle: "Buscar en el mercado laboral",
     searchJobMarketDesc: "Use el campo de arriba o establezca un filtro para encontrar empleos en todo el mundo.",
     remoteTag: "Remoto",

@@ -270,7 +270,16 @@ export const de = {
     chooseFile: "Datei auswählen",
     noFileChosen: "Keine Datei ausgewählt",
     untitled: "Ohne Titel",
-    dailyLimitReached: "⏳ Sie haben Ihr tägliches KI-Limit erreicht. Bitte kommen Sie morgen wieder!"
+    dailyLimitReached: "⏳ Sie haben Ihr tägliches KI-Limit erreicht. Bitte kommen Sie morgen wieder!",
+    generateFromSelected: "Lebenslauf aus Auswahl erstellen",
+    generatingVersion: "Erstelle Version…",
+    versionCreated: "Neue Lebenslaufversion erstellt! Sie können sie im Tab Lebensläufe ansehen.",
+    noneSelected: "Wählen Sie mindestens einen Vorschlag aus.",
+    selectedCount: "ausgewählt",
+    requiresSavedCv: "Um eine Version zu erstellen, wählen Sie einen gespeicherten Lebenslauf aus.",
+    previewTitle: "Lebenslauf-Vorschau mit Änderungen",
+    previewBtn: "Vorschau",
+    newBadge: "Neu"
   },
   jobs: {
     title: "Jobs Entdecken",
@@ -343,6 +352,7 @@ export const de = {
     searching: "Suche läuft…",
     noResultsFiltered: "Keine Stellen gefunden. Passen Sie Filter oder Suchbegriffe an.",
     noResultsNeedLocation: "Fügen Sie einen Standort hinzu, um Stellen zu sehen — z. B. \"Backend-Entwickler in Berlin\".",
+    noJobsPlatformTryMarket: "Keine passenden Stellen auf der Plattform. Wechseln Sie zum Tab \"Stellenmarkt\", um diese Position zu finden.",
     searchJobMarketTitle: "Stellenmarkt durchsuchen",
     searchJobMarketDesc: "Nutzen Sie das Suchfeld oben oder setzen Sie einen Filter, um Stellen weltweit zu finden.",
     remoteTag: "Remote",

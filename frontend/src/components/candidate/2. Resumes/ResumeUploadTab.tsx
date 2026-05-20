@@ -262,15 +262,9 @@ function CreateFromProfileModal({ onClose, onSubmit, isWorking }: {
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.versionName}</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" placeholder="e.g. Software Engineer Resume" />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
-          <LanguageSelect value={language} onChange={setLanguage} />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.validUntil}</label>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-        </div>
+      <div>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
+        <LanguageSelect value={language} onChange={setLanguage} />
       </div>
       <SectionToggles removedSections={removedSections} onToggle={toggle} />
       <ModalActions
@@ -365,15 +359,9 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
-          <LanguageSelect value={language} onChange={(v) => { setLanguage(v); setAutoTitle(false); }} />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.validUntil}</label>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-        </div>
+      <div>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
+        <LanguageSelect value={language} onChange={(v) => { setLanguage(v); setAutoTitle(false); }} />
       </div>
 
       <SectionToggles removedSections={removedSections} onToggle={toggle} />
@@ -543,15 +531,9 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
           placeholder={fetchedTitle ? `Resume for ${fetchedTitle}` : 'e.g. Resume for Product Manager at Acme'}
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
-          <LanguageSelect value={language} onChange={setLanguage} />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.validUntil}</label>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-4 py-3 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20" />
-        </div>
+      <div>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{t.modal.language}</label>
+        <LanguageSelect value={language} onChange={setLanguage} />
       </div>
 
       <SectionToggles removedSections={removedSections} onToggle={toggle} />
@@ -1340,9 +1322,6 @@ export function ResumeUploadTab() {
               <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
                 <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-xs font-semibold text-gray-500 dark:text-neutral-400 whitespace-nowrap">
                   {selectedResume ? sourceTypeLabel(selectedResume.source_type, t) : '—'}
-                </span>
-                <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold whitespace-nowrap ${selectedResume?.valid_until ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400' : 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-neutral-500'}`}>
-                  {selectedResume?.valid_until ? t.metadata.validUntil.replace('{date}', selectedResume.valid_until) : t.metadata.noExpiry}
                 </span>
                 {selectedResume && (
                   isEditingContent ? (

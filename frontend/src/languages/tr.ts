@@ -270,7 +270,16 @@ export const tr = {
     chooseFile: "Dosya Seç",
     noFileChosen: "Dosya seçilmedi",
     untitled: "Başlıksız",
-    dailyLimitReached: "⏳ Günlük AI limitinize ulaştınız. Lütfen yarın tekrar gelin!"
+    dailyLimitReached: "⏳ Günlük AI limitinize ulaştınız. Lütfen yarın tekrar gelin!",
+    generateFromSelected: "Seçilenden Özgeçmiş Oluştur",
+    generatingVersion: "Sürüm oluşturuluyor…",
+    versionCreated: "Yeni özgeçmiş sürümü oluşturuldu! Özgeçmişler sekmesinde görüntüleyebilirsiniz.",
+    noneSelected: "En az bir öneri seçin.",
+    selectedCount: "seçildi",
+    requiresSavedCv: "Sürüm oluşturmak için yukarıdaki listeden kayıtlı bir özgeçmiş seçin.",
+    previewTitle: "Değişikliklerle CV Önizleme",
+    previewBtn: "Önizle",
+    newBadge: "Yeni"
   },
   jobs: {
     title: "İşleri Keşfet",
@@ -338,6 +347,7 @@ export const tr = {
     searching: "Aranıyor…",
     noResultsFiltered: "İş bulunamadı. Filtrelerinizi veya arama terimlerinizi ayarlamayı deneyin.",
     noResultsNeedLocation: "İş sonuçlarını görmek için bir konum ekle — örn. \"Berlin'de backend geliştirici\".",
+    noJobsPlatformTryMarket: "Platformda eşleşen iş bulunamadı. Bu pozisyonu bulmak için İş Piyasası sekmesine geçin.",
     searchJobMarketTitle: "İş piyasasında ara",
     searchJobMarketDesc: "Dünya genelinde iş bulmak için yukarıdaki alanı kullanın veya bir filtre ayarlayın.",
     remoteTag: "Uzaktan",

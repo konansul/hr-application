@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List, Optional
+import json
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
@@ -173,3 +174,77 @@ async def improve_cv_existing(
     db.commit()
 
     return result
+
+
+class BulletRewrite(BaseModel):
+    original: str
+    improved: str
+
+
+class GenerateVersionRequest(BaseModel):
+    resume_id: str
+    accepted_summary: Optional[str] = None
+    accepted_keywords: List[str] = []
+    accepted_improvements: List[str] = []
+    accepted_bullets: List[BulletRewrite] = []
+
+
+@router.post("/improve-cv-generate-version")
+def generate_improved_version(
+        body: GenerateVersionRequest,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+    if not person:
+        raise HTTPException(status_code=400, detail="Profile not found")
+
+    resume = db.query(Resume).filter(
+        Resume.resume_id == body.resume_id,
+        Resume.person_id == person.person_id,
+    ).first()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    try:
+        data: Dict[str, Any] = json.loads(resume.payload) if resume.payload else {}
+    except (json.JSONDecodeError, TypeError):
+        data = {}
+
+    if body.accepted_summary:
+        data.setdefault("personal_info", {})
+        data["personal_info"]["summary"] = body.accepted_summary
+
+    if body.accepted_keywords:
+        existing_names = {
+            (s if isinstance(s, str) else s.get("name", "")).lower()
+            for s in data.get("skills", [])
+        }
+        for kw in body.accepted_keywords:
+            if kw.lower() not in existing_names:
+                data.setdefault("skills", []).append({"name": kw, "level": "BEGINNER", "years_of_experience": 0})
+                existing_names.add(kw.lower())
+
+    if body.accepted_bullets:
+        for exp in data.get("experience", []):
+            desc = exp.get("description", "") or ""
+            for bullet in body.accepted_bullets:
+                if bullet.original in desc:
+                    desc = desc.replace(bullet.original, bullet.improved, 1)
+            exp["description"] = desc
+
+    new_resume = Resume(
+        resume_id=new_id("res"),
+        person_id=person.person_id,
+        title=f"{resume.title or 'Resume'} (Improved)",
+        language=resume.language or "en",
+        source_type="duplicate",
+        source_resume_id=resume.resume_id,
+        payload=json.dumps(data, ensure_ascii=False),
+        generation_status="ready",
+    )
+    db.add(new_resume)
+    db.commit()
+    db.refresh(new_resume)
+
+    return {"resume_id": new_resume.resume_id, "title": new_resume.title}

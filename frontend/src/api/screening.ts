@@ -77,4 +77,15 @@ export const screeningApi = {
     const response = await apiClient.get('/v1/improve-cv-history');
     return response.data;
   },
+
+  generateImprovedVersion: async (payload: {
+    resume_id: string;
+    accepted_summary: string | null;
+    accepted_keywords: string[];
+    accepted_improvements: string[];
+    accepted_bullets: { original: string; improved: string }[];
+  }) => {
+    const response = await apiClient.post('/v1/improve-cv-generate-version', payload);
+    return response.data;
+  },
 };

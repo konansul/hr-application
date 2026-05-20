@@ -92,10 +92,16 @@ class GeminiClient:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=temperature,
-                response_format={"type": "json_object"}
+                max_tokens=32768,
+                # No response_format — extended-thinking models (e.g. Gemini 2.5 Pro)
+                # return None content when JSON mode is active; enforce via system prompt instead.
             )
 
-            result_text = response.choices[0].message.content
+            result_text = (response.choices[0].message.content or "").strip()
+            if result_text.startswith("```"):
+                lines = result_text.splitlines()
+                end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
+                result_text = "\n".join(lines[1:end])
 
             return json.loads(result_text)
 

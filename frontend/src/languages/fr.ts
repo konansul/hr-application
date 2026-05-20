@@ -270,7 +270,16 @@ export const fr = {
     chooseFile: "Choisir un fichier",
     noFileChosen: "Aucun fichier choisi",
     untitled: "Sans titre",
-    dailyLimitReached: "⏳ Vous avez atteint votre limite IA quotidienne. Revenez demain !"
+    dailyLimitReached: "⏳ Vous avez atteint votre limite IA quotidienne. Revenez demain !",
+    generateFromSelected: "Générer un CV depuis la sélection",
+    generatingVersion: "Génération en cours…",
+    versionCreated: "Nouvelle version de CV créée ! Consultez-la dans l'onglet CV.",
+    noneSelected: "Sélectionnez au moins une suggestion.",
+    selectedCount: "sélectionné(s)",
+    requiresSavedCv: "Pour générer une version, sélectionnez un CV enregistré dans la liste ci-dessus.",
+    previewTitle: "Aperçu du CV avec les modifications",
+    previewBtn: "Aperçu",
+    newBadge: "Nouveau"
   },
   jobs: {
     title: "Explorer les offres",
@@ -338,6 +347,7 @@ export const fr = {
     searching: "Recherche…",
     noResultsFiltered: "Aucun poste trouvé. Essayez d'ajuster vos filtres ou termes de recherche.",
     noResultsNeedLocation: "Ajoutez un lieu pour voir les offres d'emploi — ex. \"Développeur backend à Paris\".",
+    noJobsPlatformTryMarket: "Aucun poste sur la plateforme ne correspond. Passez à l'onglet Marché de l'emploi pour trouver ce poste.",
     searchJobMarketTitle: "Rechercher sur le marché de l'emploi",
     searchJobMarketDesc: "Utilisez le champ de recherche ci-dessus ou définissez un filtre pour trouver des emplois dans le monde entier.",
     remoteTag: "Télétravail",

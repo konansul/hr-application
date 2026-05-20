@@ -496,7 +496,7 @@ export function JobsTab() {
             : selectedLocation;
         try {
             const result = await externalJobsApi.search({
-                q: searchQuery,
+                q: smartPrompt.trim() || searchQuery,
                 location_value: locValue,
                 employment_type: selectedType === 'all' ? '' : selectedType,
                 level: selectedLevelKey === 'all' ? '' : selectedLevelKey,
@@ -512,13 +512,13 @@ export function JobsTab() {
         } finally {
             setExternalLoading(false);
         }
-    }, [searchQuery, selectedLocation, selectedType, selectedLevelKey]);
+    }, [smartPrompt, searchQuery, selectedLocation, selectedType, selectedLevelKey]);
 
     // Auto-search with debounce when in external mode — only when the user has
     // set at least one filter, so opening the tab doesn't auto-load random jobs.
     useEffect(() => {
         if (searchMode !== 'external') return;
-        const hasFilters = searchQuery.trim() !== '' || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all';
+        const hasFilters = smartPrompt.trim() !== '' || searchQuery.trim() !== '' || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all';
         if (!hasFilters) { setExternalJobs([]); setExternalTotal(0); return; }
         const timer = setTimeout(() => {
             fetchExternalJobs(1);
@@ -526,13 +526,11 @@ export function JobsTab() {
         return () => clearTimeout(timer);
     }, [searchMode, searchQuery, selectedLocation, selectedType, selectedLevelKey, fetchExternalJobs]);
 
-    // Switch to external mode and trigger search when smart prompt is applied
+    // Apply smart prompt filters to whichever tab is currently active.
+    // On Job Market tab the auto-search useEffect fires because dependencies change.
     const applySmartAndSearch = () => {
         applySmartPrompt();
-        // Use the full prompt as the search query so "Data Engineer Lisbon"
-        // sends q="Data Engineer Lisbon" instead of just the extracted role word
         setSearchQuery(smartPrompt.trim());
-        setSearchMode('external');
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -683,7 +681,8 @@ export function JobsTab() {
         const jobTitle = (job.title || '').toLowerCase();
 
         const matchesLevel = selectedLevelKey === 'all' || jobLevelKey === selectedLevelKey;
-        const matchesSearch = searchQuery === '' || jobTitle.includes(searchQuery.toLowerCase()) || jobDesc.includes(searchQuery.toLowerCase());
+        const effectiveQuery = (smartPrompt.trim() || searchQuery).toLowerCase();
+        const matchesSearch = effectiveQuery === '' || jobTitle.includes(effectiveQuery) || jobDesc.includes(effectiveQuery);
 
         let matchesType = true;
         if (selectedType !== 'all') {
@@ -943,7 +942,7 @@ export function JobsTab() {
                     </button>
 
                     {/* Clear All button — only shown when filters are active */}
-                    {(searchQuery !== '' || selectedLevelKey !== 'all' || selectedType !== 'all' || selectedLocation !== 'all' || smartTags.length > 0) && (
+                    {(smartPrompt !== '' || searchQuery !== '' || selectedLevelKey !== 'all' || selectedType !== 'all' || selectedLocation !== 'all' || smartTags.length > 0) && (
                         <button
                             onClick={clearSmartFilters}
                             className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-800/50 text-xs font-semibold rounded-xl transition-all"
@@ -993,16 +992,18 @@ export function JobsTab() {
                     {!externalLoading && externalJobs.length === 0 && !externalError && (
                         <div
                             className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
-                            {searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all'
-                                ? (searchQuery.trim() && selectedLocation === 'all' && selectedType === 'all' && selectedLevelKey === 'all'
-                                    ? <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results — e.g. "Backend developer in Berlin".'}</p>
-                                    : <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsFiltered ?? 'No jobs found. Try adjusting your filters or search terms.'}</p>
-                                  )
-                                : <>
-                                    <p className="text-gray-700 dark:text-white font-semibold mb-1">{tl.searchJobMarketTitle ?? 'Search the job market'}</p>
-                                    <p className="text-sm text-gray-400 dark:text-neutral-500">{tl.searchJobMarketDesc ?? 'Use the prompt above or set a filter to find jobs worldwide.'}</p>
-                                </>
-                            }
+                            {(() => {
+                                const hasText = !!(smartPrompt.trim() || searchQuery.trim());
+                                const hasFiltersOnly = selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all';
+                                if (!hasText && !hasFiltersOnly) return (
+                                    <>
+                                        <p className="text-gray-700 dark:text-white font-semibold mb-1">{tl.searchJobMarketTitle ?? 'Search the job market'}</p>
+                                        <p className="text-sm text-gray-400 dark:text-neutral-500">{tl.searchJobMarketDesc ?? 'Use the prompt above or set a filter to find jobs worldwide.'}</p>
+                                    </>
+                                );
+                                if (hasText && !hasFiltersOnly) return <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results — e.g. "Backend developer in Berlin".'}</p>;
+                                return <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsFiltered ?? 'No jobs found. Try adjusting your filters or search terms.'}</p>;
+                            })()}
                         </div>
                     )}
 
@@ -1152,15 +1153,17 @@ export function JobsTab() {
                 </div>
             )}
 
-            {/* ── Internal Company Jobs ── */}
+            {/* ── Platform Jobs ── */}
             {searchMode === 'internal' && <div className="grid grid-cols-1 gap-6">
                 {displayedJobs.length === 0 ? (
                     <div
                         className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
-                        {searchQuery.trim() && selectedLocation === 'all' && selectedType === 'all' && selectedLevelKey === 'all'
-                            ? <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results — e.g. "Backend developer in Berlin".'}</p>
-                            : <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
-                        }
+                        <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
+                        {(smartPrompt.trim() || searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all') && (
+                            <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
+                                {tl.noJobsPlatformTryMarket ?? 'No platform jobs match your search. Switch to the Job Market tab to find this position.'}
+                            </p>
+                        )}
                     </div>
                 ) : (
                     displayedJobs.map((job) => {
