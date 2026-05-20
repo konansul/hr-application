@@ -193,10 +193,10 @@ export function PublicCvView({ token }: { token: string }) {
 
         <div className="relative max-w-6xl mx-auto px-8 pt-16 pb-20">
 
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-10">
+          <div className="flex flex-col sm:flex-row items-center gap-10">
 
             {/* photo */}
-            <div className="shrink-0 order-1 sm:order-none">
+            <div className="shrink-0 order-1 sm:order-none sm:self-end">
               {hasPhoto ? (
                 <div className="w-36 h-36 lg:w-44 lg:h-44 rounded-2xl ring-4 ring-white/15 overflow-hidden shadow-2xl">
                   <img src={info.photo} alt={fullName} className="w-full h-full object-cover" />
@@ -218,19 +218,19 @@ export function PublicCvView({ token }: { token: string }) {
               )}
 
               {/* contact pills */}
-              <div className="flex flex-wrap justify-center sm:justify-start gap-3 mb-7">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-7">
                 {info.email && (
-                  <a href={`mailto:${info.email}`} className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white bg-white/8 hover:bg-white/14 border border-white/10 px-3.5 py-2 rounded-full transition-all">
+                  <a href={`mailto:${info.email}`} className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white bg-white/8 hover:bg-white/14 border border-white/10 px-2.5 py-2 rounded-full transition-all">
                     <EmailIcon className="w-3.5 h-3.5 text-violet-400" />{info.email}
                   </a>
                 )}
                 {info.phone && (
-                  <a href={`tel:${info.phone}`} className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white bg-white/8 hover:bg-white/14 border border-white/10 px-3.5 py-2 rounded-full transition-all">
+                  <a href={`tel:${info.phone}`} className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white bg-white/8 hover:bg-white/14 border border-white/10 px-2.5 py-2 rounded-full transition-all">
                     <PhoneIcon className="w-3.5 h-3.5 text-violet-400" />{info.phone}
                   </a>
                 )}
                 {(info.city || info.country) && (
-                  <span className="flex items-center gap-1.5 text-sm text-slate-300 bg-white/8 border border-white/10 px-3.5 py-2 rounded-full">
+                  <span className="flex items-center gap-1.5 text-sm text-slate-300 bg-white/8 border border-white/10 px-2.5 py-2 rounded-full whitespace-nowrap">
                     <LocationIcon className="w-3.5 h-3.5 text-violet-400" />
                     {[info.city, info.country].filter(Boolean).join(', ')}
                   </span>
@@ -262,7 +262,7 @@ export function PublicCvView({ token }: { token: string }) {
             </div>
 
             {/* Download button — far right, large, unmissable */}
-            <div className="print:hidden shrink-0 self-center sm:self-center sm:ml-auto order-last">
+            <div className="print:hidden shrink-0 sm:ml-auto sm:self-end order-last">
               <button
                 onClick={handleDownload}
                 disabled={isDownloading}
