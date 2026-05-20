@@ -264,7 +264,11 @@ export const fr = {
     orUploadNew: "OU TÉLÉCHARGER UN NOUVEAU",
     analysisHistory: "Historique d'analyse",
     loadingHistory: "Chargement de l'historique...",
-    viewingHistory: "Visualisation depuis l'historique"
+    viewingHistory: "Visualisation depuis l'historique",
+    chooseFile: "Choisir un fichier",
+    noFileChosen: "Aucun fichier choisi",
+    untitled: "Sans titre",
+    dailyLimitReached: "⏳ Vous avez atteint votre limite IA quotidienne. Revenez demain !"
   },
   jobs: {
     title: "Explorer les offres",

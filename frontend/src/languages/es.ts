@@ -264,7 +264,11 @@ export const es = {
     orUploadNew: "O SUBIR NUEVO",
     analysisHistory: "Historial de Análisis",
     loadingHistory: "Cargando historial...",
-    viewingHistory: "Viendo desde el historial"
+    viewingHistory: "Viendo desde el historial",
+    chooseFile: "Elegir archivo",
+    noFileChosen: "Ningún archivo elegido",
+    untitled: "Sin título",
+    dailyLimitReached: "⏳ Has alcanzado tu límite diario de IA. ¡Vuelve mañana!"
   },
   jobs: {
     title: "Explorar Empleos",

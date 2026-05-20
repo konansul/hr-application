@@ -264,7 +264,11 @@ export const de = {
     orUploadNew: "ODER NEU HOCHLADEN",
     analysisHistory: "Analyseverlauf",
     loadingHistory: "Verlauf wird geladen...",
-    viewingHistory: "Aus dem Verlauf"
+    viewingHistory: "Aus dem Verlauf",
+    chooseFile: "Datei auswählen",
+    noFileChosen: "Keine Datei ausgewählt",
+    untitled: "Ohne Titel",
+    dailyLimitReached: "⏳ Sie haben Ihr tägliches KI-Limit erreicht. Bitte kommen Sie morgen wieder!"
   },
   jobs: {
     title: "Jobs Entdecken",

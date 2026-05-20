@@ -264,7 +264,11 @@ export const ru = {
     orUploadNew: "ИЛИ ЗАГРУЗИТЬ НОВЫЙ",
     analysisHistory: "История анализов",
     loadingHistory: "Загрузка истории...",
-    viewingHistory: "Просмотр из истории"
+    viewingHistory: "Просмотр из истории",
+    chooseFile: "Выбрать файл",
+    noFileChosen: "Файл не выбран",
+    untitled: "Без названия",
+    dailyLimitReached: "⏳ Вы достигли дневного лимита ИИ. Пожалуйста, вернитесь завтра!"
   },
   jobs: {
     title: "Поиск Вакансий",

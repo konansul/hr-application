@@ -57,9 +57,9 @@ function scoreColor(score: number): string {
   return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
@@ -134,7 +134,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
     } catch (err: any) {
       if (err.response?.status === 429) {
-        setError("⏳ You have reached your daily AI limit. Please come back tomorrow!");
+        setError((t as any).dailyLimitReached ?? "⏳ You have reached your daily AI limit. Please come back tomorrow!");
       } else {
         setError(err.response?.data?.detail || err.message || t.error);
       }
@@ -218,13 +218,22 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 accept=".pdf,.docx,.txt"
                 onChange={handleFileChange}
                 disabled={isProcessing}
-                className="block w-full text-sm text-gray-500 dark:text-neutral-400
-                  file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0
-                  file:text-sm file:font-semibold file:bg-gray-100 dark:file:bg-neutral-800 file:text-gray-700 dark:file:text-white
-                  hover:file:bg-gray-200 dark:hover:file:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700
-                  border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black cursor-pointer transition-all
-                  disabled:opacity-60 disabled:cursor-not-allowed"
+                className="hidden"
               />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => !isProcessing && fileInputRef.current?.click()}
+                onKeyDown={(e) => e.key === 'Enter' && !isProcessing && fileInputRef.current?.click()}
+                className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700'}`}
+              >
+                <span className="shrink-0 py-2.5 px-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border-r border-gray-300 dark:border-neutral-700 select-none">
+                  {(t as any).chooseFile ?? 'Choose File'}
+                </span>
+                <span className="text-sm text-gray-500 dark:text-neutral-400 truncate px-3">
+                  {file ? file.name : ((t as any).noFileChosen ?? 'No file chosen')}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -307,14 +316,14 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate flex-1">
-                      {item.filename || 'Untitled'}
+                      {item.filename || ((t as any).untitled ?? 'Untitled')}
                     </p>
                     <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${scoreColor(item.overall_score)}`}>
                       {item.overall_score}
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-400 dark:text-neutral-500">
-                    {formatDate(item.created_at)}
+                    {formatDate(item.created_at, language)}
                   </p>
                 </button>
               ))}
@@ -331,7 +340,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {(t as any).viewingHistory ?? 'Viewing from history'} — {history.find(h => h.improvement_id === activeHistoryId)?.filename || 'Untitled'} · {formatDate(history.find(h => h.improvement_id === activeHistoryId)?.created_at || '')}
+              {(t as any).viewingHistory ?? 'Viewing from history'} — {history.find(h => h.improvement_id === activeHistoryId)?.filename || ((t as any).untitled ?? 'Untitled')} · {formatDate(history.find(h => h.improvement_id === activeHistoryId)?.created_at || '', language)}
             </div>
           )}
 

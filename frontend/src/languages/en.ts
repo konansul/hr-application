@@ -264,7 +264,11 @@ export const en = {
     orUploadNew: "OR UPLOAD NEW",
     analysisHistory: "Analysis History",
     loadingHistory: "Loading history...",
-    viewingHistory: "Viewing from history"
+    viewingHistory: "Viewing from history",
+    chooseFile: "Choose File",
+    noFileChosen: "No file chosen",
+    untitled: "Untitled",
+    dailyLimitReached: "⏳ You have reached your daily AI limit. Please come back tomorrow!"
   },
   jobs: {
     title: "Explore Jobs",

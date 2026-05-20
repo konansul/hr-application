@@ -264,7 +264,11 @@ export const pt = {
     orUploadNew: "OU CARREGAR NOVO",
     analysisHistory: "Histórico de Análise",
     loadingHistory: "Carregando histórico...",
-    viewingHistory: "Visualizando do histórico"
+    viewingHistory: "Visualizando do histórico",
+    chooseFile: "Escolher arquivo",
+    noFileChosen: "Nenhum arquivo escolhido",
+    untitled: "Sem título",
+    dailyLimitReached: "⏳ Você atingiu seu limite diário de IA. Por favor, volte amanhã!"
   },
   jobs: {
     title: "Explorar Vagas",

@@ -264,7 +264,11 @@ export const tr = {
     orUploadNew: "VEYA YENİ YÜKLE",
     analysisHistory: "Analiz Geçmişi",
     loadingHistory: "Geçmiş yükleniyor...",
-    viewingHistory: "Geçmişten görüntüleniyor"
+    viewingHistory: "Geçmişten görüntüleniyor",
+    chooseFile: "Dosya Seç",
+    noFileChosen: "Dosya seçilmedi",
+    untitled: "Başlıksız",
+    dailyLimitReached: "⏳ Günlük AI limitinize ulaştınız. Lütfen yarın tekrar gelin!"
   },
   jobs: {
     title: "İşleri Keşfet",
