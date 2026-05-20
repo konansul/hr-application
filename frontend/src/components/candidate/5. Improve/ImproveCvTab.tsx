@@ -87,7 +87,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
   const [acceptedBullets, setAcceptedBullets] = useState<Set<number>>(new Set());
   const [isGeneratingVersion, setIsGeneratingVersion] = useState(false);
   const [versionCreated, setVersionCreated] = useState(false);
-  const [generatedResumeId, setGeneratedResumeId] = useState<string | null>(null);
+  const [_generatedResumeId, setGeneratedResumeId] = useState<string | null>(null);
   const [resumesList, setResumesList] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -493,7 +493,15 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 {result.missing_keywords && result.missing_keywords.length > 0 ? (
                   result.missing_keywords.map((kw, i) => (
                     <button key={i} type="button"
-                      onClick={() => setAcceptedKeywords(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; })}
+                      onClick={() => setAcceptedKeywords(prev => {
+  const n = new Set(prev);
+  if (n.has(i)) {
+    n.delete(i);
+  } else {
+    n.add(i);
+  }
+  return n;
+})}
                       className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all flex items-center gap-1.5 ${acceptedKeywords.has(i) ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-neutral-300 border-dashed border-gray-300 dark:border-neutral-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                     >
                       {acceptedKeywords.has(i)
@@ -518,7 +526,15 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 {result.improvements && result.improvements.length > 0 ? (
                   result.improvements.map((item, i) => (
                     <li key={i}
-                      onClick={() => setAcceptedImprovements(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; })}
+                      onClick={() => setAcceptedImprovements(prev => {
+  const n = new Set(prev);
+  if (n.has(i)) {
+    n.delete(i);
+  } else {
+    n.add(i);
+  }
+  return n;
+})}
                       className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-sm select-none ${acceptedImprovements.has(i) ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-200' : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
                     >
                       <span className={`mt-0.5 shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${acceptedImprovements.has(i) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300 dark:border-neutral-600'}`}>
@@ -560,7 +576,15 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               <div className="space-y-4">
                 {result.rewritten_bullets.map((bullet, idx) => (
                   <div key={idx}
-                    onClick={() => setAcceptedBullets(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n; })}
+                    onClick={() => setAcceptedBullets(prev => {
+  const n = new Set(prev);
+  if (n.has(idx)) {
+    n.delete(idx);
+  } else {
+    n.add(idx);
+  }
+  return n;
+})}
                     className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-all select-none ${acceptedBullets.has(idx) ? 'border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/20' : 'border-gray-100 dark:border-neutral-800/50 bg-gray-50/50 dark:bg-neutral-800/30 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
                   >
                     <span className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${acceptedBullets.has(idx) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300 dark:border-neutral-600'}`}>
