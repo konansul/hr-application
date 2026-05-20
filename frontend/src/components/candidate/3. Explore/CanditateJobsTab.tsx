@@ -712,7 +712,7 @@ export function JobsTab() {
     const orgCache = useRef<Record<string, OrgInfo>>({});
     const orgCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLDivElement>, jobId: string, orgId: string) => {
+    const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLSpanElement>, jobId: string, orgId: string) => {
         if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const top = rect.bottom + window.scrollY + 6;
