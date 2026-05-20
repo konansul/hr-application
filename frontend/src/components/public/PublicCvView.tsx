@@ -196,7 +196,7 @@ export function PublicCvView({ token }: { token: string }) {
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-10">
 
             {/* photo */}
-            <div className="shrink-0">
+            <div className="shrink-0 order-1 sm:order-none">
               {hasPhoto ? (
                 <div className="w-36 h-36 lg:w-44 lg:h-44 rounded-2xl ring-4 ring-white/15 overflow-hidden shadow-2xl">
                   <img src={info.photo} alt={fullName} className="w-full h-full object-cover" />
@@ -258,20 +258,22 @@ export function PublicCvView({ token }: { token: string }) {
                   </a>
                 )}
               </div>
+
             </div>
 
-            {/* Download button — right side of header, aligned to bottom */}
-            <div className="shrink-0 self-end pb-1 print:hidden">
+            {/* Download button — far right, large, unmissable */}
+            <div className="print:hidden shrink-0 self-center sm:self-center sm:ml-auto order-last">
               <button
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="flex items-center gap-3 px-8 py-5 bg-white hover:bg-violet-50 text-slate-900 text-base font-extrabold rounded-2xl shadow-2xl transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+                className="flex items-center gap-3 px-8 py-5 bg-white hover:bg-violet-50 active:bg-violet-100 text-slate-900 text-lg font-extrabold rounded-2xl shadow-2xl shadow-black/40 ring-2 ring-white/40 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isDownloading
-                  ? <><div className="w-5 h-5 border-2 border-slate-300 border-t-violet-600 rounded-full animate-spin" />Generating…</>
-                  : <><DownloadIcon className="w-5 h-5 text-violet-600" />Download CV as PDF</>}
+                  ? <><div className="w-6 h-6 border-[3px] border-slate-200 border-t-violet-600 rounded-full animate-spin" />Generating PDF…</>
+                  : <><DownloadIcon className="w-6 h-6 text-violet-600" />Download CV as PDF</>}
               </button>
             </div>
+
           </div>
         </div>
       </div>
