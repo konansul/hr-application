@@ -623,6 +623,8 @@ export function ResumeUploadTab() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [sharePublicLinkCopied, setSharePublicLinkCopied] = useState(false);
+  const [inlineLinkVisible, setInlineLinkVisible] = useState(false);
+  const [inlineLinkCopied, setInlineLinkCopied] = useState(false);
   const [shareEmailTo, setShareEmailTo] = useState('');
   const [shareEmailRecipientName, setShareEmailRecipientName] = useState('');
   const [sendEmailTo, setSendEmailTo] = useState('');
@@ -778,7 +780,7 @@ export function ResumeUploadTab() {
     const senderName = [firstName, lastName].filter(Boolean).join(' ') || 'Me';
     // const slug = resumeToSlug(selectedResume, resumeVersions);
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
+    const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
     const cvLink = `${cvBase}/?cv=${selectedResume.resume_id}`;
     const eb = t.emailBody;
     const greeting = sendEmailRecipientName.trim()
@@ -924,6 +926,8 @@ export function ResumeUploadTab() {
     setSelectedResumeId(resume.resume_id);
     setConfirmDeleteId(null);
     setMessage(null);
+    setInlineLinkVisible(false);
+    setInlineLinkCopied(false);
     if (resume.generated_document_id) {
       await openOriginalPdf(resume.generated_document_id);
     } else {
@@ -1022,7 +1026,7 @@ export function ResumeUploadTab() {
   const handleCopyPublicLink = () => {
     if (!selectedResume) return;
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
+    const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
     handleCopyLink(`${base}/?cv=${selectedResume.resume_id}`);
   };
 
@@ -1364,21 +1368,6 @@ export function ResumeUploadTab() {
                         {t.actions.exportPdf}
                       </button>
                       <button
-                        onClick={handleCopyPublicLink}
-                        className="px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        {linkCopied ? (
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        )}
-                        {linkCopied ? t.actions.linkCopied : t.actions.copyLink}
-                      </button>
-                      <button
                         onClick={openShareModal}
                         className="px-3 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/50 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
@@ -1413,6 +1402,55 @@ export function ResumeUploadTab() {
                 </div>
               ) : (
                 <div className="space-y-8 animate-in fade-in duration-300">
+                  {/* Public link widget */}
+                  {(() => {
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
+                    const cvPublicUrl = `${base}/?cv=${selectedResume.resume_id}`;
+                    const copyInlineLink = () => {
+                      navigator.clipboard.writeText(cvPublicUrl).then(() => {
+                        setInlineLinkCopied(true);
+                        setTimeout(() => setInlineLinkCopied(false), 2000);
+                      });
+                    };
+                    return (
+                      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        <span className="text-xs font-semibold text-gray-600 dark:text-neutral-300 shrink-0">{t.share.publicLink}</span>
+                        {/* Toggle */}
+                        <button
+                          onClick={() => setInlineLinkVisible(v => !v)}
+                          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${inlineLinkVisible ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-neutral-600'}`}
+                          aria-label="Toggle public link"
+                        >
+                          <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${inlineLinkVisible ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                        </button>
+                        {inlineLinkVisible && (
+                          <>
+                            <div className="flex-1 min-w-0 px-2.5 py-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-600 rounded-xl text-[11px] font-mono text-gray-500 dark:text-neutral-400 truncate">
+                              {cvPublicUrl}
+                            </div>
+                            <button
+                              onClick={copyInlineLink}
+                              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${inlineLinkCopied ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-600 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700'}`}
+                            >
+                              {inlineLinkCopied
+                                ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                              }
+                              {inlineLinkCopied ? t.share.copied : t.share.copyBtn}
+                            </button>
+                          </>
+                        )}
+                        {!inlineLinkVisible && (
+                          <span className="text-[11px] text-gray-400 dark:text-neutral-500">{t.share.linkHint}</span>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
                       <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.metadata.titleLabel}</span>
@@ -2348,7 +2386,7 @@ export function ResumeUploadTab() {
           authApi.updatePrivacy({ public_url_slug: slug }).catch(() => {});
         }
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const BASE = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://orange-forest-05793170f.7.azurestaticapps.net';
+        const BASE = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
         return (
           <div
             className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"

@@ -250,15 +250,6 @@ export function PublicCvView({ token }: { token: string }) {
                     <GitHubIcon className="w-4 h-4" />GitHub
                   </a>
                 )}
-                <button
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl border border-white/15 transition-all disabled:opacity-60"
-                >
-                  {isDownloading
-                    ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating…</>
-                    : <><DownloadIcon className="w-4 h-4" />Download CV</>}
-                </button>
                 {info.portfolio_url && (
                   <a href={info.portfolio_url} target="_blank" rel="noreferrer"
                     className="flex items-center gap-2 px-5 py-2.5 bg-violet-500/20 hover:bg-violet-500/30 text-violet-200 text-sm font-semibold rounded-xl border border-violet-400/25 transition-all">
@@ -274,7 +265,7 @@ export function PublicCvView({ token }: { token: string }) {
       {/* ── sticky nav ────────────────────────────────────────────────────── */}
       <div ref={navRef} className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm print:hidden">
         <div className="max-w-6xl mx-auto px-8">
-          <div className="flex items-center justify-between gap-4 overflow-x-auto">
+          <div className="flex items-center gap-4 overflow-x-auto">
             <div className="flex items-center gap-1 py-1">
               {navItems.map(({ id, label }) => (
                 <a
@@ -367,6 +358,17 @@ export function PublicCvView({ token }: { token: string }) {
 
           {/* ── right column: Skills + Languages + Certs + Contact ────────── */}
           <div className="space-y-6">
+
+            {/* Download button */}
+            <button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 active:from-violet-700 active:to-indigo-700 text-white text-base font-bold rounded-2xl shadow-lg shadow-violet-300 transition-all disabled:opacity-60 disabled:cursor-not-allowed print:hidden"
+            >
+              {isDownloading
+                ? <><div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Generating PDF…</>
+                : <><DownloadIcon className="w-5 h-5" />Download CV as PDF</>}
+            </button>
 
             {skills.length > 0 && (
               <Section id="skills" title="Skills" accentBar="bg-violet-500">
