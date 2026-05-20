@@ -1,25 +1,17 @@
-"""
-Seed script — inserts 1000 realistic platform jobs for the demo HR account.
-Run from the project root:
-    venv/Scripts/python.exe -m backend.scripts.seed_jobs
-"""
 from __future__ import annotations
 
 import json
 import random
 import uuid
-from datetime import datetime, timezone
 
 from backend.database.db import SessionLocal
 from backend.database.models import Job
 
-# ── target HR account ────────────────────────────────────────────────────────
-HR_USER_ID = "usr_56c3ca62035a"
-ORG_ID     = "org_08498499005e"
+HR_USER_ID = "usr_0745bcbaaad8"
+ORG_ID     = "org_03495597bb3c"
 
 DEFAULT_STAGES = ["APPLIED", "SHORTLISTED", "INTERVIEW", "OFFER", "REJECTED"]
 
-# ── data pools ───────────────────────────────────────────────────────────────
 TITLES = [
     "Software Engineer", "Senior Software Engineer", "Staff Engineer",
     "Frontend Developer", "Backend Developer", "Full-Stack Developer",
