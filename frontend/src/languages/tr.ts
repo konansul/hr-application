@@ -279,7 +279,9 @@ export const tr = {
     requiresSavedCv: "Sürüm oluşturmak için yukarıdaki listeden kayıtlı bir özgeçmiş seçin.",
     previewTitle: "Değişikliklerle CV Önizleme",
     previewBtn: "Önizle",
-    newBadge: "Yeni"
+    newBadge: "Yeni",
+    viewInResumes: "Özgeçmişlerde Görüntüle →",
+    close: "Kapat"
   },
   jobs: {
     title: "İşleri Keşfet",

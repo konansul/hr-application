@@ -279,7 +279,9 @@ export const es = {
     requiresSavedCv: "Para generar una versión, selecciona un CV guardado del menú de arriba.",
     previewTitle: "Vista previa del CV con cambios",
     previewBtn: "Vista previa",
-    newBadge: "Nuevo"
+    newBadge: "Nuevo",
+    viewInResumes: "Ver en Currículums →",
+    close: "Cerrar"
   },
   jobs: {
     title: "Explorar Empleos",

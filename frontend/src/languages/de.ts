@@ -279,7 +279,9 @@ export const de = {
     requiresSavedCv: "Um eine Version zu erstellen, wählen Sie einen gespeicherten Lebenslauf aus.",
     previewTitle: "Lebenslauf-Vorschau mit Änderungen",
     previewBtn: "Vorschau",
-    newBadge: "Neu"
+    newBadge: "Neu",
+    viewInResumes: "In Lebensläufen anzeigen →",
+    close: "Schließen"
   },
   jobs: {
     title: "Jobs Entdecken",

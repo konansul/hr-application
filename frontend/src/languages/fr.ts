@@ -279,7 +279,9 @@ export const fr = {
     requiresSavedCv: "Pour générer une version, sélectionnez un CV enregistré dans la liste ci-dessus.",
     previewTitle: "Aperçu du CV avec les modifications",
     previewBtn: "Aperçu",
-    newBadge: "Nouveau"
+    newBadge: "Nouveau",
+    viewInResumes: "Voir dans Résumés →",
+    close: "Fermer"
   },
   jobs: {
     title: "Explorer les offres",

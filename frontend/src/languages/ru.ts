@@ -279,7 +279,9 @@ export const ru = {
     requiresSavedCv: "Для создания версии выберите сохранённое резюме из списка выше.",
     previewTitle: "Предпросмотр резюме с изменениями",
     previewBtn: "Предпросмотр",
-    newBadge: "Новое"
+    newBadge: "Новое",
+    viewInResumes: "Перейти в Резюме →",
+    close: "Закрыть"
   },
   jobs: {
     title: "Поиск Вакансий",

@@ -1199,15 +1199,13 @@ export function JobsTab() {
 
                 {displayedJobs.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
-                        <p className="text-gray-500 dark:text-neutral-400 font-medium">{t.noJobsFound}</p>
-                        {(smartPrompt.trim() || searchQuery.trim() || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all') && (
-                            <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
-                                No platform jobs match your search.{' '}
-                                <button onClick={() => setSearchMode('external')} className="text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold underline underline-offset-2 transition-colors">
-                                    Search in Job Market
-                                </button>
-                            </p>
-                        )}
+                        <p className="text-gray-500 dark:text-neutral-400 font-medium">No jobs found for the selected criteria.</p>
+                        <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
+                            No platform jobs match your search.{' '}
+                            <button onClick={() => setSearchMode('external')} className="text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold underline underline-offset-2 transition-colors">
+                                Search in Job Market
+                            </button>
+                        </p>
                     </div>
                 ) : (
                     <>

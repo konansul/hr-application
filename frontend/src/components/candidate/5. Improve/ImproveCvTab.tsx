@@ -639,7 +639,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                     onClick={() => setActiveTab('upload-cv')}
                     className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors whitespace-nowrap"
                   >
-                    View in Resumes →
+                    {(t as any).viewInResumes ?? 'View in Resumes →'}
                   </button>
                 </div>
               )}
@@ -844,7 +844,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 onClick={() => setShowPreview(false)}
                 className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-neutral-300 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
-                Close
+                {(t as any).close ?? 'Close'}
               </button>
             </div>
           </div>
