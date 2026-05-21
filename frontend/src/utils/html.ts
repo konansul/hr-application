@@ -10,11 +10,7 @@ function inlineMarkdown(text: string): string {
     .replace(/`(.+?)`/g, '<code>$1</code>');
 }
 
-export function textToHtml(text: string): string {
-  if (!text) return '';
-  // Already HTML — pass through
-  if (/<[a-z][\s\S]*>/i.test(text)) return text;
-
+function parseMarkdown(text: string): string {
   const lines = text.split('\n');
   let html = '';
   let inUl = false;
@@ -30,7 +26,9 @@ export function textToHtml(text: string): string {
     if (heading) {
       closeList();
       const level = heading[1].length;
-      html += `<h${level}>${inlineMarkdown(heading[2])}</h${level}>`;
+      const label = inlineMarkdown(heading[2]);
+      const withColon = level === 3 && !label.endsWith(':') ? `${label}:` : label;
+      html += `<h${level}>${withColon}</h${level}>`;
       continue;
     }
 
@@ -59,4 +57,31 @@ export function textToHtml(text: string): string {
 
   closeList();
   return html;
+}
+
+function containsEmbeddedMarkdown(html: string): boolean {
+  // Strip tags and check if the plain text still has markdown syntax
+  const plain = html.replace(/<[^>]+>/g, '\n');
+  return /^#{1,6}\s|\*\*[\s\S]+?\*\*/m.test(plain);
+}
+
+export function textToHtml(text: string): string {
+  if (!text) return '';
+
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    // HTML that wraps raw markdown (e.g. old <p>## heading</p> format) — strip and re-parse
+    if (containsEmbeddedMarkdown(text)) {
+      const plain = text
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      return parseMarkdown(plain);
+    }
+    // Proper HTML from the rich-text editor — pass through unchanged
+    return text;
+  }
+
+  return parseMarkdown(text);
 }

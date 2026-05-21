@@ -16,7 +16,7 @@ interface Props {
 const JOB_DESC_STYLES = [
   '[&_h1]:text-[13px] [&_h1]:font-bold [&_h1]:text-gray-800 dark:[&_h1]:text-neutral-100 [&_h1]:mt-4 [&_h1]:mb-1 [&_h1]:tracking-tight',
   '[&_h2]:text-[13px] [&_h2]:font-bold [&_h2]:text-gray-800 dark:[&_h2]:text-neutral-100 [&_h2]:mt-4 [&_h2]:mb-1 [&_h2]:tracking-tight',
-  '[&_h3]:text-[13px] [&_h3]:font-semibold [&_h3]:text-gray-700 dark:[&_h3]:text-neutral-200 [&_h3]:mt-3 [&_h3]:mb-0.5',
+  '[&_h3]:text-[13px] [&_h3]:font-bold [&_h3]:text-gray-800 dark:[&_h3]:text-neutral-100 [&_h3]:mt-3 [&_h3]:mb-0.5',
   '[&_p]:mb-2 [&_p]:leading-relaxed',
   '[&_ul]:mb-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ul]:space-y-0.5',
   '[&_ol]:mb-2 [&_ol]:ml-4 [&_ol]:list-decimal [&_ol]:space-y-0.5',
@@ -40,7 +40,16 @@ export function HtmlContent({ html, className }: Props) {
   if (looksLikeMarkdown(content)) {
     return (
       <div className={base}>
-        <ReactMarkdown>{content}</ReactMarkdown>
+        <ReactMarkdown
+          components={{
+            h3: ({ children }) => {
+              const text = String(children ?? '');
+              return <h3>{text.endsWith(':') ? text : `${text}:`}</h3>;
+            },
+          }}
+        >
+          {content}
+        </ReactMarkdown>
       </div>
     );
   }

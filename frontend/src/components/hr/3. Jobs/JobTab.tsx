@@ -169,7 +169,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     setSelectedJobId(jobToLoad.id);
     setCurrentJob(jobToLoad);
     setActiveTitle(jobToLoad.title);
-    setActiveDescription(jobToLoad.description);
+    setActiveDescription(textToHtml(jobToLoad.description));
     setActiveLevel(jobToLoad.level || 'Middle');
     setActiveStatus(jobToLoad.status || 'draft');
     setActiveRegion(jobToLoad.region || 'Global');
@@ -195,7 +195,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       setCurrentJob(newJob);
       setSelectedJobId(newJob.id);
       setActiveTitle(newJob.title);
-      setActiveDescription(newJob.description);
+      setActiveDescription(textToHtml(newJob.description));
       setActiveLevel(newJob.level || 'Middle');
       setActiveRegion(newJob.region || 'Global');
       setActiveStatus('active');
