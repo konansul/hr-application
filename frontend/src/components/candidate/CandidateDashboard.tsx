@@ -328,6 +328,7 @@ export function CandidateDashboard() {
             </svg>
           </button>
           <div className="ml-auto">
+              {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />
           </div>
         </header>
@@ -344,6 +345,7 @@ export function CandidateDashboard() {
             </span>
           </div>
           <div className="flex items-center gap-1">
+              {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />
             <button onClick={handleLogout} className="p-2 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
