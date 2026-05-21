@@ -16,17 +16,7 @@ function dateRange(exp: any) {
   return s ? `${s} – ${e}` : '';
 }
 
-const TAG_COLORS = [
-  'bg-violet-50  border-violet-200  text-violet-700',
-  'bg-indigo-50  border-indigo-200  text-indigo-700',
-  'bg-emerald-50 border-emerald-200 text-emerald-700',
-  'bg-rose-50    border-rose-200    text-rose-700',
-  'bg-amber-50   border-amber-200   text-amber-700',
-  'bg-sky-50     border-sky-200     text-sky-700',
-  'bg-pink-50    border-pink-200    text-pink-700',
-  'bg-teal-50    border-teal-200    text-teal-700',
-];
-
+/* ─── icons ──────────────────────────────────────────────────────────────── */
 function LinkedInIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -43,54 +33,73 @@ function GitHubIcon({ className }: { className?: string }) {
 }
 function GlobeIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <circle cx="12" cy="12" r="10" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
     </svg>
   );
 }
 function EmailIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
     </svg>
   );
 }
 function PhoneIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
     </svg>
   );
 }
 function LocationIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
 }
 function DownloadIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14" />
+    </svg>
+  );
+}
+function CapIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 9l9-5 9 5-9 5-9-5zM6 11v4a6 6 0 0012 0v-4M21 9v6" />
+    </svg>
+  );
+}
+function CertIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 3l9 5-9 5-9-5 9-5zm-7 7.5V14a7 7 0 0014 0v-3.5M12 13v7l3 1-1.5-2.5 2-1L12 13z" />
     </svg>
   );
 }
 
-/* ─── section card ────────────────────────────────────────────────────────── */
-function Section({ id, title, accentBar, children }: {
-  id: string; title: string; accentBar: string; children: React.ReactNode;
+/* ─── card heading ────────────────────────────────────────────────────────── */
+function CardHead({ label, pill, pillBg, pillFg, pillBorder }: {
+  label: string; pill?: string;
+  pillBg?: string; pillFg?: string; pillBorder?: string;
 }) {
   return (
-    <section id={id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden scroll-mt-20">
-      <div className="flex items-center gap-3 px-7 py-4 border-b border-slate-100">
-        <div className={`w-1 h-5 rounded-full shrink-0 ${accentBar}`} />
-        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">{title}</h2>
-      </div>
-      <div className="px-7 py-6">{children}</div>
-    </section>
+    <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#EEF2F4]">
+      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#2F2F2F]">{label}</span>
+      {pill && pillBg && (
+        <span
+          className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+          style={{ background: pillBg, color: pillFg, borderColor: pillBorder, fontFamily: '"JetBrains Mono", monospace', letterSpacing: '0.06em' }}
+        >
+          {pill}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -108,14 +117,11 @@ export function PublicCvView({ token }: { token: string }) {
       .catch(() => setError('This CV link is invalid or has been revoked.'));
   }, [token]);
 
-  /* highlight active nav link while scrolling */
   useEffect(() => {
     if (!cv) return;
-    const ids = ['about', 'experience', 'skills', 'education', 'languages', 'contact'];
+    const ids = ['about', 'experience', 'education', 'skills', 'languages', 'contact'];
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id); });
-      },
+      (entries) => { entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id); }); },
       { rootMargin: '-30% 0px -60% 0px' },
     );
     ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
@@ -124,14 +130,14 @@ export function PublicCvView({ token }: { token: string }) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-start p-6">
+      <div className="min-h-screen bg-[#E3F1F6] flex items-center justify-center p-6">
         <div className="text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-start mx-auto">
-            <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-14 h-14 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mx-auto">
+            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-slate-400">{error}</p>
+          <p className="text-sm font-semibold text-[#6B7785]">{error}</p>
         </div>
       </div>
     );
@@ -139,8 +145,8 @@ export function PublicCvView({ token }: { token: string }) {
 
   if (!cv) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-start">
-        <div className="w-9 h-9 border-4 border-violet-900 border-t-violet-400 rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#E3F1F6] flex items-center justify-center">
+        <div className="w-9 h-9 border-4 border-[#FFCDB9] border-t-[#FC5B26] rounded-full animate-spin" />
       </div>
     );
   }
@@ -171,316 +177,328 @@ export function PublicCvView({ token }: { token: string }) {
     }
   };
 
-  /* nav items — only show sections with content */
   const navItems = [
     { id: 'about',      label: 'About',      show: !!info.summary },
     { id: 'experience', label: 'Experience',  show: experience.length > 0 },
-    { id: 'skills',     label: 'Skills',      show: skills.length > 0 },
     { id: 'education',  label: 'Education',   show: education.length > 0 },
-    { id: 'languages',  label: 'Languages',   show: languages.length > 0 || certs.length > 0 },
+    { id: 'skills',     label: 'Skills',      show: skills.length > 0 },
+    { id: 'languages',  label: 'Languages',   show: languages.length > 0 },
     { id: 'contact',    label: 'Contact',     show: !!(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) },
-    { id: 'references', label: 'References',  show: true },
   ].filter(n => n.show);
 
   return (
-    <div className="min-h-screen bg-slate-50 print:bg-white">
+    <div
+      className="min-h-screen relative overflow-x-hidden print:bg-white"
+      style={{ fontFamily: '"Overused Grotesk", "Inter", system-ui, sans-serif', background: '#E3F1F6', color: '#2F2F2F' }}
+    >
+      {/* font imports */}
+      <style>{`
+        @import url('https://api.fontshare.com/v2/css?f[]=overused-grotesk@400,500,600,700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+      `}</style>
+
+      {/* aurora blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none print:hidden" aria-hidden="true">
+        <div style={{ position: 'absolute', top: -240, left: -120, width: 600, height: 600, borderRadius: '50%', background: '#FF906D', filter: 'blur(120px)', opacity: 0.18 }} />
+        <div style={{ position: 'absolute', top: 40, right: -160, width: 520, height: 520, borderRadius: '50%', background: '#9EA4FF', filter: 'blur(120px)', opacity: 0.18 }} />
+        <div style={{ position: 'absolute', top: 360, left: '38%', width: 420, height: 420, borderRadius: '50%', background: '#92D8F2', filter: 'blur(120px)', opacity: 0.22 }} />
+      </div>
 
       {/* ── hero ──────────────────────────────────────────────────────────── */}
-      <div className="relative bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-950 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 left-1/3 w-[300px] h-[300px] bg-fuchsia-600/10 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative max-w-[1100px] mx-auto px-8 pt-12 pb-5">
 
-        <div className="relative max-w-6xl mx-auto px-8 pt-16 pb-20">
+        {/* avatar + name row */}
+        <div className="flex gap-6 items-center mb-5">
 
-          <div className="flex flex-col sm:flex-row items-center gap-10">
-
-            {/* photo */}
-            <div className="shrink-0 order-1 sm:order-none sm:self-end">
-              {hasPhoto ? (
-                <div className="w-36 h-36 lg:w-44 lg:h-44 rounded-2xl ring-4 ring-white/15 overflow-hidden shadow-2xl">
-                  <img src={info.photo} alt={fullName} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div className="w-36 h-36 lg:w-44 lg:h-44 rounded-2xl ring-4 ring-violet-400/20 bg-gradient-to-br from-violet-600 via-indigo-600 to-fuchsia-700 flex items-center justify-center shadow-2xl">
-                  <span className="text-5xl lg:text-6xl font-black text-white/90 tracking-tight">{initials(info.first_name, info.last_name)}</span>
-                </div>
-              )}
-            </div>
-
-            {/* text */}
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.05] mb-3">
-                {fullName}
-              </h1>
-              {cv.title && (
-                <p className="text-violet-300 font-semibold text-xl lg:text-2xl mb-7 leading-snug">{cv.title}</p>
-              )}
-
-              {/* contact pills */}
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-7">
-                {info.email && (
-                  <a href={`mailto:${info.email}`} className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white bg-white/8 hover:bg-white/14 border border-white/10 px-2.5 py-2 rounded-full transition-all">
-                    <EmailIcon className="w-3.5 h-3.5 text-violet-400" />{info.email}
-                  </a>
-                )}
-                {info.phone && (
-                  <a href={`tel:${info.phone}`} className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white bg-white/8 hover:bg-white/14 border border-white/10 px-2.5 py-2 rounded-full transition-all">
-                    <PhoneIcon className="w-3.5 h-3.5 text-violet-400" />{info.phone}
-                  </a>
-                )}
-                {(info.city || info.country) && (
-                  <span className="flex items-center gap-1.5 text-sm text-slate-300 bg-white/8 border border-white/10 px-2.5 py-2 rounded-full whitespace-nowrap">
-                    <LocationIcon className="w-3.5 h-3.5 text-violet-400" />
-                    {[info.city, info.country].filter(Boolean).join(', ')}
-                  </span>
-                )}
-              </div>
-
-              {/* social buttons */}
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2.5">
-                {info.linkedin_url && (
-                  <a href={info.linkedin_url} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-[#0A66C2] hover:bg-[#0958a8] text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-900/40">
-                    <LinkedInIcon className="w-4 h-4" />LinkedIn
-                  </a>
-                )}
-                {info.github_url && (
-                  <a href={info.github_url} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl border border-white/15 transition-all">
-                    <GitHubIcon className="w-4 h-4" />GitHub
-                  </a>
-                )}
-                {info.portfolio_url && (
-                  <a href={info.portfolio_url} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-2 px-5 py-2.5 bg-violet-500/20 hover:bg-violet-500/30 text-violet-200 text-sm font-semibold rounded-xl border border-violet-400/25 transition-all">
-                    <GlobeIcon className="w-4 h-4" />Portfolio
-                  </a>
-                )}
-              </div>
-
-            </div>
-
-            {/* Download button — far right, large, unmissable */}
-            <div className="print:hidden shrink-0 sm:ml-auto sm:self-end order-last">
-              <button
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className="flex items-center gap-3 px-8 py-5 bg-white hover:bg-violet-50 active:bg-violet-100 text-slate-900 text-lg font-extrabold rounded-2xl shadow-2xl shadow-black/40 ring-2 ring-white/40 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isDownloading
-                  ? <><div className="w-6 h-6 border-[3px] border-slate-200 border-t-violet-600 rounded-full animate-spin" />Generating PDF…</>
-                  : <><DownloadIcon className="w-6 h-6 text-violet-600" />Download CV as PDF</>}
-              </button>
-            </div>
-
+          {/* avatar */}
+          <div
+            className="w-24 h-24 rounded-[22px] flex items-center justify-center shrink-0 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #FC5B26 0%, #FF906D 100%)', boxShadow: '0 16px 40px -16px rgba(252,91,38,0.45)' }}
+          >
+            {hasPhoto ? (
+              <img src={info.photo} alt={fullName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-4xl font-bold text-white tracking-tight">{initials(info.first_name, info.last_name)}</span>
+            )}
           </div>
-        </div>
-      </div>
 
-      {/* ── sticky nav ────────────────────────────────────────────────────── */}
-      <div ref={navRef} className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm print:hidden">
-        <div className="max-w-6xl mx-auto px-8">
-          <div className="flex items-center gap-4 overflow-x-auto">
-            <div className="flex items-center gap-1 py-1">
-              {navItems.map(({ id, label }) => (
-                <a
-                  key={id}
-                  href={`#${id}`}
-                  className={`px-4 py-3 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
-                    activeSection === id
-                      ? 'text-violet-700 bg-violet-50'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  {label}
+          {/* name + title + chips */}
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold leading-[1.05] mb-1 text-[#2F2F2F]" style={{ fontSize: 38, letterSpacing: '-0.03em' }}>
+              {fullName}
+            </h1>
+            {cv.title && (
+              <p className="text-base font-semibold mt-1 mb-2.5" style={{ color: '#FC5B26' }}>{cv.title}</p>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {(info.city || info.country) && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563]">
+                  <LocationIcon className="w-3.5 h-3.5 shrink-0" />
+                  {[info.city, info.country].filter(Boolean).join(', ')}
+                </span>
+              )}
+              {info.email && (
+                <a href={`mailto:${info.email}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#FC5B26] transition-colors">
+                  <EmailIcon className="w-3.5 h-3.5 shrink-0" />{info.email}
                 </a>
-              ))}
+              )}
+              {info.phone && (
+                <a href={`tel:${info.phone}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#FC5B26] transition-colors">
+                  <PhoneIcon className="w-3.5 h-3.5 shrink-0" />{info.phone}
+                </a>
+              )}
             </div>
           </div>
         </div>
-      </div>
+
+        {/* CTA bar */}
+        <div
+          className="flex items-center justify-between bg-white border border-[#E5EAEE] rounded-[18px] py-3 pl-5 pr-3.5 print:hidden"
+          style={{ boxShadow: '0 20px 40px -24px rgba(47,47,47,0.18)' }}
+        >
+          <span className="text-sm font-semibold text-[#2F2F2F]">Take this with you</span>
+          <div className="flex items-center gap-1.5">
+            {info.linkedin_url && (
+              <a
+                href={info.linkedin_url} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#E5EAEE] bg-[#F3F6F8] text-[#2F2F2F] hover:bg-[#E5EAEE] transition-colors"
+              >
+                <LinkedInIcon className="w-3.5 h-3.5" />LinkedIn
+              </a>
+            )}
+            {info.github_url && (
+              <a
+                href={info.github_url} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#E5EAEE] bg-[#F3F6F8] text-[#2F2F2F] hover:bg-[#E5EAEE] transition-colors"
+              >
+                <GitHubIcon className="w-3.5 h-3.5" />GitHub
+              </a>
+            )}
+            {info.portfolio_url && (
+              <a
+                href={info.portfolio_url} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#E5EAEE] bg-[#F3F6F8] text-[#2F2F2F] hover:bg-[#E5EAEE] transition-colors"
+              >
+                <GlobeIcon className="w-3.5 h-3.5" />Portfolio
+              </a>
+            )}
+            <button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 text-white text-[13.5px] font-bold px-4 py-2.5 rounded-[11px] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #FC5B26 0%, #FF7A48 100%)', boxShadow: '0 10px 24px -8px rgba(252,91,38,0.55), inset 0 1px 0 rgba(255,255,255,0.25)' }}
+            >
+              {isDownloading
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating…</>
+                : <><DownloadIcon className="w-[18px] h-[18px]" />Download CV</>}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── tab nav ───────────────────────────────────────────────────────── */}
+      <nav ref={navRef} className="sticky top-0 z-30 bg-white border-t border-b border-[#E5EAEE] mt-4 print:hidden">
+        <div className="max-w-[1100px] mx-auto px-8">
+          <div className="flex items-center overflow-x-auto gap-0.5">
+            {navItems.map(({ id, label }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className="px-3 py-3 text-[13px] whitespace-nowrap border-b-2 -mb-px transition-colors"
+                style={activeSection === id
+                  ? { color: '#FC5B26', borderColor: '#FC5B26', fontWeight: 700 }
+                  : { color: '#6B7785', borderColor: 'transparent', fontWeight: 500 }}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </nav>
 
       {/* ── body ──────────────────────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-8 items-start">
+      <main className="relative max-w-[1100px] mx-auto px-8 py-5 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4 items-start">
 
-          {/* ── left column: About + Experience + Education ───────────────── */}
-          <div className="space-y-6">
+          {/* LEFT: About + Experience + Education */}
+          <div className="flex flex-col gap-4">
 
             {info.summary && (
-              <Section id="about" title="About" accentBar="bg-violet-500">
-                <p className="text-base text-slate-600 leading-relaxed">{info.summary}</p>
-              </Section>
+              <article id="about" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="About" />
+                <p className="px-4 py-4 text-[14.5px] leading-relaxed text-[#4B5563]">{info.summary}</p>
+              </article>
             )}
 
             {experience.length > 0 && (
-              <Section id="experience" title="Experience" accentBar="bg-indigo-500">
-                <div className="relative">
-                  <div className="absolute left-[7px] top-2 bottom-2 w-px bg-gradient-to-b from-indigo-300 via-violet-200 to-transparent" />
-                  <div className="space-y-8">
-                    {experience.map((exp: any, i: number) => (
-                      <div key={i} className="flex gap-5">
-                        <div className="relative mt-1.5 shrink-0">
-                          <div className="w-3.5 h-3.5 rounded-full bg-white border-2 border-indigo-400 shadow-sm" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3 flex-wrap mb-0.5">
-                            <p className="text-sm font-bold text-slate-900">{exp.title || 'Role'}</p>
-                            {dateRange(exp) && (
-                              <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
-                                {dateRange(exp)}
-                              </span>
-                            )}
-                          </div>
-                          {exp.company && <p className="text-xs font-semibold text-indigo-500 mb-2">{exp.company}</p>}
-                          {exp.description && <p className="text-sm text-slate-500 leading-relaxed">{exp.description}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Section>
-            )}
-
-            {education.length > 0 && (
-              <Section id="education" title="Education" accentBar="bg-emerald-500">
-                <div className="space-y-5">
-                  {education.map((edu: any, i: number) => (
-                    <div key={i} className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-start shrink-0">
-                        <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{edu.degree || 'Degree'}</p>
-                        {edu.institution && <p className="text-sm text-slate-500 mt-0.5">{edu.institution}</p>}
-                        {(edu.start_date || edu.end_date) && (
-                          <p className="text-xs text-slate-400 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}</p>
+              <article id="experience" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Experience" pill={`${experience.length} ROLES`} pillBg="#DBEFF8" pillFg="#1B6A8A" pillBorder="#BFE3F2" />
+                <div className="px-4 pt-1 pb-2">
+                  {experience.map((exp: any, i: number) => (
+                    <div key={i} className="flex gap-3 pt-3">
+                      <div className="w-3.5 flex flex-col items-center shrink-0 pt-1">
+                        <div
+                          className="w-3 h-3 rounded-full bg-white border-2 border-[#FC5B26] shrink-0"
+                          style={{ boxShadow: '0 0 0 3px rgba(252,91,38,0.12)' }}
+                        />
+                        {i < experience.length - 1 && (
+                          <div className="w-0.5 flex-1 mt-1 min-h-[24px]" style={{ background: 'linear-gradient(180deg, #FFCDB9 0%, #F3F6F8 100%)' }} />
                         )}
+                      </div>
+                      <div className={`flex-1 min-w-0 pb-3 ${i < experience.length - 1 ? 'border-b border-[#EEF2F4]' : ''}`}>
+                        <div className="flex justify-between items-start gap-3">
+                          <div>
+                            <div className="text-sm font-bold text-[#2F2F2F]">{exp.title || 'Role'}</div>
+                            {exp.company && <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: '#FC5B26' }}>{exp.company}</div>}
+                          </div>
+                          {dateRange(exp) && (
+                            <span
+                              className="text-[10.5px] text-[#6B7785] bg-[#F3F6F8] border border-[#E5EAEE] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"
+                              style={{ fontFamily: '"JetBrains Mono", monospace' }}
+                            >
+                              {dateRange(exp)}
+                            </span>
+                          )}
+                        </div>
+                        {exp.description && <p className="text-[12.5px] leading-relaxed text-[#4B5563] mt-1.5">{exp.description}</p>}
                       </div>
                     </div>
                   ))}
                 </div>
-              </Section>
+              </article>
             )}
 
-            <Section id="references" title="References" accentBar="bg-slate-400">
-              <p className="text-sm text-slate-500 italic">References available upon request</p>
-            </Section>
+            {education.length > 0 && (
+              <article id="education" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Education" pill="EDU" pillBg="#E6E8FF" pillFg="#4A55C9" pillBorder="#D2D6FF" />
+                {education.map((edu: any, i: number) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-t border-[#EEF2F4]">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border" style={{ background: '#E6E8FF', color: '#4A55C9', borderColor: '#D2D6FF' }}>
+                      <CapIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-bold text-[#2F2F2F]">{edu.degree || 'Degree'}</div>
+                      {edu.institution && <div className="text-[11.5px] text-[#6B7785] mt-0.5">{edu.institution}</div>}
+                    </div>
+                    {(edu.start_date || edu.end_date) && (
+                      <div className="text-[10.5px] text-[#6B7785] whitespace-nowrap shrink-0" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
+                        {[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </article>
+            )}
+
           </div>
 
-          {/* ── right column: Skills + Languages + Certs + Contact ────────── */}
-          <div className="space-y-6">
-
+          {/* RIGHT: Skills + Languages + Certifications + Contact */}
+          <div className="flex flex-col gap-4">
 
             {skills.length > 0 && (
-              <Section id="skills" title="Skills" accentBar="bg-violet-500">
-                <div className="flex flex-wrap gap-2">
+              <article id="skills" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Skills" pill={String(skills.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
+                <div className="flex flex-wrap gap-1.5 px-4 py-3">
                   {skills.map((s: any, i: number) => (
-                    <span key={i} className={`px-3 py-1.5 border rounded-lg text-xs font-semibold ${TAG_COLORS[i % TAG_COLORS.length]}`}>
+                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
                       {skillName(s)}
                     </span>
                   ))}
                 </div>
-              </Section>
+              </article>
             )}
 
-            {(languages.length > 0 || certs.length > 0) && (
-              <div id="languages" className="space-y-6 scroll-mt-20">
-                {languages.length > 0 && (
-                  <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="flex items-center gap-3 px-7 py-4 border-b border-slate-100">
-                      <div className="w-1 h-5 rounded-full bg-sky-500 shrink-0" />
-                      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Languages</h2>
+            {languages.length > 0 && (
+              <article id="languages" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Languages" />
+                {languages.map((l: any, i: number) => {
+                  const raw = langName(l);
+                  const parts = raw.split(' — ');
+                  const langLabel = parts[0];
+                  const level = parts[1] || (typeof l === 'object' ? (l.level || l.proficiency || '') : '');
+                  const pct = level === 'Native' ? 100 : level === 'Fluent' ? 85 : level === 'Conversational' ? 55 : level ? 65 : 70;
+                  return (
+                    <div key={i} className="px-4 py-2.5 border-t border-[#EEF2F4]">
+                      <div className="flex justify-between items-baseline mb-1.5">
+                        <span className="text-[12.5px] font-bold text-[#2F2F2F]">{langLabel}</span>
+                        {level && <span className="text-[10.5px] text-[#6B7785]">{level}</span>}
+                      </div>
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: '#EEF2F4' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #FC5B26, #FF906D)' }} />
+                      </div>
                     </div>
-                    <div className="px-7 py-6 flex flex-wrap gap-2">
-                      {languages.map((l: any, i: number) => (
-                        <span key={i} className="px-3 py-1.5 bg-sky-50 border border-sky-200 rounded-lg text-xs font-semibold text-sky-700">
-                          {langName(l)}
-                        </span>
-                      ))}
-                    </div>
-                  </section>
-                )}
-                {certs.length > 0 && (
-                  <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="flex items-center gap-3 px-7 py-4 border-b border-slate-100">
-                      <div className="w-1 h-5 rounded-full bg-amber-500 shrink-0" />
-                      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Certifications</h2>
-                    </div>
-                    <div className="px-7 py-6 flex flex-wrap gap-2">
-                      {certs.map((c: any, i: number) => (
-                        <span key={i} className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-700">
-                          {certName(c)}
-                        </span>
-                      ))}
-                    </div>
-                  </section>
-                )}
-              </div>
+                  );
+                })}
+              </article>
             )}
 
-            {/* contact card */}
+            {certs.length > 0 && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Certifications" />
+                {certs.map((c: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4]">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#FFE5DA', color: '#C7401C', borderColor: '#FFCDB9' }}>
+                      <CertIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[12.5px] font-medium text-[#2F2F2F]">{certName(c)}</span>
+                  </div>
+                ))}
+              </article>
+            )}
+
             {(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) && (
-              <section id="contact" className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden scroll-mt-20">
-                <div className="flex items-center gap-3 px-7 py-4 border-b border-slate-100">
-                  <div className="w-1 h-5 rounded-full bg-rose-500 shrink-0" />
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Contact</h2>
-                </div>
-                <div className="px-7 py-6 space-y-3">
-                  {info.email && (
-                    <a href={`mailto:${info.email}`} className="flex items-center gap-3 text-sm text-slate-600 hover:text-violet-700 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-start shrink-0 group-hover:bg-violet-100 transition-colors">
-                        <EmailIcon className="w-3.5 h-3.5 text-violet-500" />
-                      </div>
-                      {info.email}
-                    </a>
-                  )}
-                  {info.phone && (
-                    <a href={`tel:${info.phone}`} className="flex items-center gap-3 text-sm text-slate-600 hover:text-violet-700 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-start shrink-0 group-hover:bg-violet-100 transition-colors">
-                        <PhoneIcon className="w-3.5 h-3.5 text-violet-500" />
-                      </div>
-                      {info.phone}
-                    </a>
-                  )}
-                  {info.linkedin_url && (
-                    <a href={info.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm text-slate-600 hover:text-[#0A66C2] transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-start shrink-0 group-hover:bg-blue-100 transition-colors">
-                        <LinkedInIcon className="w-3.5 h-3.5 text-[#0A66C2]" />
-                      </div>
-                      LinkedIn
-                    </a>
-                  )}
-                  {info.github_url && (
-                    <a href={info.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm text-slate-600 hover:text-slate-900 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-start shrink-0 group-hover:bg-slate-100 transition-colors">
-                        <GitHubIcon className="w-3.5 h-3.5 text-slate-700" />
-                      </div>
-                      GitHub
-                    </a>
-                  )}
-                  {info.portfolio_url && (
-                    <a href={info.portfolio_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm text-slate-600 hover:text-violet-700 transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-start shrink-0 group-hover:bg-violet-100 transition-colors">
-                        <GlobeIcon className="w-3.5 h-3.5 text-violet-500" />
-                      </div>
-                      Portfolio
-                    </a>
-                  )}
-                </div>
-              </section>
+              <article id="contact" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Contact" />
+                {info.email && (
+                  <a href={`mailto:${info.email}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                      <EmailIcon className="w-3.5 h-3.5" />
+                    </div>
+                    {info.email}
+                  </a>
+                )}
+                {info.phone && (
+                  <a href={`tel:${info.phone}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                      <PhoneIcon className="w-3.5 h-3.5" />
+                    </div>
+                    {info.phone}
+                  </a>
+                )}
+                {info.linkedin_url && (
+                  <a href={info.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                      <LinkedInIcon className="w-3.5 h-3.5" />
+                    </div>
+                    LinkedIn
+                  </a>
+                )}
+                {info.github_url && (
+                  <a href={info.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                      <GitHubIcon className="w-3.5 h-3.5" />
+                    </div>
+                    GitHub
+                  </a>
+                )}
+                {info.portfolio_url && (
+                  <a href={info.portfolio_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                      <GlobeIcon className="w-3.5 h-3.5" />
+                    </div>
+                    Portfolio
+                  </a>
+                )}
+              </article>
             )}
+
           </div>
         </div>
+      </main>
 
-        <p className="text-center text-[11px] text-slate-300 mt-12 pb-6 tracking-wide print:hidden">
-          Shared via HRAI · View only
-        </p>
-      </div>
+      <footer className="relative text-center text-[11px] text-[#9CA3AF] py-6 pb-8 tracking-wider print:hidden">
+        Shared via HRAIPP · Read-only public link
+      </footer>
     </div>
   );
 }
