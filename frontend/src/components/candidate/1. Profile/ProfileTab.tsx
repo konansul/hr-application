@@ -51,7 +51,7 @@ function getMissingKeys(profileData: any): string[] {
 }
 
 export function ProfileTab() {
-  const { language } = useStore();
+  const { language, activeTab } = useStore();
   const t = DICT[language as keyof typeof DICT]?.profile || DICT.en.profile;
 
   const getFieldLabel = (key: string): string => {
@@ -120,6 +120,25 @@ export function ProfileTab() {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    if (message?.type === 'error' && getMissingKeys(profileData).length === 0) {
+      setMessage(null);
+      setValidationErrors(new Set());
+    }
+  }, [profileData, message]);
+
+  useEffect(() => {
+    if (activeTab !== 'profile') {
+      setMessage(null);
+      setValidationErrors(new Set());
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    setMessage(null);
+    setValidationErrors(new Set());
+  }, [language]);
 
   useEffect(() => {
     const init = async () => {
@@ -278,7 +297,10 @@ export function ProfileTab() {
   const handlePersonalInputChange = (field: string, value: any) => {
     setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, [field]: value } }));
     if (validationErrors.has(field)) {
-      setValidationErrors(prev => { const next = new Set(prev); next.delete(field); return next; });
+      const next = new Set(validationErrors);
+      next.delete(field);
+      setValidationErrors(next);
+      if (next.size === 0) setMessage(null);
     }
     if (aiPersonalFields.has(field)) {
       const next = new Set(aiPersonalFields);
@@ -521,37 +543,37 @@ export function ProfileTab() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.firstName}<span className="text-red-400">*</span></label>
                     <input type="text" value={profileData.personal_info.first_name || ''} onChange={(e) => handlePersonalInputChange('first_name', e.target.value)} className={inputClass('first_name')} />
-                    {validationErrors.has('first_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('first_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.lastName}<span className="text-red-400">*</span></label>
                     <input type="text" value={profileData.personal_info.last_name || ''} onChange={(e) => handlePersonalInputChange('last_name', e.target.value)} className={inputClass('last_name')} />
-                    {validationErrors.has('last_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('last_name') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.email}<span className="text-red-400">*</span></label>
                     <input type="email" value={profileData.personal_info.email || ''} onChange={(e) => handlePersonalInputChange('email', e.target.value)} className={inputClass('email')} />
-                    {validationErrors.has('email') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('email') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.phone}<span className="text-red-400">*</span></label>
                     <input type="text" value={profileData.personal_info.phone || ''} onChange={(e) => handlePersonalInputChange('phone', e.target.value)} className={inputClass('phone')} />
-                    {validationErrors.has('phone') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('phone') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.city}<span className="text-red-400">*</span></label>
                     <input type="text" value={profileData.personal_info.city || ''} onChange={(e) => handlePersonalInputChange('city', e.target.value)} className={inputClass('city')} />
-                    {validationErrors.has('city') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('city') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.country}<span className="text-red-400">*</span></label>
                     <input type="text" value={profileData.personal_info.country || ''} onChange={(e) => handlePersonalInputChange('country', e.target.value)} className={inputClass('country')} />
-                    {validationErrors.has('country') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('country') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.nationality}<span className="text-red-400">*</span></label>
                     <input type="text" value={profileData.personal_info.nationality || ''} onChange={(e) => handlePersonalInputChange('nationality', e.target.value)} className={inputClass('nationality')} />
-                    {validationErrors.has('nationality') && <p className="text-[10px] text-red-500 font-semibold mt-1">Required</p>}
+                    {validationErrors.has('nationality') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).required ?? 'Required'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.visa}<span className="text-red-400">*</span></label>
@@ -565,7 +587,7 @@ export function ProfileTab() {
                       <option value="NO_WORK_AUTHORIZATION">No Work Authorization</option>
                       <option value="OTHER">Other</option>
                     </select>
-                    {validationErrors.has('visa_status') && <p className="text-[10px] text-red-500 font-semibold mt-1">Please select a visa status</p>}
+                    {validationErrors.has('visa_status') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).selectVisaStatus ?? 'Please select a visa status'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.workPref}<span className="text-red-400">*</span></label>
@@ -576,7 +598,7 @@ export function ProfileTab() {
                       <option value="REMOTE">Remote</option>
                       <option value="FLEXIBLE">Flexible</option>
                     </select>
-                    {validationErrors.has('work_preference') && <p className="text-[10px] text-red-500 font-semibold mt-1">Please select a work preference</p>}
+                    {validationErrors.has('work_preference') && <p className="text-[10px] text-red-500 font-semibold mt-1">{(t as any).selectWorkPreference ?? 'Please select a work preference'}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.linkedin}</label>
