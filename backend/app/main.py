@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import auth, users, jobs, applications, screening, improvement, documents, resumes, external_jobs, profiles, public
+from backend.app.api import auth, users, jobs, applications, screening, improvement, documents, resumes, external_jobs, profiles, public, notifications
 from backend.app.scheduler import run_inactivity_loop
 
 
@@ -53,6 +53,7 @@ app.include_router(applications.router, prefix="/v1", tags=["Applications"])
 app.include_router(improvement.router, prefix="/v1", tags=["Improvement"])
 app.include_router(external_jobs.router, prefix="/v1", tags=["External Jobs"])
 app.include_router(public.router, prefix="/v1", tags=["Public"])
+app.include_router(notifications.router, prefix="/v1", tags=["Notifications"])
 
 @app.get("/health")
 def health():

@@ -314,8 +314,6 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
           <div className="lg:col-span-4 flex flex-col gap-4">
             <Pill label={t.fileSelected} value={displayFileName} color={file || selectedResumeId ? 'emerald' : 'gray'} />
-            <Pill label={t.jobDescLength} value={`${jobDescription.length} ${t.chars}`} color={jobDescription.length > 0 ? 'blue' : 'gray'} />
-
             <button
               onClick={handleAnalyze}
               disabled={(!file && !selectedResumeId) || isProcessing}

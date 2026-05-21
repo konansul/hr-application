@@ -206,3 +206,20 @@ class CVImprovementResult(Base):
     full_result_json = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     document = relationship("Document", back_populates="cv_improvements")
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    notification_id = Column(String(64), unique=True, nullable=False, index=True)
+
+    # recipient candidate user
+    user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
+
+    # linked application
+    application_id = Column(String(64), ForeignKey("applications.application_id"), nullable=True, index=True)
+
+    message = Column(String(512), nullable=False)
+    is_read = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

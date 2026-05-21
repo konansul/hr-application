@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { jobsApi, screeningApi, authApi } from '../../../api';
+import { jobsApi, screeningApi, authApi, notificationsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 
@@ -140,6 +140,7 @@ export function JobApplicationTab() {
   };
 
   const [apiApplications, setApiApplications] = useState<any[]>([]);
+  const [unreadAppIds, setUnreadAppIds]        = useState<Set<string>>(new Set());
   const [trackedJobs, setTrackedJobs]         = useState<TrackedJob[]>([]);
   const [loading, setLoading]                 = useState(true);
   const [, setRefreshing]                     = useState(false);
@@ -183,10 +184,17 @@ export function JobApplicationTab() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [rawApps, allJobs] = await Promise.all([
+      const [rawApps, allJobs, notifs] = await Promise.all([
         screeningApi.getMyApplications().catch(() => [] as any[]),
         jobsApi.list().catch(() => [] as any[]),
+        notificationsApi.getAll().catch(() => []),
       ]);
+      const ids = new Set<string>(
+        (notifs as any[])
+          .filter((n: any) => !n.is_read && n.application_id)
+          .map((n: any) => n.application_id as string)
+      );
+      setUnreadAppIds(ids);
 
       const appByJobId = new Map<string, any>();
       for (const app of rawApps as any[]) {
@@ -674,6 +682,12 @@ export function JobApplicationTab() {
                           </svg>
                           {t.hrManaged}
                         </span>
+                        {unreadAppIds.has(app.application_id) && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50 shrink-0 animate-pulse transition-colors">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 dark:bg-orange-400" />
+                            New
+                          </span>
+                        )}
                         {isClosed && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 shrink-0 transition-colors">
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -730,9 +744,10 @@ export function JobApplicationTab() {
                   </div>
                   {app.job_description && (
                     <div className="mb-4">
-                      <p className={`text-sm text-gray-600 dark:text-neutral-400 leading-relaxed whitespace-pre-wrap transition-colors ${expandedId === app.job_id ? '' : 'line-clamp-2'}`}>
-                        {app.job_description}
-                      </p>
+                      <div
+                        className={`text-sm text-gray-600 dark:text-neutral-400 leading-relaxed transition-colors [&_p]:mb-2 [&_strong]:font-semibold [&_b]:font-semibold [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-semibold [&_br]:block ${expandedId === app.job_id ? '' : 'line-clamp-3 overflow-hidden'}`}
+                        dangerouslySetInnerHTML={{ __html: app.job_description }}
+                      />
                       <button
                         onClick={() => setExpandedId(expandedId === app.job_id ? null : app.job_id)}
                         className="mt-1 text-xs font-bold text-indigo-600 dark:text-white hover:text-indigo-700 dark:hover:text-neutral-300 transition-colors"

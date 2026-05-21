@@ -306,6 +306,24 @@ export function JobsTab() {
     const t = DICT[language as keyof typeof DICT]?.jobs || DICT.en.jobs;
     const tl = (t as any);
 
+    const getLevelLabel = (level: string): string =>
+      (tl.levels as any)?.[level.toLowerCase()] ?? level;
+
+    const getRegionLabel = (region: string): string => {
+      if (!region) return region;
+      const regionLower = region.toLowerCase().trim();
+      const opt = LOCATION_OPTIONS.find(o =>
+        o.label.toLowerCase() === regionLower ||
+        o.keywords.some(kw => kw === regionLower)
+      );
+      if (opt?.regionCode) {
+        try { return new Intl.DisplayNames([language], { type: 'region' }).of(opt.regionCode) || region; }
+        catch { return region; }
+      }
+      if (opt?.labelKey) return tl[opt.labelKey] ?? region;
+      return region;
+    };
+
     const [jobs, setJobs] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
     const [user, setUser] = useState<any>(null);
@@ -1192,8 +1210,11 @@ export function JobsTab() {
                 {/* Result count */}
                 {displayedJobs.length > 0 && (
                     <p className="text-xs text-gray-400 dark:text-neutral-500 px-1 pb-1">
-                        {displayedJobs.length} {displayedJobs.length === 1 ? 'job' : 'jobs'} found
-                        {totalJobPages > 1 && <> · page {jobsPage} of {totalJobPages}</>}
+                        {displayedJobs.length === 1
+                          ? (tl.jobCountFoundSingular ?? '1 job found')
+                          : (tl.jobCountFoundPlural ?? '{count} jobs found').replace('{count}', String(displayedJobs.length))
+                        }
+                        {totalJobPages > 1 && <> · {(tl.pageOfTotal ?? 'page {page} of {total}').replace('{page}', String(jobsPage)).replace('{total}', String(totalJobPages))}</>}
                     </p>
                 )}
 
@@ -1228,7 +1249,7 @@ export function JobsTab() {
                                                 </span>
                                                 {job.level && (
                                                     <span className="shrink-0 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded text-[9px] font-bold uppercase tracking-wider">
-                                                        {job.level}
+                                                        {getLevelLabel(job.level)}
                                                     </span>
                                                 )}
                                                 {isClosed && (
@@ -1238,7 +1259,7 @@ export function JobsTab() {
                                                 )}
                                                 {userApp && (
                                                     <span className="shrink-0 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded text-[9px] font-bold uppercase tracking-wider">
-                                                        Applied
+                                                        {tl.stages?.applied ?? 'Applied'}
                                                     </span>
                                                 )}
                                             </div>
@@ -1248,7 +1269,7 @@ export function JobsTab() {
                                                 {job.region && (
                                                     <span className="flex items-center gap-1">
                                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                        {job.region}
+                                                        {getRegionLabel(job.region)}
                                                     </span>
                                                 )}
                                                 {job.organization_name && (

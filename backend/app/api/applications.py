@@ -12,7 +12,7 @@ from backend.app.api.helpers.extract import extract_cv_text
 from backend.app.pipeline import run_cv_parsing
 
 from backend.database.db import get_db
-from backend.database.models import Document, User, Job, Application, Person, Resume
+from backend.database.models import Document, User, Job, Application, Person, Resume, Notification
 from backend.database.storage import new_id
 from backend.app.api.helpers.ownership import get_current_user
 router = APIRouter()
@@ -43,7 +43,28 @@ def update_application_status(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
 
+    old_status = app.status
     app.status = update.status
+    db.flush()
+
+    # Notify the candidate when HR changes the status
+    if current_user.role == "hr" and update.status != old_status:
+        person = db.query(Person).filter(Person.person_id == app.person_id).first()
+        if person:
+            candidate_user = db.query(User).filter(User.user_id == person.user_id).first()
+            if candidate_user:
+                job = db.query(Job).filter(Job.job_id == app.job_id).first()
+                job_title = job.title if job else "a job"
+                label = update.status.replace("_", " ").title()
+                notification = Notification(
+                    notification_id=new_id("notif"),
+                    user_id=candidate_user.user_id,
+                    application_id=app.application_id,
+                    message=f'Your application for "{job_title}" has been moved to {label}.',
+                    is_read=False,
+                )
+                db.add(notification)
+
     db.commit()
     return {"ok": True, "new_status": app.status}
 

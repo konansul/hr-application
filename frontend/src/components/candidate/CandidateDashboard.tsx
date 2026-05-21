@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ProfileTab } from './1. Profile/ProfileTab';
 import { ResumeUploadTab } from './2. Resumes/ResumeUploadTab';
 import { JobsTab } from './3. Explore/CanditateJobsTab';
@@ -6,7 +6,7 @@ import { JobApplicationTab } from './4. Applications/JobApplicationTab';
 import { ImproveCvTab } from './5. Improve/ImproveCvTab';
 import { CandidateSettingsTab } from './6. Settings/CandidateSettingsTab';
 import { useStore } from '../../store';
-import { authApi } from '../../api';
+import { authApi, notificationsApi, type AppNotification } from '../../api';
 import { DICT } from '../../internationalization.ts';
 import { tabToPath, pathToNavState } from '../../utils/urlRouting';
 
@@ -70,6 +70,70 @@ export function CandidateDashboard() {
 
   const usesLeft = Math.max(0, aiQuota - aiUsed);
 
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const count = await notificationsApi.getUnreadCount();
+        setUnreadCount(count);
+      } catch { /* silent */ }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!showNotifDropdown) return;
+    const fetchAll = async () => {
+      try {
+        const items = await notificationsApi.getAll();
+        setNotifications(items);
+      } catch { /* silent */ }
+    };
+    fetchAll();
+  }, [showNotifDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (!target.closest('[data-notif-container]')) {
+        setShowNotifDropdown(false);
+      }
+    };
+    if (showNotifDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifDropdown]);
+
+  const handleBellClick = () => {
+    setShowNotifDropdown(prev => !prev);
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationsApi.markAllRead();
+      setUnreadCount(0);
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch { /* silent */ }
+  };
+
+  const handleNotifClick = async (notif: AppNotification) => {
+    if (!notif.is_read) {
+      try {
+        await notificationsApi.markRead(notif.notification_id);
+        setNotifications(prev => prev.map(n => n.notification_id === notif.notification_id ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch { /* silent */ }
+    }
+    setShowNotifDropdown(false);
+    navigate('applications');
+  };
+
   useEffect(() => {
     const navState = pathToNavState(window.location.pathname);
     if (navState?.tab) {
@@ -101,6 +165,66 @@ export function CandidateDashboard() {
     localStorage.removeItem('auth_token');
     logoutStore();
   };
+
+  const NotifBell = ({ className = '' }: { className?: string }) => (
+    <div data-notif-container className={`relative ${className}`}>
+      <button
+        onClick={handleBellClick}
+        className="relative p-2 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+        aria-label="Notifications"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {showNotifDropdown && (
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-neutral-800">
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</span>
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-gray-400 dark:text-neutral-500">
+                No notifications yet
+              </div>
+            ) : (
+              notifications.map(notif => (
+                <button
+                  key={notif.notification_id}
+                  onClick={() => handleNotifClick(notif)}
+                  className={`w-full text-left px-4 py-3 flex gap-3 items-start hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-gray-50 dark:border-neutral-800/50 last:border-0 ${
+                    !notif.is_read ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
+                  }`}
+                >
+                  <span className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${!notif.is_read ? 'bg-blue-500' : 'bg-transparent'}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700 dark:text-neutral-300 leading-snug">{notif.message}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-1">
+                      {new Date(notif.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   const SideNavItem = ({ id, label, icon }: { id: any; label: string; icon: React.ReactNode }) => {
     const isActive = activeTab === id;
@@ -194,7 +318,7 @@ export function CandidateDashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-black transition-colors duration-300">
 
-        <header className="hidden md:flex h-14 items-center px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800">
+        <header className="hidden md:flex h-14 items-center px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800 gap-2">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
@@ -203,6 +327,9 @@ export function CandidateDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
+          <div className="ml-auto">
+            <NotifBell />
+          </div>
         </header>
 
         <header className="md:hidden h-14 flex items-center justify-between px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-colors">
@@ -216,11 +343,14 @@ export function CandidateDashboard() {
               {activeTab === 'settings' ? t.settings : (t[activeTab as keyof typeof t] ?? t.portal)}
             </span>
           </div>
-          <button onClick={handleLogout} className="p-2 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-1">
+            <NotifBell />
+            <button onClick={handleLogout} className="p-2 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+              </svg>
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-24 md:pb-8">

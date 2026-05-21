@@ -6,3 +6,4 @@ export * from './documents';
 export * from './resumes';
 export * from './public';
 export * from './external';
+export * from './notifications';

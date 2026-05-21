@@ -54,6 +54,21 @@ export function ProfileTab() {
   const { language } = useStore();
   const t = DICT[language as keyof typeof DICT]?.profile || DICT.en.profile;
 
+  const getFieldLabel = (key: string): string => {
+    const map: Record<string, string> = {
+      first_name: t.personal.firstName,
+      last_name: t.personal.lastName,
+      email: t.personal.email,
+      phone: t.personal.phone,
+      city: t.personal.city,
+      country: t.personal.country,
+      nationality: t.personal.nationality,
+      visa_status: t.personal.visa,
+      work_preference: t.personal.workPref,
+    };
+    return map[key] ?? key;
+  };
+
   const [file, setFile] = useState<File | null>(null);
   const [_uploadIntent, setUploadIntent] = useState<'profile' | 'resume' | null>(null);
   const [syncWithProfile, setSyncWithProfile] = useState(true);
@@ -311,8 +326,9 @@ export function ProfileTab() {
     if (missing.length > 0) {
       setValidationErrors(new Set(missing));
       setIsEditingPersonalInfo(true);
-      const labels = missing.map(k => REQUIRED_PI_FIELDS.find(f => f.key === k)?.label).join(', ');
-      setMessage({ text: `Please complete required fields: ${labels}`, type: 'error' });
+      const labels = missing.map(k => getFieldLabel(k)).join(', ');
+      const requiredMsg = (t as any).requiredFields ?? 'Please complete required fields';
+      setMessage({ text: `${requiredMsg}: ${labels}`, type: 'error' });
       document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
@@ -400,7 +416,7 @@ export function ProfileTab() {
             <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            Not completed — click to fill in
+            {(t as any).notCompleted ?? 'Not completed — click to fill in'}
           </button>
         ) : (
           <span className="text-sm font-medium text-gray-900 dark:text-white">{value}</span>
@@ -1105,7 +1121,7 @@ export function ProfileTab() {
                       <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {missing.map(key => {
-                          const label = REQUIRED_PI_FIELDS.find(f => f.key === key)?.label ?? key;
+                          const label = getFieldLabel(key);
                           return (
                             <button
                               key={key}
