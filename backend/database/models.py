@@ -213,11 +213,7 @@ class Notification(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     notification_id = Column(String(64), unique=True, nullable=False, index=True)
-
-    # recipient candidate user
     user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
-
-    # linked application
     application_id = Column(String(64), ForeignKey("applications.application_id"), nullable=True, index=True)
 
     message = Column(String(512), nullable=False)
