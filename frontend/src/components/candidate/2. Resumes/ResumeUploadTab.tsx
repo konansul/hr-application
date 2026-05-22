@@ -1410,7 +1410,7 @@ export function ResumeUploadTab() {
                       });
                     };
                     return (
-                      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl max-w-lg">
                         <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
@@ -1438,7 +1438,7 @@ export function ResumeUploadTab() {
                         </button>
                         {inlineLinkVisible && (
                           <>
-                            <div className="flex-1 min-w-0 px-2.5 py-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-600 rounded-xl text-[11px] font-mono text-gray-500 dark:text-neutral-400 truncate">
+                            <div className="w-40 min-w-0 px-2 py-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-600 rounded-xl text-[11px] font-mono text-gray-500 dark:text-neutral-400 truncate">
                               {cvPublicUrl}
                             </div>
                             <button
