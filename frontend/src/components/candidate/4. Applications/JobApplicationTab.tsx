@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { jobsApi, screeningApi, authApi, notificationsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
+import { HtmlContent } from '../../shared/HtmlContent';
 
 type OrgInfo = {
   org_id: string;
@@ -744,10 +745,9 @@ export function JobApplicationTab() {
                   </div>
                   {app.job_description && (
                     <div className="mb-4">
-                      <div
-                        className={`text-sm text-gray-600 dark:text-neutral-400 leading-relaxed transition-colors [&_p]:mb-2 [&_strong]:font-semibold [&_b]:font-semibold [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-semibold [&_br]:block ${expandedId === app.job_id ? '' : 'line-clamp-3 overflow-hidden'}`}
-                        dangerouslySetInnerHTML={{ __html: app.job_description }}
-                      />
+                      <div className={`${expandedId === app.job_id ? '' : 'line-clamp-3 overflow-hidden'}`}>
+                        <HtmlContent html={app.job_description} className="text-gray-600 dark:text-neutral-400" />
+                      </div>
                       <button
                         onClick={() => setExpandedId(expandedId === app.job_id ? null : app.job_id)}
                         className="mt-1 text-xs font-bold text-indigo-600 dark:text-white hover:text-indigo-700 dark:hover:text-neutral-300 transition-colors"
@@ -809,9 +809,9 @@ export function JobApplicationTab() {
                       </div>
                       {job.description && (
                         <div className="mt-2">
-                          <p className={`text-sm text-gray-600 dark:text-neutral-400 leading-relaxed whitespace-pre-wrap transition-colors ${expandedId === job.id ? '' : 'line-clamp-2'}`}>
-                            {job.description}
-                          </p>
+                          <div className={`${expandedId === job.id ? '' : 'line-clamp-2 overflow-hidden'}`}>
+                            <HtmlContent html={job.description} className="text-gray-600 dark:text-neutral-400" />
+                          </div>
                           <button
                             onClick={() => setExpandedId(expandedId === job.id ? null : job.id)}
                             className="mt-1 text-xs font-bold text-indigo-600 dark:text-white hover:text-indigo-700 dark:hover:text-neutral-300 transition-colors"

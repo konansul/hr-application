@@ -28,6 +28,7 @@ type ResumeVersion = {
   hide_references?: boolean;
   valid_until?: string | null;
   job_description?: string | null;
+  public_sharing_enabled?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
 };
@@ -922,17 +923,12 @@ export function ResumeUploadTab() {
     }
   };
 
-  const handleResumeClick = async (resume: ResumeVersion) => {
+  const handleResumeClick = (resume: ResumeVersion) => {
     setSelectedResumeId(resume.resume_id);
     setConfirmDeleteId(null);
     setMessage(null);
-    setInlineLinkVisible(false);
+    setInlineLinkVisible(resume.public_sharing_enabled ?? false);
     setInlineLinkCopied(false);
-    if (resume.generated_document_id) {
-      await openOriginalPdf(resume.generated_document_id);
-    } else {
-      setShowPdfModal(true);
-    }
   };
 
   const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string, language?: string) => {
@@ -1421,7 +1417,20 @@ export function ResumeUploadTab() {
                         <span className="text-xs font-semibold text-gray-600 dark:text-neutral-300 shrink-0">{t.share.publicLink}</span>
                         {/* Toggle */}
                         <button
-                          onClick={() => setInlineLinkVisible(v => !v)}
+                          onClick={async () => {
+                            const newVal = !inlineLinkVisible;
+                            setInlineLinkVisible(newVal);
+                            if (selectedResumeId) {
+                              try {
+                                await resumesApi.setSharing(selectedResumeId, newVal);
+                                setResumeVersions(prev =>
+                                  prev.map(r => r.resume_id === selectedResumeId ? { ...r, public_sharing_enabled: newVal } : r)
+                                );
+                              } catch {
+                                setInlineLinkVisible(!newVal);
+                              }
+                            }
+                          }}
                           className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none ${inlineLinkVisible ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-neutral-600'}`}
                           aria-label="Toggle public link"
                         >
@@ -1634,7 +1643,7 @@ export function ResumeUploadTab() {
                         {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => (
                           <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold text-gray-900 dark:text-white shadow-sm">
                             {typeof skill === 'string' ? skill : skill.name || 'Skill'}
-                            {typeof skill === 'object' && skill.level ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
+                            {typeof skill === 'object' && skill.level && skill.level !== 'UNKNOWN' ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
                           </span>
                         )) : <span className="text-sm text-gray-400 italic">{t.placeholders.noSkills}</span>}
                       </div>
@@ -1673,7 +1682,7 @@ export function ResumeUploadTab() {
                         {selectedResume.education?.length ? selectedResume.education.map((edu: any, i: number) => (
                           <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                              {edu.degree || 'Degree'}{edu.field_of_study ? ` in ${edu.field_of_study}` : ''}
+                              {(edu.degree && edu.degree !== 'UNKNOWN' ? edu.degree : '') || 'Degree'}{edu.field_of_study && edu.field_of_study !== 'UNKNOWN' ? ` in ${edu.field_of_study}` : ''}
                             </h4>
                             {edu.institution && <p className="text-xs font-medium text-gray-500 dark:text-neutral-400">{edu.institution}</p>}
                             {(edu.start_date || edu.end_date) && <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}</p>}
@@ -1717,7 +1726,7 @@ export function ResumeUploadTab() {
                           </div>
                         ) : (
                           <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
-                            {selectedResume.languages!.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter(Boolean).join(', ')}
+                            {selectedResume.languages!.map((item: any) => typeof item === 'string' ? item : item.name || item.language).filter((v: any) => v && v !== 'UNKNOWN').join(', ')}
                           </p>
                         )}
                       </div>

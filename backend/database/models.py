@@ -97,6 +97,7 @@ class Resume(Base):
     generation_status = Column(String(32), nullable=False, default=ResumeGenerationStatus.READY.value)
     valid_until = Column(String(20), nullable=True)
     job_description = Column(Text, nullable=True)
+    public_sharing_enabled = Column(Boolean, nullable=False, default=False, server_default='false')
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     person = relationship("Person", back_populates="resumes")

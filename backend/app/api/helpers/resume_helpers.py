@@ -83,6 +83,7 @@ def resume_response(resume: Resume) -> Dict[str, Any]:
         "generation_status": resume.generation_status,
         "valid_until": resume.valid_until,
         "job_description": resume.job_description,
+        "public_sharing_enabled": resume.public_sharing_enabled,
         "resume_data": resume_payload(resume),
         "profile_snapshot": loads(resume.profile_snapshot_json, None),
         "created_at": resume.created_at.isoformat() if resume.created_at else None,

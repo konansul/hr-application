@@ -41,4 +41,8 @@ export const resumesApi = {
         const response = await apiClient.post('/v1/resumes/send-email', payload);
         return response.data;
     },
+    setSharing: async (resumeId: string, enabled: boolean) => {
+        const response = await apiClient.patch(`/v1/resumes/${resumeId}/sharing`, { enabled });
+        return response.data;
+    },
 };
