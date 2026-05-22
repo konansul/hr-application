@@ -227,9 +227,6 @@ export function PublicCvView({ token }: { token: string }) {
             <h1 className="font-bold leading-[1.05] mb-1 text-[#2F2F2F]" style={{ fontSize: 38, letterSpacing: '-0.03em' }}>
               {fullName}
             </h1>
-            {cv.title && (
-              <p className="text-base font-semibold mt-1 mb-2.5" style={{ color: '#FC5B26' }}>{cv.title}</p>
-            )}
             <div className="flex flex-wrap gap-1.5">
               {(info.city || info.country) && (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563]">
