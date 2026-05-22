@@ -330,7 +330,6 @@ export function JobsTab() {
     const [loading, setLoading] = useState(true);
 
     const [applyingJob, setApplyingJob] = useState<any>(null);
-    const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
     const [jobDetailModal, setJobDetailModal] = useState<any | null>(null);
     const [showQuestionnaire, setShowQuestionnaire] = useState(false);
     const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -728,31 +727,31 @@ export function JobsTab() {
     const totalJobPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
     const pagedJobs = displayedJobs.slice((jobsPage - 1) * JOBS_PER_PAGE, jobsPage * JOBS_PER_PAGE);
 
-    const orgCache = useRef<Record<string, OrgInfo>>({});
+    // const orgCache = useRef<Record<string, OrgInfo>>({});
     const orgCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLSpanElement>, jobId: string, orgId: string) => {
-        if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const top = rect.bottom + window.scrollY + 6;
-        const right = window.innerWidth - rect.right;
-        if (orgCache.current[orgId]) {
-            setOrgPopover({ jobId, orgId, loading: false, data: orgCache.current[orgId], top, right });
-            return;
-        }
-        setOrgPopover({ jobId, orgId, loading: true, data: null, top, right });
-        try {
-            const data = await authApi.getOrganizationPublic(orgId);
-            orgCache.current[orgId] = data;
-            setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data, top, right } : prev);
-        } catch {
-            setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data: null, top, right } : prev);
-        }
-    };
-
-    const handleOrgMouseLeave = () => {
-        orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
-    };
+    // const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLSpanElement>, jobId: string, orgId: string) => {
+    //     if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
+    //     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    //     const top = rect.bottom + window.scrollY + 6;
+    //     const right = window.innerWidth - rect.right;
+    //     if (orgCache.current[orgId]) {
+    //         setOrgPopover({ jobId, orgId, loading: false, data: orgCache.current[orgId], top, right });
+    //         return;
+    //     }
+    //     setOrgPopover({ jobId, orgId, loading: true, data: null, top, right });
+    //     try {
+    //         const data = await authApi.getOrganizationPublic(orgId);
+    //         orgCache.current[orgId] = data;
+    //         setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data, top, right } : prev);
+    //     } catch {
+    //         setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data: null, top, right } : prev);
+    //     }
+    // };
+    //
+    // const handleOrgMouseLeave = () => {
+    //     orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
+    // };
 
     const handlePopoverMouseEnter = () => {
         if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }

@@ -156,6 +156,7 @@ export function CandidateDashboard() {
 
   useEffect(() => {
     if (activeTab) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
       setMountedTabs(prev => prev.has(activeTab) ? prev : new Set([...prev, activeTab]));
     }
   }, [activeTab]);
