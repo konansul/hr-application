@@ -263,6 +263,31 @@ def send_resume_email(
     return {"ok": True}
 
 
+class ResumeSharingRequest(BaseModel):
+    enabled: bool
+
+
+@router.patch("/resumes/{resume_id}/sharing")
+def update_resume_sharing(
+    resume_id: str,
+    request: ResumeSharingRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    person = ensure_person(db, current_user)
+    resume = (
+        db.query(Resume)
+        .filter(Resume.resume_id == resume_id, Resume.person_id == person.person_id)
+        .first()
+    )
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume version not found")
+
+    resume.public_sharing_enabled = request.enabled
+    db.commit()
+    return {"ok": True, "public_sharing_enabled": resume.public_sharing_enabled}
+
+
 @router.delete("/resumes/{resume_id}")
 def delete_resume_version(
     resume_id: str,

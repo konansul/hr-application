@@ -89,6 +89,8 @@ def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
             )
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
+    if not resume.public_sharing_enabled:
+        raise HTTPException(status_code=403, detail="This resume is not publicly shared")
     return {
         "title": resume.title,
         "language": resume.language,

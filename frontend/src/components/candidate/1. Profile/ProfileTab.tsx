@@ -44,8 +44,7 @@ function getMissingKeys(profileData: any): string[] {
   const pi = profileData.personal_info || {};
   return REQUIRED_PI_FIELDS.filter(f => {
     const v = pi[f.key];
-    if (!v || v === '') return true;
-    if (f.isEnum && v === 'UNKNOWN') return true;
+    if (!v || v === '' || v === 'UNKNOWN') return true;
     return false;
   }).map(f => f.key);
 }
@@ -417,7 +416,7 @@ export function ProfileTab() {
         {label}
         {isAi && <AiInfoBadge />}
       </span>
-      <span className="text-sm font-medium text-gray-900 dark:text-white">{value || <span className="text-gray-300 dark:text-neutral-600 italic">{t.notSpecified}</span>}</span>
+      <span className="text-sm font-medium text-gray-900 dark:text-white">{(value && value !== 'UNKNOWN') ? value : <span className="text-gray-300 dark:text-neutral-600 italic">{t.notSpecified}</span>}</span>
     </div>
   );
 
