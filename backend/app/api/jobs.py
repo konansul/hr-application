@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from backend.app.schemas import JobCreate, JobOut
 from backend.app.schemas import JobRefineRequest, JobRefineResponse, JobUpdate
@@ -151,7 +151,7 @@ def list_jobs(
     if level and level != 'All':
         query = query.filter(Job.level == level)
 
-    jobs = query.order_by(Job.created_at.desc()).all()
+    jobs = query.options(joinedload(Job.organization)).order_by(Job.created_at.desc()).all()
 
     results = []
     for job in jobs:

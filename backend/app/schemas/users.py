@@ -16,6 +16,15 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[str] = None
+    org_id: Optional[str] = None
+    person_id: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    ai_quota: Optional[int] = None
+    ai_used: Optional[int] = None
 
 class UserMeResponse(BaseModel):
     user_id: str

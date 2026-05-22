@@ -45,9 +45,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         setMessage(`Account created. Please login.`);
         setMode('Login');
       } else {
-        await authApi.login(email, password);
-        const user = await authApi.getMe();
-        onLoginSuccess(user);
+        const loginData = await authApi.login(email, password);
+        onLoginSuccess(loginData);
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Auth failed');

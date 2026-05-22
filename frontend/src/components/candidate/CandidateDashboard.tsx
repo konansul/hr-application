@@ -70,6 +70,8 @@ export function CandidateDashboard() {
 
   const usesLeft = Math.max(0, aiQuota - aiUsed);
 
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(() => new Set([activeTab || 'profile']));
+
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -151,6 +153,12 @@ export function CandidateDashboard() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [setActiveTab]);
+
+  useEffect(() => {
+    if (activeTab) {
+      setMountedTabs(prev => prev.has(activeTab) ? prev : new Set([...prev, activeTab]));
+    }
+  }, [activeTab]);
 
   const navigate = useCallback((tab: string) => {
     setActiveTab(tab as any);
@@ -357,24 +365,12 @@ export function CandidateDashboard() {
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-24 md:pb-8">
           <div className="max-w-none mx-auto w-full transition-all duration-300">
-            <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
-              <ProfileTab />
-            </div>
-            <div className={activeTab === 'upload-cv' ? 'block' : 'hidden'}>
-              <ResumeUploadTab />
-            </div>
-            <div className={activeTab === 'jobs' ? 'block' : 'hidden'}>
-              <JobsTab />
-            </div>
-            <div className={activeTab === 'applications' ? 'block' : 'hidden'}>
-              <JobApplicationTab />
-            </div>
-            <div className={activeTab === 'improve' ? 'block' : 'hidden'}>
-              <ImproveCvTab initialJobDescription={globalJobDescription} />
-            </div>
-            <div className={activeTab === 'settings' ? 'block' : 'hidden'}>
-              <CandidateSettingsTab />
-            </div>
+            {mountedTabs.has('profile') && <div className={activeTab === 'profile' ? 'block' : 'hidden'}><ProfileTab /></div>}
+            {mountedTabs.has('upload-cv') && <div className={activeTab === 'upload-cv' ? 'block' : 'hidden'}><ResumeUploadTab /></div>}
+            {mountedTabs.has('jobs') && <div className={activeTab === 'jobs' ? 'block' : 'hidden'}><JobsTab /></div>}
+            {mountedTabs.has('applications') && <div className={activeTab === 'applications' ? 'block' : 'hidden'}><JobApplicationTab /></div>}
+            {mountedTabs.has('improve') && <div className={activeTab === 'improve' ? 'block' : 'hidden'}><ImproveCvTab initialJobDescription={globalJobDescription} /></div>}
+            {mountedTabs.has('settings') && <div className={activeTab === 'settings' ? 'block' : 'hidden'}><CandidateSettingsTab /></div>}
           </div>
         </div>
       </main>

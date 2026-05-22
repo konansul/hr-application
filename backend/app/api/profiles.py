@@ -2,7 +2,7 @@ import json
 
 from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy import or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from backend.app.api.helpers.ownership import get_current_user
 from backend.app.schemas import ProfileUpdateRequest, HRProfileUpdate
@@ -215,6 +215,7 @@ def list_candidates_for_hr(
         .join(Person, User.user_id == Person.user_id)
         .outerjoin(Application, Application.person_id == Person.person_id)
         .outerjoin(Job, Job.job_id == Application.job_id)
+        .options(joinedload(User.person_profile))
         .filter(User.role == "candidate")
         .filter(
             or_(

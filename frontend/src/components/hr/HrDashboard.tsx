@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { HrProfileTab } from './1. Profile/HrProfileTab';
 import { TalentPoolTab } from './2. Talent Pool/TalentPoolTab';
 import { JobTab } from './3. Jobs/JobTab';
@@ -32,6 +32,8 @@ export function HrDashboard() {
 
   const usesLeft = Math.max(0, aiQuota - aiUsed);
 
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(() => new Set([activeTab || 'job']));
+
   useEffect(() => {
     const navState = hrPathToNavState(window.location.pathname);
     if (navState?.tab) {
@@ -51,6 +53,12 @@ export function HrDashboard() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [setActiveTab]);
+
+  useEffect(() => {
+    if (activeTab) {
+      setMountedTabs(prev => prev.has(activeTab) ? prev : new Set([...prev, activeTab]));
+    }
+  }, [activeTab]);
 
   const navigate = useCallback((tab: string) => {
     setActiveTab(tab as any);
@@ -201,34 +209,14 @@ export function HrDashboard() {
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
           <div className="max-w-none mx-auto w-full transition-all duration-300">
-            <div className={activeTab === 'profile' ? 'block' : 'hidden'}>
-              <HrProfileTab />
-            </div>
-            <div className={activeTab === 'job' ? 'block' : 'hidden'}>
-              <JobTab setGlobalJobDescription={setGlobalJobDescription} />
-            </div>
-            <div className={activeTab === 'talent' ? 'block' : 'hidden'}>
-              <TalentPoolTab />
-            </div>
-            <div className={activeTab === 'screen' ? 'block' : 'hidden'}>
-              <ScreenTab
-                jobDescription={globalJobDescription}
-                globalBatchResults={globalBatchResults}
-                setGlobalBatchResults={setGlobalBatchResults}
-              />
-            </div>
-            <div className={activeTab === 'compare' ? 'block' : 'hidden'}>
-              <CompareTab batchResults={globalBatchResults} />
-            </div>
-            <div className={activeTab === 'kanban' ? 'block' : 'hidden'}>
-              <KanbanTab />
-            </div>
-            <div className={activeTab === 'history' ? 'block' : 'hidden'}>
-              <HistoryTab />
-            </div>
-            <div className={activeTab === 'settings' ? 'block' : 'hidden'}>
-              <SettingsTab />
-            </div>
+            {mountedTabs.has('profile') && <div className={activeTab === 'profile' ? 'block' : 'hidden'}><HrProfileTab /></div>}
+            {mountedTabs.has('job') && <div className={activeTab === 'job' ? 'block' : 'hidden'}><JobTab setGlobalJobDescription={setGlobalJobDescription} /></div>}
+            {mountedTabs.has('talent') && <div className={activeTab === 'talent' ? 'block' : 'hidden'}><TalentPoolTab /></div>}
+            {mountedTabs.has('screen') && <div className={activeTab === 'screen' ? 'block' : 'hidden'}><ScreenTab jobDescription={globalJobDescription} globalBatchResults={globalBatchResults} setGlobalBatchResults={setGlobalBatchResults} /></div>}
+            {mountedTabs.has('compare') && <div className={activeTab === 'compare' ? 'block' : 'hidden'}><CompareTab batchResults={globalBatchResults} /></div>}
+            {mountedTabs.has('kanban') && <div className={activeTab === 'kanban' ? 'block' : 'hidden'}><KanbanTab /></div>}
+            {mountedTabs.has('history') && <div className={activeTab === 'history' ? 'block' : 'hidden'}><HistoryTab /></div>}
+            {mountedTabs.has('settings') && <div className={activeTab === 'settings' ? 'block' : 'hidden'}><SettingsTab /></div>}
           </div>
         </div>
       </main>

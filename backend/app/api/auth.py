@@ -91,7 +91,25 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_access_token(subject=user.user_id)
-    return {"access_token": token, "token_type": "bearer"}
+
+    person = db.query(Person).filter(Person.user_id == user.user_id).first()
+
+    today = date.today()
+    actual_ai_used = user.ai_used if user.last_quota_reset == today else 0
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user_id": user.user_id,
+        "email": user.email,
+        "role": user.role,
+        "org_id": user.org_id,
+        "person_id": person.person_id if person else None,
+        "first_name": person.first_name if person else None,
+        "last_name": person.last_name if person else None,
+        "ai_quota": user.ai_quota,
+        "ai_used": actual_ai_used,
+    }
 
 
 @router.get("/auth/me", response_model=UserMeResponse)

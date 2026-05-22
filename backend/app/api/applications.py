@@ -6,7 +6,7 @@ from typing import Optional, List
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from backend.app.api.helpers.extract import extract_cv_text
 from backend.app.pipeline import run_cv_parsing
@@ -75,7 +75,10 @@ def list_applications_by_job(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    apps = db.query(Application).join(Job).filter(
+    apps = db.query(Application).join(Job).options(
+        joinedload(Application.person),
+        joinedload(Application.screening_result),
+    ).filter(
         Application.job_id == job_id,
         Job.org_id == current_user.org_id
     ).order_by(Application.created_at.desc()).all()
@@ -112,7 +115,11 @@ def list_all_organization_applications(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    apps = db.query(Application).join(Job).filter(
+    apps = db.query(Application).join(Job).options(
+        joinedload(Application.person),
+        joinedload(Application.job),
+        joinedload(Application.screening_result),
+    ).filter(
         Job.org_id == current_user.org_id
     ).order_by(Application.created_at.desc()).all()
 
@@ -271,7 +278,10 @@ def get_my_applications(
     if not person:
         return []
 
-    apps = db.query(Application).filter(Application.person_id == person.person_id).all()
+    apps = db.query(Application).options(
+        joinedload(Application.job),
+        joinedload(Application.screening_result),
+    ).filter(Application.person_id == person.person_id).all()
 
     out = []
     for app in apps:
