@@ -3,6 +3,7 @@ import { documentsApi, authApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 import { OnboardingWizard } from './OnboardingWizard';
+import { LoadingOverlay } from '../../shared/LoadingOverlay';
 
 const REQUIRED_PI_FIELDS: { key: string; label: string; isEnum: boolean }[] = [
   { key: 'first_name', label: 'First Name', isEnum: false },
@@ -72,6 +73,7 @@ export function ProfileTab() {
   const [_uploadIntent, setUploadIntent] = useState<'profile' | 'resume' | null>(null);
   const [syncWithProfile, setSyncWithProfile] = useState(true);
 
+  const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -164,6 +166,8 @@ export function ProfileTab() {
         await loadProfile(userData);
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoading(false);
       }
     };
     init();
@@ -1241,14 +1245,8 @@ export function ProfileTab() {
         </div>
       )}
 
-      {isUploading && (
-        <div className="fixed inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in">
-          <div className="flex flex-col items-center gap-4 bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 transition-colors">
-            <div className="w-10 h-10 border-4 border-gray-200 dark:border-neutral-800 border-t-gray-900 dark:border-t-white rounded-full animate-spin"></div>
-            <p className="font-semibold text-sm text-gray-900 dark:text-white">{t.upload.processing}</p>
-          </div>
-        </div>
-      )}
+      {isLoading && <LoadingOverlay />}
+      {isUploading && <LoadingOverlay message={t.upload.processing} />}
 
       {showWizard && user?.user_id && (
         <OnboardingWizard userId={user.user_id} onComplete={() => { setShowWizard(false); loadProfile(user); }} />

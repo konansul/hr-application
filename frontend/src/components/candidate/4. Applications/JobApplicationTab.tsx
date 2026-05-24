@@ -3,6 +3,7 @@ import { jobsApi, screeningApi, authApi, notificationsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 import { HtmlContent } from '../../shared/HtmlContent';
+import { LoadingOverlay } from '../../shared/LoadingOverlay';
 
 type OrgInfo = {
   org_id: string;
@@ -489,14 +490,7 @@ export function JobApplicationTab() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl max-w-2xl mx-auto mt-10 transition-colors">
-        <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{t.loading}</h3>
-      </div>
-    );
-  }
+  if (loading) return <LoadingOverlay />;
 
   return (
     <div className="w-full max-w-none mx-auto space-y-5 animate-in fade-in duration-300 pb-20">
