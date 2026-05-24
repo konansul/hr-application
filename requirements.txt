@@ -80,6 +80,7 @@ pytz==2026.1.post1
 referencing==0.37.0
 requests==2.32.5
 resend==2.29.0
+postmarker==1.0
 rpds-py==0.30.0
 rsa==4.9.1
 six==1.17.0

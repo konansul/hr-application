@@ -51,6 +51,8 @@ class User(Base):
     last_active_at = Column(DateTime(timezone=True), nullable=True)
     inactivity_warning_sent_at = Column(DateTime(timezone=True), nullable=True)
     reactivation_token = Column(String(128), nullable=True, index=True)
+    password_reset_token = Column(String(128), nullable=True, index=True)
+    password_reset_token_expires_at = Column(DateTime(timezone=True), nullable=True)
 
     organization = relationship("Organization", back_populates="users")
     person_profile = relationship("Person", back_populates="user", uselist=False)

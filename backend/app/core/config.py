@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     EMAIL_API_KEY: str = ""
-    EMAIL_FROM: str = "noreply@boldgeneric.com"
+    EMAIL_FROM: str = "noreply@hraipp.com"
+    POSTMARK_API_KEY: str = ""
 
     AZURE_STORAGE_CONNECTION_STRING: str
     AZURE_CONTAINER_NAME: str = "resumes"
