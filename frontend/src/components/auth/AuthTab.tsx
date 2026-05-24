@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { authApi } from '../../api';
 import { useStore } from '../../store';
 import { DICT, LANGUAGES } from '../../internationalization.ts';
@@ -18,7 +18,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const { theme, setTheme, language, setLanguage } = useStore();
   const t = DICT[language as keyof typeof DICT]?.auth || DICT.en.auth;
 
-  const [mode, setMode] = useState<'Login' | 'Register'>('Login');
+  const [mode, setMode] = useState<'Login' | 'Register' | 'ForgotPassword' | 'ResetPassword'>('Login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -26,9 +26,22 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [orgName, setOrgName] = useState('');
   const [role, setRole] = useState<'hr' | 'candidate'>('hr');
   const [consentChecked, setConsentChecked] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('reset_token');
+    if (token) {
+      setResetToken(token);
+      setMode('ResetPassword');
+    }
+  }, []);
 
   const PRIVACY_URL = "https://www.hraipp.com/privacy";
   const TERMS_URL = "https://www.hraipp.com/terms";
@@ -44,6 +57,15 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         await authApi.register(email, password, firstName, lastName, finalOrgName, role);
         setMessage(`Account created. Please login.`);
         setMode('Login');
+      } else if (mode === 'ForgotPassword') {
+        await authApi.requestPasswordReset(email);
+        setMessage('If this email is in our system, a reset link is on its way! Please check your inbox.');
+      } else if (mode === 'ResetPassword') {
+        await authApi.resetPassword(resetToken, newPassword);
+        setMessage('Password updated. You can now log in.');
+        setResetToken('');
+        window.history.replaceState({}, '', window.location.pathname);
+        setTimeout(() => setMode('Login'), 2000);
       } else {
         await authApi.login(email, password);
         const user = await authApi.getMe();
@@ -138,14 +160,25 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
           <div className="mb-10 text-center lg:text-left">
             <h2 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight">
-              {mode === 'Login' ? t.signIn : t.createAccount}
+              {mode === 'Login' ? t.signIn : mode === 'Register' ? t.createAccount : mode === 'ForgotPassword' ? 'Forgot password?' : 'Set new password'}
             </h2>
             <p className="text-zinc-500 dark:text-zinc-400 mt-3 text-sm sm:text-base font-medium">
-              {mode === 'Login' ? t.accessDash : t.joinPlatform}
+              {mode === 'Login' ? t.accessDash : mode === 'Register' ? t.joinPlatform : mode === 'ForgotPassword' ? "Enter your email and we'll send a reset link." : 'Choose a new password for your account.'}
             </p>
           </div>
 
-          <div className="relative flex p-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-2xl mb-10 backdrop-blur-sm border border-zinc-200/50 dark:border-zinc-800/50">
+          {(mode === 'ForgotPassword' || mode === 'ResetPassword') && (
+            <button
+              type="button"
+              onClick={() => { setMode('Login'); setError(null); setMessage(null); }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors mb-8"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              Back to login
+            </button>
+          )}
+
+          <div className={`relative flex p-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-2xl mb-10 backdrop-blur-sm border border-zinc-200/50 dark:border-zinc-800/50 ${(mode === 'ForgotPassword' || mode === 'ResetPassword') ? 'hidden' : ''}`}>
             <div
               className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-zinc-800 rounded-xl shadow-sm transition-all duration-300 ease-out ${mode === 'Register' ? 'translate-x-full' : 'translate-x-0'}`}
             ></div>
@@ -211,29 +244,87 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-widest ml-1">{t.email}</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
-                placeholder="name@example.com"
-              />
-            </div>
+            {mode !== 'ResetPassword' && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-widest ml-1">{t.email}</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                  placeholder="name@example.com"
+                />
+              </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-widest ml-1">{t.password}</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
-                placeholder="••••••••"
-              />
-            </div>
+            {(mode === 'Login' || mode === 'Register') && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-widest ml-1">{t.password}</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
+                  </button>
+                </div>
+                {mode === 'Login' && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => { setMode('ForgotPassword'); setError(null); setMessage(null); }}
+                      className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mode === 'ResetPassword' && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-widest ml-1">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {mode === 'Register' && (
               <div className="animate-in slide-in-from-bottom-2 duration-300 pt-2 space-y-5">
@@ -372,7 +463,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 disabled={mode === 'Register' && !consentChecked}
                 className="w-full py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-bold rounded-xl shadow-lg shadow-zinc-900/20 dark:shadow-white/10 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-900/30 dark:hover:shadow-white/20 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
               >
-                {mode === 'Login' ? t.signIn : t.createAccount}
+                {mode === 'Login' ? t.signIn : mode === 'Register' ? t.createAccount : mode === 'ForgotPassword' ? 'Send reset link' : 'Set new password'}
               </button>
             </div>
 
