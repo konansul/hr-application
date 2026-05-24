@@ -13,15 +13,31 @@ export function titleToSlug(title: string): string {
     .replace(/^-+|-+$/g, '') || 'untitled';
 }
 
-export function resumeToSlug(resume: ResumeStub, allResumes: ResumeStub[]): string {
-  const base = titleToSlug(resume.title || 'untitled');
-  const collision = allResumes.some(
-    (r) => r.resume_id !== resume.resume_id && titleToSlug(r.title || 'untitled') === base,
-  );
-  return collision ? `${base}-${resume.resume_id.slice(0, 6)}` : base;
+// Always embed the resume_id in the slug so deep links are stable regardless of
+// title language or renames. Format: "<title-slug>--<resume_id>" or just
+// "<resume_id>" when the title produces no ASCII characters.
+export function resumeToSlug(resume: ResumeStub, _allResumes?: ResumeStub[]): string {
+  const base = titleToSlug(resume.title || '');
+  const id = resume.resume_id;
+  // If the title yields meaningful ASCII text use it as a readable prefix
+  if (base && base !== 'untitled') return `${base}--${id}`;
+  return id;
 }
 
 export function slugToResumeId(slug: string, allResumes: ResumeStub[]): string | null {
+  // New format: "<title>--<resume_id>"
+  const doubleHyphen = slug.lastIndexOf('--');
+  if (doubleHyphen !== -1) {
+    const id = slug.slice(doubleHyphen + 2);
+    const match = allResumes.find((r) => r.resume_id === id);
+    if (match) return match.resume_id;
+  }
+
+  // Legacy: bare resume_id (non-ASCII titles that couldn't generate a slug)
+  const directMatch = allResumes.find((r) => r.resume_id === slug);
+  if (directMatch) return directMatch.resume_id;
+
+  // Legacy: old title-only slugs (backward compat for existing bookmarks)
   for (const r of allResumes) {
     if (titleToSlug(r.title || 'untitled') === slug) return r.resume_id;
   }

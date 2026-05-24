@@ -260,7 +260,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 value={dropdownValue}
                 onChange={(e) => handleDropdownChange(e.target.value)}
                 disabled={isProcessing}
-                className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">{(t as any).selectCvPlaceholder ?? 'Select a CV...'}</option>
                 {myDocuments.map(doc => (
@@ -289,7 +289,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 tabIndex={0}
                 onClick={() => !isProcessing && fileInputRef.current?.click()}
                 onKeyDown={(e) => e.key === 'Enter' && !isProcessing && fileInputRef.current?.click()}
-                className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700'}`}
+                className={`flex items-center border border-gray-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-black overflow-hidden transition-all ${isProcessing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <span className="shrink-0 py-2.5 px-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors border-r border-gray-300 dark:border-neutral-700 select-none">
                   {(t as any).chooseFile ?? 'Choose File'}
@@ -307,7 +307,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 disabled={isProcessing}
-                className="w-full min-h-[140px] px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 bg-gray-50 dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all resize-y"
+                className="w-full min-h-[140px] px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 bg-gray-50 dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl transition-all resize-y"
               />
             </div>
           </div>
@@ -317,7 +317,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             <button
               onClick={handleAnalyze}
               disabled={(!file && !selectedResumeId) || isProcessing}
-              className="w-full mt-auto py-3 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 dark:focus:ring-offset-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full mt-auto py-3 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <>

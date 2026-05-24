@@ -894,7 +894,7 @@ export function JobsTab() {
                         <select
                             value={selectedLevelKey}
                             onChange={(e) => setSelectedLevelKey(e.target.value)}
-                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white cursor-pointer transition-colors"
+                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors"
                         >
                             <option value="all">{tl.allLevels || 'All Levels'}</option>
                             <option value="junior">{t.levels.junior}</option>
@@ -915,7 +915,7 @@ export function JobsTab() {
                         <select
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value)}
-                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white cursor-pointer transition-colors"
+                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors"
                         >
                             <option value="all">{tl.allTypes || 'All Types'}</option>
                             <option value="full-time">{tl.types?.fullTime || 'Full-time'}</option>

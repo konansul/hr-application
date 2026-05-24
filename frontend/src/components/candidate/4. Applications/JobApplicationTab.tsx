@@ -546,7 +546,7 @@ export function JobApplicationTab() {
           <button
             key={f.key}
             onClick={() => setTypeFilter(f.key)}
-            className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors border-b-2 -mb-px flex items-center gap-2 ${
+            className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors border-b-2 -mb-px flex items-center gap-2 ${
               typeFilter === f.key
                 ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
                 : 'border-transparent text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300'

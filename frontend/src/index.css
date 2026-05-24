@@ -5,3 +5,45 @@
   0%, 100% { transform: scaleY(0.35); }
   50%       { transform: scaleY(1); }
 }
+
+/* ===== Button / Select fading glow on hover / click ===== */
+/* Two-layer box-shadow: a tight solid ring right at the edge (always visible)   */
+/* plus a blurred outer layer that fades to transparent further away.            */
+button:not(:disabled),
+select:not(:disabled),
+textarea:not(:disabled),
+div[role="button"]:not([aria-disabled="true"]) {
+  outline: none !important;
+  box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent !important;
+  filter: none !important;
+  transition: box-shadow 0.3s ease-in-out !important;
+}
+button:not(:disabled):hover,
+button:not(:disabled):focus-visible,
+select:not(:disabled):hover,
+select:not(:disabled):focus,
+textarea:not(:disabled):hover,
+textarea:not(:disabled):focus,
+div[role="button"]:not([aria-disabled="true"]):hover,
+div[role="button"]:not([aria-disabled="true"]):focus {
+  /* solid ring at the edge + soft fading halo beyond it */
+  box-shadow: 0 0 0 2px rgba(110, 40, 255, 0.9),
+              0 0 12px 5px rgba(110, 40, 255, 0.55) !important;
+}
+button:not(:disabled):active,
+select:not(:disabled):active,
+textarea:not(:disabled):active,
+div[role="button"]:not([aria-disabled="true"]):active {
+  box-shadow: 0 0 0 2px rgba(90, 20, 240, 1),
+              0 0 16px 7px rgba(90, 20, 240, 0.70) !important;
+  transition-duration: 0.05s !important;
+}
+
+/* Opt-out class for flat / icon-only elements */
+button.btn-flat,
+select.btn-flat,
+textarea.btn-flat,
+div[role="button"].btn-flat {
+  box-shadow: none !important;
+  transition: none !important;
+}

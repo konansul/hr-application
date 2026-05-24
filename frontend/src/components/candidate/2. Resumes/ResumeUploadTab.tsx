@@ -1225,14 +1225,15 @@ export function ResumeUploadTab() {
               return (
                 <div
                   key={resume.resume_id}
-                  className={`rounded-2xl border transition-all ${isActive ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm'}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleResumeClick(resume)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleResumeClick(resume); } }}
+                  className={`rounded-2xl border transition-all cursor-pointer ${isActive ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm'}`}
                 >
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
-                      <button
-                        onClick={() => handleResumeClick(resume)}
-                        className="min-w-0 flex-1 text-left"
-                      >
+                      <div className="min-w-0 flex-1 text-left">
                         <div className="flex items-center w-full gap-2 min-w-0">
                           <h4 className="text-sm font-semibold leading-snug break-words flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
                           <span className={`text-xs whitespace-nowrap shrink-0 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
@@ -1242,7 +1243,7 @@ export function ResumeUploadTab() {
                             {langLabel(resume.language)}
                           </span>
                         </div>
-                      </button>
+                      </div>
                       {!isPendingDelete && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(resume.resume_id); }}

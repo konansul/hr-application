@@ -8,7 +8,19 @@ import { PublicJobView } from './components/public/PublicJobView';
 import { authApi } from './api';
 import { useStore } from './store';
 
-const cvToken = new URLSearchParams(window.location.search).get('cv');
+// If the user appears to be logged in (persisted store) and arrives via a
+// ?cv=<id> link, redirect to /resumes/<id> so the dashboard handles it as a
+// deep link instead of showing the public viewer to the owner.
+let cvToken: string | null = new URLSearchParams(window.location.search).get('cv');
+if (cvToken) {
+  try {
+    const stored = JSON.parse(localStorage.getItem('app-storage') || '{}');
+    if (stored?.state?.isLoggedIn) {
+      window.history.replaceState({}, '', `/resumes/${cvToken}`);
+      cvToken = null; // skip PublicCvView branch below
+    }
+  } catch { /* ignore parse errors */ }
+}
 
 const pathname = window.location.pathname;
 
@@ -21,6 +33,7 @@ const publicSlug = isPublicProfile ? pathname.split('/')[2] : null;
 function App() {
   const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserId, setUserRole, setActiveTab, setAiLimits } = useStore();
 
+  // cvToken is null here if we already redirected to /resumes/<id>
   const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob);
 
   useEffect(() => {
@@ -32,6 +45,7 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
+    // cvToken is null after the logged-in redirect, so we still run checkAuth
     if (cvToken || isPublicProfile || isPublicJob) return;
 
     const checkAuth = async () => {
