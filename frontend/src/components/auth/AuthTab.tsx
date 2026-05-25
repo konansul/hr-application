@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { authApi } from '../../api';
 import { useStore } from '../../store';
 import { DICT, LANGUAGES } from '../../internationalization.ts';
+import { HraiLogo } from '../shared/HraiLogo';
 
 interface User {
   email: string;
@@ -111,10 +112,11 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
 
         <div className="relative z-10">
-          <div className="w-14 h-14 bg-gradient-to-br from-zinc-900 to-zinc-700 dark:from-white dark:to-zinc-200 rounded-2xl flex items-center justify-center mb-12 shadow-xl shadow-zinc-900/10 dark:shadow-white/5 transition-colors">
-            <svg className="w-7 h-7 text-white dark:text-zinc-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+          <div className="flex items-center gap-2.5 mb-12">
+            <HraiLogo height={38} />
+            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
+              HRAIPP
+            </span>
           </div>
 
           <h1 className="text-[2.75rem] font-black tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.15]">
@@ -225,7 +227,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                    className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
                     placeholder="John"
                   />
                 </div>
@@ -236,7 +238,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                    className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
                     placeholder="Doe"
                   />
                 </div>
@@ -251,7 +253,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                  className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
                   placeholder="name@example.com"
                 />
               </div>
@@ -266,7 +268,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
+                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
                     placeholder="••••••••"
                   />
                   <button
@@ -306,7 +308,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
+                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
                     placeholder="••••••••"
                   />
                   <button
@@ -371,7 +373,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
                       required
-                      className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:ring-indigo-500/50 dark:focus:border-indigo-500 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                      className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
                     />
                   </div>
                 )}

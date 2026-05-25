@@ -317,7 +317,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             <button
               onClick={handleAnalyze}
               disabled={(!file && !selectedResumeId) || isProcessing}
-              className="w-full mt-auto py-3 px-4 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full mt-auto py-3 px-4 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <>
@@ -657,7 +657,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 <button
                   onClick={handleGenerateVersion}
                   disabled={!selectedResumeId || totalSelected === 0 || isGeneratingVersion}
-                  className="px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  className="px-5 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-bold rounded-xl focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                 >
                 {isGeneratingVersion ? (
                   <>

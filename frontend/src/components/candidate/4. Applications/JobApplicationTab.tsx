@@ -412,7 +412,7 @@ export function JobApplicationTab() {
           {t.clickToMark}
         </p>
 
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto py-1 -my-1 pr-1 pb-2">
           {SELF_STAGES.map((stage, idx) => {
             const sNorm     = normalizeStatus(stage.value);
             const isCurrent = !isRejected && idx === currentIdx;
@@ -420,11 +420,14 @@ export function JobApplicationTab() {
 
             // Solid fill colours — inline hex avoids Tailwind purge / JIT issues
             let fill = '';
-            if      (isPast)    fill = isDark ? '#059669' : '#10b981'; // emerald
+            if      (isPast)    fill = '#92D8F2';                       // sky blue (same light/dark)
             else if (isCurrent) fill = isDark ? '#6366f1' : '#4f46e5'; // indigo
             else                fill = isDark ? '#262626' : '#f3f4f6'; // gray
 
-            const textCls = isPast || isCurrent
+            // #92D8F2 is a light colour — dark text for past, white for current
+            const textCls = isPast
+              ? 'text-slate-800'
+              : isCurrent
               ? 'text-white'
               : 'text-gray-400 dark:text-neutral-500';
 
@@ -433,21 +436,47 @@ export function JobApplicationTab() {
                 key={stage.value}
                 onClick={() => handleTrackedStageUpdate(job.id, stage.value)}
                 title={stageLabel(stage.value)}
-                className="relative flex-1 min-w-[88px] shrink-0 cursor-pointer select-none group focus:outline-none"
+                // btn-flat: opt out of the global rectangular box-shadow ring
+                className="btn-flat relative flex-1 min-w-[88px] shrink-0 cursor-pointer select-none group focus:outline-none"
                 style={{ background: 'none', border: 'none', padding: 0 }}
               >
-                {/* SVG draws the arrow shape — no clip-path, no CSS shape hacks */}
                 <svg
                   viewBox="0 0 100 100"
                   preserveAspectRatio="none"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', overflow: 'visible' }}
                 >
+                  {/* Base fill */}
                   <path d={arrowPath} fill={fill} />
+
+                  {/* Hover ring — strokes the arrow outline so the highlight
+                      follows the arrow shape, not the rectangular button box.
+                      vectorEffect="non-scaling-stroke" keeps the stroke width
+                      constant regardless of how wide/tall the SVG is stretched.
+                      overflow:visible on the SVG lets the drop-shadow bleed
+                      outside the viewBox boundary instead of being clipped.
+                      Three drop-shadow passes build up the same brightness as
+                      the inset ring + outer glow on regular buttons. */}
+                  <path
+                    d={arrowPath}
+                    fill="none"
+                    stroke="rgba(110, 40, 255, 1)"
+                    strokeWidth="3"
+                    vectorEffect="non-scaling-stroke"
+                    style={{ filter: 'drop-shadow(0 0 3px rgba(110,40,255,1)) drop-shadow(0 0 8px rgba(110,40,255,0.75)) drop-shadow(0 0 16px rgba(110,40,255,0.45))' }}
+                    className="opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300"
+                  />
+
+                  {/* Active: darken the fill slightly */}
+                  <path
+                    d={arrowPath}
+                    fill="rgba(0,0,0,0.12)"
+                    className="opacity-0 group-active:opacity-100 transition-opacity duration-75"
+                  />
                 </svg>
 
-                {/* Content sits on top of the SVG — right padding accounts for the arrow tip */}
+                {/* Content on top of the SVG */}
                 <div
-                  className={`relative z-10 flex flex-col items-center justify-center gap-1.5 py-4 transition-opacity group-hover:opacity-80 group-active:opacity-60 ${textCls}`}
+                  className={`relative z-10 flex flex-col items-center justify-center gap-1.5 py-4 ${textCls}`}
                   style={{ paddingLeft: '28px', paddingRight: '28px' }}
                 >
                   <div className="flex items-center justify-center w-5 h-5 shrink-0">
@@ -521,7 +550,7 @@ export function JobApplicationTab() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] flex items-center gap-2 shrink-0"
+          className="px-4 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] flex items-center gap-2 shrink-0"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -606,7 +635,7 @@ export function JobApplicationTab() {
               onChange={e => setStageFilter(e.target.value)}
               className={`appearance-none pl-3 pr-8 py-2 text-sm font-medium border rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:outline-none cursor-pointer transition-all ${
                 stageFilter !== 'all'
-                  ? 'bg-gray-900 dark:bg-white text-white dark:text-black border-gray-900 dark:border-white'
+                  ? 'bg-[#7A60F4] text-white border-[#7A60F4]'
                   : 'bg-white dark:bg-neutral-900 text-gray-700 dark:text-white border-gray-200 dark:border-neutral-700 hover:border-gray-400 dark:hover:border-neutral-500'
               }`}
             >
@@ -924,7 +953,7 @@ export function JobApplicationTab() {
               <button
                 onClick={handleAddTrackedJob}
                 disabled={!newJobTitle.trim() || submitting}
-                className="flex-1 py-2.5 text-sm font-semibold text-white dark:text-black bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {t.addAppBtn}
               </button>
@@ -1021,7 +1050,7 @@ export function JobApplicationTab() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setExternalModalUrl(null)}
-                className="flex-1 py-2.5 text-sm font-semibold text-center text-white dark:text-black bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 rounded-xl transition-colors"
+                className="flex-1 py-2.5 text-sm font-semibold text-center text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl transition-colors"
               >
                 {t.externalRedirectContinue}
               </a>

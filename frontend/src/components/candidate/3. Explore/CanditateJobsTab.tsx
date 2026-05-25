@@ -782,14 +782,14 @@ export function JobsTab() {
                     <div className="relative group">
                         <button
                             onClick={() => setSearchMode('internal')}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'internal' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'internal' ? 'border-[#7A60F4] bg-violet-50 dark:bg-violet-950/20' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
                         >
-                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'internal' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'internal' ? 'bg-[#7A60F4] text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
                                 </svg>
                             </div>
-                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.platformJobs ?? 'Platform Jobs'}</span>
+                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.platformJobs ?? 'Platform Jobs'}</span>
                         </button>
                         <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
@@ -800,14 +800,14 @@ export function JobsTab() {
                     <div className="relative group">
                         <button
                             onClick={() => setSearchMode('external')}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'external' ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'external' ? 'border-[#7A60F4] bg-violet-50 dark:bg-violet-950/20' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
                         >
-                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'external' ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'external' ? 'bg-[#7A60F4] text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.jobMarket ?? 'Job Market'}</span>
+                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.jobMarket ?? 'Job Market'}</span>
                         </button>
                         <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
@@ -821,16 +821,16 @@ export function JobsTab() {
                 <div className="relative group/smartfilter">
                 {/* Tooltip */}
                 <div className="pointer-events-none absolute bottom-full left-0 mb-2 z-50 w-72 opacity-0 group-hover/smartfilter:opacity-100 transition-opacity duration-150">
-                    <div className="bg-blue-600 dark:bg-blue-700 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
+                    <div className="bg-[#9EA4FF] dark:bg-[#9EA4FF]/90 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
                         {searchMode === 'internal'
-                            ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-blue-200 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
+                            ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-white/80 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
                             : <><span className="font-semibold">{tl.filterTooltipMarketTitle}</span> {tl.filterTooltipMarketBody}</>
                         }
                     </div>
-                    <div className="absolute top-full left-6 border-4 border-transparent border-t-blue-600 dark:border-t-blue-700" />
+                    <div className="absolute top-full left-6 border-4 border-transparent border-t-[#9EA4FF] dark:border-t-[#9EA4FF]/90" />
                 </div>
                 <div
-                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 focus-within:border-gray-400 dark:focus-within:border-neutral-500 transition-colors">
+                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 focus-within:shadow-[inset_0_0_0_2px_rgba(110,40,255,0.85),0_0_10px_4px_rgba(110,40,255,0.45)] transition-all">
                     <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -842,12 +842,12 @@ export function JobsTab() {
                         onChange={(e) => setSmartPrompt(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && applySmartAndSearch()}
                         placeholder={tl.smartPromptPlaceholder || 'e.g. "Senior developer jobs in EU, full-time"'}
-                        className="flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 outline-none"
+                        className="btn-flat flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 outline-none"
                     />
                     {smartPrompt.trim() && (
                         <button
                             onClick={applySmartAndSearch}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-1 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all"
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-1 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all"
                         >
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -865,13 +865,13 @@ export function JobsTab() {
                     <div className="relative group/searchfilter">
                         {/* Tooltip */}
                         <div className="pointer-events-none absolute bottom-full left-0 mb-2 z-50 w-72 opacity-0 group-hover/searchfilter:opacity-100 transition-opacity duration-150">
-                            <div className="bg-blue-600 dark:bg-blue-700 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
+                            <div className="bg-[#9EA4FF] dark:bg-[#9EA4FF]/90 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
                                 {searchMode === 'internal'
-                                    ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-blue-200 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
+                                    ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-white/80 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
                                     : <><span className="font-semibold">{tl.filterTooltipMarketTitle}</span> {tl.filterTooltipMarketBody}</>
                                 }
                             </div>
-                            <div className="absolute top-full left-6 border-4 border-transparent border-t-blue-600 dark:border-t-blue-700" />
+                            <div className="absolute top-full left-6 border-4 border-transparent border-t-[#9EA4FF] dark:border-t-[#9EA4FF]/90" />
                         </div>
                         <svg
                             className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500 pointer-events-none"
@@ -976,7 +976,7 @@ export function JobsTab() {
                     {/* Apply button */}
                     <button
                         onClick={() => { if (searchMode === 'external') fetchExternalJobs(1); }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-semibold rounded-xl transition-all"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-xs font-semibold rounded-xl transition-all"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -1160,7 +1160,7 @@ export function JobsTab() {
                                                 })()}
                                                 <button
                                                     onClick={() => setExternalModalUrl(job.url)}
-                                                    className="px-5 py-2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
+                                                    className="px-5 py-2 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
                                                 >
                                                     {tl.applyExternal ?? 'Apply →'}
                                                 </button>
@@ -1244,14 +1244,14 @@ export function JobsTab() {
                                                     {isClosed ? (
                                                         <span className="shrink-0 text-[10px] text-gray-400 dark:text-neutral-500 font-medium mt-0.5">{tl.positionClosed ?? 'Closed'}</span>
                                                     ) : userApp ? (
-                                                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm whitespace-nowrap">
+                                                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-[#92D8F2] text-slate-800 shadow-sm whitespace-nowrap">
                                                             <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                                             {t.appSubmittedBtn}
                                                         </span>
                                                     ) : (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleApplyClick(job); }}
-                                                            className="shrink-0 px-2.5 py-1 bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 text-white dark:text-black text-[10px] font-bold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                                                            className="shrink-0 px-2.5 py-1 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-[10px] font-bold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
                                                         >
                                                             {t.quickApplyBtn}
                                                         </button>
@@ -1262,7 +1262,7 @@ export function JobsTab() {
                                             {/* Badges + meta */}
                                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400 dark:text-neutral-500">
                                                 {job.level && (
-                                                    <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded text-[9px] font-bold uppercase tracking-wider">
+                                                    <span className="px-1.5 py-0.5 bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 text-[#5B52C8] dark:text-[#9EA4FF] border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded text-[9px] font-bold uppercase tracking-wider">
                                                         {getLevelLabel(job.level)}
                                                     </span>
                                                 )}
@@ -1328,7 +1328,7 @@ export function JobsTab() {
                                                 {isEllipsis && <span className="px-1 text-xs text-gray-300 dark:text-neutral-600">…</span>}
                                                 <button
                                                     onClick={() => setJobsPage(page)}
-                                                    className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors ${jobsPage === page ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700'}`}
+                                                    className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors ${jobsPage === page ? 'bg-[#7A60F4] text-white' : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700'}`}
                                                 >
                                                     {page}
                                                 </button>
@@ -1404,7 +1404,7 @@ export function JobsTab() {
                                 {t.cancel}
                             </button>
                             <button onClick={handleQuestionnaireSubmit}
-                                    className="flex-[2] py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 shadow-sm transition-all active:scale-[0.98]">
+                                    className="flex-[2] py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98]">
                                 {t.submitAnswers}
                             </button>
                         </div>
@@ -1459,7 +1459,7 @@ export function JobsTab() {
                                                         : 'border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800/60'
                                                 }`}>
                                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                                                isSelected ? 'bg-gray-900 dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'
+                                                isSelected ? 'bg-[#7A60F4] text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'
                                             }`}>
                                                 {isAI ? (
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1516,7 +1516,7 @@ export function JobsTab() {
                             </button>
                             <button onClick={submitApplicationFinal}
                                     disabled={!selectedResumeId}
-                                    className="flex-[2] py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
+                                    className="flex-[2] py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
                                 {tl.submitApplication ?? 'Submit Application'}
                             </button>
                         </div>
@@ -1551,7 +1551,7 @@ export function JobsTab() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => setExternalModalUrl(null)}
-                                className="flex-1 py-2.5 text-sm font-semibold text-center text-white dark:text-black bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 rounded-xl transition-colors"
+                                className="flex-1 py-2.5 text-sm font-semibold text-center text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl transition-colors"
                             >
                                 {tl.externalRedirectContinue}
                             </a>
@@ -1653,7 +1653,7 @@ export function JobsTab() {
                                     <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-snug">{job.title}</h3>
                                     <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-500 dark:text-neutral-400">
                                         {job.level && (
-                                            <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded text-[10px] font-bold uppercase tracking-wider">
+                                            <span className="px-2 py-0.5 bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 text-[#5B52C8] dark:text-[#9EA4FF] border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded text-[10px] font-bold uppercase tracking-wider">
                                                 {getLevelLabel(job.level)}
                                             </span>
                                         )}
@@ -1712,7 +1712,7 @@ export function JobsTab() {
                                 {!isClosed && !userApp && (
                                     <button
                                         onClick={() => { setJobDetailModal(null); handleApplyClick(job); }}
-                                        className="px-5 py-2 text-sm font-bold text-white dark:text-black bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-neutral-200 rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                                        className="px-5 py-2 text-sm font-bold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl shadow-sm transition-all active:scale-[0.98]"
                                     >
                                         {t.quickApplyBtn}
                                     </button>

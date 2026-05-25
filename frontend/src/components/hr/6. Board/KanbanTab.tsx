@@ -290,7 +290,7 @@ export function KanbanTab() {
                 </span>
               </div>
 
-              <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+              <div className="flex flex-col gap-3 flex-1 overflow-y-auto px-1 py-1 custom-scrollbar">
                 {columnCandidates.map(candidate => (
                   <div
                     key={candidate.id}

@@ -385,10 +385,10 @@ export function ProfileTab() {
 
   const AiInfoBadge = () => (
     <div className="relative group inline-flex items-center">
-      <svg className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-3.5 h-3.5 text-[#7A60F4] dark:text-[#9EA4FF] cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-blue-600 text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
+      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#7A60F4] text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
         {t.aiParsedTooltip}
         <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-blue-600" />
       </div>
@@ -406,7 +406,7 @@ export function ProfileTab() {
         </p>
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none"
+          className="mt-1.5 text-xs font-semibold text-[#7A60F4] dark:text-[#9EA4FF] hover:underline focus:outline-none"
         >
           {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
         </button>
@@ -436,7 +436,7 @@ export function ProfileTab() {
         {isMissing ? (
           <button
             onClick={() => { setIsEditingPersonalInfo(true); document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-            className="text-left text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+            className="text-left text-xs font-semibold text-[#FF906D] flex items-center gap-1.5 hover:text-[#c05020] dark:hover:text-[#FF906D] transition-colors"
           >
             <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -454,14 +454,14 @@ export function ProfileTab() {
     `w-full px-3 py-2 rounded-xl text-sm transition-all outline-none dark:text-white ${extra} ${
       validationErrors.has(fieldKey)
         ? 'bg-red-50 dark:bg-red-950/20 border-2 border-red-400 dark:border-red-500 focus:ring-2 focus:ring-red-400 dark:focus:ring-red-500'
-        : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white'
+        : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50'
     }`;
 
   const selectClass = (fieldKey: string) =>
     `w-full px-3 py-2 rounded-xl text-sm transition-all outline-none dark:text-white ${
       validationErrors.has(fieldKey)
         ? 'bg-red-50 dark:bg-red-950/20 border-2 border-red-400 dark:border-red-500 focus:ring-2 focus:ring-red-400 dark:focus:ring-red-500'
-        : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white'
+        : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50'
     }`;
 
   return (
@@ -494,7 +494,7 @@ export function ProfileTab() {
           <div id="personal-info-section" className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#7A60F4]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.personal.title}</h3>
                 {aiPersonalFields.size > 0 && <AiInfoBadge />}
               </div>
@@ -509,7 +509,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingPersonalInfo(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -532,11 +532,11 @@ export function ProfileTab() {
 
                   <div className="md:col-span-2 flex gap-6 pt-4">
                     <div className="flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${profileData.personal_info.open_to_remote ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-600'}`}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full ${profileData.personal_info.open_to_remote ? 'bg-[#7A60F4]' : 'bg-gray-300 dark:bg-neutral-600'}`}></div>
                       <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">{t.personal.openRemote}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${profileData.personal_info.open_to_relocation ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-600'}`}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full ${profileData.personal_info.open_to_relocation ? 'bg-[#7A60F4]' : 'bg-gray-300 dark:bg-neutral-600'}`}></div>
                       <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">{t.personal.openRelocation}</span>
                     </div>
                   </div>
@@ -605,24 +605,24 @@ export function ProfileTab() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.linkedin}</label>
-                    <input type="text" value={profileData.personal_info.linkedin_url || ''} onChange={(e) => handlePersonalInputChange('linkedin_url', e.target.value)} placeholder="https://linkedin.com/in/..." className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <input type="text" value={profileData.personal_info.linkedin_url || ''} onChange={(e) => handlePersonalInputChange('linkedin_url', e.target.value)} placeholder="https://linkedin.com/in/..." className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 transition-all outline-none dark:text-white" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.github}</label>
-                    <input type="text" value={profileData.personal_info.github_url || ''} onChange={(e) => handlePersonalInputChange('github_url', e.target.value)} placeholder="https://github.com/..." className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <input type="text" value={profileData.personal_info.github_url || ''} onChange={(e) => handlePersonalInputChange('github_url', e.target.value)} placeholder="https://github.com/..." className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 transition-all outline-none dark:text-white" />
                   </div>
                   <div className="space-y-1 md:col-span-2">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.personal.portfolio}</label>
-                    <input type="text" value={profileData.personal_info.portfolio_url || ''} onChange={(e) => handlePersonalInputChange('portfolio_url', e.target.value)} placeholder="https://yourname.com" className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white" />
+                    <input type="text" value={profileData.personal_info.portfolio_url || ''} onChange={(e) => handlePersonalInputChange('portfolio_url', e.target.value)} placeholder="https://yourname.com" className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 transition-all outline-none dark:text-white" />
                   </div>
 
                   <div className="flex gap-6 md:col-span-2 pt-4">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" checked={profileData.personal_info.open_to_remote} onChange={(e) => handlePersonalInputChange('open_to_remote', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-gray-900 dark:focus:ring-white bg-white dark:bg-neutral-800" />
+                      <input type="checkbox" checked={profileData.personal_info.open_to_remote} onChange={(e) => handlePersonalInputChange('open_to_remote', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 bg-white dark:bg-neutral-800" />
                       <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.personal.openRemote}</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" checked={profileData.personal_info.open_to_relocation} onChange={(e) => handlePersonalInputChange('open_to_relocation', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-gray-900 dark:focus:ring-white bg-white dark:bg-neutral-800" />
+                      <input type="checkbox" checked={profileData.personal_info.open_to_relocation} onChange={(e) => handlePersonalInputChange('open_to_relocation', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 bg-white dark:bg-neutral-800" />
                       <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.personal.openRelocation}</span>
                     </label>
                   </div>
@@ -634,7 +634,7 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#92D8F2]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.experience.title}</h3>
                 {profileData.experience?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
@@ -645,7 +645,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingExperience(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -673,22 +673,22 @@ export function ProfileTab() {
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
-                        <input type="text" placeholder={t.experience.jobTitle} value={exp.title || ''} onChange={(e) => handleArrayChange('experience', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
-                        <input type="text" placeholder={t.experience.company} value={exp.company || ''} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                        <input type="text" placeholder={t.experience.jobTitle} value={exp.title || ''} onChange={(e) => handleArrayChange('experience', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        <input type="text" placeholder={t.experience.company} value={exp.company || ''} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
 
                         <div className="relative">
-                          <input type="date" placeholder={t.experience.startDate} value={exp.start_date || ''} onChange={(e) => handleArrayChange('experience', i, 'start_date', e.target.value)} className="relative w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                          <input type="date" placeholder={t.experience.startDate} value={exp.start_date || ''} onChange={(e) => handleArrayChange('experience', i, 'start_date', e.target.value)} className="relative w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
                         </div>
 
                         <div className="relative">
-                          <input type="date" placeholder={t.experience.endDate} value={exp.end_date || ''} onChange={(e) => handleArrayChange('experience', i, 'end_date', e.target.value)} disabled={exp.is_current} className="relative w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none disabled:bg-gray-100 dark:disabled:bg-neutral-900 disabled:text-gray-400 dark:disabled:text-neutral-600 cursor-pointer disabled:cursor-not-allowed dark:text-white dark:[color-scheme:dark]" />
+                          <input type="date" placeholder={t.experience.endDate} value={exp.end_date || ''} onChange={(e) => handleArrayChange('experience', i, 'end_date', e.target.value)} disabled={exp.is_current} className="relative w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none disabled:bg-gray-100 dark:disabled:bg-neutral-900 disabled:text-gray-400 dark:disabled:text-neutral-600 cursor-pointer disabled:cursor-not-allowed dark:text-white dark:[color-scheme:dark]" />
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={exp.is_current || false} onChange={(e) => handleArrayChange('experience', i, 'is_current', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-gray-900 dark:focus:ring-white bg-white dark:bg-neutral-800" />
+                        <input type="checkbox" checked={exp.is_current || false} onChange={(e) => handleArrayChange('experience', i, 'is_current', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 bg-white dark:bg-neutral-800" />
                         <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">{t.experience.current}</span>
                       </div>
-                      <textarea placeholder={t.experience.desc} value={exp.description || ''} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} rows={3} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none dark:text-white" />
+                      <textarea placeholder={t.experience.desc} value={exp.description || ''} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} rows={3} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-none dark:text-white" />
                     </div>
                   ))}
                   <button onClick={() => addArrayItem('experience', { title: '', company: '', start_date: '', end_date: '', is_current: false, description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -702,7 +702,7 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#9EA4FF]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.education.title}</h3>
                 {profileData.education?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
@@ -713,7 +713,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingEducation(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -744,15 +744,15 @@ export function ProfileTab() {
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
-                        <input type="text" placeholder={t.education.institution} value={edu.institution || ''} onChange={(e) => handleArrayChange('education', i, 'institution', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
-                        <input type="text" placeholder={t.education.degree} value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
-                        <input type="text" placeholder={t.education.field} value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                        <input type="text" placeholder={t.education.institution} value={edu.institution || ''} onChange={(e) => handleArrayChange('education', i, 'institution', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        <input type="text" placeholder={t.education.degree} value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        <input type="text" placeholder={t.education.field} value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         <div className="flex gap-2">
-                          <input type="date" placeholder={t.education.start} value={edu.start_date ? (edu.start_date.length === 7 ? edu.start_date + '-01' : edu.start_date) : ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
-                          <input type="date" placeholder={t.education.end} value={edu.end_date ? (edu.end_date.length === 7 ? edu.end_date + '-01' : edu.end_date) : ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                          <input type="date" placeholder={t.education.start} value={edu.start_date ? (edu.start_date.length === 7 ? edu.start_date + '-01' : edu.start_date) : ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                          <input type="date" placeholder={t.education.end} value={edu.end_date ? (edu.end_date.length === 7 ? edu.end_date + '-01' : edu.end_date) : ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
                         </div>
                       </div>
-                      <textarea placeholder={t.education.desc} value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={2} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none resize-none dark:text-white" />
+                      <textarea placeholder={t.education.desc} value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={2} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-none dark:text-white" />
                     </div>
                   ))}
                   <button onClick={() => addArrayItem('education', { institution: '', degree: '', field_of_study: '', start_date: '', end_date: '', description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -766,7 +766,7 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FF906D]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.skills.title}</h3>
                 {profileData.skills?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
@@ -777,7 +777,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingSkills(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -794,8 +794,8 @@ export function ProfileTab() {
                 <div className="space-y-3">
                   {profileData.skills.map((s: any, i: number) => (
                     <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-neutral-800 rounded-xl bg-gray-50/30 dark:bg-neutral-800/30 relative">
-                      <input type="text" placeholder={t.skills.skillName} value={s.name || ''} onChange={(e) => handleArrayChange('skills', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
-                      <select value={s.level || ''} onChange={(e) => handleArrayChange('skills', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white">
+                      <input type="text" placeholder={t.skills.skillName} value={s.name || ''} onChange={(e) => handleArrayChange('skills', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                      <select value={s.level || ''} onChange={(e) => handleArrayChange('skills', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white">
                         <option value="">{t.skills.level}</option>
                         <option value="Beginner">{t.skills.beginner}</option>
                         <option value="Intermediate">{t.skills.intermediate}</option>
@@ -819,7 +819,7 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-teal-500 dark:bg-teal-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#92D8F2]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{(t as any).languages?.title ?? 'Languages'}</h3>
                 {profileData.languages?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
@@ -830,7 +830,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingLanguages(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -838,9 +838,9 @@ export function ProfileTab() {
               {!isEditingLanguages ? (
                 <div className="flex flex-wrap gap-2">
                   {profileData.languages?.length > 0 ? profileData.languages.map((lang: any, i: number) => (
-                    <span key={i} className="px-3 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-800 dark:text-teal-300 border border-teal-100 dark:border-teal-800/50 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5">
+                    <span key={i} className="px-3 py-1.5 bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border border-[#92D8F2]/40 dark:border-[#92D8F2]/25 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5">
                       {lang.name}
-                      {lang.level && lang.level !== 'UNKNOWN' && <span className="text-teal-500 dark:text-teal-400 text-[10px] ml-1">{lang.level}</span>}
+                      {lang.level && lang.level !== 'UNKNOWN' && <span className="text-slate-500 dark:text-[#92D8F2]/70 text-[10px] ml-1">{lang.level}</span>}
                       {lang._ai_generated && <AiInfoBadge />}
                     </span>
                   )) : <span className="text-sm text-gray-400 dark:text-neutral-500 italic">{(t as any).languages?.noLang ?? 'No languages added yet'}</span>}
@@ -849,8 +849,8 @@ export function ProfileTab() {
                 <div className="space-y-3">
                   {(profileData.languages || []).map((lang: any, i: number) => (
                     <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-neutral-800 rounded-xl bg-gray-50/30 dark:bg-neutral-800/30 relative">
-                      <input type="text" placeholder="Language (e.g. English)" value={lang.name || ''} onChange={(e) => handleArrayChange('languages', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
-                      <select value={lang.level || 'UNKNOWN'} onChange={(e) => handleArrayChange('languages', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white">
+                      <input type="text" placeholder="Language (e.g. English)" value={lang.name || ''} onChange={(e) => handleArrayChange('languages', i, 'name', e.target.value)} className="flex-1 px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                      <select value={lang.level || 'UNKNOWN'} onChange={(e) => handleArrayChange('languages', i, 'level', e.target.value)} className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white">
                         <option value="UNKNOWN">Level</option>
                         <option value="BASIC">Basic</option>
                         <option value="INTERMEDIATE">Intermediate</option>
@@ -875,7 +875,7 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FF906D]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.certifications.title}</h3>
                 {profileData.certifications?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
@@ -886,7 +886,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingCertifications(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -896,8 +896,8 @@ export function ProfileTab() {
                   <div className="space-y-3">
                     {profileData.certifications.map((cert: any, i: number) => (
                       <div key={i} className="flex items-start gap-4 p-4 border border-gray-100 dark:border-neutral-800 rounded-xl bg-gray-50/50 dark:bg-neutral-800/30">
-                        <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0 mt-0.5">
-                          <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                        <div className="w-8 h-8 rounded-lg bg-[#FF906D]/15 dark:bg-[#FF906D]/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <svg className="w-4 h-4 text-[#c05020] dark:text-[#FF906D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">{cert.name}{cert._ai_generated && <AiInfoBadge />}</p>
@@ -926,19 +926,19 @@ export function ProfileTab() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pr-8">
                         <div className="space-y-1 md:col-span-2">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.name}</label>
-                          <input type="text" placeholder="e.g. AWS Solutions Architect" value={cert.name || ''} onChange={(e) => handleArrayChange('certifications', i, 'name', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. AWS Solutions Architect" value={cert.name || ''} onChange={(e) => handleArrayChange('certifications', i, 'name', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1 md:col-span-2">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.issuer}</label>
-                          <input type="text" placeholder="e.g. Amazon Web Services" value={cert.issuer || ''} onChange={(e) => handleArrayChange('certifications', i, 'issuer', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. Amazon Web Services" value={cert.issuer || ''} onChange={(e) => handleArrayChange('certifications', i, 'issuer', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.issueDate}</label>
-                          <input type="text" placeholder="e.g. 2023-06" value={cert.issue_date || ''} onChange={(e) => handleArrayChange('certifications', i, 'issue_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. 2023-06" value={cert.issue_date || ''} onChange={(e) => handleArrayChange('certifications', i, 'issue_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.certifications.expirationDate}</label>
-                          <input type="text" placeholder="e.g. 2026-06" value={cert.expiration_date || ''} onChange={(e) => handleArrayChange('certifications', i, 'expiration_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. 2026-06" value={cert.expiration_date || ''} onChange={(e) => handleArrayChange('certifications', i, 'expiration_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                       </div>
                     </div>
@@ -954,7 +954,7 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-purple-500 dark:bg-purple-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#7A60F4]"></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.references.title}</h3>
               </div>
               {!isEditingReferences ? (
@@ -964,7 +964,7 @@ export function ProfileTab() {
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditingReferences(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel}</button>
-                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">{t.saveChanges}</button>
+                  <button onClick={handleSaveProfile} className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all">{t.saveChanges}</button>
                 </div>
               )}
             </div>
@@ -996,23 +996,23 @@ export function ProfileTab() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.references.fullName}</label>
-                          <input type="text" placeholder="e.g. Jane Doe" value={ref.name || ''} onChange={(e) => handleArrayChange('references', i, 'name', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. Jane Doe" value={ref.name || ''} onChange={(e) => handleArrayChange('references', i, 'name', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.references.company}</label>
-                          <input type="text" placeholder="e.g. Google" value={ref.company || ''} onChange={(e) => handleArrayChange('references', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. Google" value={ref.company || ''} onChange={(e) => handleArrayChange('references', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.references.jobTitle}</label>
-                          <input type="text" placeholder="e.g. Former Manager" value={ref.title || ''} onChange={(e) => handleArrayChange('references', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="text" placeholder="e.g. Former Manager" value={ref.title || ''} onChange={(e) => handleArrayChange('references', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.references.email}</label>
-                          <input type="email" placeholder="jane@example.com" value={ref.email || ''} onChange={(e) => handleArrayChange('references', i, 'email', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="email" placeholder="jane@example.com" value={ref.email || ''} onChange={(e) => handleArrayChange('references', i, 'email', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1 md:col-span-2">
                           <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.references.phone}</label>
-                          <input type="tel" placeholder="+1 234 567 8900" value={ref.phone || ''} onChange={(e) => handleArrayChange('references', i, 'phone', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none dark:text-white" />
+                          <input type="tel" placeholder="+1 234 567 8900" value={ref.phone || ''} onChange={(e) => handleArrayChange('references', i, 'phone', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
                       </div>
                     </div>
@@ -1032,9 +1032,9 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 flex flex-col items-center text-center transition-colors">
             <div className="relative mb-4 group cursor-pointer" onClick={() => photoInputRef.current?.click()}>
               {profileData.personal_info.photo ? (
-                <img src={profileData.personal_info.photo} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-indigo-100 dark:border-indigo-800/50 shadow-sm" />
+                <img src={profileData.personal_info.photo} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-[#7A60F4]/20 shadow-sm" />
               ) : (
-                <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50 shadow-sm transition-colors">
+                <div className="w-20 h-20 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/15 text-[#7A60F4] rounded-full flex items-center justify-center border border-[#7A60F4]/25 shadow-sm transition-colors">
                   <span className="text-2xl font-bold">
                     {profileData.personal_info.first_name?.[0] || user?.email?.[0]?.toUpperCase() || '?'}
                   </span>
@@ -1057,15 +1057,15 @@ export function ProfileTab() {
                 className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
               >
                 {t.sidebar.autofill}
-                <span className="text-[10px] font-bold bg-gray-900 dark:bg-white text-white dark:text-black rounded px-1 py-0.5 leading-none">AI</span>
+                <span className="text-[10px] font-bold bg-[#7A60F4] text-white rounded px-1 py-0.5 leading-none">AI</span>
               </button>
 
               {/* Import from URL */}
               <button
                 onClick={() => { setShowUrlImportInput(v => !v); setUrlImportValue(''); }}
-                className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-600 text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
               >
-                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-[#7A60F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
                 {(t as any).sidebar?.importFromUrl ?? 'Import from URL'}
@@ -1073,8 +1073,8 @@ export function ProfileTab() {
 
               {showUrlImportInput && (
                 <div className="pt-1 space-y-2">
-                  <div className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl focus-within:border-indigo-400 dark:focus-within:border-indigo-600 transition-colors">
-                    <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl focus-within:border-[#7A60F4]/60 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-[#7A60F4] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
                     <input
@@ -1090,7 +1090,7 @@ export function ProfileTab() {
                   <button
                     onClick={handleUrlImport}
                     disabled={!urlImportValue.trim() || isImportingUrl}
-                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2 bg-[#7A60F4] hover:bg-[#6B52E8] disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
                   >
                     {isImportingUrl && (
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1106,7 +1106,7 @@ export function ProfileTab() {
                 if (user?.user_id) localStorage.removeItem(`hrai_onboarding_${user.user_id}`);
                 setShowWizard(true);
               }}
-              className="w-full mt-1 text-xs text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors py-1 flex items-center justify-center gap-1"
+              className="w-full mt-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1122,20 +1122,20 @@ export function ProfileTab() {
             const pct = Math.round((completed / total) * 100);
             const isComplete = missing.length === 0;
             return (
-              <div className={`bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors ${isComplete ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-amber-200 dark:border-amber-700/50'}`}>
+              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors border-[#FF906D]/50 dark:border-[#FF906D]/30">
                 <div className="px-5 py-4">
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">{(t as any).sidebar?.profileCompleteness ?? 'Profile Completeness'}</span>
-                    <span className={`text-xs font-bold ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{pct}%</span>
+                    <span className="text-xs font-bold text-[#FF906D]">{pct}%</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-400' : 'bg-red-400'}`}
+                      className="h-full rounded-full transition-all duration-500 bg-[#FF906D]"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
                   {isComplete ? (
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                    <p className="text-xs text-[#c05020] dark:text-[#FF906D] font-semibold flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
@@ -1143,7 +1143,7 @@ export function ProfileTab() {
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
+                      <p className="text-[11px] text-[#c05020] dark:text-[#FF906D] font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {missing.map(key => {
                           const label = getFieldLabel(key);
@@ -1154,7 +1154,7 @@ export function ProfileTab() {
                                 setIsEditingPersonalInfo(true);
                                 document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                               }}
-                              className="px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700/50 rounded-lg text-[10px] font-bold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors flex items-center gap-1"
+                              className="px-2 py-1 bg-[#FF906D]/10 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] border border-[#FF906D]/30 dark:border-[#FF906D]/25 rounded-lg text-[10px] font-bold hover:bg-[#FF906D]/20 dark:hover:bg-[#FF906D]/20 transition-colors flex items-center gap-1"
                             >
                               <svg className="w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1232,7 +1232,7 @@ export function ProfileTab() {
                 type="checkbox"
                 checked={syncWithProfile}
                 onChange={(e) => setSyncWithProfile(e.target.checked)}
-                className="w-4 h-4 text-gray-900 dark:text-white bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-600 rounded focus:ring-gray-900 dark:focus:ring-white cursor-pointer"
+                className="w-4 h-4 text-gray-900 dark:text-white bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-600 rounded focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 cursor-pointer"
               />
               <span className="text-xs font-semibold text-gray-600 dark:text-neutral-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{t.upload.syncProfile}</span>
             </label>
@@ -1240,7 +1240,7 @@ export function ProfileTab() {
 
           <div className="flex items-center gap-2 pl-4">
             <button onClick={handleCancelUpload} className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors">{t.cancel || 'Cancel'}</button>
-            <button onClick={handleUploadConfirm} className="px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all shadow-sm">{t.upload.confirm}</button>
+            <button onClick={handleUploadConfirm} className="px-5 py-2 bg-[#7A60F4] text-white text-xs font-semibold rounded-xl hover:bg-[#6B52E8] transition-all shadow-sm">{t.upload.confirm}</button>
           </div>
         </div>
       )}

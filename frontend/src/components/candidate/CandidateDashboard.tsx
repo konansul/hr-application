@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { HraiLogo } from '../shared/HraiLogo';
 import { ProfileTab } from './1. Profile/ProfileTab';
 import { ResumeUploadTab } from './2. Resumes/ResumeUploadTab';
 import { JobsTab } from './3. Explore/CanditateJobsTab';
@@ -179,10 +180,10 @@ export function CandidateDashboard() {
     <div data-notif-container className={`relative ${className}`}>
       <button
         onClick={handleBellClick}
-        className="relative p-2 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+        className="relative p-2 text-[#7A60F4] dark:text-[#9EA4FF] hover:bg-violet-50 dark:hover:bg-violet-950/30 rounded-lg transition-colors"
         aria-label="Notifications"
       >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
@@ -242,32 +243,30 @@ export function CandidateDashboard() {
         onClick={() => navigate(id)}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
           isActive
-            ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm border border-gray-200/60 dark:border-neutral-700'
-            : 'text-gray-600 dark:text-neutral-400 hover:bg-gray-200/50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white border border-transparent'
+            ? 'bg-[#7A60F4] text-white shadow-sm border border-[#6B52E8]'
+            : 'text-gray-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white border border-transparent'
         }`}
       >
-        <span className={`${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300'}`}>{icon}</span>
+        <span className={`${isActive ? 'text-white' : 'text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300'}`}>{icon}</span>
         <span className="truncate">{label}</span>
       </button>
     );
   };
 
   return (
-    <div className="flex h-screen w-full bg-white dark:bg-black text-gray-900 dark:text-white overflow-hidden transition-colors duration-300">
+    <div className="flex h-screen w-full hrai-app-bg text-gray-900 dark:text-white overflow-hidden transition-colors duration-300">
 
       <aside className={`
         hidden md:flex flex-col
         ${isSidebarOpen ? 'w-64 px-3' : 'w-0 px-0'}
-        py-4 bg-gray-50 dark:bg-neutral-900 border-r border-gray-100 dark:border-neutral-800
+        py-4 hrai-sidebar border-r border-white/40 dark:border-neutral-800
         transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10
       `}>
-        <div className="flex items-center px-3 mb-4 mt-2 shrink-0">
-          <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center mr-3 shrink-0 shadow-sm">
-            <svg className="w-5 h-5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-          <h1 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">{t.portal}</h1>
+        <div className="flex items-center px-3 mb-4 mt-2 shrink-0 gap-2.5">
+          <HraiLogo height={34} />
+          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
+            HRAIPP
+          </span>
         </div>
 
         {usesLeft === 0 && (
@@ -287,7 +286,7 @@ export function CandidateDashboard() {
           </div>
         )}
 
-        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto font-medium custom-scrollbar pr-1 relative z-10 mt-2">
+        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto font-medium custom-scrollbar relative z-10 mt-2 px-2 py-1">
           {NAV_ITEMS.map(item => (
             <SideNavItem
               key={item.id}
@@ -298,7 +297,7 @@ export function CandidateDashboard() {
           ))}
         </nav>
 
-        <div className="mt-auto px-0 py-3 space-y-1 shrink-0">
+        <div className="mt-auto px-2 py-3 space-y-1 shrink-0">
             {/* eslint-disable-next-line react-hooks/static-components */}
           <SideNavItem
             id="settings"
@@ -325,9 +324,9 @@ export function CandidateDashboard() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-black transition-colors duration-300">
+      <main className="flex-1 flex flex-col min-w-0 hrai-main transition-colors duration-300">
 
-        <header className="hidden md:flex h-14 items-center px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800 gap-2">
+        <header className="hidden md:flex h-14 items-center px-4 shrink-0 border-b border-white/50 dark:border-neutral-800 gap-2">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-2 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
@@ -342,15 +341,11 @@ export function CandidateDashboard() {
           </div>
         </header>
 
-        <header className="md:hidden h-14 flex items-center justify-between px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-colors">
+        <header className="md:hidden h-14 flex items-center justify-between px-4 shrink-0 border-b border-white/50 dark:border-neutral-800 transition-colors">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center shadow-sm">
-              <svg className="w-4 h-4 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-              {activeTab === 'settings' ? t.settings : (t[activeTab as keyof typeof t] ?? t.portal)}
+            <HraiLogo height={28} />
+            <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
+              HRAIPP
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -388,17 +383,17 @@ export function CandidateDashboard() {
                 key={item.id}
                 onClick={() => navigate(item.id)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 transition-colors relative ${
-                  isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300'
+                  isActive ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300'
                 }`}
               >
                 <span className={`transition-transform ${isActive ? 'scale-110' : ''}`}>
                   {item.icon}
                 </span>
-                <span className={`text-[10px] font-semibold leading-tight ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500'}`}>
+                <span className={`text-[10px] font-semibold leading-tight ${isActive ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-400 dark:text-neutral-500'}`}>
                   {t[item.id as keyof typeof t]}
                 </span>
                 {isActive && (
-                  <span className="absolute top-0 w-8 h-0.5 bg-gray-900 dark:bg-white rounded-full" />
+                  <span className="absolute top-0 w-8 h-0.5 bg-[#7A60F4] rounded-full" />
                 )}
               </button>
             );

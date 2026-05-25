@@ -236,7 +236,7 @@ function ModalActions({ onClose, onSubmit, disabled, submitLabel, submitClass }:
       <button
         onClick={onSubmit}
         disabled={disabled}
-        className={`flex-1 py-3 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-60 ${submitClass ?? 'bg-gray-900 hover:bg-gray-800'}`}
+        className={`flex-1 py-3 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-60 ${submitClass ?? 'bg-[#7A60F4] hover:bg-[#6B52E8]'}`}
       >
         {submitLabel}
       </button>
@@ -332,7 +332,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
                 key={r.resume_id}
                 type="button"
                 onClick={() => { setSourceId(r.resume_id); setAutoTitle(true); }}
-                className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${isSelected ? 'border-gray-900 bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50'}`}
+                className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${isSelected ? 'border-[#7A60F4] bg-[#7A60F4] text-white' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div>
@@ -1132,14 +1132,14 @@ export function ResumeUploadTab() {
         <div className="flex items-center gap-1.5 w-full">
           <button
             onClick={() => setShowBestPractices(true)}
-            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800/50"
+            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 text-[#5B52C8] dark:text-[#9EA4FF] border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25"
           >
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
             {(t as any).cvTips?.title ?? 'CV Tips'}
           </button>
           <button
             onClick={() => setActiveTab('improve')}
-            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50"
+            className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl shadow-sm border transition-all whitespace-nowrap bg-[#92D8F2]/20 dark:bg-[#92D8F2]/10 hover:bg-[#92D8F2]/30 dark:hover:bg-[#92D8F2]/20 text-slate-700 dark:text-[#92D8F2] border-[#92D8F2]/50 dark:border-[#92D8F2]/25"
           >
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             {(t as any).improveBtn ?? 'Improve CV'}
@@ -1148,7 +1148,7 @@ export function ResumeUploadTab() {
             <button
               onClick={() => setShowCreateMenu(v => !v)}
               disabled={isWorking}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-semibold rounded-xl shadow-sm transition-all whitespace-nowrap disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-xs font-semibold rounded-xl shadow-sm transition-all whitespace-nowrap disabled:opacity-60"
             >
               <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               {(t as any).createVersionBtn ?? 'Create Resume Version'}
@@ -1158,33 +1158,33 @@ export function ResumeUploadTab() {
               <div className="absolute left-0 top-full mt-1.5 z-50 w-52 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl overflow-hidden">
                 <button
                   onClick={() => { setShowCreateMenu(false); fileInputRef.current?.click(); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-[#E3F1F6] dark:hover:bg-[#92D8F2]/10 transition-colors text-left"
                 >
-                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                  <svg className="w-4 h-4 shrink-0 text-[#92D8F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                   {t.uploadCv}
                 </button>
                 <button
                   onClick={() => { setShowCreateMenu(false); setShowProfileModal(true); }}
                   disabled={isWorking}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left disabled:opacity-60"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-[#7A60F4]/10 dark:hover:bg-[#7A60F4]/10 transition-colors text-left disabled:opacity-60"
                 >
-                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  <svg className="w-4 h-4 shrink-0 text-[#7A60F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   {t.fromProfile}
                 </button>
                 <button
                   onClick={() => { if (resumeVersions.length > 0) { setShowCreateMenu(false); setShowDuplicateModal(true); } }}
                   disabled={isWorking || resumeVersions.length === 0}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left disabled:opacity-60"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-[#9EA4FF]/10 dark:hover:bg-[#9EA4FF]/10 transition-colors text-left disabled:opacity-60"
                 >
-                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  <svg className="w-4 h-4 shrink-0 text-[#9EA4FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                   {t.duplicate}
                 </button>
                 <button
                   onClick={() => { setShowCreateMenu(false); setShowJobDescModal(true); }}
                   disabled={isWorking}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left disabled:opacity-60"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white hover:bg-[#FF906D]/10 dark:hover:bg-[#FF906D]/10 transition-colors text-left disabled:opacity-60"
                 >
-                  <svg className="w-4 h-4 shrink-0 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  <svg className="w-4 h-4 shrink-0 text-[#FF906D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   {t.fromJob}
                 </button>
               </div>
@@ -1229,7 +1229,7 @@ export function ResumeUploadTab() {
                   tabIndex={0}
                   onClick={() => handleResumeClick(resume)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleResumeClick(resume); } }}
-                  className={`rounded-2xl border transition-all cursor-pointer ${isActive ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm'}`}
+                  className={`rounded-2xl border transition-all cursor-pointer ${isActive ? 'border-[#7A60F4] bg-[#7A60F4] text-white shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm'}`}
                 >
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
@@ -1320,8 +1320,8 @@ export function ResumeUploadTab() {
                   <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate min-w-0 flex-1">{selectedResume?.title || t.untitled}</h3>
                 )}
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
-                <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-xs font-semibold text-gray-500 dark:text-neutral-400 whitespace-nowrap">
+              <div className="flex items-center gap-2 overflow-x-auto py-1 -my-1">
+                <span className="px-2.5 py-1 rounded-full bg-[#E3F1F6] dark:bg-[#1c2e3a] border border-[#92D8F2]/50 dark:border-[#92D8F2]/20 text-xs font-semibold text-slate-600 dark:text-[#92D8F2] whitespace-nowrap">
                   {selectedResume ? sourceTypeLabel(selectedResume.source_type, t) : '—'}
                 </span>
                 {selectedResume && (
@@ -1336,7 +1336,7 @@ export function ResumeUploadTab() {
                       <button
                         onClick={handleSaveContent}
                         disabled={isSavingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-white dark:text-gray-900 bg-gray-900 dark:bg-white rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-100 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] rounded-lg hover:bg-[#6B52E8] transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
                       >
                         {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                         {isSavingContent ? t.actions.saving : t.actions.save}
@@ -1347,7 +1347,7 @@ export function ResumeUploadTab() {
                       {selectedResume.generated_document_id && (
                         <button
                           onClick={() => openOriginalPdf(selectedResume.generated_document_id!)}
-                          className="px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                          className="px-3 py-1.5 text-xs font-semibold text-[#5B52C8] dark:text-[#9EA4FF] bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded-lg hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -1357,7 +1357,7 @@ export function ResumeUploadTab() {
                       )}
                       <button
                         onClick={() => setShowPdfModal(true)}
-                        className="px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-[#c05020] dark:text-[#FF906D] bg-[#FF906D]/15 dark:bg-[#FF906D]/10 border border-[#FF906D]/40 dark:border-[#FF906D]/25 rounded-lg hover:bg-[#FF906D]/25 dark:hover:bg-[#FF906D]/20 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1366,7 +1366,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={openShareModal}
-                        className="px-3 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/50 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-[#92D8F2] bg-[#92D8F2]/20 dark:bg-[#92D8F2]/10 border border-[#92D8F2]/50 dark:border-[#92D8F2]/25 rounded-lg hover:bg-[#92D8F2]/30 dark:hover:bg-[#92D8F2]/20 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1375,7 +1375,7 @@ export function ResumeUploadTab() {
                       </button>
                       <button
                         onClick={startEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] border border-[#6B52E8] rounded-lg hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
@@ -1803,9 +1803,9 @@ export function ResumeUploadTab() {
                       <button
                         onClick={handleSaveContent}
                         disabled={isSavingContent}
-                        className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                       >
-                        {isSavingContent && <div className="w-3.5 h-3.5 border-2 border-white/30 dark:border-gray-900/30 border-t-white dark:border-t-gray-900 rounded-full animate-spin" />}
+                        {isSavingContent && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                         {isSavingContent ? t.actions.saving : t.actions.save}
                       </button>
                     </div>
@@ -1823,7 +1823,7 @@ export function ResumeUploadTab() {
                   <h3 className="text-sm font-bold text-gray-700 dark:text-neutral-300 uppercase tracking-widest">{t.pdfCard.title}</h3>
                 </div>
                 {selectedResume.generated_document_id && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-1 rounded-full">{t.pdfCard.saved}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#c05020] dark:text-[#FF906D] bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border border-[#FF906D]/40 dark:border-[#FF906D]/25 px-2.5 py-1 rounded-full">{t.pdfCard.saved}</span>
                 )}
               </div>
               <div className="p-6 space-y-4">
@@ -1842,21 +1842,21 @@ export function ResumeUploadTab() {
                             setTimeout(() => URL.revokeObjectURL(url), 10_000);
                           } catch { setMessage({ text: 'Could not download the saved PDF.', type: 'error' }); }
                         }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold rounded-xl border border-rose-100 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#FF906D]/15 hover:bg-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D] text-sm font-semibold rounded-xl border border-[#FF906D]/40 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         {t.pdfCard.downloadBtn}
                       </button>
                       <button
                         onClick={() => setShowSavePdfModal(true)}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 text-sm font-semibold rounded-xl border border-gray-200 dark:border-neutral-700 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 text-[#5B52C8] dark:text-[#9EA4FF] text-sm font-semibold rounded-xl border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         {t.pdfCard.regenerateBtn}
                       </button>
                       <button
                         onClick={() => { setSendEmailStatus('idle'); setShowSendEmailModal(true); }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 dark:bg-sky-900/20 dark:hover:bg-sky-900/30 dark:text-sky-400 text-sm font-semibold rounded-xl border border-sky-100 dark:border-sky-800/50 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#92D8F2]/20 dark:bg-[#92D8F2]/10 hover:bg-[#92D8F2]/30 dark:hover:bg-[#92D8F2]/20 text-slate-700 dark:text-[#92D8F2] text-sm font-semibold rounded-xl border border-[#92D8F2]/50 dark:border-[#92D8F2]/25 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1870,7 +1870,7 @@ export function ResumeUploadTab() {
                     <p className="text-sm text-gray-500 dark:text-neutral-400">{t.pdfCard.notSavedDesc}</p>
                     <button
                       onClick={() => setShowSavePdfModal(true)}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                       {t.pdfCard.saveBtn}
@@ -1910,7 +1910,7 @@ export function ResumeUploadTab() {
           </div>
           <div className="flex items-center gap-2 pl-4 border-l border-gray-100">
             <button onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">{t.actions.cancel}</button>
-            <button onClick={handleUpload} className="px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-sm">{t.createVersion}</button>
+            <button onClick={handleUpload} className="px-5 py-2 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-xs font-semibold rounded-xl transition-all shadow-sm">{t.createVersion}</button>
           </div>
         </div>
       )}
@@ -2123,7 +2123,7 @@ export function ResumeUploadTab() {
                   <a
                     href={docViewerUrl}
                     download={`${selectedResume.title || 'resume'}.pdf`.replace(/\s+/g, '_')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#c05020] dark:text-[#FF906D] bg-[#FF906D]/15 dark:bg-[#FF906D]/10 border border-[#FF906D]/40 dark:border-[#FF906D]/25 rounded-lg hover:bg-[#FF906D]/25 dark:hover:bg-[#FF906D]/20 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     {(t as any).download ?? 'Download'}
@@ -2131,7 +2131,7 @@ export function ResumeUploadTab() {
                 )}
                 <button
                   onClick={() => { closeDocViewer(); setShowPdfModal(true); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5B52C8] dark:text-[#9EA4FF] bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded-lg hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                   {(t as any).pdfExport?.regenerate ?? 'Regenerate'}
@@ -2207,7 +2207,7 @@ export function ResumeUploadTab() {
                   <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">{(t as any).pdfExport?.subtitle ?? 'Preview a template, then download'}</p>
                   {!!selectedResume.personal_info?.photo && (
                     <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
-                      <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
+                      <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-[#7A60F4]' : 'bg-gray-300'}`}>
                         <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
                       </span>
                       {(t as any).pdfExport?.includePhoto ?? 'Include photo'}
@@ -2223,11 +2223,11 @@ export function ResumeUploadTab() {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === tmpl.id;
                   return (
-                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
+                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
-                          {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
+                          {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-[#5B52C8] bg-[#9EA4FF]/15 px-1.5 py-0.5 rounded-full border border-[#9EA4FF]/40">photo</span>}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
                       </div>
@@ -2235,10 +2235,10 @@ export function ResumeUploadTab() {
                         <button
                           onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
                           disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
-                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-[#9EA4FF]/20 text-[#5B52C8] border-[#9EA4FF]/40' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
                           {previewingTemplateId === tmpl.id && !previewBlobUrl
-                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
+                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
                             : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
                         </button>
                         <button
@@ -2257,7 +2257,7 @@ export function ResumeUploadTab() {
                               closePdfModals();
                             } finally { setIsGeneratingPdf(false); }
                           }}
-                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40 transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#7A60F4] hover:bg-[#6B52E8] text-white shadow-sm transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
                         >
                           {isGeneratingPdf
                             ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -2295,7 +2295,7 @@ export function ResumeUploadTab() {
                   <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5">{(t as any).pdfExport?.saveSubtitle ?? 'Preview a template, then save'}</p>
                   {!!selectedResume.personal_info?.photo && (
                     <button type="button" onClick={() => setPdfIncludePhoto(v => !v)} className="mt-2 flex items-center gap-2 text-xs text-gray-600 select-none">
-                      <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-indigo-500' : 'bg-gray-300'}`}>
+                      <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pdfIncludePhoto ? 'bg-[#7A60F4]' : 'bg-gray-300'}`}>
                         <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${pdfIncludePhoto ? 'translate-x-4' : 'translate-x-1'}`} />
                       </span>
                       {(t as any).pdfExport?.includePhoto ?? 'Include photo'}
@@ -2311,11 +2311,11 @@ export function ResumeUploadTab() {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === tmpl.id;
                   return (
-                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
+                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
-                          {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">photo</span>}
+                          {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-[#5B52C8] bg-[#9EA4FF]/15 px-1.5 py-0.5 rounded-full border border-[#9EA4FF]/40">photo</span>}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
                       </div>
@@ -2323,10 +2323,10 @@ export function ResumeUploadTab() {
                         <button
                           onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
                           disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
-                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-[#9EA4FF]/20 text-[#5B52C8] border-[#9EA4FF]/40' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
                           {previewingTemplateId === tmpl.id && !previewBlobUrl
-                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
+                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
                             : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
                         </button>
                         <button
@@ -2346,7 +2346,7 @@ export function ResumeUploadTab() {
                               setMessage({ text: 'Could not save the PDF. Please try again.', type: 'error' });
                             } finally { setSavingPdfTemplateId(null); }
                           }}
-                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-400 hover:to-blue-400 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/40 transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#7A60F4] hover:bg-[#6B52E8] text-white shadow-sm transition-all duration-200 disabled:opacity-50 flex items-center gap-1.5 tracking-wide"
                         >
                           {savingPdfTemplateId === tmpl.id
                             ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />

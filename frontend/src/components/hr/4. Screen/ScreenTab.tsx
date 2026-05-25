@@ -464,7 +464,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
             {results.length > 0 && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 transition-colors">
                     <div
-                        className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm overflow-x-auto custom-scrollbar transition-colors">
+                        className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm overflow-x-auto custom-scrollbar transition-colors">
                         <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
                             <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
                             <tr>

@@ -1,20 +1,58 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ===== Brand gradient background system ===== */
+/*                                                                              */
+/* Light mode: full brand gradient #92D8F2 → #9EA4FF (135° diagonal)          */
+/* Sidebar: frosted-glass panel — backdrop-blur lets gradient bleed through    */
+/* Main: near-opaque white — subtle gradient tint, full content readability    */
+/* Dark mode: very dark navy so brand colours still influence the tone         */
+
+.hrai-app-bg {
+  background: linear-gradient(135deg, #92D8F2 0%, #9EA4FF 100%);
+}
+.dark .hrai-app-bg {
+  background: linear-gradient(135deg, #060c12 0%, #0a0714 100%);
+}
+
+/* Sidebar — frosted glass over the gradient */
+.hrai-sidebar {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.dark .hrai-sidebar {
+  background: rgb(23, 23, 23); /* neutral-900 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Main content area — nearly opaque so content is crisp, with a hint of the gradient */
+.hrai-main {
+  background: rgba(255, 255, 255, 0.88);
+}
+.dark .hrai-main {
+  background: #000000;
+}
+
 @keyframes waveBar {
   0%, 100% { transform: scaleY(0.35); }
   50%       { transform: scaleY(1); }
 }
 
 /* ===== Button / Select fading glow on hover / click ===== */
-/* Two-layer box-shadow: a tight solid ring right at the edge (always visible)   */
-/* plus a blurred outer layer that fades to transparent further away.            */
+/*                                                                               */
+/* The ring uses INSET box-shadow so it paints INSIDE the element boundary.     */
+/* Inset shadows are never clipped by parent overflow:hidden / overflow-y:auto. */
+/* The outer glow uses a regular (outward) shadow — it shows where space allows */
+/* but the ring itself is always fully visible regardless of container clipping. */
 button:not(:disabled),
 select:not(:disabled),
 textarea:not(:disabled),
+input:not(:disabled),
 div[role="button"]:not([aria-disabled="true"]) {
   outline: none !important;
-  box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent !important;
+  box-shadow: none !important;
   filter: none !important;
   transition: box-shadow 0.3s ease-in-out !important;
 }
@@ -24,26 +62,54 @@ select:not(:disabled):hover,
 select:not(:disabled):focus,
 textarea:not(:disabled):hover,
 textarea:not(:disabled):focus,
+input:not(:disabled):hover,
+input:not(:disabled):focus,
 div[role="button"]:not([aria-disabled="true"]):hover,
 div[role="button"]:not([aria-disabled="true"]):focus {
-  /* solid ring at the edge + soft fading halo beyond it */
-  box-shadow: 0 0 0 2px rgba(110, 40, 255, 0.9),
-              0 0 12px 5px rgba(110, 40, 255, 0.55) !important;
+  /* inset ring  — always complete, zero clipping risk                */
+  /* outward glow — bonus halo where the container gives it room      */
+  box-shadow:
+    inset 0 0 0 2px rgba(110, 40, 255, 0.85),
+    0 0 10px 4px rgba(110, 40, 255, 0.45) !important;
 }
 button:not(:disabled):active,
 select:not(:disabled):active,
 textarea:not(:disabled):active,
+input:not(:disabled):active,
 div[role="button"]:not([aria-disabled="true"]):active {
-  box-shadow: 0 0 0 2px rgba(90, 20, 240, 1),
-              0 0 16px 7px rgba(90, 20, 240, 0.70) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(90, 20, 240, 1),
+    0 0 14px 6px rgba(90, 20, 240, 0.65) !important;
   transition-duration: 0.05s !important;
 }
 
-/* Opt-out class for flat / icon-only elements */
+/* Opt-out class for elements that manage their own highlight (e.g. SVG-shaped buttons).
+   Must include :hover/:focus/:active selectors to win the specificity fight against the
+   hover rules above (which are 0,2,1 — two pseudo-classes — vs the plain class at 0,1,1). */
 button.btn-flat,
+button.btn-flat:hover,
+button.btn-flat:focus,
+button.btn-flat:focus-visible,
+button.btn-flat:active,
+button.btn-flat:not(:disabled),
+button.btn-flat:not(:disabled):hover,
+button.btn-flat:not(:disabled):focus-visible,
+button.btn-flat:not(:disabled):active,
 select.btn-flat,
+select.btn-flat:not(:disabled):hover,
+select.btn-flat:not(:disabled):active,
 textarea.btn-flat,
-div[role="button"].btn-flat {
+textarea.btn-flat:not(:disabled):hover,
+textarea.btn-flat:not(:disabled):active,
+input.btn-flat,
+input.btn-flat:not(:disabled):hover,
+input.btn-flat:not(:disabled):focus,
+input.btn-flat:not(:disabled):active,
+div[role="button"].btn-flat,
+div[role="button"].btn-flat:hover,
+div[role="button"].btn-flat:focus,
+div[role="button"].btn-flat:active {
   box-shadow: none !important;
+  outline: none !important;
   transition: none !important;
 }

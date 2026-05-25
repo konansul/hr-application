@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { HraiLogo } from '../shared/HraiLogo';
 import { HrProfileTab } from './1. Profile/HrProfileTab';
 import { TalentPoolTab } from './2. Talent Pool/TalentPoolTab';
 import { JobTab } from './3. Jobs/JobTab';
@@ -82,11 +83,11 @@ export function HrDashboard() {
         onClick={() => navigate(id)}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
           isActive
-            ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm border border-gray-200/60 dark:border-neutral-700'
-            : 'text-gray-600 dark:text-neutral-400 hover:bg-gray-200/50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white border border-transparent'
+            ? 'bg-[#7A60F4] text-white shadow-sm border border-[#6B52E8]'
+            : 'text-gray-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white border border-transparent'
         }`}
       >
-        <span className={`${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300'}`}>
+        <span className={`${isActive ? 'text-white' : 'text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-300'}`}>
           {icon}
         </span>
         <span className="truncate">{label}</span>
@@ -95,16 +96,14 @@ export function HrDashboard() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-white dark:bg-black text-gray-900 dark:text-white overflow-hidden transition-colors duration-300">
-      <aside className={`${isSidebarOpen ? 'w-64 px-3' : 'w-0 px-0'} py-4 bg-gray-50 dark:bg-neutral-900 border-r border-gray-100 dark:border-neutral-800 flex flex-col transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10`}>
+    <div className="flex h-screen w-full hrai-app-bg text-gray-900 dark:text-white overflow-hidden transition-colors duration-300">
+      <aside className={`${isSidebarOpen ? 'w-64 px-3' : 'w-0 px-0'} py-4 hrai-sidebar border-r border-white/40 dark:border-neutral-800 flex flex-col transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10`}>
 
-        <div className="flex items-center px-3 mb-4 mt-2">
-          <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center mr-3 shrink-0 shadow-sm">
-            <svg className="w-5 h-5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h1 className="text-sm font-bold tracking-tight text-gray-900 dark:text-white uppercase">{t.workspace}</h1>
+        <div className="flex items-center px-3 mb-4 mt-2 gap-2.5">
+          <HraiLogo height={34} />
+          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
+            HRAIPP
+          </span>
         </div>
 
         {usesLeft === 0 && (
@@ -124,7 +123,7 @@ export function HrDashboard() {
           </div>
         )}
 
-        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto custom-scrollbar pr-1 mt-2">
+        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto custom-scrollbar mt-2 px-2 py-1">
             {/* eslint-disable-next-line react-hooks/static-components */}
           <NavItem id="profile" label={t.overview} icon={
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -187,7 +186,7 @@ export function HrDashboard() {
           } />
         </nav>
 
-        <div className="px-0 py-3 shrink-0">
+        <div className="px-2 py-3 shrink-0">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group text-red-500 border border-transparent hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400">
             <span className="text-red-500 group-hover:text-red-600 dark:text-red-500 dark:group-hover:text-red-400 transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -199,8 +198,8 @@ export function HrDashboard() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-black transition-colors duration-300">
-        <header className="h-14 flex items-center px-4 shrink-0 border-b border-gray-100 dark:border-neutral-800">
+      <main className="flex-1 flex flex-col min-w-0 hrai-main transition-colors duration-300">
+        <header className="h-14 flex items-center px-4 shrink-0 border-b border-white/50 dark:border-neutral-800">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
