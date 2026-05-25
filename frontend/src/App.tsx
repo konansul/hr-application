@@ -23,6 +23,8 @@ if (cvToken) {
 }
 
 const pathname = window.location.pathname;
+const searchParams = new URLSearchParams(window.location.search);
+const forceLogin = searchParams.has('login');
 
 const isPublicJob = pathname.startsWith('/p/jobs/');
 const publicJobId = isPublicJob ? pathname.split('/')[3] : null;
@@ -34,7 +36,7 @@ function App() {
   const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserId, setUserRole, setActiveTab, setAiLimits } = useStore();
 
   // cvToken is null here if we already redirected to /resumes/<id>
-  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob);
+  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob && !forceLogin);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -46,7 +48,7 @@ function App() {
 
   useEffect(() => {
     // cvToken is null after the logged-in redirect, so we still run checkAuth
-    if (cvToken || isPublicProfile || isPublicJob) return;
+    if (cvToken || isPublicProfile || isPublicJob || forceLogin) return;
 
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token');

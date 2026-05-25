@@ -127,14 +127,14 @@ export function SettingsTab() {
     }
 
     if (targetCategory === 'Applied') {
-      return { label: 'Applied', colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30' };
+      return { label: 'Applied', colorClass: 'text-[#5B52C8] dark:text-[#9EA4FF] bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25' };
     } else if (targetCategory === 'Offer/Rejected') {
       if (upper.includes('REJECT') || upper.includes('DECLINE')) {
         return { label: 'Rejected', colorClass: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30' };
       }
-      return { label: 'Offer / Decision', colorClass: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30' };
+      return { label: 'Offer / Decision', colorClass: 'text-[#5B52C8] dark:text-[#9EA4FF] bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25' };
     } else {
-      return { label: 'In Progress', colorClass: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' };
+      return { label: 'In Progress', colorClass: 'text-[#c05020] dark:text-[#FF906D] bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25' };
     }
   };
 
@@ -148,14 +148,14 @@ export function SettingsTab() {
         </div>
         <div className="flex items-center gap-4">
           {message && (
-             <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-lg">
+             <span className="text-sm font-bold text-[#5B52C8] dark:text-[#9EA4FF] bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 px-3 py-1.5 rounded-lg">
                {message}
              </span>
           )}
           <button
             onClick={handleSaveSettings}
             disabled={isSaving || !localJobId}
-            className="px-5 py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all disabled:bg-gray-400 dark:disabled:bg-neutral-800 active:scale-95"
+            className="px-5 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:bg-gray-400 dark:disabled:bg-neutral-800 active:scale-95"
           >
             {isSaving ? t.saving : t.saveBtn}
           </button>
@@ -175,7 +175,7 @@ export function SettingsTab() {
               <select
                 value={localJobId}
                 onChange={e => setLocalJobId(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer font-semibold"
+                className="w-full px-3 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer font-semibold"
               >
                 <option value="">{t.noJobSelected || 'Select a job...'}</option>
                 {jobs.map(job => (
@@ -234,7 +234,7 @@ export function SettingsTab() {
                   <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-wider text-center mb-8">Candidate View Preview</p>
                   <div className="flex justify-between items-center relative max-w-sm mx-auto">
                     <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-700 -translate-y-1/2 z-0 rounded-full"></div>
-                    <div className="absolute top-1/2 left-0 h-1 bg-indigo-500 dark:bg-white w-1/2 -translate-y-1/2 z-0 rounded-full"></div>
+                    <div className="absolute top-1/2 left-0 h-1 bg-[#7A60F4] w-1/2 -translate-y-1/2 z-0 rounded-full"></div>
 
                     {[
                       { label: candidateT?.applied || 'APPLIED', hint: 'APPLIED', active: true, done: true },
@@ -242,10 +242,10 @@ export function SettingsTab() {
                       { label: candidateT?.decision || 'DECISION', hint: 'OFFER / REJECT', active: false, done: false }
                     ].map((step, i) => (
                       <div key={i} className="relative z-10 flex flex-col items-center">
-                        <span className="absolute -top-6 text-[8px] font-bold uppercase whitespace-nowrap text-indigo-500 dark:text-indigo-400">
+                        <span className="absolute -top-6 text-[8px] font-bold uppercase whitespace-nowrap text-[#7A60F4] dark:text-[#9EA4FF]">
                           {step.hint}
                         </span>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-sm transition-colors ${step.active ? 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white' : 'bg-white dark:bg-black border-gray-300 dark:border-neutral-600'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-sm transition-colors ${step.active ? 'bg-[#7A60F4] border-[#7A60F4]' : 'bg-white dark:bg-black border-gray-300 dark:border-neutral-600'}`}>
                           {step.done ? (
                             <svg className="w-4 h-4 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                           ) : (
@@ -266,13 +266,13 @@ export function SettingsTab() {
                     value={newStageName}
                     onChange={(e) => setNewStageName(e.target.value)}
                     placeholder={t.addStagePlaceholder}
-                    className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all uppercase placeholder-gray-400 dark:placeholder-neutral-600 font-semibold"
+                    className="flex-1 px-4 py-2.5 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all uppercase placeholder-gray-400 dark:placeholder-neutral-600 font-semibold"
                   />
 
                   <select
                     value={newStageCategory}
                     onChange={(e) => setNewStageCategory(e.target.value)}
-                    className="w-[140px] px-3 py-2.5 text-xs bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer font-bold"
+                    className="w-[140px] px-3 py-2.5 text-xs bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer font-bold"
                   >
                     <option value="Applied">Applied</option>
                     <option value="In Progress">In Progress</option>
@@ -300,7 +300,7 @@ export function SettingsTab() {
                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${theme === 'light' ? 'border-gray-900 dark:border-neutral-500 bg-gray-50 dark:bg-neutral-800' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm flex items-center justify-center">
-                  <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  <svg className="w-4 h-4 text-[#FF906D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 </div>
                 <span className={`text-xs font-bold ${theme === 'light' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-neutral-500'}`}>{t.light}</span>
               </button>
@@ -309,7 +309,7 @@ export function SettingsTab() {
                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${theme === 'dark' ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-black' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-gray-800 dark:bg-black border border-gray-700 dark:border-neutral-800 shadow-sm flex items-center justify-center">
-                  <svg className="w-4 h-4 text-indigo-400 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                  <svg className="w-4 h-4 text-[#9EA4FF] dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </div>
                 <span className={`text-xs font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-500 dark:text-neutral-500'}`}>{t.dark}</span>
               </button>
@@ -326,7 +326,7 @@ export function SettingsTab() {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer font-semibold"
+                className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer font-semibold"
               >
                 {LANGUAGES.map(lang => (
                   <option key={lang.code} value={lang.code}>{lang.name}</option>

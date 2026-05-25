@@ -312,9 +312,9 @@ export function CandidateDashboard() {
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group text-[#c05020] dark:text-[#FF906D] border border-[#FF906D]/30 dark:border-[#FF906D]/20 hover:bg-[#FF906D]/10 dark:hover:bg-[#FF906D]/10 hover:text-[#c05020] dark:hover:text-[#FF906D]"
           >
-            <span className="text-red-500 dark:text-red-400 group-hover:text-red-600 dark:group-hover:text-red-300 transition-colors">
+            <span className="text-[#c05020] dark:text-[#FF906D] transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
               </svg>
@@ -351,7 +351,7 @@ export function CandidateDashboard() {
           <div className="flex items-center gap-1">
               {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />
-            <button onClick={handleLogout} className="p-2 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+            <button onClick={handleLogout} className="p-2 text-[#c05020] dark:text-[#FF906D] hover:bg-[#FF906D]/10 dark:hover:bg-[#FF906D]/10 rounded-lg transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
               </svg>

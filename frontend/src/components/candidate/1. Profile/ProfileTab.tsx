@@ -652,13 +652,15 @@ export function ProfileTab() {
             <div className="p-6">
               {!isEditingExperience ? (
                 profileData.experience?.length > 0 ? (
-                  <div className="border-l-2 border-gray-100 dark:border-neutral-800 pl-6 space-y-8 py-2">
+                  <div className="space-y-0 divide-y divide-gray-100 dark:divide-neutral-800">
                     {profileData.experience.map((exp: any, i: number) => (
-                      <div key={i} className="relative">
-                        <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">{exp.title}{exp._ai_generated && <AiInfoBadge />}</h4>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">{exp.company} • {exp.start_date || 'N/A'} - {exp.is_current ? t.experience.present : (exp.end_date || 'N/A')}</p>
-                        <ExpandableText text={exp.description} />
+                      <div key={i} className="py-4 first:pt-0 last:pb-0">
+                        <div className="grid grid-cols-3 gap-4 w-full">
+                          <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 min-w-0">{exp.title}{exp._ai_generated && <AiInfoBadge />}</h4>
+                          <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">{exp.company}</p>
+                          <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 text-right">{exp.start_date || 'N/A'} – {exp.is_current ? t.experience.present : (exp.end_date || 'N/A')}</p>
+                        </div>
+                        {exp.description && <div className="mt-2 col-span-3"><ExpandableText text={exp.description} /></div>}
                       </div>
                     ))}
                   </div>
@@ -720,16 +722,17 @@ export function ProfileTab() {
             <div className="p-6">
               {!isEditingEducation ? (
                 profileData.education?.length > 0 ? (
-                  <div className="border-l-2 border-gray-100 dark:border-neutral-800 pl-6 space-y-8 py-2">
+                  <div className="space-y-0 divide-y divide-gray-100 dark:divide-neutral-800">
                     {profileData.education.map((edu: any, i: number) => (
-                      <div key={i} className="relative">
-                        <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">{edu.institution}{edu._ai_generated && <AiInfoBadge />}</h4>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">
-                          {[edu.degree, edu.field_of_study].filter(v => v && v !== 'UNKNOWN').join(' in ')}
-                          {' • '}{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}
-                        </p>
-                        {edu.description && <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{edu.description}</p>}
+                      <div key={i} className="py-4 first:pt-0 last:pb-0">
+                        <div className="grid grid-cols-3 gap-4 w-full">
+                          <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 min-w-0">{edu.institution}{edu._ai_generated && <AiInfoBadge />}</h4>
+                          <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">
+                            {[edu.degree, edu.field_of_study].filter(v => v && v !== 'UNKNOWN').join(' in ')}
+                          </p>
+                          <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 text-right">{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}</p>
+                        </div>
+                        {edu.description && <div className="mt-2"><p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{edu.description}</p></div>}
                       </div>
                     ))}
                   </div>

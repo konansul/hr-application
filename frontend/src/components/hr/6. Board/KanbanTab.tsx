@@ -137,27 +137,27 @@ export function KanbanTab() {
   const getColumnAccent = (status: string, index: number) => {
     const s = status.toUpperCase();
     if (s.includes('APPL')) return { text: 'text-gray-500', dot: 'bg-gray-400', badge: 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border-gray-200 dark:border-neutral-700' };
-    if (s.includes('REJECT') || s.includes('FAIL')) return { text: 'text-red-600 dark:text-red-400', dot: 'bg-red-500', badge: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50' };
-    if (s.includes('OFFER') || s.includes('HIRE') || s.includes('ACCEPT')) return { text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500', badge: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50' };
+    if (s.includes('REJECT') || s.includes('FAIL')) return { text: 'text-[#c05020] dark:text-[#FF906D]', dot: 'bg-[#FF906D]', badge: 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] border-[#FF906D]/30 dark:border-[#FF906D]/25' };
+    if (s.includes('OFFER') || s.includes('HIRE') || s.includes('ACCEPT')) return { text: 'text-[#5B52C8] dark:text-[#9EA4FF]', dot: 'bg-[#7A60F4]', badge: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/30 dark:border-[#7A60F4]/25' };
 
     const palettes = [
-      { text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500', badge: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900/50' },
-      { text: 'text-purple-600 dark:text-purple-400', dot: 'bg-purple-500', badge: 'bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-900/50' },
-      { text: 'text-indigo-600 dark:text-indigo-400', dot: 'bg-indigo-500', badge: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/50' },
+      { text: 'text-slate-700 dark:text-[#92D8F2]', dot: 'bg-[#92D8F2]', badge: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border-[#92D8F2]/40 dark:border-[#92D8F2]/25' },
+      { text: 'text-[#5B52C8] dark:text-[#9EA4FF]', dot: 'bg-[#9EA4FF]', badge: 'bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25' },
+      { text: 'text-[#5B52C8] dark:text-[#9EA4FF]', dot: 'bg-[#7A60F4]', badge: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/30 dark:border-[#7A60F4]/25' },
     ];
     return palettes[index % palettes.length];
   };
 
   const getScoreBadge = (score: number) => {
-    if (score >= 80) return 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400';
-    if (score >= 50) return 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400';
+    if (score >= 80) return 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]';
+    if (score >= 50) return 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]';
     return 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400';
   };
 
   const getDecisionBadge = (decision?: string) => {
     const d = decision?.toLowerCase();
-    if (d === 'hire' || d === 'strong_yes' || d === 'yes') return 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400';
-    if (d === 'reject' || d === 'no') return 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400';
+    if (d === 'hire' || d === 'strong_yes' || d === 'yes') return 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]';
+    if (d === 'reject' || d === 'no') return 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]';
     return 'bg-gray-100 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-400';
   };
 
@@ -179,17 +179,17 @@ export function KanbanTab() {
 
   if (!kanbanJobId && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-2xl max-w-2xl mx-auto mt-10 transition-colors">
-        <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mb-4 transition-colors">
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-[#FF906D]/10 dark:bg-[#FF906D]/5 border border-[#FF906D]/30 dark:border-[#FF906D]/20 rounded-2xl max-w-2xl mx-auto mt-10 transition-colors">
+        <div className="w-12 h-12 bg-[#FF906D]/15 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] rounded-full flex items-center justify-center mb-4 transition-colors">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
-        <h3 className="text-lg font-bold text-amber-900 dark:text-amber-100 mb-1">{t.noJobSelected}</h3>
-        <p className="text-sm text-amber-700 dark:text-amber-400 mb-6">{t.noJobDesc}</p>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{t.noJobSelected}</h3>
+        <p className="text-sm text-[#c05020] dark:text-[#FF906D] mb-6">{t.noJobDesc}</p>
 
         <select
           onChange={handleJobChange}
           value={kanbanJobId || ''}
-          className="w-full max-w-xs px-4 py-2.5 text-sm bg-white dark:bg-black border border-amber-200 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none shadow-sm cursor-pointer transition-colors"
+          className="w-full max-w-xs px-4 py-2.5 text-sm bg-white dark:bg-black border border-[#FF906D]/30 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none shadow-sm cursor-pointer transition-colors"
         >
           <option value="" disabled>{t.selectJob}</option>
           {jobsList.map(job => (
@@ -203,7 +203,7 @@ export function KanbanTab() {
   if (isLoading && globalJobStages.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="w-10 h-10 border-4 border-gray-200 dark:border-neutral-800 border-t-gray-900 dark:border-t-white rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-gray-200 dark:border-neutral-800 border-t-[#7A60F4] rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -222,13 +222,13 @@ export function KanbanTab() {
               placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-white bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none w-48 transition-colors"
+              className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-white bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none w-48 transition-colors"
             />
 
             <select
               value={filterDecision}
               onChange={e => setFilterDecision(e.target.value)}
-              className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-white bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer transition-colors"
+              className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-white bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer transition-colors"
             >
               <option value="All">{t.decisions.all}</option>
               <option value="Yes">{t.decisions.yes}</option>
@@ -240,13 +240,13 @@ export function KanbanTab() {
 
         <div className="flex items-center gap-3">
           {isSyncing && (
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-900/50 px-3 py-1.5 rounded-xl animate-pulse transition-colors">
-              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#5B52C8] dark:text-[#9EA4FF] bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border border-[#7A60F4]/30 dark:border-[#7A60F4]/25 px-3 py-1.5 rounded-xl animate-pulse transition-colors">
+              <span className="w-1.5 h-1.5 bg-[#7A60F4] rounded-full"></span>
               {t.updating}
             </div>
           )}
 
-          <div className="flex items-center bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-500 rounded-xl shadow-sm px-3 py-2 transition-all focus-within:ring-2 focus-within:ring-gray-900 dark:focus-within:ring-white">
+          <div className="flex items-center bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-500 rounded-xl shadow-sm px-3 py-2 transition-all focus-within:ring-2 focus-within:ring-[#7A60F4]/50">
              <div className="flex flex-col mr-2">
                  <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-0.5">{t.activeJobBoard}</span>
                  <select
@@ -308,7 +308,7 @@ export function KanbanTab() {
                       </span>
                     </div>
 
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate group-hover:text-[#7A60F4] dark:group-hover:text-[#9EA4FF] transition-colors">
                       {candidate.filename}
                     </h4>
 
