@@ -118,7 +118,7 @@ function getStageIndex(s: string) {
 }
 
 export function JobApplicationTab() {
-  const { activeTab, language, userId } = useStore();
+  const { activeTab, language, userId, theme } = useStore();
   const t = (DICT[language as keyof typeof DICT]?.applications || DICT.en.applications) as any;
   const stageLabel = (value: string): string => {
     const sl = t.stageLabels;
@@ -399,10 +399,12 @@ export function JobApplicationTab() {
     const norm       = normalizeStatus(job.status);
     const currentIdx = getStageIndex(job.status);
     const isRejected = norm === 'REJECTED';
+    const isDark     = theme === 'dark';
 
-    const handleClick = (stageValue: string) => {
-      handleTrackedStageUpdate(job.id, stageValue);
-    };
+    // SVG viewBox 0 0 100 100
+    // Left side: concave V notch pointing INTO the arrow (inward)
+    // Right side: convex point going outward — matches the reference image exactly
+    const arrowPath = 'M0,0 L75,0 L100,50 L75,100 L0,100 L25,50 Z';
 
     return (
       <div>
@@ -410,74 +412,87 @@ export function JobApplicationTab() {
           {t.clickToMark}
         </p>
 
-        <div className="flex items-stretch gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+        <div className="flex gap-2 overflow-x-auto pb-2">
           {SELF_STAGES.map((stage, idx) => {
             const sNorm     = normalizeStatus(stage.value);
             const isCurrent = !isRejected && idx === currentIdx;
             const isPast    = !isRejected && idx < currentIdx;
-            const isDone    = isCurrent || isPast;
+
+            // Solid fill colours — inline hex avoids Tailwind purge / JIT issues
+            let fill = '';
+            if      (isPast)    fill = isDark ? '#059669' : '#10b981'; // emerald
+            else if (isCurrent) fill = isDark ? '#6366f1' : '#4f46e5'; // indigo
+            else                fill = isDark ? '#262626' : '#f3f4f6'; // gray
+
+            const textCls = isPast || isCurrent
+              ? 'text-white'
+              : 'text-gray-400 dark:text-neutral-500';
 
             return (
               <button
                 key={stage.value}
-                onClick={() => handleClick(stage.value)}
-                className={`
-                  flex flex-col items-center justify-between gap-2 px-3 py-4 rounded-xl border-2
-                  min-w-[96px] flex-1 transition-all duration-150 select-none cursor-pointer
-                  active:scale-95
-                  ${isDone
-                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
-                    : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-neutral-500 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
-                  }
-                  ${isCurrent ? 'ring-2 ring-offset-1 ring-emerald-400 dark:ring-offset-black shadow-sm' : ''}
-                `}
+                onClick={() => handleTrackedStageUpdate(job.id, stage.value)}
+                title={stageLabel(stage.value)}
+                className="relative flex-1 min-w-[88px] shrink-0 cursor-pointer select-none group focus:outline-none"
+                style={{ background: 'none', border: 'none', padding: 0 }}
               >
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-                  ${isDone ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-gray-100 dark:bg-neutral-800'}`}
+                {/* SVG draws the arrow shape — no clip-path, no CSS shape hacks */}
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}
                 >
-                  {isPast ? <CheckIcon /> : stageIcon(sNorm)}
+                  <path d={arrowPath} fill={fill} />
+                </svg>
+
+                {/* Content sits on top of the SVG — right padding accounts for the arrow tip */}
+                <div
+                  className={`relative z-10 flex flex-col items-center justify-center gap-1.5 py-4 transition-opacity group-hover:opacity-80 group-active:opacity-60 ${textCls}`}
+                  style={{ paddingLeft: '28px', paddingRight: '28px' }}
+                >
+                  <div className="flex items-center justify-center w-5 h-5 shrink-0">
+                    {isPast ? <CheckIcon /> : stageIcon(sNorm, 'w-[18px] h-[18px]')}
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wide text-center leading-tight whitespace-nowrap">
+                    {stageLabel(stage.value)}
+                  </span>
+                  {isCurrent && (
+                    <span className="text-[8px] font-black uppercase tracking-widest leading-none opacity-80">
+                      ● {t.now}
+                    </span>
+                  )}
                 </div>
-
-                <span className="text-[10px] font-bold uppercase tracking-wide text-center leading-tight whitespace-nowrap">
-                  {stageLabel(stage.value)}
-                </span>
-
-                <span className={`text-[9px] font-black uppercase tracking-widest leading-none transition-opacity
-                  ${isCurrent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                >
-                  ● {t.now}
-                </span>
               </button>
             );
           })}
 
-          <div className="w-px bg-gray-200 dark:bg-neutral-800 mx-0.5 self-stretch shrink-0" />
+          {/* Separator */}
+          <div className="w-px bg-gray-200 dark:bg-neutral-700 self-stretch shrink-0 mx-0.5" />
 
+          {/* Rejected — rounded box, outside the main pipeline */}
           <button
             onClick={() => {
               if (isRejected) handleTrackedStageUpdate(job.id, 'Applied');
               else handleTrackedStageUpdate(job.id, REJECTED_VALUE);
             }}
             className={`
-              flex flex-col items-center justify-between gap-2 px-3 py-4 rounded-xl border-2
-              min-w-[88px] transition-all duration-150 select-none cursor-pointer active:scale-95
+              shrink-0 flex flex-col items-center justify-center gap-1.5 px-4 py-4 rounded-xl border-2
+              min-w-[80px] transition-all duration-150 select-none cursor-pointer active:scale-95
               ${isRejected
                 ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 shadow-sm ring-2 ring-offset-1 ring-red-400 dark:ring-offset-black'
                 : 'bg-white dark:bg-neutral-900 border-red-200 dark:border-red-900/50 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400'
               }
             `}
           >
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-              ${isRejected ? 'bg-red-100 dark:bg-red-900/50' : 'bg-red-50 dark:bg-red-950/20'}`}
-            >
-              {stageIcon('REJECTED')}
+            <div className="flex items-center justify-center">
+              {stageIcon('REJECTED', 'w-[18px] h-[18px]')}
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wide">{t.rejected}</span>
-            <span className={`text-[9px] font-black uppercase tracking-widest leading-none transition-opacity
-              ${isRejected ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            >
-              ● {t.now}
-            </span>
+            <span className="text-[9px] font-bold uppercase tracking-wide">{t.rejected}</span>
+            {isRejected && (
+              <span className="text-[8px] font-black uppercase tracking-widest leading-none">
+                ● {t.now}
+              </span>
+            )}
           </button>
         </div>
 
