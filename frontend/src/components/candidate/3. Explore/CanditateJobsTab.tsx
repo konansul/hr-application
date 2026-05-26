@@ -1267,7 +1267,7 @@ export function JobsTab() {
                                                     </span>
                                                 )}
                                                 {userApp && (
-                                                    <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded text-[9px] font-bold uppercase tracking-wider">
+                                                    <span className="px-1.5 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[9px] font-bold uppercase tracking-wider">
                                                         {tl.stages?.applied ?? 'Applied'}
                                                     </span>
                                                 )}
@@ -1663,7 +1663,7 @@ export function JobsTab() {
                                             </span>
                                         )}
                                         {userApp && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded text-[10px] font-bold uppercase tracking-wider">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[10px] font-bold uppercase tracking-wider">
                                                 <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                                 {tl.stages?.applied ?? 'Applied'}
                                             </span>

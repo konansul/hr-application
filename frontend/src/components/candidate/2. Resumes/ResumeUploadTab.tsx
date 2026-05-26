@@ -1936,7 +1936,7 @@ export function ResumeUploadTab() {
         <CreateFromJobDescriptionModal onClose={() => setShowJobDescModal(false)} onSubmit={handleCreateFromJobDescription} isWorking={isWorking} resumeVersions={resumeVersions} />
       )}
       {showBestPractices && (() => {
-        const tipColors = ['violet','indigo','sky','emerald','teal','blue','amber','orange','rose','pink','purple','indigo'];
+        const tipColors = ['brand-purple','brand-violet','brand-blue','brand-orange','brand-purple','brand-violet','brand-blue','brand-orange','brand-purple','brand-violet','brand-blue','brand-orange'];
         const rawTips = (t as any).cvTips?.tips as Array<{title:string; desc:string}> | undefined;
         const tips = (rawTips ?? [
           { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout. Consistent fonts, heading sizes, and spacing signal professionalism and make your CV easy to scan.' },
@@ -1954,23 +1954,16 @@ export function ResumeUploadTab() {
         ]).map((tip, i) => ({ ...tip, color: tipColors[i] ?? 'indigo' })) as { title: string; desc: string; color: string }[];
 
         const palette: Record<string, { badge: string; border: string; bg: string; dot: string }> = {
-          violet:  { badge: 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-700/50 hover:border-violet-400 dark:hover:border-violet-500', bg: 'hover:bg-violet-50 dark:hover:bg-violet-900/20', dot: 'bg-violet-500' },
-          indigo:  { badge: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-700/50 hover:border-indigo-400 dark:hover:border-indigo-500', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20', dot: 'bg-indigo-500' },
-          sky:     { badge: 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-700/50 hover:border-sky-400 dark:hover:border-sky-500', bg: 'hover:bg-sky-50 dark:hover:bg-sky-900/20', dot: 'bg-sky-500' },
-          emerald: { badge: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-700/50 hover:border-emerald-400 dark:hover:border-emerald-500', bg: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20', dot: 'bg-emerald-500' },
-          teal:    { badge: 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-700/50 hover:border-teal-400 dark:hover:border-teal-500', bg: 'hover:bg-teal-50 dark:hover:bg-teal-900/20', dot: 'bg-teal-500' },
-          blue:    { badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700/50 hover:border-blue-400 dark:hover:border-blue-500', bg: 'hover:bg-blue-50 dark:hover:bg-blue-900/20', dot: 'bg-blue-500' },
-          amber:   { badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-700/50 hover:border-amber-400 dark:hover:border-amber-500', bg: 'hover:bg-amber-50 dark:hover:bg-amber-900/20', dot: 'bg-amber-500' },
-          orange:  { badge: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-700/50 hover:border-orange-400 dark:hover:border-orange-500', bg: 'hover:bg-orange-50 dark:hover:bg-orange-900/20', dot: 'bg-orange-500' },
-          rose:    { badge: 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-700/50 hover:border-rose-400 dark:hover:border-rose-500', bg: 'hover:bg-rose-50 dark:hover:bg-rose-900/20', dot: 'bg-rose-500' },
-          pink:    { badge: 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300', border: 'border-pink-200 dark:border-pink-700/50 hover:border-pink-400 dark:hover:border-pink-500', bg: 'hover:bg-pink-50 dark:hover:bg-pink-900/20', dot: 'bg-pink-500' },
-          purple:  { badge: 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500', bg: 'hover:bg-purple-50 dark:hover:bg-purple-900/20', dot: 'bg-purple-500' },
+          'brand-purple': { badge: 'bg-[#7A60F4]/15 text-[#7A60F4] dark:bg-[#7A60F4]/20 dark:text-[#9EA4FF]', border: 'border-[#7A60F4]/25 hover:border-[#7A60F4]/60 dark:border-[#7A60F4]/30 dark:hover:border-[#7A60F4]', bg: 'hover:bg-[#7A60F4]/5 dark:hover:bg-[#7A60F4]/10', dot: 'bg-[#7A60F4]' },
+          'brand-violet': { badge: 'bg-[#9EA4FF]/20 text-[#5B52C8] dark:bg-[#9EA4FF]/15 dark:text-[#9EA4FF]', border: 'border-[#9EA4FF]/30 hover:border-[#9EA4FF]/60 dark:border-[#9EA4FF]/25 dark:hover:border-[#9EA4FF]', bg: 'hover:bg-[#9EA4FF]/5 dark:hover:bg-[#9EA4FF]/10', dot: 'bg-[#9EA4FF]' },
+          'brand-blue':   { badge: 'bg-[#92D8F2]/20 text-[#0284c7] dark:bg-[#92D8F2]/15 dark:text-[#92D8F2]', border: 'border-[#92D8F2]/35 hover:border-[#92D8F2]/60 dark:border-[#92D8F2]/25 dark:hover:border-[#92D8F2]', bg: 'hover:bg-[#92D8F2]/5 dark:hover:bg-[#92D8F2]/10', dot: 'bg-[#92D8F2]' },
+          'brand-orange': { badge: 'bg-[#FF906D]/15 text-[#c05020] dark:bg-[#FF906D]/15 dark:text-[#FF906D]', border: 'border-[#FF906D]/25 hover:border-[#FF906D]/60 dark:border-[#FF906D]/25 dark:hover:border-[#FF906D]', bg: 'hover:bg-[#FF906D]/5 dark:hover:bg-[#FF906D]/10', dot: 'bg-[#FF906D]' },
         };
 
         return (
           <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={() => { setShowBestPractices(false); setSelectedTip(null); }}>
             <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-4xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-              <div className="px-6 py-5 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 rounded-t-3xl flex items-center justify-between gap-4 shrink-0">
+              <div className="px-6 py-5 bg-gradient-to-r from-[#7A60F4] via-[#9EA4FF] to-[#92D8F2] rounded-t-3xl flex items-center justify-between gap-4 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
