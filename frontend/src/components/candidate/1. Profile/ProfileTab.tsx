@@ -1125,20 +1125,20 @@ export function ProfileTab() {
             const pct = Math.round((completed / total) * 100);
             const isComplete = missing.length === 0;
             return (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors border-[#FF906D]/50 dark:border-[#FF906D]/30">
+              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors border-[#92D8F2]/50 dark:border-[#92D8F2]/30">
                 <div className="px-5 py-4">
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">{(t as any).sidebar?.profileCompleteness ?? 'Profile Completeness'}</span>
-                    <span className="text-xs font-bold text-[#FF906D]">{pct}%</span>
+                    <span className="text-xs font-bold text-[#0e7490] dark:text-[#92D8F2]">{pct}%</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
                     <div
-                      className="h-full rounded-full transition-all duration-500 bg-[#FF906D]"
+                      className="h-full rounded-full transition-all duration-500 bg-[#92D8F2]"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
                   {isComplete ? (
-                    <p className="text-xs text-[#c05020] dark:text-[#FF906D] font-semibold flex items-center gap-1.5">
+                    <p className="text-xs text-[#0e7490] dark:text-[#92D8F2] font-semibold flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
@@ -1146,7 +1146,7 @@ export function ProfileTab() {
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-[11px] text-[#c05020] dark:text-[#FF906D] font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
+                      <p className="text-[11px] text-[#0e7490] dark:text-[#92D8F2] font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {missing.map(key => {
                           const label = getFieldLabel(key);
@@ -1157,7 +1157,7 @@ export function ProfileTab() {
                                 setIsEditingPersonalInfo(true);
                                 document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                               }}
-                              className="px-2 py-1 bg-[#FF906D]/10 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] border border-[#FF906D]/30 dark:border-[#FF906D]/25 rounded-lg text-[10px] font-bold hover:bg-[#FF906D]/20 dark:hover:bg-[#FF906D]/20 transition-colors flex items-center gap-1"
+                              className="px-2 py-1 bg-[#92D8F2]/10 dark:bg-[#92D8F2]/10 text-[#0e7490] dark:text-[#92D8F2] border border-[#92D8F2]/40 dark:border-[#92D8F2]/25 rounded-lg text-[10px] font-bold hover:bg-[#92D8F2]/20 dark:hover:bg-[#92D8F2]/20 transition-colors flex items-center gap-1"
                             >
                               <svg className="w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

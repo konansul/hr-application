@@ -249,7 +249,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/50 dark:focus:border-[#7A60F4]/40 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                    className="w-full px-4 py-3 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/60 dark:focus:border-[#7A60F4]/50 outline-none transition-all text-sm font-medium placeholder-zinc-300 dark:placeholder-zinc-600"
                     placeholder="John"
                   />
                 </div>
@@ -260,7 +260,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/50 dark:focus:border-[#7A60F4]/40 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                    className="w-full px-4 py-3 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/60 dark:focus:border-[#7A60F4]/50 outline-none transition-all text-sm font-medium placeholder-zinc-300 dark:placeholder-zinc-600"
                     placeholder="Doe"
                   />
                 </div>
@@ -275,7 +275,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/50 dark:focus:border-[#7A60F4]/40 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                  className="w-full px-4 py-3 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/60 dark:focus:border-[#7A60F4]/50 outline-none transition-all text-sm font-medium placeholder-zinc-300 dark:placeholder-zinc-600"
                   placeholder="name@example.com"
                 />
               </div>
@@ -290,7 +290,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/50 dark:focus:border-[#7A60F4]/40 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
+                    className="w-full px-4 py-3 pr-11 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/60 dark:focus:border-[#7A60F4]/50 outline-none transition-all text-sm font-medium placeholder-zinc-300 dark:placeholder-zinc-600 tracking-widest"
                     placeholder="••••••••"
                   />
                   <button
@@ -330,7 +330,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="w-full px-4 py-3 pr-11 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/50 dark:focus:border-[#7A60F4]/40 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600 tracking-widest"
+                    className="w-full px-4 py-3 pr-11 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/60 dark:focus:border-[#7A60F4]/50 outline-none transition-all text-sm font-medium placeholder-zinc-300 dark:placeholder-zinc-600 tracking-widest"
                     placeholder="••••••••"
                   />
                   <button
@@ -397,7 +397,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
                       required
-                      className="w-full px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/50 dark:focus:border-[#7A60F4]/40 outline-none transition-all text-sm font-medium placeholder-zinc-400 dark:placeholder-zinc-600"
+                      className="w-full px-4 py-3 bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-white border border-zinc-200/80 dark:border-zinc-700/60 rounded-xl focus:bg-white dark:focus:bg-zinc-900 focus:border-[#7A60F4]/60 dark:focus:border-[#7A60F4]/50 outline-none transition-all text-sm font-medium placeholder-zinc-300 dark:placeholder-zinc-600"
                     />
                   </div>
                 )}

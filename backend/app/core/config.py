@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     AZURE_CONTAINER_NAME: str = "resumes"
 
     BACKEND_URL: str = "http://localhost:8000"
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://app.hraipp.com"
 
     model_config = SettingsConfigDict(
         env_file=".env",
