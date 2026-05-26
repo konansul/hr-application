@@ -39,6 +39,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('reset_token');
     if (token) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
       setResetToken(token);
       setMode('ResetPassword');
     }
