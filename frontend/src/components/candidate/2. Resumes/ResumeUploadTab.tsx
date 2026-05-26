@@ -706,6 +706,17 @@ export function ResumeUploadTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reload the resume list whenever this tab becomes visible again so any
+  // resume created on another tab (e.g. Improve CV) appears immediately.
+  // The ref guard skips the very first render — the [] effect above handles that.
+  const hasInitialLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!hasInitialLoadedRef.current) { hasInitialLoadedRef.current = true; return; }
+    if (activeTab !== 'upload-cv') return;
+    loadData(selectedResumeIdRef.current ?? undefined).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // Keep URL in sync with the selected resume
   useEffect(() => {
     if (activeTab !== 'upload-cv' || !selectedResumeId || !resumeVersions.length) return;

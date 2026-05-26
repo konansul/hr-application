@@ -216,25 +216,33 @@ export function KanbanTab() {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">{t.title}</h2>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mr-1">{t.filterLabel}</span>
+            <span className="text-[10px] font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">{t.filterLabel}</span>
+
+            {/* Search input — matches Compare page visual weight */}
             <input
               type="text"
               placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-white bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none w-48 transition-colors"
+              className="px-4 py-2.5 text-sm font-bold text-gray-900 dark:text-white bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none w-48 shadow-sm transition-all cursor-text"
             />
 
-            <select
-              value={filterDecision}
-              onChange={e => setFilterDecision(e.target.value)}
-              className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-white bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer transition-colors"
-            >
-              <option value="All">{t.decisions.all}</option>
-              <option value="Yes">{t.decisions.yes}</option>
-              <option value="No">{t.decisions.no}</option>
-              <option value="Maybe">{t.decisions.maybe}</option>
-            </select>
+            {/* Decision filter — chevron on the left, same base style as Compare page */}
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-neutral-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+              </div>
+              <select
+                value={filterDecision}
+                onChange={e => setFilterDecision(e.target.value)}
+                className="pl-9 pr-4 py-2.5 text-sm font-bold text-gray-900 dark:text-white bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer appearance-none shadow-sm transition-all"
+              >
+                <option value="All">{t.decisions.all}</option>
+                <option value="Yes">{t.decisions.yes}</option>
+                <option value="No">{t.decisions.no}</option>
+                <option value="Maybe">{t.decisions.maybe}</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -246,22 +254,23 @@ export function KanbanTab() {
             </div>
           )}
 
-          <div className="flex items-center bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-500 rounded-xl shadow-sm px-3 py-2 transition-all focus-within:ring-2 focus-within:ring-[#7A60F4]/50">
-             <div className="flex flex-col mr-2">
-                 <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-0.5">{t.activeJobBoard}</span>
-                 <select
-                   value={kanbanJobId || ''}
-                   onChange={handleJobChange}
-                   className="text-sm font-bold text-gray-900 dark:text-white bg-transparent border-none outline-none cursor-pointer appearance-none p-0 min-w-[200px] focus:ring-0"
-                 >
-                   {jobsList.map(job => (
-                     <option key={job.id} value={job.id}>{job.title}</option>
-                   ))}
-                 </select>
-             </div>
-             <div className="pointer-events-none text-gray-400 dark:text-neutral-500 pl-2 border-l border-gray-100 dark:border-neutral-800 transition-colors">
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-             </div>
+          {/* Job selector — label + select, chevron on the left */}
+          <div className="shrink-0">
+            <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.activeJobBoard}</label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-neutral-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+              </div>
+              <select
+                value={kanbanJobId || ''}
+                onChange={handleJobChange}
+                className="appearance-none pl-9 pr-4 py-2.5 text-sm font-bold text-gray-900 dark:text-white bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer shadow-sm transition-all min-w-[220px]"
+              >
+                {jobsList.map(job => (
+                  <option key={job.id} value={job.id}>{job.title}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
