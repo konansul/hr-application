@@ -344,7 +344,7 @@ export function LandingPage() {
                           <div className="flex-1 space-y-2.5">
                             <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-white/5' : 'bg-slate-200'}`}><div className="w-[94%] h-full rounded-full bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF]" /></div>
                             <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-white/5' : 'bg-slate-200'}`}><div className="w-[78%] h-full rounded-full bg-[#92D8F2]" /></div>
-                            <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-white/5' : 'bg-slate-200'}`}><div className="w-[85%] h-full rounded-full bg-[#FF906D]" /></div>
+                            <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-white/5' : 'bg-slate-200'}`}><div className="w-[85%] h-full rounded-full bg-[#7A60F4]" /></div>
                           </div>
                         </div>
                       </div>
@@ -359,9 +359,9 @@ export function LandingPage() {
                       <div className="flex flex-col gap-2.5">
                         {[
                           { name: 'Alex Reinholt',  role: 'Senior Engineer',  score: 94, color: 'bg-[#7A60F4]' },
-                          { name: 'Mia Svensson',   role: 'Product Designer', score: 91, color: 'bg-[#9EA4FF]' },
-                          { name: 'Jordan Park',    role: 'Data Scientist',   score: 88, color: 'bg-[#92D8F2]' },
-                          { name: 'Priya Mehta',    role: 'DevOps Lead',      score: 85, color: 'bg-[#FF906D]' },
+                          { name: 'Mia Svensson',   role: 'Product Designer', score: 91, color: 'bg-[#7A60F4]' },
+                          { name: 'Jordan Park',    role: 'Data Scientist',   score: 88, color: 'bg-[#7A60F4]' },
+                          { name: 'Priya Mehta',    role: 'DevOps Lead',      score: 85, color: 'bg-[#7A60F4]' },
                         ].map((c, i) => (
                           <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isDark ? 'bg-[#0d0f16] border-white/[0.05] hover:border-white/10' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'}`}>
                             <div className={`w-8 h-8 rounded-lg ${c.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>{c.name[0]}</div>
@@ -552,7 +552,7 @@ export function LandingPage() {
                       <div key={i}
                         className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-700 ease-out ${activeStep > 0 ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'} ${card}`}
                         style={{ transitionDelay: `${i * 100}ms` }}>
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 ${['bg-[#7A60F4]','bg-[#9EA4FF]','bg-[#92D8F2]','bg-[#FF906D]','bg-[#6B52E8]'][i]}`}>{c.name[0]}</div>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 ${['bg-[#7A60F4]','bg-[#9EA4FF]','bg-[#92D8F2]','bg-[#7A60F4]','bg-[#9EA4FF]'][i]}`}>{c.name[0]}</div>
                         <div className="flex-1 min-w-0">
                           <div className={`text-sm font-bold truncate ${text}`}>{c.name}</div>
                           <div className={`text-xs truncate ${muted}`}>{c.role}</div>
@@ -561,8 +561,8 @@ export function LandingPage() {
                           <div className={`text-sm font-black ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{c.score}%</div>
                           <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wide whitespace-nowrap ${
                             i === 0   ? (isDark ? 'bg-[#7A60F4]/20 text-[#9EA4FF]' : 'bg-[#7A60F4]/10 text-[#5B52C8]')
-                            : i <= 2  ? (isDark ? 'bg-[#92D8F2]/15 text-[#92D8F2]' : 'bg-[#92D8F2]/15 text-slate-700')
-                            : (isDark ? 'bg-[#FF906D]/15 text-[#FF906D]' : 'bg-[#FF906D]/10 text-[#c05020]')
+                            : i <= 2  ? (isDark ? 'bg-[#9EA4FF]/15 text-[#9EA4FF]' : 'bg-[#9EA4FF]/15 text-[#5B52C8]')
+                            : (isDark ? 'bg-[#92D8F2]/15 text-[#92D8F2]' : 'bg-[#92D8F2]/15 text-slate-600')
                           }`}>
                             {c.tag}
                           </div>
@@ -609,7 +609,7 @@ export function LandingPage() {
         <section className={`py-36 relative overflow-hidden ${isDark ? 'bg-[#08090c]' : ''}`}>
           <div className={`absolute inset-0 pointer-events-none ${isDark ? 'bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(122,96,244,0.08),transparent)]' : 'bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(122,96,244,0.06),transparent)]'}`} />
           <div ref={ctaSection.ref} className={`max-w-7xl mx-auto px-4 text-center relative z-10 ${transitionClass(ctaSection.visible)}`}>
-            <div className={`p-16 md:p-28 rounded-[2.5rem] border overflow-hidden relative ${isDark ? 'bg-gradient-to-br from-[#0f1117] via-[#0d0f16] to-[#111622] border-white/[0.08]' : 'bg-gradient-to-br from-white to-slate-50/80 border-slate-200 shadow-2xl shadow-slate-200/60'}`}>
+            <div className={`px-8 py-10 md:px-12 md:py-16 rounded-[2.5rem] border overflow-hidden relative ${isDark ? 'bg-gradient-to-br from-[#0f1117] via-[#0d0f16] to-[#111622] border-white/[0.08]' : 'bg-gradient-to-br from-white to-slate-50/80 border-slate-200 shadow-2xl shadow-slate-200/60'}`}>
               <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#7A60F4]/40 to-transparent" />
               <div className={`absolute inset-0 pointer-events-none ${isDark ? 'bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(122,96,244,0.12),transparent)]' : 'bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(122,96,244,0.06),transparent)]'}`} />
 
