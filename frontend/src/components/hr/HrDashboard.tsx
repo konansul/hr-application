@@ -101,7 +101,7 @@ export function HrDashboard() {
 
         <div className="flex items-center px-3 mb-4 mt-2 gap-2.5">
           <HraiLogo height={34} />
-          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
+          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
             HRAIPP
           </span>
         </div>
@@ -187,8 +187,8 @@ export function HrDashboard() {
         </nav>
 
         <div className="px-2 py-3 shrink-0">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group text-red-500 border border-transparent hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400">
-            <span className="text-red-500 group-hover:text-red-600 dark:text-red-500 dark:group-hover:text-red-400 transition-colors">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group text-[#c05020] dark:text-[#FF906D] border border-[#FF906D]/30 dark:border-[#FF906D]/20 hover:bg-[#FF906D]/10 dark:hover:bg-[#FF906D]/10 hover:text-[#c05020] dark:hover:text-[#FF906D]">
+            <span className="text-[#c05020] dark:text-[#FF906D] transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
               </svg>

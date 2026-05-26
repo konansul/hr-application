@@ -706,6 +706,17 @@ export function ResumeUploadTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reload the resume list whenever this tab becomes visible again so any
+  // resume created on another tab (e.g. Improve CV) appears immediately.
+  // The ref guard skips the very first render — the [] effect above handles that.
+  const hasInitialLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!hasInitialLoadedRef.current) { hasInitialLoadedRef.current = true; return; }
+    if (activeTab !== 'upload-cv') return;
+    loadData(selectedResumeIdRef.current ?? undefined).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // Keep URL in sync with the selected resume
   useEffect(() => {
     if (activeTab !== 'upload-cv' || !selectedResumeId || !resumeVersions.length) return;
@@ -782,7 +793,7 @@ export function ResumeUploadTab() {
     // const slug = resumeToSlug(selectedResume, resumeVersions);
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const cvBase = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
-    const cvLink = `${cvBase}/?cv=${selectedResume.resume_id}`;
+    const cvLink = `${cvBase}/p/cv/${selectedResume.resume_id}`;
     const eb = t.emailBody;
     const greeting = sendEmailRecipientName.trim()
       ? eb.greeting.replace('{name}', sendEmailRecipientName.trim())
@@ -1403,7 +1414,7 @@ export function ResumeUploadTab() {
                   {(() => {
                     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                     const base = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
-                    const cvPublicUrl = `${base}/?cv=${selectedResume.resume_id}`;
+                    const cvPublicUrl = `${base}/p/cv/${selectedResume.resume_id}`;
                     const copyInlineLink = () => {
                       navigator.clipboard.writeText(cvPublicUrl).then(() => {
                         setInlineLinkCopied(true);
@@ -2397,6 +2408,7 @@ export function ResumeUploadTab() {
         }
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const BASE = isLocal ? `${window.location.protocol}//${window.location.host}` : 'https://app.hraipp.com';
+        const cvPublicUrlForShare = `${BASE}/p/cv/${selectedResume.resume_id}`;
         return (
           <div
             className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
@@ -2417,7 +2429,7 @@ export function ResumeUploadTab() {
               <div className="p-6 space-y-5 dark:bg-neutral-900 overflow-y-auto max-h-[75vh]">
                 {/* Public link */}
                 {(() => {
-                  const cvPublicUrl = `${BASE}/?cv=${selectedResume.resume_id}`;
+                  const cvPublicUrl = cvPublicUrlForShare;
                   const copyPubLink = () => {
                     navigator.clipboard.writeText(cvPublicUrl).then(() => {
                       setSharePublicLinkCopied(true);

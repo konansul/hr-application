@@ -55,15 +55,43 @@ def update_application_status(
             if candidate_user:
                 job = db.query(Job).filter(Job.job_id == app.job_id).first()
                 job_title = job.title if job else "a job"
-                label = update.status.replace("_", " ").title()
-                notification = Notification(
-                    notification_id=new_id("notif"),
-                    user_id=candidate_user.user_id,
-                    application_id=app.application_id,
-                    message=f'Your application for "{job_title}" has been moved to {label}.',
-                    is_read=False,
-                )
-                db.add(notification)
+
+                # Map HR internal statuses → candidate-facing display stage + message.
+                # Use substring matching (same logic as the candidate UI's getDisplayStageIdx)
+                # so custom pipeline stages like HR_INTERVIEW / TECH_INTERVIEW are handled too.
+                _s = update.status.upper()
+                if "OFFER" in _s or "HIRE" in _s or "ACCEPT" in _s:
+                    notification_message = (
+                        f'Decision on your application for "{job_title}": '
+                        f"Congratulations — you've received an offer!"
+                    )
+                elif "REJECT" in _s or "FAIL" in _s:
+                    notification_message = (
+                        f'Decision on your application for "{job_title}": '
+                        f"Thank you for your interest — this role has been filled by another candidate."
+                    )
+                elif "INTERVIEW" in _s or "SHORTLIST" in _s:
+                    notification_message = (
+                        f'Your application for "{job_title}" is In Progress.'
+                    )
+                elif _s == "APPLIED":
+                    # No notification needed when re-set to Applied
+                    notification_message = None
+                else:
+                    # Any other custom stage that isn't Applied → generic In Progress message
+                    notification_message = (
+                        f'Your application for "{job_title}" is In Progress.'
+                    )
+
+                if notification_message:
+                    notification = Notification(
+                        notification_id=new_id("notif"),
+                        user_id=candidate_user.user_id,
+                        application_id=app.application_id,
+                        message=notification_message,
+                        is_read=False,
+                    )
+                    db.add(notification)
 
     db.commit()
     return {"ok": True, "new_status": app.status}

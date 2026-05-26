@@ -126,7 +126,7 @@ export function HrProfileTab() {
     </div>
   );
 
-  const inputCls = "w-full px-3 py-2 bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all outline-none dark:text-white";
+  const inputCls = "w-full px-3 py-2 bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl text-sm focus:bg-white dark:focus:bg-neutral-900 focus:ring-2 focus:ring-[#7A60F4]/50 transition-all outline-none dark:text-white";
   const inputDisabledCls = "w-full px-3 py-2 bg-gray-100 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl text-sm text-gray-500 dark:text-neutral-500 outline-none cursor-not-allowed";
 
   const SectionHeader = ({ label, dot, isEditing, onEdit, onCancel }: any) => (
@@ -150,7 +150,7 @@ export function HrProfileTab() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all disabled:opacity-50"
+            className="px-4 py-1.5 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all disabled:opacity-50"
           >
             {isSaving ? t.saving : t.saveBtn}
           </button>
@@ -169,7 +169,7 @@ export function HrProfileTab() {
       {message && (
         <div className={`mb-6 p-4 text-sm rounded-xl border flex items-center gap-2 transition-colors ${
           message.type === 'success'
-            ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50'
+            ? 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/5 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/25 dark:border-[#7A60F4]/20'
             : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-900/50'
         }`}>
           <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,7 +188,7 @@ export function HrProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <SectionHeader
               label={t.sections.basic}
-              dot="bg-indigo-500 dark:bg-indigo-400"
+              dot="bg-[#7A60F4]"
               isEditing={isEditingBasic}
               onEdit={() => setIsEditingBasic(true)}
               onCancel={() => setIsEditingBasic(false)}
@@ -263,7 +263,7 @@ export function HrProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <SectionHeader
               label={t.sections.work}
-              dot="bg-emerald-500 dark:bg-emerald-400"
+              dot="bg-[#92D8F2]"
               isEditing={isEditingWork}
               onEdit={() => setIsEditingWork(true)}
               onCancel={() => setIsEditingWork(false)}
@@ -313,7 +313,7 @@ export function HrProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <SectionHeader
               label="Company Profile"
-              dot="bg-violet-500 dark:bg-violet-400"
+              dot="bg-[#9EA4FF]"
               isEditing={isEditingOrg}
               onEdit={() => setIsEditingOrg(true)}
               onCancel={() => setIsEditingOrg(false)}
@@ -334,7 +334,7 @@ export function HrProfileTab() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="px-4 py-3 bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/50 rounded-xl text-xs text-violet-700 dark:text-violet-400">
+                  <div className="px-4 py-3 bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded-xl text-xs text-[#5B52C8] dark:text-[#9EA4FF]">
                     This information is shown to candidates when they click your company name on a job listing.
                   </div>
                   <FormField label="Description">
@@ -379,7 +379,7 @@ export function HrProfileTab() {
 
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 flex flex-col items-center text-center relative overflow-hidden transition-colors">
-            <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50 shadow-sm mb-5 z-10 transition-colors">
+            <div className="w-20 h-20 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/15 text-[#7A60F4] rounded-full flex items-center justify-center border border-[#7A60F4]/25 shadow-sm mb-5 z-10 transition-colors">
               <span className="text-2xl font-bold">
                 {profile.first_name?.[0] || profile.email?.[0]?.toUpperCase() || 'H'}
               </span>
@@ -388,7 +388,7 @@ export function HrProfileTab() {
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 z-10">
               {profile.first_name ? `${profile.first_name} ${profile.last_name}` : profile.email}
             </h3>
-            <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1 z-10">
+            <p className="text-xs font-semibold text-[#7A60F4] dark:text-[#9EA4FF] uppercase tracking-wider mb-1 z-10">
               {profile.hr_role_title || 'Recruiter'}
             </p>
             {profile.company_name && (
@@ -411,8 +411,8 @@ export function HrProfileTab() {
               <div>
                 <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.fields.status}</p>
                 <div className="flex items-center gap-2.5">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                  <p className="text-sm text-gray-700 dark:text-emerald-400 font-semibold">{t.fields.verified}</p>
+                  <span className="w-2 h-2 bg-[#7A60F4] rounded-full animate-pulse"></span>
+                  <p className="text-sm text-gray-700 dark:text-[#9EA4FF] font-semibold">{t.fields.verified}</p>
                 </div>
               </div>
             </div>
@@ -424,7 +424,7 @@ export function HrProfileTab() {
 
             <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-neutral-800 transition-colors">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center border border-amber-100 dark:border-amber-900/50 transition-colors">
+                <div className="w-8 h-8 bg-[#FF906D]/10 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] rounded-xl flex items-center justify-center border border-[#FF906D]/25 dark:border-[#FF906D]/20 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-const APP_URL = 'https://app.hraipp.com';
+const APP_URL = import.meta.env.DEV ? 'http://localhost:5173/?login' : 'https://app.hraipp.com/?login';
 
 const SunIcon = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -10,16 +10,34 @@ const SunIcon = () => (
 );
 
 const MoonIcon = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
   </svg>
 );
 
-const BoltIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>
-);
+const HraiLogo = ({ height = 32 }: { height?: number }) => {
+  const width = Math.round(height * 50 / 68);
+  return (
+    <svg width={width} height={height} viewBox="0 0 50 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="hrai-mid" x1="0" y1="68" x2="0" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stopColor="#16C0EE" />
+          <stop offset="100%" stopColor="#4B6CF5" />
+        </linearGradient>
+        <linearGradient id="hrai-right" x1="0" y1="68" x2="0" y2="12" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stopColor="#4060F8" />
+          <stop offset="100%" stopColor="#7020EF" />
+        </linearGradient>
+      </defs>
+      <circle cx="5"  cy="35" r="5"  fill="#00C8E8" />
+      <rect   x="0"  y="44"  width="10" height="24" rx="5" fill="#00C8E8" />
+      <circle cx="25" cy="19" r="5"  fill="#4B6CF5" />
+      <rect   x="20" y="28"  width="10" height="40" rx="5" fill="url(#hrai-mid)" />
+      <circle cx="45" cy="3"  r="5"  fill="#8020EF" />
+      <rect   x="40" y="12"  width="10" height="56" rx="5" fill="url(#hrai-right)" />
+    </svg>
+  );
+};
 
 export function TermsOfServicePage() {
   const [scrolled, setScrolled] = useState(false);
@@ -43,14 +61,12 @@ export function TermsOfServicePage() {
   const divider = isDark ? 'bg-white/10' : 'bg-slate-200';
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-indigo-500/20 overflow-x-hidden transition-colors duration-500 ${bg} ${text}`}>
+    <div className={`min-h-screen font-sans selection:bg-[#7A60F4]/20 overflow-x-hidden transition-colors duration-500 ${bg} ${text}`}>
 
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className={`absolute -top-40 -left-40 w-[800px] h-[800px] rounded-full blur-[160px] ${isDark ? 'bg-indigo-600/15' : 'bg-indigo-300/40'}`} style={{ animation: 'drift1 18s ease-in-out infinite alternate' }} />
-        <div className={`absolute -bottom-40 -right-40 w-[700px] h-[700px] rounded-full blur-[160px] ${isDark ? 'bg-violet-600/15' : 'bg-violet-300/40'}`} style={{ animation: 'drift2 22s ease-in-out infinite alternate' }} />
-        <div className={`absolute top-1/3 -right-20 w-[600px] h-[600px] rounded-full blur-[140px] ${isDark ? 'bg-emerald-600/10' : 'bg-emerald-200/40'}`} style={{ animation: 'drift1 25s ease-in-out infinite alternate-reverse' }} />
-        <div className={`absolute bottom-1/3 -left-20 w-[500px] h-[500px] rounded-full blur-[150px] ${isDark ? 'bg-fuchsia-600/10' : 'bg-fuchsia-200/40'}`} style={{ animation: 'drift2 20s ease-in-out infinite alternate-reverse' }} />
-        <div className={`absolute inset-0 bg-[linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] bg-[size:40px_40px] ${isDark ? 'text-white opacity-[0.03]' : 'text-slate-900 opacity-[0.03]'}`} />
+        <div className={`absolute -top-40 -left-40 w-[800px] h-[800px] rounded-full blur-[160px] ${isDark ? 'bg-[#7A60F4]/12' : 'bg-[#7A60F4]/35'}`} style={{ animation: 'drift1 18s ease-in-out infinite alternate' }} />
+        <div className={`absolute -bottom-40 -right-40 w-[700px] h-[700px] rounded-full blur-[160px] ${isDark ? 'bg-[#29C5F6]/18' : 'bg-[#29C5F6]/65'}`} style={{ animation: 'drift2 22s ease-in-out infinite alternate' }} />
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[120px] ${isDark ? 'bg-[#9EA4FF]/8' : 'bg-[#9EA4FF]/35'}`} style={{ animation: 'drift1 14s ease-in-out infinite alternate-reverse' }} />
 
         <style>{`
           @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(60px,40px) scale(1.08); } }
@@ -63,28 +79,29 @@ export function TermsOfServicePage() {
 
           <div className="flex justify-start z-10">
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${isDark ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-indigo-500/25' : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30'}`}>
-                <BoltIcon />
-              </div>
-              <span className={`font-black text-xl tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>HR AI App</span>
+              <HraiLogo height={36} />
+              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
+                HRAIPP
+              </span>
             </Link>
           </div>
 
-          <nav className={`hidden lg:flex absolute left-1/2 -translate-x-1/2 z-10 justify-center items-center gap-1 px-2 py-1.5 rounded-2xl border backdrop-blur-md ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
-            <Link to="/" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Home</Link>
+          <nav className={`hidden lg:flex absolute left-1/2 -translate-x-1/2 z-10 justify-center items-center gap-0.5 px-2 py-1.5 rounded-2xl border backdrop-blur-md ${isDark ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-white/70 border-slate-200/70 shadow-sm'}`}>
+            <Link to="/" className={`px-3.5 py-2 rounded-xl text-[15px] font-bold transition-all ${isDark ? 'text-slate-300 hover:text-white hover:bg-white/[0.07]' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}>Home</Link>
 
             <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-slate-300'}`} />
 
-            <Link to="/guide" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>HR Guide</Link>
-            <Link to="/privacy" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.07]' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}>Privacy</Link>
-            <Link to="/terms" className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${isDark ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100'}`}>Terms</Link>
+            <Link to="/guide"   className={`px-3.5 py-2 rounded-xl text-[15px] font-bold transition-all ${isDark ? 'text-slate-300 hover:text-white hover:bg-white/[0.07]' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}>HR Guide</Link>
+            <Link to="/privacy" className={`px-3.5 py-2 rounded-xl text-[15px] font-bold transition-all ${isDark ? 'text-slate-300 hover:text-white hover:bg-white/[0.07]' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}>Privacy</Link>
+            <Link to="/terms"   className={`px-3.5 py-2 rounded-xl text-[15px] font-bold transition-all ${isDark ? 'text-[#9EA4FF] bg-[#7A60F4]/10' : 'text-[#7A60F4] bg-[#7A60F4]/8'}`}>Terms</Link>
           </nav>
 
           <div className="flex justify-end items-center gap-4 z-10">
             <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               aria-label="Toggle theme"
-              className={`p-2.5 rounded-xl transition-all border ${isDark ? 'bg-white/[0.06] border-white/10 text-slate-400 hover:text-white hover:bg-white/10' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'}`}
+              style={!isDark ? { color: '#7A60F4', backgroundColor: 'rgba(122,96,244,0.08)', borderColor: 'rgba(122,96,244,0.3)' } : undefined}
+              className={`p-2.5 rounded-xl transition-all border ${isDark ? 'bg-white/[0.06] border-white/10 text-[#FF906D] hover:text-[#FF906D] hover:bg-white/10' : 'shadow-sm hover:opacity-80'}`}
             >
               {isDark ? <SunIcon /> : <MoonIcon />}
             </button>
@@ -99,7 +116,7 @@ export function TermsOfServicePage() {
         <div className="max-w-3xl mx-auto">
 
           <div className="mb-20 text-center md:text-left">
-            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold mb-6 ${isDark ? 'bg-indigo-500/10 border-indigo-500/25 text-indigo-300' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}>
+            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold mb-6 ${isDark ? 'bg-[#7A60F4]/10 border-[#7A60F4]/25 text-[#9EA4FF]' : 'bg-[#7A60F4]/10 border-[#7A60F4]/20 text-[#5B52C8]'}`}>
               Bold Generic Solutions
             </div>
             <h1 className={`text-5xl md:text-6xl font-black tracking-tight mb-6 leading-tight ${text}`}>
@@ -114,7 +131,7 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">01.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">01.</span>
                 Acceptance of Terms
               </h2>
               <p className={`text-lg leading-relaxed ${paragraph}`}>
@@ -126,10 +143,10 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">02.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">02.</span>
                 User Accounts
               </h2>
-              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-indigo-500 ${paragraph}`}>
+              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-[#7A60F4] ${paragraph}`}>
                 <li><strong className={text}>Eligibility:</strong> You must be at least 18 years old (or the legal age of majority in your jurisdiction).</li>
                 <li><strong className={text}>Accuracy:</strong> You agree to provide accurate information. Creating accounts with fake names or disposable emails is a breach of these terms.</li>
                 <li><strong className={text}>Security:</strong> You are solely responsible for protecting your password. Bold Generic Solutions is not liable for unauthorized access resulting from your failure to secure your credentials.</li>
@@ -140,13 +157,13 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">03.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">03.</span>
                 Third-Party Job Links
               </h2>
               <p className={`text-lg leading-relaxed mb-6 ${paragraph}`}>
                 Our platform aggregates job listings from third-party sources (e.g., Adzuna).
               </p>
-              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-indigo-500 ${paragraph}`}>
+              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-[#7A60F4] ${paragraph}`}>
                 <li><strong className={text}>Independent Entities:</strong> External job boards and employers are independent of Bold Generic Solutions. We do not control their websites, application processes, or hiring decisions.</li>
                 <li><strong className={text}>No Endorsement:</strong> The inclusion of a link does not imply endorsement. We do not guarantee that the job listings are accurate, current, or free from errors.</li>
                 <li><strong className={text}>Risk:</strong> You acknowledge that applying for a job on a third-party site is at your own risk. We are not liable for any interactions, disputes, or losses (financial or data-related) that occur after you leave our platform.</li>
@@ -157,13 +174,13 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">04.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">04.</span>
                 AI-Generated Content & CV Parsing
               </h2>
               <p className={`text-lg leading-relaxed mb-6 ${paragraph}`}>
                 We provide AI tools to assist in structuring your professional profile (EU AI Act Compliance).
               </p>
-              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-indigo-500 ${paragraph}`}>
+              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-[#7A60F4] ${paragraph}`}>
                 <li><strong className={text}>Informational Only:</strong> AI outputs (parsed skills, summaries, matched vacancies) are suggestions. They do not constitute professional career advice.</li>
                 <li><strong className={text}>User Responsibility:</strong> You must review all AI-generated or AI-parsed content. Bold Generic Solutions is not responsible for inaccuracies in your profile created by the AI.</li>
                 <li><strong className={text}>No Autonomy:</strong> Our AI does not make final employment decisions. It is a tool for your personal use.</li>
@@ -174,13 +191,13 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">05.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">05.</span>
                 Prohibited Conduct
               </h2>
               <p className={`text-lg leading-relaxed mb-6 ${paragraph}`}>
                 You agree NOT to:
               </p>
-              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-indigo-500 ${paragraph}`}>
+              <ul className={`list-disc pl-6 space-y-4 text-lg leading-relaxed marker:text-[#7A60F4] ${paragraph}`}>
                 <li>Use any automated system (bots, scrapers) to extract data from our platform.</li>
                 <li>Post fraudulent vacancies (for HR users) or submit fake CVs (for Candidates).</li>
                 <li>Use the platform for any illegal purpose or to harass other users.</li>
@@ -191,7 +208,7 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">06.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">06.</span>
                 Limitation of Liability
               </h2>
               <p className={`text-lg leading-relaxed ${paragraph}`}>
@@ -203,7 +220,7 @@ export function TermsOfServicePage() {
 
             <section>
               <h2 className={`text-2xl md:text-3xl font-bold tracking-tight mb-6 flex items-baseline gap-3 ${text}`}>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 font-black">07.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7A60F4] to-[#9EA4FF] font-black">07.</span>
                 Termination
               </h2>
               <p className={`text-lg leading-relaxed ${paragraph}`}>
@@ -219,10 +236,10 @@ export function TermsOfServicePage() {
         <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-2.5">
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-gradient-to-br from-indigo-600 to-violet-700'}`}>
-                <BoltIcon />
-              </div>
-              <span className={`font-black text-lg tracking-tighter ${text}`}>HR AI App</span>
+              <HraiLogo height={30} />
+              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
+                HRAIPP
+              </span>
             </Link>
           </div>
 
@@ -233,7 +250,7 @@ export function TermsOfServicePage() {
           </div>
 
           <div className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-            <span>© 2026 HR AI App.</span>
+            <span>© 2026 HRAIPP.</span>
             <span>Built by</span>
             <a href="https://boldgeneric.com/" target="_blank" rel="noreferrer" className={`font-bold transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
               Bold Generic

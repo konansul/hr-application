@@ -18,9 +18,9 @@ interface CandidateBasic {
 const Pill = ({ label, value, color = 'gray' }: { label: string; value: string | number; color?: 'gray' | 'emerald' | 'blue' | 'purple' }) => {
   const colorStyles = {
     gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-    emerald: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400',
-    blue: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400',
-    purple: 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-900/50 text-purple-700 dark:text-purple-400',
+    emerald: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
+    blue: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 border-[#92D8F2]/40 dark:border-[#92D8F2]/25 text-slate-700 dark:text-[#92D8F2]',
+    purple: 'bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
   };
 
   return (
@@ -127,7 +127,7 @@ export function TalentPoolTab() {
               placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-black border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all shadow-sm dark:text-white placeholder-gray-400 dark:placeholder-neutral-600"
+              className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-black border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all shadow-sm dark:text-white placeholder-gray-400 dark:placeholder-neutral-600"
             />
           </div>
         </div>
@@ -145,7 +145,7 @@ export function TalentPoolTab() {
                 onClick={() => setSelectedCandidateId(c.person_id)}
                 className="w-full text-left p-5 rounded-2xl transition-all duration-200 border bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600 hover:shadow-md flex items-center gap-6 group"
               >
-                <div className="w-14 h-14 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xl shrink-0 group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                <div className="w-14 h-14 rounded-xl bg-[#7A60F4]/10 dark:bg-[#7A60F4]/15 text-[#7A60F4] flex items-center justify-center font-bold text-xl shrink-0 group-hover:bg-[#7A60F4] group-hover:text-white transition-colors">
                   {c.first_name?.[0] || '?'}
                 </div>
 
@@ -191,7 +191,7 @@ export function TalentPoolTab() {
 
             <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50 dark:bg-neutral-900 shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 rounded-lg flex items-center justify-center font-bold shadow-sm transition-colors">
+                <div className="w-10 h-10 bg-[#7A60F4]/15 dark:bg-[#7A60F4]/20 text-[#7A60F4] rounded-lg flex items-center justify-center font-bold shadow-sm transition-colors">
                    {selectedProfile?.personal_info?.first_name?.[0] || '?'}
                 </div>
                 <div>
@@ -274,19 +274,19 @@ export function TalentPoolTab() {
                   </div>
 
                   {selectedProfile.references?.length > 0 && (
-                    <div className="bg-purple-50/50 dark:bg-purple-950/20 p-6 rounded-2xl border border-purple-100 dark:border-purple-900/50 transition-colors">
-                      <h4 className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <div className="bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/5 p-6 rounded-2xl border border-[#9EA4FF]/25 dark:border-[#9EA4FF]/20 transition-colors">
+                      <h4 className="text-[11px] font-bold text-[#5B52C8] dark:text-[#9EA4FF] uppercase tracking-widest mb-4 flex items-center gap-2">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         {t.references}
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {selectedProfile.references.map((ref: any, i: number) => (
-                          <div key={i} className="bg-white dark:bg-neutral-900 p-4 rounded-xl border border-purple-100 dark:border-purple-900/30 shadow-sm transition-colors">
+                          <div key={i} className="bg-white dark:bg-neutral-900 p-4 rounded-xl border border-[#9EA4FF]/20 dark:border-[#9EA4FF]/15 shadow-sm transition-colors">
                             <h5 className="font-bold text-gray-900 dark:text-white text-sm">{ref.name}</h5>
                             <p className="text-xs text-gray-500 dark:text-neutral-500 mt-0.5">{ref.title} at <span className="font-semibold text-gray-700 dark:text-neutral-300">{ref.company}</span></p>
                             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-neutral-800 space-y-2">
                               {ref.email && (
-                                <a href={`mailto:${ref.email}`} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-2 font-medium">
+                                <a href={`mailto:${ref.email}`} className="text-xs text-[#7A60F4] dark:text-[#9EA4FF] hover:underline flex items-center gap-2 font-medium">
                                   <svg className="w-3.5 h-3.5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                   {ref.email}
                                 </a>

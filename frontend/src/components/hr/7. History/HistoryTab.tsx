@@ -6,10 +6,10 @@ import { DICT } from '../../../internationalization.ts';
 const Pill = ({ label, value, color = 'gray' }: { label: string; value: string | number; color?: 'gray' | 'emerald' | 'red' | 'amber' | 'blue' }) => {
   const colorStyles = {
     gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-    emerald: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400',
+    emerald: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
     red: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
-    amber: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400',
-    blue: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400',
+    amber: 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]',
+    blue: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 border-[#92D8F2]/40 dark:border-[#92D8F2]/25 text-slate-700 dark:text-[#92D8F2]',
   };
 
   return (
@@ -92,17 +92,17 @@ export function HistoryTab() {
         <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-colors">
           <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">{t.stats.avgScore}</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">{averageScore}</span>
-            <span className="text-sm font-semibold text-blue-600/50 dark:text-blue-400/40">/ 100</span>
+            <span className="text-3xl font-bold text-[#5B52C8] dark:text-[#9EA4FF]">{averageScore}</span>
+            <span className="text-sm font-semibold text-[#5B52C8]/50 dark:text-[#9EA4FF]/40">/ 100</span>
           </div>
         </div>
-        <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-colors">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">{t.stats.offers}</span>
-          <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-500">{totalOffers}</span>
+        <div className="bg-[#7A60F4]/10 dark:bg-[#7A60F4]/5 border border-[#7A60F4]/25 dark:border-[#7A60F4]/20 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-colors">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#5B52C8] dark:text-[#9EA4FF] mb-1">{t.stats.offers}</span>
+          <span className="text-3xl font-bold text-[#5B52C8] dark:text-[#9EA4FF]">{totalOffers}</span>
         </div>
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-colors">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-1">{t.stats.rejected}</span>
-          <span className="text-3xl font-bold text-red-700 dark:text-red-500">{totalRejections}</span>
+        <div className="bg-[#FF906D]/10 dark:bg-[#FF906D]/5 border border-[#FF906D]/25 dark:border-[#FF906D]/20 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-colors">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#c05020] dark:text-[#FF906D] mb-1">{t.stats.rejected}</span>
+          <span className="text-3xl font-bold text-[#c05020] dark:text-[#FF906D]">{totalRejections}</span>
         </div>
       </div>
 
@@ -116,7 +116,7 @@ export function HistoryTab() {
             placeholder={t.searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600"
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600"
           />
         </div>
 
@@ -145,7 +145,7 @@ export function HistoryTab() {
                 <tr>
                   <td colSpan={7} className="p-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-gray-400">
-                      <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-800 border-t-gray-900 dark:border-t-white rounded-full animate-spin"></div>
+                      <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-800 border-t-[#7A60F4] rounded-full animate-spin"></div>
                       <span className="text-sm font-semibold">{t.loading}</span>
                     </div>
                   </td>
@@ -173,14 +173,14 @@ export function HistoryTab() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`font-bold ${(res.screening?.score || 0) >= 80 ? 'text-emerald-600' : (res.screening?.score || 0) >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                      <span className={`font-bold ${(res.screening?.score || 0) >= 80 ? 'text-[#5B52C8] dark:text-[#9EA4FF]' : (res.screening?.score || 0) >= 50 ? 'text-[#c05020] dark:text-[#FF906D]' : 'text-[#c05020] dark:text-[#FF906D]'}`}>
                         {res.screening?.score ?? '—'}%
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                        res.screening?.decision === 'hire' || res.screening?.decision === 'yes' ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400' :
-                        res.screening?.decision === 'no' ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400' : 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400'
+                        res.screening?.decision === 'hire' || res.screening?.decision === 'yes' ? 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]' :
+                        res.screening?.decision === 'no' ? 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]' : 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]'
                       }`}>
                         {res.screening?.decision?.replace('_', ' ') || 'PENDING'}
                       </span>
@@ -225,7 +225,7 @@ export function HistoryTab() {
               <div className="flex flex-wrap gap-4 border-b border-gray-100 dark:border-neutral-800 pb-6 transition-colors">
                 <Pill label="Score" value={`${selectedResult.screening?.score || 0}%`} color="blue" />
                 <Pill label="Status" value={selectedResult.status?.replace('_', ' ')} color="emerald" />
-                <Pill label="Decision" value={selectedResult.screening?.decision} color={selectedResult.screening?.decision === 'no' ? 'red' : 'emerald'} />
+                <Pill label="Decision" value={selectedResult.screening?.decision} color={selectedResult.screening?.decision === 'no' ? 'amber' : 'emerald'} />
                 <Pill label="Date" value={new Date(selectedResult.created_at).toLocaleDateString()} />
               </div>
 
@@ -240,48 +240,48 @@ export function HistoryTab() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 transition-colors">
-                  <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <div className="bg-[#7A60F4]/5 dark:bg-[#7A60F4]/5 border border-[#7A60F4]/15 dark:border-[#7A60F4]/15 rounded-2xl p-6 transition-colors">
+                  <h4 className="text-sm font-bold text-[#5B52C8] dark:text-[#9EA4FF] mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[#7A60F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     {t.modal.matched}
                   </h4>
                   <ul className="space-y-2.5">
                     {selectedResult.screening?.full_result?.matched_skills?.map((skill: string, i: number) => (
-                      <li key={i} className="text-sm text-emerald-900 dark:text-emerald-200 flex items-start gap-2">
-                        <span className="text-emerald-500 mt-0.5">•</span>
+                      <li key={i} className="text-sm text-gray-700 dark:text-neutral-200 flex items-start gap-2">
+                        <span className="text-[#7A60F4] mt-0.5">•</span>
                         {skill}
                       </li>
                     ))}
-                    {(!selectedResult.screening?.full_result?.matched_skills || selectedResult.screening?.full_result?.matched_skills.length === 0) && <li className="text-sm text-emerald-700 dark:text-emerald-500 italic">{t.modal.noData}</li>}
+                    {(!selectedResult.screening?.full_result?.matched_skills || selectedResult.screening?.full_result?.matched_skills.length === 0) && <li className="text-sm text-[#5B52C8] dark:text-[#9EA4FF] italic">{t.modal.noData}</li>}
                   </ul>
                 </div>
-                <div className="bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-6 transition-colors">
-                  <h4 className="text-sm font-bold text-red-800 dark:text-red-400 mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="bg-[#FF906D]/5 dark:bg-[#FF906D]/5 border border-[#FF906D]/15 dark:border-[#FF906D]/15 rounded-2xl p-6 transition-colors">
+                  <h4 className="text-sm font-bold text-[#c05020] dark:text-[#FF906D] mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[#FF906D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     {t.modal.missing}
                   </h4>
                   <ul className="space-y-2.5">
                     {selectedResult.screening?.full_result?.missing_skills?.map((skill: string, i: number) => (
-                      <li key={i} className="text-sm text-red-900 dark:text-red-200 flex items-start gap-2">
-                        <span className="text-red-500 mt-0.5">•</span>
+                      <li key={i} className="text-sm text-gray-700 dark:text-neutral-200 flex items-start gap-2">
+                        <span className="text-[#FF906D] mt-0.5">•</span>
                         {skill}
                       </li>
                     ))}
-                    {(!selectedResult.screening?.full_result?.missing_skills || selectedResult.screening?.full_result?.missing_skills.length === 0) && <li className="text-sm text-red-700 dark:text-red-500 italic">{t.modal.noData}</li>}
+                    {(!selectedResult.screening?.full_result?.missing_skills || selectedResult.screening?.full_result?.missing_skills.length === 0) && <li className="text-sm text-[#c05020] dark:text-[#FF906D] italic">{t.modal.noData}</li>}
                   </ul>
                 </div>
               </div>
 
               {selectedResult.screening?.full_result?.risks?.length > 0 && (
-                <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-6 transition-colors">
-                  <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400 mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <div className="bg-[#FF906D]/5 dark:bg-[#FF906D]/5 border border-[#FF906D]/15 dark:border-[#FF906D]/15 rounded-2xl p-6 transition-colors">
+                  <h4 className="text-sm font-bold text-[#c05020] dark:text-[#FF906D] mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[#FF906D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                     {t.modal.risks}
                   </h4>
                   <ul className="space-y-3">
                     {selectedResult.screening.full_result.risks.map((risk: string, i: number) => (
-                      <li key={i} className="text-sm text-amber-900 dark:text-amber-200 flex items-start gap-2 leading-relaxed">
-                        <span className="text-amber-500 font-bold shrink-0">!</span> {risk}
+                      <li key={i} className="text-sm text-gray-700 dark:text-neutral-200 flex items-start gap-2 leading-relaxed">
+                        <span className="text-[#FF906D] font-bold shrink-0">!</span> {risk}
                       </li>
                     ))}
                   </ul>

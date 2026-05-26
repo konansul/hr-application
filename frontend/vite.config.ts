@@ -7,7 +7,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-    envDir: '../',
+  server: {
+    port: 5173,
+  },
+  envDir: '../',
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },

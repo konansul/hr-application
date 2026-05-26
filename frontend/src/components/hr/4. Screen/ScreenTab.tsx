@@ -14,10 +14,10 @@ const Pill = ({
 }) => {
     const colorStyles = {
         gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-        emerald: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400',
+        emerald: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
         red: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
-        amber: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400',
-        blue: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400',
+        amber: 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]',
+        blue: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 border-[#92D8F2]/40 dark:border-[#92D8F2]/25 text-slate-700 dark:text-[#92D8F2]',
     };
 
     return (
@@ -188,16 +188,16 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
     if (!jobDescription.trim() || !globalJobId) {
         return (
             <div
-                className="flex flex-col items-center justify-center py-16 px-4 text-center bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-2xl max-w-2xl mx-auto mt-10">
+                className="flex flex-col items-center justify-center py-16 px-4 text-center bg-[#FF906D]/10 dark:bg-[#FF906D]/5 border border-[#FF906D]/30 dark:border-[#FF906D]/20 rounded-2xl max-w-2xl mx-auto mt-10">
                 <div
-                    className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mb-4">
+                    className="w-12 h-12 bg-[#FF906D]/15 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] rounded-full flex items-center justify-center mb-4">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
-                <h3 className="text-lg font-medium text-amber-900 dark:text-amber-100 mb-1">{t.missingJdTitle}</h3>
-                <p className="text-sm text-amber-700 dark:text-amber-400">{t.missingJdDesc}</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{t.missingJdTitle}</h3>
+                <p className="text-sm text-[#c05020] dark:text-[#FF906D]">{t.missingJdDesc}</p>
             </div>
         );
     }
@@ -218,7 +218,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                     className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 ${
                         isProcessing || selectedDocs.length === 0
                             ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-600 cursor-not-allowed'
-                            : 'bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-neutral-200 active:scale-[0.98]'
+                            : 'bg-[#7A60F4] text-white hover:bg-[#6B52E8] active:scale-[0.98]'
                     }`}
                 >
                     {isProcessing ? (
@@ -254,7 +254,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                             <th className="p-4 w-12 text-center">
                                 <input
                                     type="checkbox"
-                                    className="w-4 h-4 rounded border-gray-300 dark:border-neutral-700 text-gray-900 focus:ring-gray-900 dark:focus:ring-white bg-white dark:bg-black cursor-pointer"
+                                    className="w-4 h-4 rounded border-gray-300 dark:border-neutral-700 text-[#7A60F4] focus:ring-[#7A60F4]/50 bg-white dark:bg-black cursor-pointer"
                                     checked={selectedDocs.length > 0 && selectedDocs.length === documents.length}
                                     onChange={toggleAll}
                                 />
@@ -286,7 +286,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                                     >
                                         <input
                                             type="checkbox"
-                                            className="w-4 h-4 rounded border-gray-300 dark:border-neutral-700 text-gray-900 focus:ring-gray-900 dark:focus:ring-white bg-white dark:bg-black cursor-pointer"
+                                            className="w-4 h-4 rounded border-gray-300 dark:border-neutral-700 text-[#7A60F4] focus:ring-[#7A60F4]/50 bg-white dark:bg-black cursor-pointer"
                                             checked={selectedDocs.includes(doc.document_id)}
                                             onChange={() => toggleDoc(doc.document_id)}
                                         />
@@ -368,7 +368,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                             {pdfLoading ? (
                                 <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500 dark:text-neutral-600">
                                     <div
-                                        className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-800 border-t-gray-900 dark:border-t-white rounded-full animate-spin"></div>
+                                        className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-800 border-t-[#7A60F4] rounded-full animate-spin"></div>
                                     <span className="text-sm font-semibold">{t.modal.loadingPdf}</span>
                                 </div>
                             ) : pdfBlobUrl ? (
@@ -393,7 +393,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                             <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950 shrink-0 transition-colors">
                                 <button
                                     onClick={() => handleCheckAnswers(viewingDoc)}
-                                    className="w-full py-2.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl transition-all shadow-sm active:scale-[0.98]"
+                                    className="w-full py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-bold rounded-xl transition-all shadow-sm active:scale-[0.98]"
                                 >
                                     {t.modal.checkAnswers}
                                 </button>
@@ -426,7 +426,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                             {answersLoading ? (
                                 <div className="flex flex-col items-center justify-center py-12 gap-3 text-gray-500 dark:text-neutral-600">
                                     <div
-                                        className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-800 border-t-gray-900 dark:border-t-white rounded-full animate-spin"></div>
+                                        className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-800 border-t-[#7A60F4] rounded-full animate-spin"></div>
                                     <span className="text-sm font-semibold">{t.answers.loading}</span>
                                 </div>
                             ) : !answers || Object.keys(answers).length === 0 ? (
@@ -478,21 +478,21 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                             {results.map((r, idx) => (
                                 <tr
                                     key={idx}
-                                    className={`transition-colors cursor-pointer ${selectedFilename === r.filename ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/30'}`}
+                                    className={`transition-colors cursor-pointer ${selectedFilename === r.filename ? 'bg-[#7A60F4]/5 dark:bg-[#7A60F4]/5' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/30'}`}
                                     onClick={() => setSelectedFilename(r.filename)}
                                 >
                                     <td className="px-6 py-4 font-bold text-gray-900 dark:text-white flex items-center gap-3">
                                         {selectedFilename === r.filename &&
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 transition-colors"></div>}
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#7A60F4] transition-colors"></div>}
                                         {r.filename}
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-indigo-600 dark:text-indigo-400">{r.score || 0}%</td>
+                                    <td className="px-6 py-4 font-bold text-[#5B52C8] dark:text-[#9EA4FF]">{r.score || 0}%</td>
                                     <td className="px-6 py-4">
                       <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
                               r.status === 'APPLIED' || r.decision === 'Pending'
-                                  ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400'
-                                  : 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400'
+                                  ? 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]'
+                                  : 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]'
                           }`}>
                          {r.decision || r.status}
                       </span>
@@ -510,7 +510,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                             <select
                                 value={selectedFilename}
                                 onChange={(e) => setSelectedFilename(e.target.value)}
-                                className="w-full sm:w-80 px-4 py-2.5 text-sm font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white transition-all cursor-pointer"
+                                className="w-full sm:w-80 px-4 py-2.5 text-sm font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl outline-none focus:ring-2 focus:ring-[#7A60F4]/50 transition-all cursor-pointer"
                             >
                                 {results.map(r => (
                                     <option key={r.filename} value={r.filename}>{r.filename}</option>
@@ -543,9 +543,9 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
 
                                 {(selectedCandidate.matched_skills?.length > 0 || selectedCandidate.missing_skills?.length > 0) && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 transition-colors">
-                                            <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center gap-2">
-                                                <svg className="w-5 h-5 text-emerald-500" fill="none"
+                                        <div className="bg-[#7A60F4]/5 dark:bg-[#7A60F4]/5 border border-[#7A60F4]/15 dark:border-[#7A60F4]/15 rounded-2xl p-6 transition-colors">
+                                            <h4 className="text-sm font-bold text-[#5B52C8] dark:text-[#9EA4FF] mb-4 flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-[#7A60F4]" fill="none"
                                                      viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                                           d="M5 13l4 4L19 7"/>
@@ -555,16 +555,16 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                                             <ul className="space-y-2.5">
                                                 {selectedCandidate.matched_skills?.map((skill: string, i: number) => (
                                                     <li key={i}
-                                                        className="text-sm text-emerald-900 dark:text-emerald-200 flex items-start gap-2">
-                                                        <span className="text-emerald-500 mt-0.5">•</span>
+                                                        className="text-sm text-gray-700 dark:text-neutral-200 flex items-start gap-2">
+                                                        <span className="text-[#7A60F4] mt-0.5">•</span>
                                                         {skill}
                                                     </li>
                                                 ))}
                                             </ul>
                                         </div>
-                                        <div className="bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-6 transition-colors">
-                                            <h4 className="text-sm font-bold text-red-800 dark:text-red-400 mb-4 flex items-center gap-2">
-                                                <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24"
+                                        <div className="bg-[#FF906D]/5 dark:bg-[#FF906D]/5 border border-[#FF906D]/15 dark:border-[#FF906D]/15 rounded-2xl p-6 transition-colors">
+                                            <h4 className="text-sm font-bold text-[#c05020] dark:text-[#FF906D] mb-4 flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-[#FF906D]" fill="none" viewBox="0 0 24 24"
                                                      stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                                           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -573,8 +573,8 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                                             </h4>
                                             <ul className="space-y-2.5">
                                                 {selectedCandidate.missing_skills?.map((skill: string, i: number) => (
-                                                    <li key={i} className="text-sm text-red-900 dark:text-red-200 flex items-start gap-2">
-                                                        <span className="text-red-500 mt-0.5">•</span>
+                                                    <li key={i} className="text-sm text-gray-700 dark:text-neutral-200 flex items-start gap-2">
+                                                        <span className="text-[#FF906D] mt-0.5">•</span>
                                                         {skill}
                                                     </li>
                                                 ))}
@@ -584,9 +584,9 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                                 )}
 
                                 {selectedCandidate.risks?.length > 0 && (
-                                    <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-6 transition-colors">
-                                        <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400 mb-4 flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24"
+                                    <div className="bg-[#FF906D]/5 dark:bg-[#FF906D]/5 border border-[#FF906D]/15 dark:border-[#FF906D]/15 rounded-2xl p-6 transition-colors">
+                                        <h4 className="text-sm font-bold text-[#c05020] dark:text-[#FF906D] mb-4 flex items-center gap-2">
+                                            <svg className="w-5 h-5 text-[#FF906D]" fill="none" viewBox="0 0 24 24"
                                                  stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -595,8 +595,8 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                                         </h4>
                                         <ul className="space-y-3">
                                             {selectedCandidate.risks?.map((risk: string, i: number) => (
-                                                <li key={i} className="text-sm text-amber-900 dark:text-amber-200 flex items-start gap-2">
-                                                    <span className="text-amber-500 font-bold shrink-0">!</span> {risk}
+                                                <li key={i} className="text-sm text-gray-700 dark:text-neutral-200 flex items-start gap-2">
+                                                    <span className="text-[#FF906D] font-bold shrink-0">!</span> {risk}
                                                 </li>
                                             ))}
                                         </ul>

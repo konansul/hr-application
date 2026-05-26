@@ -312,10 +312,10 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
 
   const getStatusBadgeStyles = (status?: string) => {
     switch (status) {
-      case 'active': return 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50';
+      case 'active': return 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/30 dark:border-[#7A60F4]/25';
       case 'closed': return 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-500 border-gray-200 dark:border-neutral-700';
-      case 'suspended': return 'bg-amber-100 dark:bg-amber-950/30 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800/50';
-      default: return 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/50';
+      case 'suspended': return 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] border-[#FF906D]/30 dark:border-[#FF906D]/25';
+      default: return 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border-[#92D8F2]/40 dark:border-[#92D8F2]/25';
     }
   };
 
@@ -335,31 +335,31 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-3">{t.title}</h2>
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest mr-1">{t.filters.label}</span>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer">
               <option value="All">{t.filters.allStatuses}</option>
               <option value="active">{(t as any).statusNames?.active || 'Active'}</option>
               <option value="draft">{(t as any).statusNames?.draft || 'Draft'}</option>
               <option value="suspended">{(t as any).statusNames?.suspended || 'Suspended'}</option>
               <option value="closed">{(t as any).statusNames?.closed || 'Closed'}</option>
             </select>
-            <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
+            <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer">
               <option value="All">{t.filters.allLevels}</option>
               {LEVELS.map((l: string) => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
             </select>
-            <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer">
+            <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer">
               <option value="All">{t.filters.allLocations}</option>
               {REGIONS.map((r: string) => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
             </select>
           </div>
         </div>
-        <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all">
+        <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white rounded-xl text-sm font-bold shadow-sm transition-all">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           {t.createBtn}
         </button>
       </div>
 
       {(message || error) && (
-        <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 transition-colors animate-in slide-in-from-top-2 ${error ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-900/50' : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50'}`}>
+        <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 transition-colors animate-in slide-in-from-top-2 ${error ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-900/50' : 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/5 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/25 dark:border-[#7A60F4]/20'}`}>
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={error ? "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} /></svg>
           {message || error}
         </div>
@@ -378,15 +378,15 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 filteredJobs.map((job: Job) => {
                   const isSelected = selectedJobId === job.id;
                   return (
-                    <button key={job.id} onClick={() => handleLoadJob(job)} className={`flex items-center w-full text-left px-3 py-3 rounded-xl border transition-all duration-200 group ${isSelected ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-md' : 'bg-white dark:bg-neutral-900 border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}>
+                    <button key={job.id} onClick={() => handleLoadJob(job)} className={`flex items-center w-full text-left px-3 py-3 rounded-xl border transition-all duration-200 group ${isSelected ? 'bg-[#7A60F4] border-[#7A60F4] shadow-md' : 'bg-white dark:bg-neutral-900 border-transparent hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}>
                       <div className="flex-1 min-w-0 pr-2">
-                        <h4 className={`font-bold text-sm truncate ${isSelected ? 'text-white dark:text-black' : 'text-gray-900 dark:text-white'}`}>{job.title}</h4>
+                        <h4 className={`font-bold text-sm truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{job.title}</h4>
                         <p className={`text-[10px] truncate ${isSelected ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-400 dark:text-neutral-500'}`}>
                           {(t as any).levels?.[job.level || 'Middle'] || job.level || 'Middle'}
                         </p>
                       </div>
                       <div className="w-16 flex justify-center shrink-0">
-                        <span className={`text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border ${isSelected && job.status !== 'closed' ? 'bg-gray-800 dark:bg-neutral-200 text-gray-200 dark:text-neutral-700 border-transparent' : getStatusBadgeStyles(job.status)}`}>
+                        <span className={`text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border ${isSelected && job.status !== 'closed' ? 'bg-[#6B52E8] text-white/90 border-transparent' : getStatusBadgeStyles(job.status)}`}>
                           {(t as any).statusNames?.[job.status || 'draft'] || job.status || 'draft'}
                         </span>
                       </div>
@@ -439,7 +439,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col overflow-hidden h-[800px] transition-colors">
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-950 flex flex-wrap items-center justify-between gap-4 shrink-0">
               <div className="flex items-center gap-3">
-                <div className={`w-2.5 h-2.5 rounded-full ${currentJob ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300 dark:bg-neutral-700'}`}></div>
+                <div className={`w-2.5 h-2.5 rounded-full ${currentJob ? 'bg-[#7A60F4] animate-pulse' : 'bg-gray-300 dark:bg-neutral-700'}`}></div>
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.workspace}</h3>
               </div>
               {currentJob && (
@@ -450,14 +450,14 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                     Share Public Link
                   </button>
 
-                  <button onClick={() => setIsRequirementsModalOpen(true)} className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-bold transition-all shadow-sm">
+                  <button onClick={() => setIsRequirementsModalOpen(true)} className="flex items-center gap-1.5 px-4 py-1.5 bg-[#FF906D]/10 dark:bg-[#FF906D]/10 hover:bg-[#FF906D]/20 dark:hover:bg-[#FF906D]/15 text-[#c05020] dark:text-[#FF906D] border border-[#FF906D]/30 dark:border-[#FF906D]/25 rounded-xl text-xs font-bold transition-all shadow-sm">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     Requirements
                   </button>
-                  <button onClick={handleRefineWithAI} disabled={isRefining} className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
+                  <button onClick={handleRefineWithAI} disabled={isRefining} className="flex items-center gap-2 px-4 py-1.5 bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 text-[#5B52C8] dark:text-[#9EA4FF] border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded-xl text-xs font-bold transition-all disabled:opacity-50">
                     {isRefining ? t.aiWorking : t.aiRewrite}
                   </button>
-                  <button onClick={handleSaveChanges} disabled={isSaving} className="px-5 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-sm">
+                  <button onClick={handleSaveChanges} disabled={isSaving} className="px-5 py-1.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-sm">
                     {isSaving ? t.saving : t.saveChanges}
                   </button>
                 </div>
@@ -468,17 +468,17 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 <div className="flex flex-col xl:flex-row xl:items-start gap-4 justify-between shrink-0">
                   <input type="text" value={activeTitle} onChange={(e) => setActiveTitle(e.target.value)} className="flex-1 text-3xl font-bold text-gray-900 dark:text-white border-none focus:ring-0 p-0 placeholder-gray-300 dark:placeholder-neutral-700 bg-transparent" placeholder={t.untitled} />
                   <div className="flex flex-wrap items-center gap-2 shrink-0 bg-gray-50 dark:bg-black p-1.5 rounded-2xl border border-gray-100 dark:border-neutral-800 transition-colors">
-                    <select value={activeStatus} onChange={(e) => setActiveStatus(e.target.value as JobStatus)} className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer transition-colors ${getStatusBadgeStyles(activeStatus)}`}>
+                    <select value={activeStatus} onChange={(e) => setActiveStatus(e.target.value as JobStatus)} className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer transition-colors ${getStatusBadgeStyles(activeStatus)}`}>
                       <option value="draft">{(t as any).statusNames?.draft?.toUpperCase() || 'DRAFT'}</option>
                       <option value="active">{(t as any).statusNames?.active?.toUpperCase() || 'ACTIVE'}</option>
                       <option value="suspended">{(t as any).statusNames?.suspended?.toUpperCase() || 'SUSPENDED'}</option>
                       <option value="closed">{(t as any).statusNames?.closed?.toUpperCase() || 'CLOSED'}</option>
                     </select>
                     <div className="w-px h-6 bg-gray-200 dark:bg-neutral-800 mx-1"></div>
-                    <select value={activeLevel} onChange={(e) => setActiveLevel(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm">
+                    <select value={activeLevel} onChange={(e) => setActiveLevel(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer shadow-sm">
                         {LEVELS.map((l: string) => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
                     </select>
-                    <select value={activeRegion} onChange={(e) => setActiveRegion(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none cursor-pointer shadow-sm">
+                    <select value={activeRegion} onChange={(e) => setActiveRegion(e.target.value)} className="px-2 py-1.5 text-[10px] font-bold uppercase text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer shadow-sm">
                         {REGIONS.map((r: string) => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
                     </select>
                   </div>
@@ -680,7 +680,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
               </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950 shrink-0 flex justify-end">
-              <button onClick={() => setIsRequirementsModalOpen(false)} className="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all">
+              <button onClick={() => setIsRequirementsModalOpen(false)} className="px-6 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white rounded-xl text-sm font-bold shadow-sm transition-all">
                 Close & Keep Changes
               </button>
             </div>
@@ -700,18 +700,18 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
             <form onSubmit={handleCreateJob} className="p-6 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.jobTitle}</label>
-                <input type="text" placeholder="e.g. Senior Frontend Engineer" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" autoFocus />
+                <input type="text" placeholder="e.g. Senior Frontend Engineer" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all dark:text-white placeholder-gray-400 dark:placeholder-neutral-600" autoFocus />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.level}</label>
-                  <select value={draftLevel} onChange={(e) => setDraftLevel(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white">
+                  <select value={draftLevel} onChange={(e) => setDraftLevel(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer dark:text-white">
                     {LEVELS.map((l: string) => <option key={l} value={l}>{(t as any).levels?.[l] || l}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.modal.location}</label>
-                  <select value={draftRegion} onChange={(e) => setDraftRegion(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer dark:text-white">
+                  <select value={draftRegion} onChange={(e) => setDraftRegion(e.target.value)} className="w-full px-4 py-3 text-sm bg-gray-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer dark:text-white">
                     {REGIONS.map((r: string) => <option key={r} value={r}>{(t as any).regions?.[r] || r}</option>)}
                   </select>
                 </div>
@@ -726,7 +726,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
                 />
               </div>
               <div className="pt-2">
-                <button type="submit" disabled={isCreating} className="w-full py-3.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="submit" disabled={isCreating} className="w-full py-3.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                   {isCreating
                     ? <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
                     : <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>

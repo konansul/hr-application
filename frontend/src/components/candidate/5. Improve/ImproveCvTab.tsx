@@ -53,8 +53,8 @@ interface ImproveCvTabProps {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 70) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
-  if (score >= 50) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+  if (score >= 70) return 'bg-[#7A60F4]/15 dark:bg-[#7A60F4]/10 text-[#5B52C8] dark:text-[#9EA4FF]';
+  if (score >= 50) return 'bg-[#FF906D]/15 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D]';
   return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
 }
 

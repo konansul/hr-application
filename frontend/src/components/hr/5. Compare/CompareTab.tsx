@@ -20,10 +20,10 @@ const Pill = ({
 }) => {
   const colorStyles = {
     gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-    emerald: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400',
+    emerald: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
     red: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
-    amber: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400',
-    blue: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400',
+    amber: 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]',
+    blue: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 border-[#92D8F2]/40 dark:border-[#92D8F2]/25 text-slate-700 dark:text-[#92D8F2]',
   };
 
   return (
@@ -40,8 +40,8 @@ const CircleChart = ({ score }: { score: number }) => {
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
   let colorClass = "text-red-500 dark:text-red-400";
-  if (score >= 75) colorClass = "text-emerald-500 dark:text-emerald-400";
-  else if (score >= 50) colorClass = "text-amber-500 dark:text-amber-400";
+  if (score >= 75) colorClass = "text-[#7A60F4] dark:text-[#9EA4FF]";
+  else if (score >= 50) colorClass = "text-[#FF906D] dark:text-[#FF906D]";
 
   return (
     <div className="relative flex items-center justify-center w-16 h-16 shrink-0">
@@ -139,7 +139,7 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
     allResults.filter(item => selectedIds.includes(item.application_id)),
   [allResults, selectedIds]);
 
-  const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b'];
+  const CHART_COLORS = ['#7A60F4', '#92D8F2', '#FF906D'];
 
   const chartData = useMemo(() => {
     return compareItems.map(c => ({
@@ -188,7 +188,7 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
   if (loading && allResults.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-[#7A60F4] rounded-full animate-spin mb-4"></div>
         <p className="text-gray-500 font-medium">Loading stored analysis...</p>
       </div>
     );
@@ -217,18 +217,23 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
           <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
             Select Job to Compare
           </label>
-          <select
-            value={compareJobId}
-            onChange={(e) => setCompareJobId(e.target.value)}
-            className="w-full md:w-64 px-4 py-2.5 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all cursor-pointer font-bold text-gray-900 dark:text-white shadow-sm"
-          >
-            {availableJobs.length === 0 && <option value="">Loading jobs...</option>}
-            {availableJobs.map(job => (
-              <option key={job.id} value={job.id}>
-                {job.title}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-neutral-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+            </div>
+            <select
+              value={compareJobId}
+              onChange={(e) => setCompareJobId(e.target.value)}
+              className="w-full md:w-64 appearance-none pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer font-bold text-gray-900 dark:text-white shadow-sm"
+            >
+              {availableJobs.length === 0 && <option value="">Loading jobs...</option>}
+              {availableJobs.map(job => (
+                <option key={job.id} value={job.id}>
+                  {job.title}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -245,7 +250,7 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
           <div className="p-5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm transition-colors relative">
             {loading && (
               <div className="absolute inset-0 bg-white/50 dark:bg-neutral-900/50 flex items-center justify-center rounded-2xl z-10">
-                <div className="w-6 h-6 border-2 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-6 h-6 border-2 border-gray-200 border-t-[#7A60F4] rounded-full animate-spin"></div>
               </div>
             )}
             <div className="flex flex-wrap gap-2.5">
@@ -260,19 +265,19 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
                     disabled={isDisabled}
                     className={`
                       flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold transition-all duration-200
-                      ${isSelected 
-                        ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white text-white dark:text-black shadow-sm' 
+                      ${isSelected
+                        ? 'bg-[#7A60F4] border-[#7A60F4] text-white shadow-sm'
                         : 'bg-white dark:bg-black border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:border-gray-400 dark:hover:border-neutral-500'}
                       ${isDisabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
                     `}
                   >
                     <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors
-                      ${isSelected ? 'bg-white dark:bg-black border-white dark:border-black text-gray-900 dark:text-white' : 'border-gray-300 dark:border-neutral-600 bg-white dark:bg-black'}
+                      ${isSelected ? 'bg-white border-white text-[#7A60F4]' : 'border-gray-300 dark:border-neutral-600 bg-white dark:bg-black'}
                     `}>
                       {isSelected && <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
                     </div>
                     <span className="truncate max-w-[200px]">{result.filename}</span>
-                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${isSelected ? 'bg-gray-800 dark:bg-neutral-200 text-gray-300 dark:text-neutral-700' : 'bg-gray-100 dark:bg-neutral-800 text-gray-500'}`}>
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${isSelected ? 'bg-[#6B52E8] text-white/80' : 'bg-gray-100 dark:bg-neutral-800 text-gray-500'}`}>
                       {result.score}%
                     </span>
                   </button>
@@ -282,8 +287,8 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
           </div>
 
           {compareItems.length < 2 ? (
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-2xl flex items-start gap-3 text-amber-800 dark:text-amber-400 transition-colors">
-              <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <div className="p-4 bg-[#FF906D]/10 dark:bg-[#FF906D]/5 border border-[#FF906D]/25 dark:border-[#FF906D]/20 rounded-2xl flex items-start gap-3 text-[#c05020] dark:text-[#FF906D] transition-colors">
+              <svg className="w-5 h-5 text-[#FF906D] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               <span className="text-sm font-bold">{t.selectWarning}</span>
             </div>
           ) : (
@@ -304,7 +309,7 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
                         <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} contentStyle={customTooltipStyle} />
                         <Bar dataKey="Score" radius={[6, 6, 0, 0]}>
                           {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.Score >= 75 ? '#10b981' : entry.Score >= 50 ? '#f59e0b' : '#ef4444'} />
+                            <Cell key={`cell-${index}`} fill={entry.Score >= 75 ? '#7A60F4' : entry.Score >= 50 ? '#FF906D' : '#ef4444'} />
                           ))}
                         </Bar>
                       </BarChart>
@@ -354,7 +359,7 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
                         <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} contentStyle={customTooltipStyle} />
                         <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} />
 
-                        <Bar dataKey="Matched" stackId="a" fill="#10b981" />
+                        <Bar dataKey="Matched" stackId="a" fill="#7A60F4" />
                         <Bar dataKey="Missing" stackId="a" fill="#ef4444" />
                       </BarChart>
                     </ResponsiveContainer>
@@ -437,13 +442,13 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
                             <span className="text-[10px] font-bold text-gray-400">{matchedCount} Found / {missingCount} Missing</span>
                           </div>
                           <div className="w-full h-2 flex rounded-full overflow-hidden opacity-80 mb-3">
-                            <div className="bg-emerald-500 h-full" style={{ width: `${matchRatio}%` }}></div>
+                            <div className="bg-[#7A60F4] h-full" style={{ width: `${matchRatio}%` }}></div>
                             <div className="bg-red-400 h-full" style={{ width: `${100 - matchRatio}%` }}></div>
                           </div>
                         </section>
 
                         <section>
-                          <h5 className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5">
+                          <h5 className="text-[10px] font-bold uppercase tracking-wider text-[#5B52C8] dark:text-[#9EA4FF] mb-2 flex items-center gap-1.5">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                             {t.matchedSkills}
                           </h5>
@@ -467,11 +472,11 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
                         </section>
 
                         <section className="mt-auto pt-4 border-t border-gray-50 dark:border-neutral-800/50">
-                          <h5 className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                          <h5 className="text-[10px] font-bold uppercase tracking-wider text-[#c05020] dark:text-[#FF906D] mb-2 flex items-center gap-1.5">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                             {t.risks}
                           </h5>
-                          <ul className="text-sm text-gray-700 dark:text-neutral-300 space-y-1.5 list-disc list-inside marker:text-amber-400 transition-colors">
+                          <ul className="text-sm text-gray-700 dark:text-neutral-300 space-y-1.5 list-disc list-inside marker:text-[#FF906D] transition-colors">
                             {Array.isArray(candidate.risks) && candidate.risks.length > 0 ? (
                               candidate.risks.map((risk: string, i: number) => <li key={i}>{risk}</li>)
                             ) : (
