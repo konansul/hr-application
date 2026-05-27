@@ -9,30 +9,10 @@ const APP_URL = import.meta.env.DEV ? 'http://localhost:5173/?login' : 'https://
 // Blue    #92D8F2 (comms)
 // Orange  #FF906D (accent)   dark text #c05020
 
-// ── Inline logo (3 pills) ──────────────────────────────────────────
-const HraiLogo = ({ height = 32 }: { height?: number }) => {
-  const width = Math.round(height * 50 / 68);
-  return (
-    <svg width={width} height={height} viewBox="0 0 50 68" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="hrai-mid" x1="0" y1="68" x2="0" y2="28" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#16C0EE" />
-          <stop offset="100%" stopColor="#4B6CF5" />
-        </linearGradient>
-        <linearGradient id="hrai-right" x1="0" y1="68" x2="0" y2="12" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#4060F8" />
-          <stop offset="100%" stopColor="#7020EF" />
-        </linearGradient>
-      </defs>
-      <circle cx="5"  cy="35" r="5"  fill="#00C8E8" />
-      <rect   x="0"  y="44"  width="10" height="24" rx="5" fill="#00C8E8" />
-      <circle cx="25" cy="19" r="5"  fill="#4B6CF5" />
-      <rect   x="20" y="28"  width="10" height="40" rx="5" fill="url(#hrai-mid)" />
-      <circle cx="45" cy="3"  r="5"  fill="#8020EF" />
-      <rect   x="40" y="12"  width="10" height="56" rx="5" fill="url(#hrai-right)" />
-    </svg>
-  );
-};
+// ── Inline logo ──────────────────────────────────────────
+const HraiLogo = ({ height = 32 }: { height?: number }) => (
+  <img src="/logo.png" alt="HRAIPP" style={{ height: `${height}px`, width: 'auto' }} draggable={false} className="select-none shrink-0" />
+);
 
 // ── Icon helpers ───────────────────────────────────────────────────
 const SunIcon = () => (
@@ -203,11 +183,8 @@ export function LandingPage() {
 
           {/* Logo */}
           <div className="flex justify-start z-10">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <HraiLogo height={36} />
-              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
-                HRAIPP
-              </span>
+            <Link to="/" className="group">
+              <HraiLogo height={72} />
             </Link>
           </div>
 
@@ -648,11 +625,8 @@ export function LandingPage() {
       {/* ── Footer ── */}
       <footer className={`border-t relative z-10 ${isDark ? 'bg-[#050608] border-white/[0.06]' : 'bg-white border-slate-200/60'}`}>
         <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <HraiLogo height={30} />
-            <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
-              HRAIPP
-            </span>
+          <Link to="/" className="group">
+            <HraiLogo height={60} />
           </Link>
 
           <div className="flex items-center gap-6">
