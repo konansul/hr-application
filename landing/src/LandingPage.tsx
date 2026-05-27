@@ -95,9 +95,7 @@ export function LandingPage() {
   const FEATURES = [
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
+        <img src="/intelligent_resume_parsing.png" alt="Intelligent Resume Parsing" className="w-12 h-12 object-contain" />
       ),
       title: 'Intelligent Resume Parsing',
       description: 'Instantly extract structured data from any PDF or DOCX. Our models understand context, seniority, and project scale — not just keywords.',
@@ -108,9 +106,7 @@ export function LandingPage() {
     },
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
+        <img src="/visual_comparison.png" alt="Visual Comparison" className="w-12 h-12 object-contain" />
       ),
       title: 'Visual Comparison',
       description: 'Multi-dimensional radar charts for side-by-side candidate analysis.',
@@ -121,9 +117,7 @@ export function LandingPage() {
     },
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-        </svg>
+        <img src="/kanban_pipeline.png" alt="Kanban Pipeline" className="w-12 h-12 object-contain" />
       ),
       title: 'Kanban Pipeline',
       description: 'Drag-and-drop hiring board synced live with AI screening results.',
@@ -134,9 +128,7 @@ export function LandingPage() {
     },
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
+        <img src="/zero_bias_matching.png" alt="Zero-Bias Matching" className="w-12 h-12 object-contain" />
       ),
       title: 'Zero-Bias Matching',
       description: 'Standardized evaluation focused purely on validated skills and objective metrics, removing human fatigue from the equation.',
@@ -376,10 +368,8 @@ export function LandingPage() {
                 {/* HR card */}
                 <div className={`group relative p-9 rounded-[2rem] border overflow-hidden transition-all duration-500 ${card} ${cardHover}`}>
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-gradient-to-br ${isDark ? 'from-[#7A60F4]/5 via-transparent to-transparent' : 'from-[#7A60F4]/5 via-transparent to-transparent'}`} />
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-7 border ${isDark ? 'bg-[#92D8F2]/10 border-[#92D8F2]/20 text-[#92D8F2]' : 'bg-[#92D8F2]/10 border-[#92D8F2]/30 text-slate-700 shadow-sm'}`}>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
+                  <div className="w-12 h-12 flex items-center justify-center mb-7">
+                    <img src="/for_hr_recruiters.png" alt="For HR & Recruiters" className="w-12 h-12 object-contain" />
                   </div>
                   <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold mb-4 ${isDark ? 'bg-[#92D8F2]/10 border-[#92D8F2]/20 text-[#92D8F2]' : 'bg-[#92D8F2]/10 border-[#92D8F2]/30 text-slate-700'}`}>
                     For HR &amp; Recruiters
@@ -404,10 +394,8 @@ export function LandingPage() {
                 {/* Candidate card */}
                 <div className={`group relative p-9 rounded-[2rem] border overflow-hidden transition-all duration-500 ${card} ${cardHover}`}>
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-gradient-to-br ${isDark ? 'from-[#FF906D]/5 via-transparent to-transparent' : 'from-[#FF906D]/5 via-transparent to-transparent'}`} />
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-7 border ${isDark ? 'bg-[#FF906D]/10 border-[#FF906D]/20 text-[#FF906D]' : 'bg-[#FF906D]/10 border-[#FF906D]/20 text-[#c05020] shadow-sm'}`}>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                  <div className="w-12 h-12 flex items-center justify-center mb-7">
+                    <img src="/for_canditates_talent.png" alt="For Candidates & Talent" className="w-12 h-12 object-contain" />
                   </div>
                   <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold mb-4 ${isDark ? 'bg-[#FF906D]/10 border-[#FF906D]/20 text-[#FF906D]' : 'bg-[#FF906D]/10 border-[#FF906D]/20 text-[#c05020]'}`}>
                     For Candidates &amp; Talent
@@ -451,7 +439,7 @@ export function LandingPage() {
                 {FEATURES.map((feature, idx) => (
                   <div key={idx} className={`group relative p-8 rounded-[1.75rem] border overflow-hidden transition-all duration-500 hover:-translate-y-1 ${card} ${cardHover} ${feature.span}`}>
                     <div className={`absolute top-0 right-0 w-40 h-40 rounded-full blur-[60px] pointer-events-none transition-opacity duration-700 opacity-0 group-hover:opacity-100 ${feature.glow}`} />
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border transition-transform duration-500 group-hover:scale-110 ${feature.glow} ${feature.border} ${feature.accent}`}>
+                    <div className="w-12 h-12 flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110">
                       {feature.icon}
                     </div>
                     <h3 className={`text-xl font-bold tracking-tight mb-3 ${text}`}>{feature.title}</h3>
