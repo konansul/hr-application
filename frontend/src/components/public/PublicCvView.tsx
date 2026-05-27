@@ -119,7 +119,7 @@ export function PublicCvView({ token }: { token: string }) {
 
   useEffect(() => {
     if (!cv) return;
-    const ids = ['about', 'experience', 'education', 'skills', 'languages', 'contact'];
+    const ids = ['about', 'experience', 'education', 'contact', 'skills', 'languages'];
     const observer = new IntersectionObserver(
       (entries) => { entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id); }); },
       { rootMargin: '-30% 0px -60% 0px' },
@@ -130,7 +130,7 @@ export function PublicCvView({ token }: { token: string }) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#E3F1F6] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#fafcff] flex items-center justify-center p-6">
         <div className="text-center space-y-4">
           <div className="w-14 h-14 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mx-auto">
             <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,7 +145,7 @@ export function PublicCvView({ token }: { token: string }) {
 
   if (!cv) {
     return (
-      <div className="min-h-screen bg-[#E3F1F6] flex items-center justify-center">
+      <div className="min-h-screen bg-[#fafcff] flex items-center justify-center">
         {/* spinner: brand purple */}
         <div className="w-9 h-9 border-4 border-[#C5BAFF] border-t-[#7A60F4] rounded-full animate-spin" />
       </div>
@@ -182,15 +182,15 @@ export function PublicCvView({ token }: { token: string }) {
     { id: 'about',      label: 'About',      show: !!info.summary },
     { id: 'experience', label: 'Experience',  show: experience.length > 0 },
     { id: 'education',  label: 'Education',   show: education.length > 0 },
+    { id: 'contact',    label: 'Contact',     show: !!(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) },
     { id: 'skills',     label: 'Skills',      show: skills.length > 0 },
     { id: 'languages',  label: 'Languages',   show: languages.length > 0 },
-    { id: 'contact',    label: 'Contact',     show: !!(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) },
   ].filter(n => n.show);
 
   return (
     <div
       className="min-h-screen relative overflow-x-hidden print:bg-white"
-      style={{ fontFamily: '"Overused Grotesk", "Inter", system-ui, sans-serif', background: '#E3F1F6', color: '#2F2F2F' }}
+      style={{ fontFamily: '"Overused Grotesk", "Inter", system-ui, sans-serif', background: '#fafcff', color: '#2F2F2F' }}
     >
       {/* font imports */}
       <style>{`
@@ -200,9 +200,9 @@ export function PublicCvView({ token }: { token: string }) {
 
       {/* aurora blobs — brand palette */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none print:hidden" aria-hidden="true">
-        <div style={{ position: 'absolute', top: -240, left: -120, width: 600, height: 600, borderRadius: '50%', background: '#7A60F4', filter: 'blur(120px)', opacity: 0.18 }} />
-        <div style={{ position: 'absolute', top: 40, right: -160, width: 520, height: 520, borderRadius: '50%', background: '#9EA4FF', filter: 'blur(120px)', opacity: 0.18 }} />
-        <div style={{ position: 'absolute', top: 360, left: '38%', width: 420, height: 420, borderRadius: '50%', background: '#92D8F2', filter: 'blur(120px)', opacity: 0.22 }} />
+        <div style={{ position: 'absolute', top: -240, left: -120, width: 600, height: 600, borderRadius: '50%', background: '#7A60F4', filter: 'blur(160px)', opacity: 0.35 }} />
+        <div style={{ position: 'absolute', top: 40, right: -160, width: 520, height: 520, borderRadius: '50%', background: '#29C5F6', filter: 'blur(160px)', opacity: 0.65 }} />
+        <div style={{ position: 'absolute', top: 360, left: '38%', width: 420, height: 420, borderRadius: '50%', background: '#9EA4FF', filter: 'blur(120px)', opacity: 0.35 }} />
       </div>
 
       {/* ── hero ──────────────────────────────────────────────────────────── */}
@@ -259,7 +259,7 @@ export function PublicCvView({ token }: { token: string }) {
             {info.linkedin_url && (
               <a
                 href={info.linkedin_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#C5BAFF] bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white hover:border-[#7A60F4] transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
               >
                 <LinkedInIcon className="w-3.5 h-3.5" />LinkedIn
               </a>
@@ -267,7 +267,7 @@ export function PublicCvView({ token }: { token: string }) {
             {info.github_url && (
               <a
                 href={info.github_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#C5BAFF] bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white hover:border-[#7A60F4] transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
               >
                 <GitHubIcon className="w-3.5 h-3.5" />GitHub
               </a>
@@ -275,7 +275,7 @@ export function PublicCvView({ token }: { token: string }) {
             {info.portfolio_url && (
               <a
                 href={info.portfolio_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#C5BAFF] bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white hover:border-[#7A60F4] transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
               >
                 <GlobeIcon className="w-3.5 h-3.5" />Portfolio
               </a>
@@ -284,12 +284,12 @@ export function PublicCvView({ token }: { token: string }) {
             <button
               onClick={handleDownload}
               disabled={isDownloading}
-              className="inline-flex items-center gap-2 text-white text-[13.5px] font-bold px-4 py-2.5 rounded-[11px] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, #7A60F4 0%, #9EA4FF 100%)' }}
+              className="inline-flex items-center gap-1.5 text-white text-[12.5px] font-semibold px-3 py-2 rounded-[11px] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: '#7A60F4' }}
             >
               {isDownloading
                 ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating…</>
-                : <><DownloadIcon className="w-[18px] h-[18px]" />Download CV</>}
+                : <><DownloadIcon className="w-3.5 h-3.5" />Download CV</>}
             </button>
           </div>
         </div>
@@ -393,61 +393,8 @@ export function PublicCvView({ token }: { token: string }) {
 
           </div>
 
-          {/* RIGHT: Skills + Languages + Certifications + Contact */}
+          {/* RIGHT: Contact + Skills + Languages + Certifications */}
           <div className="flex flex-col gap-4">
-
-            {skills.length > 0 && (
-              <article id="skills" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
-                <CardHead label="Skills" pill={String(skills.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
-                <div className="flex flex-wrap gap-1.5 px-4 py-3">
-                  {skills.map((s: any, i: number) => (
-                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
-                      {skillName(s)}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            )}
-
-            {languages.length > 0 && (
-              <article id="languages" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
-                <CardHead label="Languages" />
-                {languages.map((l: any, i: number) => {
-                  const raw = langName(l);
-                  const parts = raw.split(' — ');
-                  const langLabel = parts[0];
-                  const level = parts[1] || (typeof l === 'object' ? (l.level || l.proficiency || '') : '');
-                  const pct = level === 'Native' ? 100 : level === 'Fluent' ? 85 : level === 'Conversational' ? 55 : level ? 65 : 70;
-                  return (
-                    <div key={i} className="px-4 py-2.5 border-t border-[#EEF2F4]">
-                      <div className="flex justify-between items-baseline mb-1.5">
-                        <span className="text-[12.5px] font-bold text-[#2F2F2F]">{langLabel}</span>
-                        {level && <span className="text-[10.5px] text-[#6B7785]">{level}</span>}
-                      </div>
-                      <div className="h-1 rounded-full overflow-hidden" style={{ background: '#EEF2F4' }}>
-                        {/* language bar — brand purple → blue */}
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #7A60F4, #92D8F2)' }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </article>
-            )}
-
-            {certs.length > 0 && (
-              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
-                <CardHead label="Certifications" />
-                {certs.map((c: any, i: number) => (
-                  <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4]">
-                    {/* cert icon — brand violet */}
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
-                      <CertIcon className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-[12.5px] font-medium text-[#2F2F2F]">{certName(c)}</span>
-                  </div>
-                ))}
-              </article>
-            )}
 
             {(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) && (
               <article id="contact" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
@@ -492,6 +439,57 @@ export function PublicCvView({ token }: { token: string }) {
                     Portfolio
                   </a>
                 )}
+              </article>
+            )}
+
+            {skills.length > 0 && (
+              <article id="skills" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Skills" pill={String(skills.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
+                <div className="flex flex-wrap gap-1.5 px-4 py-3">
+                  {skills.map((s: any, i: number) => (
+                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                      {skillName(s)}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            )}
+
+            {languages.length > 0 && (
+              <article id="languages" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
+                <CardHead label="Languages" />
+                {languages.map((l: any, i: number) => {
+                  const raw = langName(l);
+                  const parts = raw.split(' — ');
+                  const langLabel = parts[0];
+                  const level = parts[1] || (typeof l === 'object' ? (l.level || l.proficiency || '') : '');
+                  const pct = level === 'Native' ? 100 : level === 'Fluent' ? 85 : level === 'Conversational' ? 55 : level ? 65 : 70;
+                  return (
+                    <div key={i} className="px-4 py-2.5 border-t border-[#EEF2F4]">
+                      <div className="flex justify-between items-baseline mb-1.5">
+                        <span className="text-[12.5px] font-bold text-[#2F2F2F]">{langLabel}</span>
+                        {level && <span className="text-[10.5px] text-[#6B7785]">{level}</span>}
+                      </div>
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: '#EEF2F4' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #7A60F4, #92D8F2)' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </article>
+            )}
+
+            {certs.length > 0 && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Certifications" />
+                {certs.map((c: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4]">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                      <CertIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[12.5px] font-medium text-[#2F2F2F]">{certName(c)}</span>
+                  </div>
+                ))}
               </article>
             )}
 
