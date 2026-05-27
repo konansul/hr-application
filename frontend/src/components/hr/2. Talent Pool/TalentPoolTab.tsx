@@ -221,7 +221,7 @@ export function TalentPoolTab() {
                     {selectedProfile.personal_info?.email && <Pill label={t.email} value={selectedProfile.personal_info.email} color="gray" />}
                     {selectedProfile.personal_info?.phone && <Pill label={t.phone} value={selectedProfile.personal_info.phone} color="gray" />}
                     {selectedProfile.personal_info?.city && <Pill label={t.location} value={`${selectedProfile.personal_info.city}, ${selectedProfile.personal_info.country}`} color="blue" />}
-                    {selectedProfile.personal_info?.work_preference && <Pill label={t.preference} value={selectedProfile.personal_info.work_preference} color="emerald" />}
+                    {selectedProfile.personal_info?.work_preference && <Pill label={t.preference} value={selectedProfile.personal_info.work_preference} color="violet" />}
                   </div>
 
                   {selectedProfile.personal_info?.summary && (

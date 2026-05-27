@@ -224,7 +224,7 @@ export function HistoryTab() {
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8 bg-white dark:bg-black transition-colors">
               <div className="flex flex-wrap gap-4 border-b border-gray-100 dark:border-neutral-800 pb-6 transition-colors">
                 <Pill label="Score" value={`${selectedResult.screening?.score || 0}%`} color="blue" />
-                <Pill label="Status" value={selectedResult.status?.replace('_', ' ')} color="emerald" />
+                <Pill label="Status" value={selectedResult.status?.replace('_', ' ')} color="violet" />
                 <Pill label="Decision" value={selectedResult.screening?.decision} color={selectedResult.screening?.decision === 'no' ? 'amber' : 'violet'} />
                 <Pill label="Date" value={new Date(selectedResult.created_at).toLocaleDateString()} />
               </div>
