@@ -262,11 +262,8 @@ export function CandidateDashboard() {
         py-4 hrai-sidebar border-r border-white/40 dark:border-neutral-800
         transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10
       `}>
-        <div className="flex items-center px-3 mb-4 mt-2 shrink-0 gap-2.5">
-          <HraiLogo height={34} />
-          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
-            HRAIPP
-          </span>
+        <div className="flex items-center px-3 mb-4 mt-2 shrink-0">
+          <HraiLogo height={84} />
         </div>
 
         {usesLeft === 0 && (
@@ -342,11 +339,8 @@ export function CandidateDashboard() {
         </header>
 
         <header className="md:hidden h-14 flex items-center justify-between px-4 shrink-0 border-b border-white/50 dark:border-neutral-800 transition-colors">
-          <div className="flex items-center gap-2">
-            <HraiLogo height={28} />
-            <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 bg-clip-text text-transparent select-none">
-              HRAIPP
-            </span>
+          <div className="flex items-center">
+            <HraiLogo height={72} />
           </div>
           <div className="flex items-center gap-1">
               {/* eslint-disable-next-line react-hooks/static-components */}

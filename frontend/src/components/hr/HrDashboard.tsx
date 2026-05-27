@@ -99,11 +99,8 @@ export function HrDashboard() {
     <div className="flex h-screen w-full hrai-app-bg text-gray-900 dark:text-white overflow-hidden transition-colors duration-300">
       <aside className={`${isSidebarOpen ? 'w-64 px-3' : 'w-0 px-0'} py-4 hrai-sidebar border-r border-white/40 dark:border-neutral-800 flex flex-col transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden shrink-0 z-10`}>
 
-        <div className="flex items-center px-3 mb-4 mt-2 gap-2.5">
-          <HraiLogo height={34} />
-          <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
-            HRAIPP
-          </span>
+        <div className="flex items-center px-3 mb-4 mt-2">
+          <HraiLogo height={84} />
         </div>
 
         {usesLeft === 0 && (

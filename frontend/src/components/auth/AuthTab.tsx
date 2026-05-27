@@ -124,11 +124,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
         <div className="relative z-10">
           {/* Logo + wordmark */}
-          <div className="flex items-center gap-2.5 mb-12">
-            <HraiLogo height={38} />
-            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
-              HRAIPP
-            </span>
+          <div className="mb-12">
+            <HraiLogo height={96} />
           </div>
 
           <h1 className="text-[2.75rem] font-black tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.15]">
@@ -173,11 +170,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="w-full max-w-[420px] animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10">
 
           {/* Mobile logo */}
-          <div className="flex lg:hidden items-center justify-center gap-2.5 mb-10">
-            <HraiLogo height={32} />
-            <span className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-[#92D8F2] via-[#7A60F4] to-[#9EA4FF] bg-clip-text text-transparent select-none">
-              HRAIPP
-            </span>
+          <div className="flex lg:hidden items-center justify-center mb-10">
+            <HraiLogo height={80} />
           </div>
 
           <div className="mb-10 text-center lg:text-left">
