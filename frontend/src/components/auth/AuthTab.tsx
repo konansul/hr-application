@@ -120,7 +120,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
       </div>
 
       {/* ── Left hero panel ── */}
-      <div className="hidden lg:flex lg:w-5/12 bg-white/20 dark:bg-[#08090c]/40 backdrop-blur-sm p-16 flex-col justify-between relative overflow-hidden border-r border-white/40 dark:border-white/[0.06] transition-colors z-10">
+      <div className="hidden lg:flex lg:w-5/12 bg-transparent p-16 flex-col justify-between relative overflow-hidden transition-colors z-10">
 
         <div className="relative z-10">
           {/* Logo + wordmark */}
@@ -166,8 +166,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-white/30 dark:bg-[#08090c]/40 backdrop-blur-sm transition-colors relative z-10">
-        <div className="w-full max-w-[420px] animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 transition-colors relative z-10">
+        <div className="w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10 bg-white/80 dark:bg-[#0d0f16]/88 backdrop-blur-xl border border-white/80 dark:border-white/[0.07] shadow-2xl shadow-slate-300/20 dark:shadow-black/50 rounded-3xl px-8 py-10">
 
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center justify-center mb-10">
@@ -195,15 +195,15 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
           )}
 
           {/* Login / Register toggle */}
-          <div className={`relative flex p-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-2xl mb-10 backdrop-blur-sm border border-zinc-200/50 dark:border-zinc-800/50 ${(mode === 'ForgotPassword' || mode === 'ResetPassword') ? 'hidden' : ''}`}>
+          <div className={`relative flex p-1 bg-slate-100 dark:bg-[#0a0b10] rounded-2xl mb-8 border border-slate-200/60 dark:border-white/[0.07] ${(mode === 'ForgotPassword' || mode === 'ResetPassword') ? 'hidden' : ''}`}>
             <div
-              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-zinc-800 rounded-xl shadow-sm transition-all duration-300 ease-out ${mode === 'Register' ? 'translate-x-full' : 'translate-x-0'}`}
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#7A60F4] rounded-xl transition-all duration-300 ease-out ${mode === 'Register' ? 'translate-x-full' : 'translate-x-0'}`}
             ></div>
             <button
               type="button"
               onClick={() => setMode('Login')}
               className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${
-                mode === 'Login' ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                mode === 'Login' ? 'text-white' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
               }`}
             >
               {t.login}
@@ -212,7 +212,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
               type="button"
               onClick={() => setMode('Register')}
               className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${
-                mode === 'Register' ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                mode === 'Register' ? 'text-white' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
               }`}
             >
               {t.register}
@@ -481,7 +481,7 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
               <button
                 type="submit"
                 disabled={mode === 'Register' && !consentChecked}
-                className="w-full py-3.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-bold rounded-xl shadow-lg shadow-[#7A60F4]/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#7A60F4]/40 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
+                className="w-full py-4 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {mode === 'Login' ? t.signIn : mode === 'Register' ? t.createAccount : mode === 'ForgotPassword' ? 'Send reset link' : 'Set new password'}
               </button>
@@ -495,11 +495,14 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
                 {' '}and{' '}
                 <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Privacy Policy</a>.
               </p>
-              <p className="text-[11px] text-zinc-400 dark:text-zinc-500 flex items-center justify-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <p className="flex items-center justify-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                Powered by <strong className="font-bold text-zinc-600 dark:text-zinc-300">Bold Generic Solutions</strong>
+                <span className="text-[11px] text-zinc-400 dark:text-zinc-500">Powered by</span>
+                <a href="https://boldgeneric.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center opacity-60 hover:opacity-100 transition-opacity">
+                  <img src="/bold-generic-logo.png" alt="Bold Generic Solutions" className="h-8 dark:brightness-0 dark:invert dark:opacity-50 dark:hover:opacity-80" />
+                </a>
               </p>
             </div>
 

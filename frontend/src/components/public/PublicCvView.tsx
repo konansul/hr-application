@@ -146,7 +146,8 @@ export function PublicCvView({ token }: { token: string }) {
   if (!cv) {
     return (
       <div className="min-h-screen bg-[#E3F1F6] flex items-center justify-center">
-        <div className="w-9 h-9 border-4 border-[#FFCDB9] border-t-[#FC5B26] rounded-full animate-spin" />
+        {/* spinner: brand purple */}
+        <div className="w-9 h-9 border-4 border-[#C5BAFF] border-t-[#7A60F4] rounded-full animate-spin" />
       </div>
     );
   }
@@ -197,9 +198,9 @@ export function PublicCvView({ token }: { token: string }) {
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
       `}</style>
 
-      {/* aurora blobs */}
+      {/* aurora blobs — brand palette */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none print:hidden" aria-hidden="true">
-        <div style={{ position: 'absolute', top: -240, left: -120, width: 600, height: 600, borderRadius: '50%', background: '#FF906D', filter: 'blur(120px)', opacity: 0.18 }} />
+        <div style={{ position: 'absolute', top: -240, left: -120, width: 600, height: 600, borderRadius: '50%', background: '#7A60F4', filter: 'blur(120px)', opacity: 0.18 }} />
         <div style={{ position: 'absolute', top: 40, right: -160, width: 520, height: 520, borderRadius: '50%', background: '#9EA4FF', filter: 'blur(120px)', opacity: 0.18 }} />
         <div style={{ position: 'absolute', top: 360, left: '38%', width: 420, height: 420, borderRadius: '50%', background: '#92D8F2', filter: 'blur(120px)', opacity: 0.22 }} />
       </div>
@@ -210,10 +211,10 @@ export function PublicCvView({ token }: { token: string }) {
         {/* avatar + name row */}
         <div className="flex gap-6 items-center mb-5">
 
-          {/* avatar */}
+          {/* avatar — brand purple gradient */}
           <div
             className="w-24 h-24 rounded-[22px] flex items-center justify-center shrink-0 overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #FC5B26 0%, #FF906D 100%)', boxShadow: '0 16px 40px -16px rgba(252,91,38,0.45)' }}
+            style={{ background: 'linear-gradient(135deg, #7A60F4 0%, #9EA4FF 100%)', boxShadow: '0 16px 40px -16px rgba(122,96,244,0.45)' }}
           >
             {hasPhoto ? (
               <img src={info.photo} alt={fullName} className="w-full h-full object-cover" />
@@ -235,12 +236,12 @@ export function PublicCvView({ token }: { token: string }) {
                 </span>
               )}
               {info.email && (
-                <a href={`mailto:${info.email}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#FC5B26] transition-colors">
+                <a href={`mailto:${info.email}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
                   <EmailIcon className="w-3.5 h-3.5 shrink-0" />{info.email}
                 </a>
               )}
               {info.phone && (
-                <a href={`tel:${info.phone}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#FC5B26] transition-colors">
+                <a href={`tel:${info.phone}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
                   <PhoneIcon className="w-3.5 h-3.5 shrink-0" />{info.phone}
                 </a>
               )}
@@ -258,7 +259,7 @@ export function PublicCvView({ token }: { token: string }) {
             {info.linkedin_url && (
               <a
                 href={info.linkedin_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#E5EAEE] bg-[#F3F6F8] text-[#2F2F2F] hover:bg-[#E5EAEE] transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#C5BAFF] bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white hover:border-[#7A60F4] transition-colors"
               >
                 <LinkedInIcon className="w-3.5 h-3.5" />LinkedIn
               </a>
@@ -266,7 +267,7 @@ export function PublicCvView({ token }: { token: string }) {
             {info.github_url && (
               <a
                 href={info.github_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#E5EAEE] bg-[#F3F6F8] text-[#2F2F2F] hover:bg-[#E5EAEE] transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#C5BAFF] bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white hover:border-[#7A60F4] transition-colors"
               >
                 <GitHubIcon className="w-3.5 h-3.5" />GitHub
               </a>
@@ -274,16 +275,17 @@ export function PublicCvView({ token }: { token: string }) {
             {info.portfolio_url && (
               <a
                 href={info.portfolio_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#E5EAEE] bg-[#F3F6F8] text-[#2F2F2F] hover:bg-[#E5EAEE] transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#C5BAFF] bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white hover:border-[#7A60F4] transition-colors"
               >
                 <GlobeIcon className="w-3.5 h-3.5" />Portfolio
               </a>
             )}
+            {/* Download button — brand purple */}
             <button
               onClick={handleDownload}
               disabled={isDownloading}
               className="inline-flex items-center gap-2 text-white text-[13.5px] font-bold px-4 py-2.5 rounded-[11px] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, #FC5B26 0%, #FF7A48 100%)', boxShadow: '0 10px 24px -8px rgba(252,91,38,0.55), inset 0 1px 0 rgba(255,255,255,0.25)' }}
+              style={{ background: 'linear-gradient(135deg, #7A60F4 0%, #9EA4FF 100%)' }}
             >
               {isDownloading
                 ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating…</>
@@ -303,7 +305,7 @@ export function PublicCvView({ token }: { token: string }) {
                 href={`#${id}`}
                 className="px-3 py-3 text-[13px] whitespace-nowrap border-b-2 -mb-px transition-colors"
                 style={activeSection === id
-                  ? { color: '#FC5B26', borderColor: '#FC5B26', fontWeight: 700 }
+                  ? { color: '#7A60F4', borderColor: '#7A60F4', fontWeight: 700 }
                   : { color: '#6B7785', borderColor: 'transparent', fontWeight: 500 }}
               >
                 {label}
@@ -329,24 +331,26 @@ export function PublicCvView({ token }: { token: string }) {
 
             {experience.length > 0 && (
               <article id="experience" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
-                <CardHead label="Experience" pill={`${experience.length} ROLES`} pillBg="#DBEFF8" pillFg="#1B6A8A" pillBorder="#BFE3F2" />
+                <CardHead label="Experience" pill={`${experience.length} ROLES`} pillBg="#EDE9FF" pillFg="#5B52C8" pillBorder="#C5BAFF" />
                 <div className="px-4 pt-1 pb-2">
                   {experience.map((exp: any, i: number) => (
                     <div key={i} className="flex gap-3 pt-3">
                       <div className="w-3.5 flex flex-col items-center shrink-0 pt-1">
+                        {/* timeline dot — brand purple */}
                         <div
-                          className="w-3 h-3 rounded-full bg-white border-2 border-[#FC5B26] shrink-0"
-                          style={{ boxShadow: '0 0 0 3px rgba(252,91,38,0.12)' }}
+                          className="w-3 h-3 rounded-full bg-white border-2 shrink-0"
+                          style={{ borderColor: '#7A60F4', boxShadow: '0 0 0 3px rgba(122,96,244,0.12)' }}
                         />
                         {i < experience.length - 1 && (
-                          <div className="w-0.5 flex-1 mt-1 min-h-[24px]" style={{ background: 'linear-gradient(180deg, #FFCDB9 0%, #F3F6F8 100%)' }} />
+                          <div className="w-0.5 flex-1 mt-1 min-h-[24px]" style={{ background: 'linear-gradient(180deg, #C5BAFF 0%, #F3F6F8 100%)' }} />
                         )}
                       </div>
                       <div className={`flex-1 min-w-0 pb-3 ${i < experience.length - 1 ? 'border-b border-[#EEF2F4]' : ''}`}>
                         <div className="flex justify-between items-start gap-3">
                           <div>
                             <div className="text-sm font-bold text-[#2F2F2F]">{exp.title || 'Role'}</div>
-                            {exp.company && <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: '#FC5B26' }}>{exp.company}</div>}
+                            {/* company name — brand purple */}
+                            {exp.company && <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: '#7A60F4' }}>{exp.company}</div>}
                           </div>
                           {dateRange(exp) && (
                             <span
@@ -397,7 +401,7 @@ export function PublicCvView({ token }: { token: string }) {
                 <CardHead label="Skills" pill={String(skills.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
                 <div className="flex flex-wrap gap-1.5 px-4 py-3">
                   {skills.map((s: any, i: number) => (
-                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       {skillName(s)}
                     </span>
                   ))}
@@ -421,7 +425,8 @@ export function PublicCvView({ token }: { token: string }) {
                         {level && <span className="text-[10.5px] text-[#6B7785]">{level}</span>}
                       </div>
                       <div className="h-1 rounded-full overflow-hidden" style={{ background: '#EEF2F4' }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #FC5B26, #FF906D)' }} />
+                        {/* language bar — brand purple → blue */}
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #7A60F4, #92D8F2)' }} />
                       </div>
                     </div>
                   );
@@ -434,7 +439,8 @@ export function PublicCvView({ token }: { token: string }) {
                 <CardHead label="Certifications" />
                 {certs.map((c: any, i: number) => (
                   <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4]">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#FFE5DA', color: '#C7401C', borderColor: '#FFCDB9' }}>
+                    {/* cert icon — brand violet */}
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <CertIcon className="w-3.5 h-3.5" />
                     </div>
                     <span className="text-[12.5px] font-medium text-[#2F2F2F]">{certName(c)}</span>
@@ -447,40 +453,40 @@ export function PublicCvView({ token }: { token: string }) {
               <article id="contact" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
                 <CardHead label="Contact" />
                 {info.email && (
-                  <a href={`mailto:${info.email}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                  <a href={`mailto:${info.email}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <EmailIcon className="w-3.5 h-3.5" />
                     </div>
                     {info.email}
                   </a>
                 )}
                 {info.phone && (
-                  <a href={`tel:${info.phone}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                  <a href={`tel:${info.phone}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <PhoneIcon className="w-3.5 h-3.5" />
                     </div>
                     {info.phone}
                   </a>
                 )}
                 {info.linkedin_url && (
-                  <a href={info.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                  <a href={info.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <LinkedInIcon className="w-3.5 h-3.5" />
                     </div>
                     LinkedIn
                   </a>
                 )}
                 {info.github_url && (
-                  <a href={info.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                  <a href={info.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <GitHubIcon className="w-3.5 h-3.5" />
                     </div>
                     GitHub
                   </a>
                 )}
                 {info.portfolio_url && (
-                  <a href={info.portfolio_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline hover:bg-[#F3F6F8] transition-colors">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#DBEFF8', color: '#1B6A8A', borderColor: '#BFE3F2' }}>
+                  <a href={info.portfolio_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <GlobeIcon className="w-3.5 h-3.5" />
                     </div>
                     Portfolio

@@ -635,11 +635,11 @@ export function LandingPage() {
             <a href="mailto:info@boldgeneric.com" className={`text-xs font-semibold transition-colors ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}>Support</a>
           </div>
 
-          <div className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+          <div className={`text-xs font-medium flex items-center gap-2 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
             <span>© 2026 HRAIPP.</span>
             <span>Built by</span>
-            <a href="https://boldgeneric.com/" target="_blank" rel="noreferrer" className={`font-bold transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
-              Bold Generic
+            <a href="https://boldgeneric.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center opacity-60 hover:opacity-100 transition-opacity">
+              <img src="/bold-generic-logo.png" alt="Bold Generic Solutions" className={`h-8 ${isDark ? 'brightness-0 invert opacity-60' : ''}`} />
             </a>
           </div>
         </div>
