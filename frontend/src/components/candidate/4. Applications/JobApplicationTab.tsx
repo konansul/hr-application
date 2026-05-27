@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import { jobsApi, screeningApi, authApi, notificationsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
@@ -118,7 +118,7 @@ function getStageIndex(s: string) {
 }
 
 export function JobApplicationTab() {
-  const { activeTab, language, userId, theme } = useStore();
+  const { activeTab, language, userId } = useStore();
   const t = (DICT[language as keyof typeof DICT]?.applications || DICT.en.applications) as any;
   const stageLabel = (value: string): string => {
     const sl = t.stageLabels;
@@ -367,24 +367,24 @@ export function JobApplicationTab() {
         <div className="flex justify-between items-center relative max-w-xl">
           <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-800 -translate-y-1/2 z-0 rounded-full" />
           <div
-            className={`absolute top-1/2 left-0 h-1 ${isOffer ? 'bg-emerald-500 dark:bg-emerald-600' : 'bg-indigo-500 dark:bg-white'} -translate-y-1/2 z-0 transition-all duration-700 rounded-full`}
+            className={`absolute top-1/2 left-0 h-1 ${isOffer ? 'bg-violet-500 dark:bg-violet-600' : 'bg-indigo-500 dark:bg-white'} -translate-y-1/2 z-0 transition-all duration-700 rounded-full`}
             style={{ width: `${Math.min(100, Math.max(0, (idx / (DISPLAY_STAGES.length - 1)) * 100))}%` }}
           />
           {DISPLAY_STAGES.map((label, i) => {
             const isActive  = i <= idx;
             const isCurrent = i === idx;
             let dot = 'bg-white dark:bg-black border-gray-300 dark:border-neutral-700';
-            if (isCurrent) dot = isOffer ? 'bg-white dark:bg-black border-emerald-500 dark:border-emerald-600 shadow-sm' : 'bg-white dark:bg-black border-indigo-500 dark:border-white shadow-sm';
-            else if (isActive) dot = isOffer ? 'bg-emerald-500 dark:bg-emerald-600 border-emerald-500 dark:border-emerald-600' : 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white';
+            if (isCurrent) dot = isOffer ? 'bg-white dark:bg-black border-violet-500 dark:border-violet-600 shadow-sm' : 'bg-white dark:bg-black border-indigo-500 dark:border-white shadow-sm';
+            else if (isActive) dot = isOffer ? 'bg-violet-500 dark:bg-violet-600 border-violet-500 dark:border-violet-600' : 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white';
             return (
               <div key={label} className="relative z-10 flex flex-col items-center">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${dot}`}>
                   {isActive && !isCurrent
                     ? <svg className="w-3.5 h-3.5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    : <span className={`text-[10px] font-bold ${isCurrent ? (isOffer ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>{i + 1}</span>
+                    : <span className={`text-[10px] font-bold ${isCurrent ? (isOffer ? 'text-violet-600 dark:text-violet-400' : 'text-indigo-600 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>{i + 1}</span>
                   }
                 </div>
-                <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isOffer ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
+                <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isOffer ? 'text-violet-700 dark:text-violet-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
                   {displayStageLabel(label)}
                 </span>
               </div>
@@ -399,12 +399,24 @@ export function JobApplicationTab() {
     const norm       = normalizeStatus(job.status);
     const currentIdx = getStageIndex(job.status);
     const isRejected = norm === 'REJECTED';
-    const isDark     = theme === 'dark';
+    const isOffer    = norm === 'OFFER';
 
-    // SVG viewBox 0 0 100 100
-    // Left side: concave V notch pointing INTO the arrow (inward)
-    // Right side: convex point going outward — matches the reference image exactly
-    const arrowPath = 'M0,0 L75,0 L100,50 L75,100 L0,100 L25,50 Z';
+    if (isRejected) {
+      return (
+        <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500 font-medium transition-colors">
+          <svg className="w-4 h-4 text-red-400 dark:text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.75L13.75 4a2 2 0 00-3.5 0L3.25 16.25A2 2 0 005.07 19z" />
+          </svg>
+          {t.rejectedWarning}
+          <button
+            onClick={() => handleTrackedStageUpdate(job.id, 'Applied')}
+            className="ml-1 text-indigo-500 dark:text-indigo-400 font-semibold hover:underline"
+          >
+            {t.reactivateText}
+          </button>
+        </div>
+      );
+    }
 
     return (
       <div>
@@ -412,124 +424,53 @@ export function JobApplicationTab() {
           {t.clickToMark}
         </p>
 
-        <div className="flex gap-2 overflow-x-auto py-1 -my-1 pr-1 pb-2">
-          {SELF_STAGES.map((stage, idx) => {
-            const sNorm     = normalizeStatus(stage.value);
-            const isCurrent = !isRejected && idx === currentIdx;
-            const isPast    = !isRejected && idx < currentIdx;
-
-            // Solid fill colours — inline hex avoids Tailwind purge / JIT issues
-            let fill = '';
-            if      (isPast)    fill = '#92D8F2';                       // sky blue (same light/dark)
-            else if (isCurrent) fill = isDark ? '#6366f1' : '#4f46e5'; // indigo
-            else                fill = isDark ? '#262626' : '#f3f4f6'; // gray
-
-            // #92D8F2 is a light colour — dark text for past, white for current
-            const textCls = isPast
-              ? 'text-slate-800'
-              : isCurrent
-              ? 'text-white'
-              : 'text-gray-400 dark:text-neutral-500';
-
-            return (
-              <button
-                key={stage.value}
-                onClick={() => handleTrackedStageUpdate(job.id, stage.value)}
-                title={stageLabel(stage.value)}
-                // btn-flat: opt out of the global rectangular box-shadow ring
-                className="btn-flat relative flex-1 min-w-[88px] shrink-0 cursor-pointer select-none group focus:outline-none"
-                style={{ background: 'none', border: 'none', padding: 0 }}
-              >
-                <svg
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', overflow: 'visible' }}
-                >
-                  {/* Base fill */}
-                  <path d={arrowPath} fill={fill} />
-
-                  {/* Hover ring — strokes the arrow outline so the highlight
-                      follows the arrow shape, not the rectangular button box.
-                      vectorEffect="non-scaling-stroke" keeps the stroke width
-                      constant regardless of how wide/tall the SVG is stretched.
-                      overflow:visible on the SVG lets the drop-shadow bleed
-                      outside the viewBox boundary instead of being clipped.
-                      Three drop-shadow passes build up the same brightness as
-                      the inset ring + outer glow on regular buttons. */}
-                  <path
-                    d={arrowPath}
-                    fill="none"
-                    stroke="rgba(110, 40, 255, 1)"
-                    strokeWidth="3"
-                    vectorEffect="non-scaling-stroke"
-                    style={{ filter: 'drop-shadow(0 0 3px rgba(110,40,255,1)) drop-shadow(0 0 8px rgba(110,40,255,0.75)) drop-shadow(0 0 16px rgba(110,40,255,0.45))' }}
-                    className="opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300"
-                  />
-
-                  {/* Active: darken the fill slightly */}
-                  <path
-                    d={arrowPath}
-                    fill="rgba(0,0,0,0.12)"
-                    className="opacity-0 group-active:opacity-100 transition-opacity duration-75"
-                  />
-                </svg>
-
-                {/* Content on top of the SVG */}
-                <div
-                  className={`relative z-10 flex flex-col items-center justify-center gap-1.5 py-4 ${textCls}`}
-                  style={{ paddingLeft: '28px', paddingRight: '28px' }}
-                >
-                  <div className="flex items-center justify-center w-5 h-5 shrink-0">
-                    {isPast ? <CheckIcon /> : stageIcon(sNorm, 'w-[18px] h-[18px]')}
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wide text-center leading-tight whitespace-nowrap">
+        <div className="px-1 pt-2 pb-8 relative">
+          <div className="flex justify-between items-center relative">
+            {/* Track line */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-800 -translate-y-1/2 z-0 rounded-full" />
+            {/* Progress fill */}
+            <div
+              className={`absolute top-1/2 left-0 h-1 ${isOffer ? 'bg-violet-500 dark:bg-violet-600' : 'bg-[#7A60F4]'} -translate-y-1/2 z-0 transition-all duration-700 rounded-full`}
+              style={{ width: `${Math.min(100, Math.max(0, (currentIdx / (SELF_STAGES.length - 1)) * 100))}%` }}
+            />
+            {SELF_STAGES.map((stage, i) => {
+              const isActive  = i <= currentIdx;
+              const isCurrent = i === currentIdx;
+              let dot = 'bg-white dark:bg-black border-gray-300 dark:border-neutral-700 hover:border-[#7A60F4] dark:hover:border-[#9EA4FF]';
+              if (isCurrent) dot = isOffer
+                ? 'bg-white dark:bg-black border-violet-500 dark:border-violet-600 shadow-sm'
+                : 'bg-white dark:bg-black border-[#7A60F4] dark:border-[#9EA4FF] shadow-sm';
+              else if (isActive) dot = isOffer
+                ? 'bg-violet-500 dark:bg-violet-600 border-violet-500 dark:border-violet-600'
+                : 'bg-[#7A60F4] border-[#7A60F4]';
+              return (
+                <div key={stage.value} className="relative z-10 flex flex-col items-center">
+                  <button
+                    onClick={() => handleTrackedStageUpdate(job.id, stage.value)}
+                    title={stageLabel(stage.value)}
+                    className={`btn-flat w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all duration-500 cursor-pointer ${dot}`}
+                  >
+                    {isActive && !isCurrent
+                      ? <svg className="w-3.5 h-3.5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      : <span className={`text-[10px] font-bold ${isCurrent ? (isOffer ? 'text-violet-600 dark:text-violet-400' : 'text-[#7A60F4] dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>{i + 1}</span>
+                    }
+                  </button>
+                  <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isOffer ? 'text-violet-700 dark:text-violet-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
                     {stageLabel(stage.value)}
                   </span>
-                  {isCurrent && (
-                    <span className="text-[8px] font-black uppercase tracking-widest leading-none opacity-80">
-                      ● {t.now}
-                    </span>
-                  )}
                 </div>
-              </button>
-            );
-          })}
-
-          {/* Separator */}
-          <div className="w-px bg-gray-200 dark:bg-neutral-700 self-stretch shrink-0 mx-0.5" />
-
-          {/* Rejected — rounded box, outside the main pipeline */}
-          <button
-            onClick={() => {
-              if (isRejected) handleTrackedStageUpdate(job.id, 'Applied');
-              else handleTrackedStageUpdate(job.id, REJECTED_VALUE);
-            }}
-            className={`
-              shrink-0 flex flex-col items-center justify-center gap-1.5 px-4 py-4 rounded-xl border-2
-              min-w-[80px] transition-all duration-150 select-none cursor-pointer active:scale-95
-              ${isRejected
-                ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 shadow-sm ring-2 ring-offset-1 ring-red-400 dark:ring-offset-black'
-                : 'bg-white dark:bg-neutral-900 border-red-200 dark:border-red-900/50 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400'
-              }
-            `}
-          >
-            <div className="flex items-center justify-center">
-              {stageIcon('REJECTED', 'w-[18px] h-[18px]')}
-            </div>
-            <span className="text-[9px] font-bold uppercase tracking-wide">{t.rejected}</span>
-            {isRejected && (
-              <span className="text-[8px] font-black uppercase tracking-widest leading-none">
-                ● {t.now}
-              </span>
-            )}
-          </button>
+              );
+            })}
+          </div>
         </div>
 
-        {isRejected && (
-          <p className="mt-2 text-xs text-gray-400 dark:text-neutral-500">
-            {t.reactivateText}
-          </p>
-        )}
+        {/* Rejected action — below the progress bar */}
+        <button
+          onClick={() => handleTrackedStageUpdate(job.id, REJECTED_VALUE)}
+          className="mt-1 text-[10px] font-semibold text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors uppercase tracking-wide"
+        >
+          {t.rejected} →
+        </button>
       </div>
     );
   };
@@ -706,7 +647,7 @@ export function JobApplicationTab() {
                 className={`bg-white dark:bg-neutral-900 border rounded-2xl shadow-sm overflow-hidden transition-colors ${
                   notApplied ? 'border-gray-200 dark:border-neutral-800 opacity-80'
                   : isRejected ? 'border-red-200 dark:border-red-900/50'
-                  : isOffer ? 'border-emerald-200 dark:border-emerald-900/50'
+                  : isOffer ? 'border-violet-200 dark:border-violet-900/50'
                   : 'border-gray-200 dark:border-neutral-800'
                 }`}
               >
@@ -768,7 +709,7 @@ export function JobApplicationTab() {
                     </div>
                     <div className="shrink-0">
                       {isOffer && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 transition-colors">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-violet-100 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-900/50 transition-colors">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           {t.offerReceived}
                         </span>
@@ -808,7 +749,7 @@ export function JobApplicationTab() {
               <div
                 key={job.id}
                 className={`bg-white dark:bg-neutral-900 border rounded-2xl shadow-sm overflow-hidden transition-colors ${
-                  isRejected ? 'border-red-200 dark:border-red-900/50' : isOffer ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-violet-100 dark:border-violet-900/30'
+                  isRejected ? 'border-red-200 dark:border-red-900/50' : isOffer ? 'border-violet-200 dark:border-violet-900/50' : 'border-gray-200 dark:border-neutral-800'
                 }`}
               >
                 <div className="p-6">
@@ -861,7 +802,7 @@ export function JobApplicationTab() {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {isOffer && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 transition-colors">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-violet-100 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-900/50 transition-colors">
                           {t.offerReceived}
                         </span>
                       )}

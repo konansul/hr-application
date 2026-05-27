@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, type ChangeEvent } from 'react';
+﻿import { useState, useEffect, useRef, useMemo, type ChangeEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { screeningApi, documentsApi, resumesApi } from '../../../api';
 import { useStore } from '../../../store';
@@ -11,11 +11,11 @@ const Pill = ({
 }: {
   label: string;
   value: string | number;
-  color?: 'gray' | 'emerald' | 'red' | 'amber' | 'blue'
+  color?: 'gray' | 'violet' | 'red' | 'amber' | 'blue'
 }) => {
   const colorStyles = {
     gray: 'bg-gray-50 dark:bg-neutral-800/50 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-    emerald: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400',
+    violet: 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800/50 text-violet-700 dark:text-violet-400',
     red: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
     amber: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400',
     blue: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400',
@@ -313,7 +313,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
           </div>
 
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <Pill label={t.fileSelected} value={displayFileName} color={file || selectedResumeId ? 'emerald' : 'gray'} />
+            <Pill label={t.fileSelected} value={displayFileName} color={file || selectedResumeId ? 'violet' : 'gray'} />
             <button
               onClick={handleAnalyze}
               disabled={(!file && !selectedResumeId) || isProcessing}
@@ -417,21 +417,21 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 transition-colors">
-              <h3 className="text-sm font-semibold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <div className="bg-violet-50/50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30 rounded-2xl p-6 transition-colors">
+              <h3 className="text-sm font-semibold text-violet-800 dark:text-violet-400 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 {t.coreStrengths}
               </h3>
               <ul className="space-y-2.5">
                 {result.strengths && result.strengths.length > 0 ? (
                   result.strengths.map((item, i) => (
-                    <li key={i} className="text-sm text-emerald-900 dark:text-emerald-200 flex items-start gap-2">
-                      <span className="text-emerald-500 mt-0.5">•</span>
+                    <li key={i} className="text-sm text-violet-900 dark:text-violet-200 flex items-start gap-2">
+                      <span className="text-violet-500 mt-0.5">•</span>
                       <span>{item}</span>
                     </li>
                   ))
                 ) : (
-                  <li className="text-sm text-emerald-600/60 dark:text-emerald-500/60 italic">{t.noStrengths}</li>
+                  <li className="text-sm text-violet-600/60 dark:text-violet-500/60 italic">{t.noStrengths}</li>
                 )}
               </ul>
             </div>
@@ -597,7 +597,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                       </div>
                       <div className="flex-1 space-y-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">{t.improved}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">{t.improved}</span>
                         <p className="text-sm text-gray-900 dark:text-white font-medium">{bullet.improved}</p>
                       </div>
                     </div>
@@ -630,7 +630,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               )}
               {versionCreated && (
                 <div className="flex items-center gap-2">
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  <p className="text-xs text-violet-600 dark:text-violet-400 font-medium">
                     ✓ {(t as any).versionCreated ?? 'New resume version created!'}
                   </p>
                   <button

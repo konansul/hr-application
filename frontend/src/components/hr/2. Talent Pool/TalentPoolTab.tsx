@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { authApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
@@ -15,10 +15,10 @@ interface CandidateBasic {
   work_preference: string;
 }
 
-const Pill = ({ label, value, color = 'gray' }: { label: string; value: string | number; color?: 'gray' | 'emerald' | 'blue' | 'purple' }) => {
+const Pill = ({ label, value, color = 'gray' }: { label: string; value: string | number; color?: 'gray' | 'violet' | 'blue' | 'purple' }) => {
   const colorStyles = {
     gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-    emerald: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
+    violet: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
     blue: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 border-[#92D8F2]/40 dark:border-[#92D8F2]/25 text-slate-700 dark:text-[#92D8F2]',
     purple: 'bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
   };

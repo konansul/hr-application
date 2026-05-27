@@ -366,7 +366,7 @@ async def _search_jsearch(title: str, loc_key: str, employment_type: str, page: 
         jobs.append({
             "job_id":        f"jsearch_{item.get('job_id', '')}",
             "title":         item.get("job_title", ""),
-            "description":   (item.get("job_description", "") or "")[:500],
+            "description":   item.get("job_description", "") or "",
             "company":       item.get("employer_name", ""),
             "location":      loc_str,
             "salary_min":    item.get("job_min_salary"),
@@ -475,6 +475,15 @@ async def cache_stats():
         "ttl_seconds":   CACHE_TTL_SECONDS,
         "max_entries":   MAX_CACHE_ENTRIES,
     }
+
+
+@router.post("/api/external-jobs/cache-clear")
+async def cache_clear():
+    """Flush the entire in-memory job cache (useful after backend code changes)."""
+    async with _cache_lock:
+        cleared = len(_cache)
+        _cache.clear()
+    return {"cleared": cleared, "message": f"Removed {cleared} cached entries."}
 
 
 # ── Main search endpoint ─────────────────────────────────────────────────────

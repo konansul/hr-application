@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+﻿import {useState, useEffect} from 'react';
 import {documentsApi, screeningApi} from '../../../api';
 import {useStore} from '../../../store';
 import {DICT} from '../../../internationalization.ts';
@@ -10,11 +10,11 @@ const Pill = ({
               }: {
     label: string;
     value: string | number;
-    color?: 'gray' | 'emerald' | 'red' | 'amber' | 'blue'
+    color?: 'gray' | 'violet' | 'red' | 'amber' | 'blue'
 }) => {
     const colorStyles = {
         gray: 'bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300',
-        emerald: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
+        violet: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 border-[#7A60F4]/30 dark:border-[#7A60F4]/25 text-[#5B52C8] dark:text-[#9EA4FF]',
         red: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400',
         amber: 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 border-[#FF906D]/30 dark:border-[#FF906D]/25 text-[#c05020] dark:text-[#FF906D]',
         blue: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 border-[#92D8F2]/40 dark:border-[#92D8F2]/25 text-slate-700 dark:text-[#92D8F2]',
@@ -523,7 +523,7 @@ export function ScreenTab({jobDescription, globalBatchResults, setGlobalBatchRes
                                 <div className="flex flex-wrap gap-4 pb-6 border-b border-gray-100 dark:border-neutral-800">
                                     <Pill label={t.results.score} value={`${selectedCandidate.score || 0}%`} color="blue"/>
                                     <Pill label={t.results.status} value={selectedCandidate.decision || selectedCandidate.status}
-                                          color={selectedCandidate.decision === 'Pending' ? 'amber' : 'emerald'}/>
+                                          color={selectedCandidate.decision === 'Pending' ? 'amber' : 'violet'}/>
                                     <Pill label={t.results.risks} value={selectedCandidate.risks?.length || 0}
                                           color="amber"/>
                                 </div>

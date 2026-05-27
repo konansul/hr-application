@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { authApi } from '../../../api';
 import { useStore } from '../../../store';
 import { LANGUAGES, DICT } from '../../../internationalization.ts';
@@ -126,7 +126,7 @@ export function CandidateSettingsTab() {
         </div>
         <div className="flex items-center gap-4">
           {message && (
-             <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-900/50 animate-in slide-in-from-right-4">
+             <span className="text-sm font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50 px-4 py-2 rounded-xl border border-violet-100 dark:border-violet-900/50 animate-in slide-in-from-right-4">
                {message}
              </span>
           )}
