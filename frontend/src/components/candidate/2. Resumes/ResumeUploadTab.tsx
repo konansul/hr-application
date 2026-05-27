@@ -1455,7 +1455,7 @@ export function ResumeUploadTab() {
                             </div>
                             <button
                               onClick={copyInlineLink}
-                              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${inlineLinkCopied ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-600 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700'}`}
+                              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${inlineLinkCopied ? 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 border-[#7A60F4]/30 dark:border-[#7A60F4]/40 text-[#7A60F4] dark:text-[#9EA4FF]' : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-600 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700'}`}
                             >
                               {inlineLinkCopied
                                 ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
