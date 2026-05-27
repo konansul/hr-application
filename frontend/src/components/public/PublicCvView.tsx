@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { resumesApi } from '../../api';
 import { generateResumePdfBlob } from '../candidate/2. Resumes/ResumePdfTemplates.tsx';
+import { HraiLogo } from '../shared/HraiLogo';
 
 const skillName = (s: any) => (typeof s === 'string' ? s : s?.name || '');
 const langName  = (l: any) => (typeof l === 'string' ? l : l?.name || l?.language || '');
@@ -224,7 +225,7 @@ export function PublicCvView({ token }: { token: string }) {
           </div>
 
           {/* name + title + chips */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 overflow-hidden">
             <h1 className="font-bold leading-[1.05] mb-1 text-[#2F2F2F]" style={{ fontSize: 38, letterSpacing: '-0.03em' }}>
               {fullName}
             </h1>
@@ -246,6 +247,11 @@ export function PublicCvView({ token }: { token: string }) {
                 </a>
               )}
             </div>
+          </div>
+
+          {/* logo — far-right of hero row */}
+          <div className="shrink-0 ml-auto print:hidden">
+            <HraiLogo height={90} />
           </div>
         </div>
 
