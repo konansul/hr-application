@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi, resumesApi } from '../../../api';
 import { HtmlContent } from '../../shared/HtmlContent';
 import { stripHtml } from '../../../utils/html';
@@ -358,6 +358,7 @@ export function JobsTab() {
     const [externalError, setExternalError] = useState('');
     const [externalSource, setExternalSource] = useState('');
     const [externalModalUrl, setExternalModalUrl] = useState<string | null>(null);
+    const [externalDetailJob, setExternalDetailJob] = useState<any | null>(null);
     const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
 
     // Saved jobs tracker — user-specific key matches JobApplicationTab
@@ -830,7 +831,7 @@ export function JobsTab() {
                     <div className="absolute top-full left-6 border-4 border-transparent border-t-[#9EA4FF] dark:border-t-[#9EA4FF]/90" />
                 </div>
                 <div
-                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 focus-within:shadow-[inset_0_0_0_2px_rgba(110,40,255,0.85),0_0_10px_4px_rgba(110,40,255,0.45)] transition-all">
+                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 transition-all">
                     <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -885,7 +886,7 @@ export function JobsTab() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter' && searchMode === 'external') fetchExternalJobs(1); }}
-                            className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 dark:focus:ring-white outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 w-52"
+                            className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 w-52"
                         />
                     </div>
 
@@ -1050,121 +1051,50 @@ export function JobsTab() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {externalJobs.map((job) => {
+                            const srcId = String(job.job_id || job.id || '');
+                            const isSaved = savedJobIds.has(srcId);
                             const salaryText = job.salary_min && job.salary_max
                                 ? `$${Math.round(job.salary_min / 1000)}k – $${Math.round(job.salary_max / 1000)}k`
                                 : job.salary_min ? `from $${Math.round(job.salary_min / 1000)}k` : null;
                             return (
-                                <div key={job.job_id}
-                                     className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-5 md:p-6 hover:shadow-md transition-all group">
-                                    <div className="flex flex-col md:flex-row md:items-start gap-4">
-                                        {/* Company initial */}
-                                        <div
-                                            className="shrink-0 w-11 h-11 rounded-xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-base font-bold text-gray-600 dark:text-neutral-300 border border-gray-200 dark:border-neutral-700">
-                                            {(job.company || '?').charAt(0).toUpperCase()}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0 space-y-2">
-                                            <div>
-                                                <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">{job.title}</h3>
-                                                <div
-                                                    className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500 dark:text-neutral-400">
-                                                    {job.company && <span
-                                                        className="font-medium text-gray-700 dark:text-neutral-300">{job.company}</span>}
-                                                    {job.company && job.location && <span>·</span>}
-                                                    {job.location && (
-                                                        <span className="flex items-center gap-1">
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
-                                  strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path
-                                  strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                                            {job.location}
-                            </span>
-                                                    )}
-                                                    {job.remote && (
-                                                        <span
-                                                            className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded-md text-[10px] font-bold uppercase tracking-wide">{tl.remoteTag ?? 'Remote'}</span>
-                                                    )}
-                                                    {salaryText && (
-                                                        <span
-                                                            className="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 rounded-md text-[10px] font-semibold">{salaryText}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {job.description && (
-                                                <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed line-clamp-2">{stripHtml(job.description)}</p>
-                                            )}
-
-                                            {job.tags && job.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {job.tags.slice(0, 6).map((tag: string) => (
-                                                        <span key={tag}
-                                                              className="px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 text-[10px] font-medium rounded-md border border-gray-200 dark:border-neutral-700">
-                              {tag}
-                            </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="shrink-0 self-start flex flex-col items-end gap-3">
-                                            {/* Date + Company badges in one row */}
-                                            {(job.created_at || job.company) && (
-                                                <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                                                    {job.created_at && (
-                                                        <span
-                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-500 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap">
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
-                                  strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                            {new Date(job.created_at).toLocaleDateString(language, {
-                                                                month: 'short',
-                                                                day: 'numeric',
-                                                                year: 'numeric'
-                                                            })}
-                            </span>
-                                                    )}
-                                                    {job.company && (
-                                                        <span
-                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-medium whitespace-nowrap">
-                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path
-                                  strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                            {job.company}
-                            </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <div className="flex items-center gap-2">
-                                                {(() => {
-                                                    const srcId = String(job.job_id || job.id || '');
-                                                    const isSaved = savedJobIds.has(srcId);
-                                                    return (
-                                                        <button
-                                                            onClick={() => isSaved ? unsaveJob(srcId) : saveJobToTracker(job, 'Saved')}
-                                                            title={isSaved ? 'Remove from saved' : 'Save job'}
-                                                            className={`p-2 rounded-xl border transition-all active:scale-95 ${
-                                                                isSaved
-                                                                    ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-800 hover:text-red-500 dark:hover:text-red-400'
-                                                                    : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-neutral-500 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-500 dark:hover:text-indigo-400'
-                                                            }`}
-                                                        >
-                                                            <svg className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                            </svg>
-                                                        </button>
-                                                    );
-                                                })()}
+                                <div
+                                    key={job.job_id}
+                                    onClick={() => setExternalDetailJob(job)}
+                                    className="group bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl flex flex-col hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 transition-all cursor-pointer"
+                                >
+                                    <div className="px-4 py-3 flex-1 flex flex-col gap-2">
+                                        {/* Title + save button */}
+                                        <div className="flex items-start justify-between gap-2">
+                                            <span className="text-sm font-semibold leading-snug line-clamp-2 flex-1 min-w-0 text-gray-900 dark:text-white">
+                                                {job.title}
+                                            </span>
+                                            <div onClick={e => e.stopPropagation()}>
                                                 <button
-                                                    onClick={() => setExternalModalUrl(job.url)}
-                                                    className="px-5 py-2 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
+                                                    onClick={() => isSaved ? unsaveJob(srcId) : saveJobToTracker(job, 'Saved')}
+                                                    title={isSaved ? 'Remove from saved' : 'Save job'}
+                                                    className={`p-1 rounded-lg transition-all active:scale-95 ${isSaved ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-300 dark:text-neutral-600 hover:text-indigo-400 dark:hover:text-indigo-400'}`}
                                                 >
-                                                    {tl.applyExternal ?? 'Apply →'}
+                                                    <svg className="w-3.5 h-3.5" fill={isSaved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                    </svg>
                                                 </button>
                                             </div>
+                                        </div>
+
+                                        {/* Meta */}
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400 dark:text-neutral-500">
+                                            {job.company && <span className="font-medium text-gray-600 dark:text-neutral-400 truncate max-w-[100px]">{job.company}</span>}
+                                            {job.remote && <span className="px-1.5 py-0.5 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-800/50 rounded text-[9px] font-bold uppercase tracking-wider">{tl.remoteTag ?? 'Remote'}</span>}
+                                            {salaryText && <span className="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 rounded text-[9px] font-semibold">{salaryText}</span>}
+                                            {job.location && (
+                                                <span className="flex items-center gap-0.5 truncate">
+                                                    <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                    <span className="truncate max-w-[100px]">{job.location}</span>
+                                                </span>
+                                            )}
+                                            {job.created_at && <span className="shrink-0">{new Date(job.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric' })}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -1631,6 +1561,111 @@ export function JobsTab() {
                     )}
                 </div>
             )}
+
+            {/* External job detail modal */}
+            {externalDetailJob && (() => {
+                const job = externalDetailJob;
+                const srcId = String(job.job_id || job.id || '');
+                const isSaved = savedJobIds.has(srcId);
+                const salaryText = job.salary_min && job.salary_max
+                    ? `$${Math.round(job.salary_min / 1000)}k – $${Math.round(job.salary_max / 1000)}k`
+                    : job.salary_min ? `from $${Math.round(job.salary_min / 1000)}k` : null;
+                return (
+                    <div
+                        className="fixed inset-0 z-[998] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                        onClick={() => setExternalDetailJob(null)}
+                    >
+                        <div
+                            className="bg-white dark:bg-neutral-900 w-full max-w-2xl max-h-[85vh] rounded-3xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Header */}
+                            <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-snug">{job.title}</h3>
+                                    <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-500 dark:text-neutral-400">
+                                        {job.company && <span className="font-medium text-gray-700 dark:text-neutral-300">{job.company}</span>}
+                                        {job.remote && <span className="px-2 py-0.5 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-800/50 rounded text-[10px] font-bold uppercase tracking-wider">{tl.remoteTag ?? 'Remote'}</span>}
+                                        {salaryText && <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 rounded text-[10px] font-semibold">{salaryText}</span>}
+                                        {job.location && (
+                                            <span className="flex items-center gap-1">
+                                                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                {job.location}
+                                            </span>
+                                        )}
+                                        {job.created_at && <span>{new Date(job.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); isSaved ? unsaveJob(srcId) : saveJobToTracker(job, 'Saved'); }}
+                                        title={isSaved ? 'Remove from saved' : 'Save job'}
+                                        className={`p-2 rounded-xl border transition-all ${isSaved ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-500 dark:text-indigo-400' : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-400 hover:text-indigo-500 hover:border-indigo-300'}`}
+                                    >
+                                        <svg className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => setExternalDetailJob(null)}
+                                        className="p-2 text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Body — scrollable description */}
+                            <div className="flex-1 overflow-y-auto px-6 py-5">
+                                {job.description
+                                    ? <HtmlContent html={job.description} className="text-gray-700 dark:text-neutral-300" />
+                                    : <p className="text-sm text-gray-400 dark:text-neutral-500 italic">No description provided.</p>
+                                }
+                                {/* Truncation notice — Adzuna always returns a short snippet, never the full text */}
+                                {job.source === 'adzuna' && job.url && (
+                                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800 flex items-start gap-2.5">
+                                        <svg className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <p className="text-xs text-gray-500 dark:text-neutral-400">
+                                            This is a preview — the job board only provides a short excerpt.{' '}
+                                            <button
+                                                onClick={() => { setExternalDetailJob(null); setExternalModalUrl(job.url); }}
+                                                className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+                                            >
+                                                Read the full description →
+                                            </button>
+                                        </p>
+                                    </div>
+                                )}
+                                {job.tags && job.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                                        {job.tags.map((tag: string) => (
+                                            <span key={tag} className="px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 text-[10px] font-medium rounded border border-gray-200 dark:border-neutral-700">{tag}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 flex items-center justify-end gap-3">
+                                <button
+                                    onClick={() => setExternalDetailJob(null)}
+                                    className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-neutral-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
+                                >
+                                    {t.showLess}
+                                </button>
+                                {job.url && (
+                                    <button
+                                        onClick={() => { setExternalDetailJob(null); setExternalModalUrl(job.url); }}
+                                        className="px-5 py-2 text-sm font-bold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                                    >
+                                        {tl.applyExternal ?? 'Apply →'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Job detail modal */}
             {jobDetailModal && (() => {

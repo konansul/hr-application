@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { authApi, documentsApi, resumesApi } from '../../../api';
 import { DICT } from '../../../internationalization.ts';
 import { useStore } from '../../../store';
@@ -372,7 +372,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
         onSubmit={() => onSubmit({ sourceResumeId: sourceId, title, language, validUntil, removedSections })}
         disabled={!canSubmit}
         submitLabel={isWorking ? t.modal.creating : t.modal.createDuplicate}
-        submitClass="bg-emerald-600 hover:bg-emerald-700"
+        submitClass="bg-[#7A60F4] hover:bg-[#6B52E8]"
       />
     </ModalShell>
   );
@@ -505,8 +505,8 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
             )}
             {hasFetched && fetchedTitle && description && (
               <div className="flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                <span className="text-xs text-emerald-600 font-semibold">Filled from: {fetchedTitle}</span>
+                <svg className="w-3.5 h-3.5 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <span className="text-xs text-violet-600 font-semibold">Filled from: {fetchedTitle}</span>
               </div>
             )}
           </div>
@@ -556,7 +556,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
         onSubmit={() => onSubmit({ title: effectiveTitle || 'Job Resume', language, validUntil, removedSections, jobDescription: effectiveDescription, jobId: effectiveJobId, sourceResumeId: sourceResumeId || null })}
         disabled={!canSubmit}
         submitLabel={isWorking ? 'Generating…' : 'Generate Tailored Resume'}
-        submitClass="bg-indigo-600 hover:bg-indigo-700"
+        submitClass="bg-[#7A60F4] hover:bg-[#6B52E8]"
       />
     </ModalShell>
   );
@@ -1303,7 +1303,7 @@ export function ResumeUploadTab() {
 
         <div className="space-y-6">
           {message && (
-            <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800/50'}`}>
+            <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-100 dark:border-violet-800/50' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800/50'}`}>
               <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {message.type === 'success'
                   ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1788,7 +1788,7 @@ export function ResumeUploadTab() {
                           </p>
                           {isEditingContent && (
                             editDraft?.hide_references
-                              ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-medium px-1.5 py-0.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">Restore</button>
+                              ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] text-violet-600 dark:text-violet-400 hover:text-violet-700 font-medium px-1.5 py-0.5 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors">Restore</button>
                               : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
                           )}
                         </div>
@@ -2055,12 +2055,12 @@ export function ResumeUploadTab() {
               </div>
             </div>
             {sendEmailStatus === 'success' ? (
-              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
-                <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 rounded-xl">
+                <div className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-400 font-semibold">
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                   {t.sendEmail.sentTo.replace('{email}', sendEmailTo || 'recipient')}
                 </div>
-                <button onClick={() => { setSendEmailStatus('idle'); setSendEmailTo(''); setSendEmailSubject(''); setSendEmailRecipientName(''); setSendEmailMessage(''); }} className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline">{t.sendEmail.sendAnother}</button>
+                <button onClick={() => { setSendEmailStatus('idle'); setSendEmailTo(''); setSendEmailSubject(''); setSendEmailRecipientName(''); setSendEmailMessage(''); }} className="text-xs text-violet-600 dark:text-violet-400 underline underline-offset-2 hover:no-underline">{t.sendEmail.sendAnother}</button>
               </div>
             ) : (<>
               <div>
@@ -2073,7 +2073,7 @@ export function ResumeUploadTab() {
                   {isAttachingPdf ? t.sendEmail.attaching : t.sendEmail.attachBtn}
                 </button>
                 {sendEmailAttachment ? (
-                  <button onClick={() => setShowEmailPreview(true)} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition-colors" title="Click to preview">
+                  <button onClick={() => setShowEmailPreview(true)} className="flex items-center gap-2 px-3 py-1.5 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 rounded-full text-xs font-semibold text-violet-700 dark:text-violet-400 hover:bg-violet-100 transition-colors" title="Click to preview">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     {sendEmailAttachment.filename}
                   </button>
@@ -2183,7 +2183,7 @@ export function ResumeUploadTab() {
                         <div key={key} className="flex items-center justify-between gap-1.5 py-1.5 px-2 rounded-lg bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700">
                           <span className="text-[11px] text-gray-700 dark:text-neutral-300 font-medium truncate">{label}</span>
                           {isManual ? (
-                            <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-3 h-3 text-[#7A60F4] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <title>Manually edited</title>
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
@@ -2438,7 +2438,7 @@ export function ResumeUploadTab() {
                         </div>
                         <button
                           onClick={copyPubLink}
-                          className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${sharePublicLinkCopied ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700'}`}
+                          className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${sharePublicLinkCopied ? 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800/50 text-violet-700 dark:text-violet-400' : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700'}`}
                         >
                           {sharePublicLinkCopied
                             ? <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
@@ -2468,12 +2468,12 @@ export function ResumeUploadTab() {
                   return (
                     <div className="space-y-3">
                       {shareEmailStatus === 'success' ? (
-                        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl">
-                          <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
+                        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 rounded-xl">
+                          <div className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-400 font-semibold">
                             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                             {t.share.sentTo.replace('{email}', shareEmailTo)}
                           </div>
-                          <button onClick={() => { setShareEmailStatus('idle'); setShareEmailTo(''); setShareEmailRecipientName(''); }} className="text-xs text-emerald-600 dark:text-emerald-400 underline underline-offset-2 hover:no-underline">
+                          <button onClick={() => { setShareEmailStatus('idle'); setShareEmailTo(''); setShareEmailRecipientName(''); }} className="text-xs text-violet-600 dark:text-violet-400 underline underline-offset-2 hover:no-underline">
                             {t.share.sendAnother}
                           </button>
                         </div>
@@ -2517,7 +2517,7 @@ export function ResumeUploadTab() {
                           {isAttachingSharePdf ? t.sendEmail.attaching : t.sendEmail.attachBtn}
                         </button>
                         {shareAttachment ? (
-                          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 rounded-full text-xs font-semibold text-violet-700 dark:text-violet-400">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                             {shareAttachment.filename}
                           </div>
@@ -2539,7 +2539,7 @@ export function ResumeUploadTab() {
                         </div>
                       )}
                       {/*{shareEmailStatus === 'success' && (*/}
-                      {/*  <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-sm text-emerald-700 dark:text-emerald-400">*/}
+                      {/*  <div className="flex items-center gap-2 px-3 py-2.5 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 rounded-xl text-sm text-violet-700 dark:text-violet-400">*/}
                       {/*    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>*/}
                       {/*    CV sent successfully!*/}
                       {/*  </div>*/}

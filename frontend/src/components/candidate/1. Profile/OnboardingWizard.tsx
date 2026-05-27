@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { documentsApi, authApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
@@ -170,19 +170,19 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
               disabled={uploading || uploadDone}
               className={`w-full flex flex-col items-center gap-3 p-8 border-2 border-dashed rounded-2xl transition-all text-center
                 ${uploadDone
-                  ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/20 cursor-default'
+                  ? 'border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/20 cursor-default'
                   : 'border-gray-300 dark:border-neutral-600 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 cursor-pointer'
                 } disabled:cursor-not-allowed`}
             >
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
                 uploadDone
-                  ? 'bg-emerald-100 dark:bg-emerald-900/40'
+                  ? 'bg-violet-100 dark:bg-violet-900/40'
                   : 'bg-indigo-100 dark:bg-indigo-950/50'
               }`}>
                 {uploading ? (
                   <div className="w-6 h-6 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
                 ) : uploadDone ? (
-                  <svg className="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-7 h-7 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
@@ -194,8 +194,8 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
 
               {uploadDone ? (
                 <>
-                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{w.uploadSuccess ?? 'CV uploaded successfully!'}</p>
-                  <p className="text-xs text-emerald-600/70 dark:text-emerald-500/70">{w.uploadSuccessDesc ?? 'Your profile is being filled in…'}</p>
+                  <p className="text-sm font-bold text-violet-700 dark:text-violet-400">{w.uploadSuccess ?? 'CV uploaded successfully!'}</p>
+                  <p className="text-xs text-violet-600/70 dark:text-violet-500/70">{w.uploadSuccessDesc ?? 'Your profile is being filled in…'}</p>
                 </>
               ) : uploading ? (
                 <>

@@ -109,13 +109,13 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
                     <div className="md:col-span-2 flex gap-6 pt-4">
                       {pInfo.open_to_remote && (
                         <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
                           <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">Open to Remote</span>
                         </div>
                       )}
                       {pInfo.open_to_relocation && (
                         <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
                           <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">Open to Relocation</span>
                         </div>
                       )}
@@ -152,7 +152,7 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
               <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
                 <div className="flex items-center px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
                   <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-violet-500 dark:bg-violet-400"></div>
                     <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Education</h3>
                   </div>
                 </div>
