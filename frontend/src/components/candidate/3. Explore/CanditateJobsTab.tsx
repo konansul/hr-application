@@ -245,7 +245,7 @@ function LocationCombobox({
           <div className="max-h-72 overflow-y-auto py-1">
             <button
               onClick={() => select('all')}
-              className={`w-full text-left px-3 py-2 text-sm transition-colors ${selectedLocation === 'all' ? 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+              className={`w-full text-left px-3 py-2 text-sm transition-colors ${selectedLocation === 'all' ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300'}`}
             >
               {allLabel}
             </button>
@@ -257,7 +257,7 @@ function LocationCombobox({
                   <button
                     key={opt.value}
                     onClick={() => select(opt.value)}
-                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selectedLocation === opt.value ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selectedLocation === opt.value ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300'}`}
                   >
                     {getLabel(opt)}
                   </button>
@@ -272,7 +272,7 @@ function LocationCombobox({
                   <button
                     key={loc}
                     onClick={() => select(loc)}
-                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selectedLocation === loc ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${selectedLocation === loc ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-neutral-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300'}`}
                   >
                     {loc}
                   </button>
@@ -285,7 +285,7 @@ function LocationCombobox({
                 <div className="px-3 pt-2.5 pb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{tl.customGroup ?? 'Custom'}</div>
                 <button
                   onClick={() => select(`custom:${search}`)}
-                  className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-neutral-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
                 >
                   {tl.searchFor ?? 'Search for'} <span className="font-semibold text-gray-900 dark:text-white">"{search}"</span>
                 </button>

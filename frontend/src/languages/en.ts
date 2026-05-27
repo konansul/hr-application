@@ -182,7 +182,7 @@ export const en = {
       unknownCandidate: "Unknown Candidate",
       fillPrompt: "Fill your profile to increase your chances of getting invited to interviews.",
       autofill: "Autofill with CV upload",
-      resumeLibrary: "Resume Library",
+      resumeLibrary: "Resume List",
       noResumes: "No resumes uploaded.",
       importFromUrl: "Import from URL",
       importing: "Importing…",

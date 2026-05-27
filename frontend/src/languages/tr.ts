@@ -182,7 +182,7 @@ export const tr = {
       unknownCandidate: "Bilinmeyen Aday",
       fillPrompt: "Mülakatlara davet edilme şansınızı artırmak için profilinizi doldurun.",
       autofill: "CV yükleyerek otomatik doldur",
-      resumeLibrary: "Özgeçmiş Kütüphanesi",
+      resumeLibrary: "Özgeçmiş Listesi",
       noResumes: "Yüklü özgeçmiş yok.",
       importFromUrl: "URL'den İçe Aktar",
       importing: "İçe aktarılıyor…",

@@ -182,7 +182,7 @@ export const de = {
       unknownCandidate: "Unbekannter Kandidat",
       fillPrompt: "Füllen Sie Ihr Profil aus, um Ihre Chancen auf Einladungen zu Vorstellungsgesprächen zu erhöhen.",
       autofill: "Automatisches Ausfüllen durch Lebenslauf-Upload",
-      resumeLibrary: "Lebenslauf-Bibliothek",
+      resumeLibrary: "Lebenslauf-Liste",
       noResumes: "Keine Lebensläufe hochgeladen.",
       importFromUrl: "Von URL importieren",
       importing: "Wird importiert…",

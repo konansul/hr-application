@@ -182,7 +182,7 @@ export const fr = {
       unknownCandidate: "Candidat Inconnu",
       fillPrompt: "Remplissez votre profil pour augmenter vos chances d'être invité à des entretiens.",
       autofill: "Remplissage automatique avec CV",
-      resumeLibrary: "Bibliothèque de CV",
+      resumeLibrary: "Liste de CV",
       noResumes: "Aucun CV téléchargé.",
       importFromUrl: "Importer depuis une URL",
       importing: "Importation…",

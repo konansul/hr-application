@@ -1125,20 +1125,20 @@ export function ProfileTab() {
             const pct = Math.round((completed / total) * 100);
             const isComplete = missing.length === 0;
             return (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors border-[#92D8F2]/50 dark:border-[#92D8F2]/30">
+              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border overflow-hidden transition-colors border-[#7A60F4]/40 dark:border-[#7A60F4]/30">
                 <div className="px-5 py-4">
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="text-xs font-bold text-gray-700 dark:text-white uppercase tracking-widest">{(t as any).sidebar?.profileCompleteness ?? 'Profile Completeness'}</span>
-                    <span className="text-xs font-bold text-[#0e7490] dark:text-[#92D8F2]">{pct}%</span>
+                    <span className="text-xs font-bold text-[#7A60F4] dark:text-[#9EA4FF]">{pct}%</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
                     <div
-                      className="h-full rounded-full transition-all duration-500 bg-[#92D8F2]"
+                      className="h-full rounded-full transition-all duration-500 bg-[#7A60F4]"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
                   {isComplete ? (
-                    <p className="text-xs text-[#0e7490] dark:text-[#92D8F2] font-semibold flex items-center gap-1.5">
+                    <p className="text-xs text-[#7A60F4] dark:text-[#9EA4FF] font-semibold flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
@@ -1146,7 +1146,7 @@ export function ProfileTab() {
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-[11px] text-[#0e7490] dark:text-[#92D8F2] font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
+                      <p className="text-[11px] text-[#7A60F4] dark:text-[#9EA4FF] font-semibold">{(t as any).sidebar?.missingFields ?? 'Missing required fields:'}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {missing.map(key => {
                           const label = getFieldLabel(key);
@@ -1157,7 +1157,7 @@ export function ProfileTab() {
                                 setIsEditingPersonalInfo(true);
                                 document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                               }}
-                              className="px-2 py-1 bg-[#92D8F2]/10 dark:bg-[#92D8F2]/10 text-[#0e7490] dark:text-[#92D8F2] border border-[#92D8F2]/40 dark:border-[#92D8F2]/25 rounded-lg text-[10px] font-bold hover:bg-[#92D8F2]/20 dark:hover:bg-[#92D8F2]/20 transition-colors flex items-center gap-1"
+                              className="px-2 py-1 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/30 dark:border-[#7A60F4]/25 rounded-lg text-[10px] font-bold hover:bg-[#7A60F4]/20 dark:hover:bg-[#7A60F4]/20 transition-colors flex items-center gap-1"
                             >
                               <svg className="w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1180,27 +1180,19 @@ export function ProfileTab() {
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.sidebar.resumeLibrary}</h3>
-              <div className="flex items-center gap-3">
-                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-white text-[10px] font-bold flex items-center justify-center">
-                  {resumeVersions.length}
-                </span>
-                <button onClick={() => handleUploadClick('resume')} className="text-gray-400 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                </button>
-              </div>
+              <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-white text-[10px] font-bold flex items-center justify-center">
+                {resumeVersions.length}
+              </span>
             </div>
             <div className="p-3">
               {resumeVersions.length > 0 ? (
                 <div className="space-y-1">
                   {resumeVersions.map((doc: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-neutral-700 cursor-pointer group">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 group-hover:bg-white dark:group-hover:bg-neutral-700 border border-transparent group-hover:border-gray-200 dark:group-hover:border-neutral-600 flex items-center justify-center shrink-0 transition-colors">
-                          <svg className="w-4 h-4 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 truncate">{doc.filename || `Version_${i+1}.pdf`}</span>
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-transparent overflow-hidden">
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       </div>
-                      <svg className="w-4 h-4 text-gray-300 dark:text-neutral-600 group-hover:text-gray-400 dark:group-hover:text-neutral-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                      <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 truncate">{doc.filename || `Version_${i+1}.pdf`}</span>
                     </div>
                   ))}
                 </div>

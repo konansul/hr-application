@@ -182,7 +182,7 @@ export const es = {
       unknownCandidate: "Candidato Desconocido",
       fillPrompt: "Completa tu perfil para aumentar tus posibilidades de ser invitado a entrevistas.",
       autofill: "Autocompletar al subir CV",
-      resumeLibrary: "Biblioteca de Currículums",
+      resumeLibrary: "Lista de Currículums",
       noResumes: "No hay currículums subidos.",
       importFromUrl: "Importar desde URL",
       importing: "Importando…",

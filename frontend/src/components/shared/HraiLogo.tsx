@@ -3,7 +3,7 @@ export function HraiLogo({ height = 32 }: { height?: number }) {
     <img
       src="/logo.png"
       alt="HRAIPP"
-      style={{ height: `${height}px`, width: 'auto' }}
+      style={{ maxHeight: `${height}px`, height: 'auto', width: 'auto', maxWidth: '100%' }}
       draggable={false}
       className="select-none shrink-0"
     />

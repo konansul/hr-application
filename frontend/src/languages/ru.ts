@@ -182,7 +182,7 @@ export const ru = {
       unknownCandidate: "Неизвестный кандидат",
       fillPrompt: "Заполните профиль, чтобы увеличить шансы на приглашение.",
       autofill: "Автозаполнение через CV",
-      resumeLibrary: "Мои резюме",
+      resumeLibrary: "Список резюме",
       noResumes: "Резюме не загружены.",
       importFromUrl: "Импорт по ссылке",
       importing: "Импорт…",
