@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { authApi, documentsApi, resumesApi } from '../../../api';
 import { DICT } from '../../../internationalization.ts';
 import { useStore } from '../../../store';
@@ -58,7 +58,7 @@ function ExpandableText({ text, limit = 280 }: { text: string; limit?: number })
   return (
     <div>
       <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">
-        {expanded ? text : text.slice(0, limit) + '…'}
+        {expanded ? text : <>{text.slice(0, limit).trimEnd()}<span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" /></>}
       </p>
       <button
         type="button"
@@ -112,7 +112,7 @@ const sourceTypeLabel = (value?: string, t?: { sourceTypes?: { profile?: string;
 };
 
 const formatDate = (value?: string | null, locale?: string) => {
-  if (!value) return '—';
+  if (!value) return '�';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat(locale || undefined, {
@@ -185,10 +185,10 @@ function SectionToggles({ removedSections, onToggle }: { removedSections: Resume
           return (
             <label
               key={section.key}
-              className={`rounded-2xl border px-4 py-3 text-sm cursor-pointer transition-all select-none ${removed ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}
+              className={`rounded-2xl border px-4 py-3 text-sm cursor-pointer transition-all select-none ${removed ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}
             >
               <input type="checkbox" className="hidden" checked={removed} onChange={() => onToggle(section.key)} />
-              {removed ? `✕ ${label}` : label}
+              {removed ? `? ${label}` : label}
             </label>
           );
         })}
@@ -332,7 +332,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
                 key={r.resume_id}
                 type="button"
                 onClick={() => { setSourceId(r.resume_id); setAutoTitle(true); }}
-                className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${isSelected ? 'border-[#7A60F4] bg-[#7A60F4] text-white' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50'}`}
+                className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${isSelected ? 'border-[#7A60F4] bg-[#7A60F4] text-white' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:bg-gray-50'}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div>
@@ -343,7 +343,7 @@ function DuplicateResumeModal({ onClose, onSubmit, isWorking, resumeVersions }: 
                     {langLabel(r.language)}
                   </span>
                 </div>
-                <p className={`text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(r.source_type, t)} · {formatDate(r.created_at, appLanguage)}</p>
+                <p className={`text-xs mt-1 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{sourceTypeLabel(r.source_type, t)} � {formatDate(r.created_at, appLanguage)}</p>
               </button>
             );
           })}
@@ -454,7 +454,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
                   key={r.resume_id}
                   type="button"
                   onClick={() => setSourceResumeId(r.resume_id)}
-                  className={`w-full text-left rounded-2xl border px-4 py-2.5 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50'}`}
+                  className={`w-full text-left rounded-2xl border px-4 py-2.5 transition-all ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:bg-gray-50'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -492,14 +492,14 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
                 className="px-4 py-2.5 bg-gray-800 text-white text-xs font-semibold rounded-xl hover:bg-gray-700 transition-all disabled:opacity-50 flex items-center gap-2 shrink-0"
               >
                 {isFetching
-                  ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Loading…</>
+                  ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Loading�</>
                   : 'Auto-fill'}
               </button>
             </div>
             {!fetchError && !hasFetched && (
-              <p className="text-[11px] text-gray-400 dark:text-neutral-500">Works on static job pages only — for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
+              <p className="text-[11px] text-gray-400 dark:text-neutral-500">Works on static job pages only � for LinkedIn, Indeed, and similar sites, open the full job page first (not a listing feed), then paste the URL here.</p>
             )}
-            {fetchError && <p className="text-xs text-red-500">{fetchError} — paste the description below instead.</p>}
+            {fetchError && <p className="text-xs text-red-500">{fetchError} � paste the description below instead.</p>}
             {hasFetched && !description && !fetchError && (
               <p className="text-xs text-amber-600">This site requires JavaScript (e.g. LinkedIn, Indeed) and can't be fetched automatically. Copy the job description from the page and paste it below.</p>
             )}
@@ -517,7 +517,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
             className={`w-full rounded-xl border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${description ? 'border-indigo-300 dark:border-indigo-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white' : 'border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white'}`}
-            placeholder="Or paste the job description here…"
+            placeholder="Or paste the job description here�"
             autoFocus
           />
         </div>
@@ -555,7 +555,7 @@ function CreateFromJobDescriptionModal({ onClose, onSubmit, isWorking, resumeVer
         onClose={onClose}
         onSubmit={() => onSubmit({ title: effectiveTitle || 'Job Resume', language, validUntil, removedSections, jobDescription: effectiveDescription, jobId: effectiveJobId, sourceResumeId: sourceResumeId || null })}
         disabled={!canSubmit}
-        submitLabel={isWorking ? 'Generating…' : 'Generate Tailored Resume'}
+        submitLabel={isWorking ? 'Generating�' : 'Generate Tailored Resume'}
         submitClass="bg-[#7A60F4] hover:bg-[#6B52E8]"
       />
     </ModalShell>
@@ -574,7 +574,7 @@ function JobDescriptionAccordion({ text }: { text: string }) {
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest shrink-0">Job Description</span>
           {!expanded && (
-            <span className="text-xs text-indigo-600/70 truncate">{text.slice(0, 80)}{text.length > 80 ? '…' : ''}</span>
+            <span className="text-xs text-indigo-600/70 truncate">{text.slice(0, 80)}{text.length > 80 ? '�' : ''}</span>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -661,7 +661,7 @@ export function ResumeUploadTab() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  // Slug from URL on first load — consumed once when resumes arrive
+  // Slug from URL on first load � consumed once when resumes arrive
   const initialUrlSlugRef = useRef((() => {
     const pathSlug = window.location.pathname.startsWith('/resumes/')
       ? window.location.pathname.replace('/resumes/', '') || undefined
@@ -708,7 +708,7 @@ export function ResumeUploadTab() {
 
   // Reload the resume list whenever this tab becomes visible again so any
   // resume created on another tab (e.g. Improve CV) appears immediately.
-  // The ref guard skips the very first render — the [] effect above handles that.
+  // The ref guard skips the very first render � the [] effect above handles that.
   const hasInitialLoadedRef = useRef(false);
   useEffect(() => {
     if (!hasInitialLoadedRef.current) { hasInitialLoadedRef.current = true; return; }
@@ -989,7 +989,7 @@ export function ResumeUploadTab() {
       setSendEmailAttachment({ base64, filename });
       setSendEmailPreviewUrl(previewUrl);
     } catch {
-      // ignore — user can retry
+      // ignore � user can retry
     } finally {
       setIsAttachingPdf(false);
     }
@@ -1005,7 +1005,7 @@ export function ResumeUploadTab() {
       setShareAttachment({ base64, filename });
       setShareAttachmentPreviewUrl(previewUrl);
     } catch {
-      // ignore — user can retry
+      // ignore � user can retry
     } finally {
       setIsAttachingSharePdf(false);
     }
@@ -1240,7 +1240,7 @@ export function ResumeUploadTab() {
                   tabIndex={0}
                   onClick={() => handleResumeClick(resume)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleResumeClick(resume); } }}
-                  className={`rounded-2xl border transition-all cursor-pointer ${isActive ? 'border-[#7A60F4] bg-[#7A60F4] text-white shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600 hover:shadow-sm'}`}
+                  className={`rounded-2xl border transition-all cursor-pointer ${isActive ? 'border-[#7A60F4] bg-[#7A60F4] text-white shadow-md' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:shadow-sm'}`}
                 >
                   <div className="px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
@@ -1248,7 +1248,7 @@ export function ResumeUploadTab() {
                         <div className="flex items-center w-full gap-2 min-w-0">
                           <h4 className="text-sm font-semibold leading-snug break-words flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
                           <span className={`text-xs whitespace-nowrap shrink-0 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {resume.created_at ? new Intl.DateTimeFormat(language, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '—'}
+                            {resume.created_at ? new Intl.DateTimeFormat(language, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '�'}
                           </span>
                           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap shrink-0 ${isActive ? 'border-white/20 text-white' : 'border-gray-200 dark:border-neutral-600 text-gray-600 dark:text-neutral-400'}`}>
                             {langLabel(resume.language)}
@@ -1352,14 +1352,14 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          {/* Toolbar — swaps between normal and editing states */}
+          {/* Toolbar � swaps between normal and editing states */}
           {selectedResume && (
             isEditingContent ? (
               <div className="flex items-center gap-2 p-1.5 bg-white dark:bg-neutral-900 border border-[#7A60F4]/40 rounded-2xl shadow-sm ring-2 ring-[#7A60F4]/10">
                 <div className="flex items-center gap-2 pl-2">
                   <span className="w-2 h-2 rounded-full bg-[#7A60F4] animate-pulse shrink-0" />
                   <span className="text-xs font-semibold text-gray-900 dark:text-white">Editing</span>
-                  <span className="text-[11px] text-gray-400 dark:text-neutral-500 hidden sm:inline">— unsaved changes</span>
+                  <span className="text-[11px] text-gray-400 dark:text-neutral-500 hidden sm:inline">� unsaved changes</span>
                 </div>
                 <div className="flex-1" />
                 <button
@@ -1586,14 +1586,14 @@ export function ResumeUploadTab() {
                             <textarea value={exp.description ?? ''} onChange={e => updateExpField(i, 'description', e.target.value)} placeholder="Job description..." rows={3} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm resize-none bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                           </div>
                         ))}
-                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addExp}</button>
+                        <button type="button" onClick={addExpEntry} className="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addExp}</button>
                       </>
                     ) : (
                       <>
                         {selectedResume.experience?.length ? selectedResume.experience.map((exp: any, i: number) => (
                           <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
-                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '—'} — {exp.end_date || t.placeholders.present}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '�'} � {exp.end_date || t.placeholders.present}</p>
                             {exp.description
                               ? <ExpandableText text={exp.description} />
                               : <p className="text-sm text-gray-400 italic">{t.placeholders.noDesc}</p>}
@@ -1653,10 +1653,10 @@ export function ResumeUploadTab() {
                               <input value={edu.end_date ?? ''} onChange={e => updateEduField(i, 'end_date', e.target.value)} placeholder="End (or blank if current)" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                             </div>
                             <input value={edu.grade ?? ''} onChange={e => updateEduField(i, 'grade', e.target.value)} placeholder="Grade / GPA (optional)" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-                            <textarea value={edu.description ?? ''} onChange={e => updateEduField(i, 'description', e.target.value)} placeholder="Description (thesis, honours, activities…)" rows={2} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none" />
+                            <textarea value={edu.description ?? ''} onChange={e => updateEduField(i, 'description', e.target.value)} placeholder="Description (thesis, honours, activities�)" rows={2} className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none" />
                           </div>
                         ))}
-                        <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addEdu}</button>
+                        <button type="button" onClick={addEduEntry} className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all">{t.edit.addEdu}</button>
                       </div>
                     ) : (
                       <>
@@ -1666,7 +1666,7 @@ export function ResumeUploadTab() {
                               {(edu.degree && edu.degree !== 'UNKNOWN' ? edu.degree : '') || 'Degree'}{edu.field_of_study && edu.field_of_study !== 'UNKNOWN' ? ` in ${edu.field_of_study}` : ''}
                             </h4>
                             {edu.institution && <p className="text-xs font-medium text-gray-500 dark:text-neutral-400">{edu.institution}</p>}
-                            {(edu.start_date || edu.end_date) && <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}</p>}
+                            {(edu.start_date || edu.end_date) && <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' � ')}</p>}
                             {edu.grade && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{edu.grade}</p>}
                             {edu.description && <p className="text-xs text-gray-600 dark:text-neutral-300 mt-1 leading-relaxed whitespace-pre-line">{edu.description}</p>}
                           </div>
@@ -1689,7 +1689,7 @@ export function ResumeUploadTab() {
                             {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
-                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
+                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">?</button>
                           )}
                         </div>
                         {isEditingContent ? (
@@ -1703,7 +1703,7 @@ export function ResumeUploadTab() {
                                 </div>
                               );
                             })}
-                            <button type="button" onClick={addLangEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-gray-400 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
+                            <button type="button" onClick={addLangEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
                           </div>
                         ) : (
                           <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
@@ -1723,7 +1723,7 @@ export function ResumeUploadTab() {
                             {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
                           {isEditingContent && (
-                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
+                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">?</button>
                           )}
                         </div>
                         {isEditingContent ? (
@@ -1737,7 +1737,7 @@ export function ResumeUploadTab() {
                                 </div>
                               );
                             })}
-                            <button type="button" onClick={addCertEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-gray-400 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
+                            <button type="button" onClick={addCertEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
                           </div>
                         ) : (
                           <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
@@ -1758,7 +1758,7 @@ export function ResumeUploadTab() {
                           {isEditingContent && (
                             editDraft?.hide_references
                               ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] text-violet-600 dark:text-violet-400 hover:text-violet-700 font-medium px-1.5 py-0.5 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors">Restore</button>
-                              : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">✕</button>
+                              : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">?</button>
                           )}
                         </div>
                         {editDraft?.hide_references && isEditingContent
@@ -1909,17 +1909,17 @@ export function ResumeUploadTab() {
         const rawTips = (t as any).cvTips?.tips as Array<{title:string; desc:string}> | undefined;
         const tips = (rawTips ?? [
           { title: 'Keep formatting consistent', desc: 'Use a clean structure, aligned dates, and uniform style throughout. Consistent fonts, heading sizes, and spacing signal professionalism and make your CV easy to scan.' },
-          { title: 'Keep it short and sharp', desc: '1 or 2 pages only — recruiters scan fast. Trim filler and keep only what adds value. A focused CV beats a long one every time.' },
+          { title: 'Keep it short and sharp', desc: '1 or 2 pages only � recruiters scan fast. Trim filler and keep only what adds value. A focused CV beats a long one every time.' },
           { title: 'Include essential personal details only', desc: 'Focus on professional information that supports your application. Name, email, phone, location, and LinkedIn are usually enough.' },
-          { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name. Avoid nicknames or numbers that look unprofessional — first.last@domain.com is a safe choice.' },
+          { title: 'Use a professional contact email', desc: 'Choose a simple format based on your name. Avoid nicknames or numbers that look unprofessional � first.last@domain.com is a safe choice.' },
           { title: 'Keep the design clean', desc: 'Prioritise readability over decoration. Avoid heavy graphics, multiple fonts, or coloured backgrounds. White space is your friend.' },
-          { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction. 2–4 sentences that answer: who you are, what you do, and what you are looking for.' },
+          { title: 'Start with a clear summary', desc: 'A short professional summary that quickly explains your value and direction. 2�4 sentences that answer: who you are, what you do, and what you are looking for.' },
           { title: 'Use a photo only if appropriate', desc: 'Include a photo only when it is standard or expected in your industry or country. In many regions it is optional or even discouraged.' },
           { title: 'Tailor your CV', desc: 'Adjust content for each role to match requirements and keywords. Read the job description carefully and mirror the language where your experience aligns.' },
           { title: 'Keep it concise', desc: 'Use short, clear bullet points that are easy to scan. Start with an action verb and focus on what you delivered, not just what you did.' },
           { title: 'Prioritise relevance', desc: "Include experience and skills that match the role you're targeting. Move the most relevant sections to the top and cut anything that distracts." },
           { title: 'Use specific language', desc: 'Replace generic statements with concrete examples and outcomes. "Increased sales by 30% in Q3" is far stronger than "responsible for sales".' },
-          { title: 'State references availability', desc: '"References available upon request" is sufficient. There is no need to list referees unless specifically asked — save the space for more important content.' },
+          { title: 'State references availability', desc: '"References available upon request" is sufficient. There is no need to list referees unless specifically asked � save the space for more important content.' },
         ]).map((tip, i) => ({ ...tip, color: tipColors[i] ?? 'indigo' })) as { title: string; desc: string; color: string }[];
 
         const palette: Record<string, { badge: string; border: string; bg: string; dot: string }> = {
@@ -1939,7 +1939,7 @@ export function ResumeUploadTab() {
                   </div>
                   <div>
                     <p className="text-base font-bold text-white leading-tight">{(t as any).cvTips?.title ?? 'CV Best Practices'}</p>
-                    <p className="text-xs text-white/65 mt-0.5">{(t as any).cvTips?.subtitle ?? '12 tips to make your CV stand out — click any tip to expand'}</p>
+                    <p className="text-xs text-white/65 mt-0.5">{(t as any).cvTips?.subtitle ?? '12 tips to make your CV stand out � click any tip to expand'}</p>
                   </div>
                 </div>
                 <button onClick={() => { setShowBestPractices(false); setSelectedTip(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0">
@@ -2052,7 +2052,7 @@ export function ResumeUploadTab() {
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest mb-2">{t.sendEmail.message}</label>
-                <textarea value={sendEmailMessage} onChange={e => setSendEmailMessage(e.target.value)} rows={10} placeholder="Write a short message to accompany your CV…" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 resize-y" />
+                <textarea value={sendEmailMessage} onChange={e => setSendEmailMessage(e.target.value)} rows={10} placeholder="Write a short message to accompany your CV�" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 resize-y" />
               </div>
               {sendEmailStatus === 'error' && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-red-700 dark:text-red-400">
@@ -2120,7 +2120,7 @@ export function ResumeUploadTab() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-3 border-gray-200 dark:border-neutral-700 border-t-indigo-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
-                      <p className="text-sm text-gray-500 dark:text-neutral-400">Loading PDF…</p>
+                      <p className="text-sm text-gray-500 dark:text-neutral-400">Loading PDF�</p>
                     </div>
                   </div>
                 ) : docViewerUrl ? (
@@ -2196,7 +2196,7 @@ export function ResumeUploadTab() {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === tmpl.id;
                   return (
-                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
+                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
@@ -2246,7 +2246,7 @@ export function ResumeUploadTab() {
             {previewBlobUrl && (
               <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 bg-white dark:bg-neutral-900">
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview — {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview � {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
                   <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
@@ -2284,7 +2284,7 @@ export function ResumeUploadTab() {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === tmpl.id;
                   return (
-                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600'}`}>
+                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
@@ -2335,7 +2335,7 @@ export function ResumeUploadTab() {
             {previewBlobUrl && (
               <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 bg-white dark:bg-neutral-900">
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview — {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Preview � {TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
                   <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
