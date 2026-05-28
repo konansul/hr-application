@@ -37,7 +37,9 @@ _cache_lock = asyncio.Lock()
 
 
 def _cache_key(title: str, loc: str, emp: str, page: int) -> str:
-    return f"{title.lower().strip()}|{loc}|{emp}|{page}"
+    import re as _re
+    normalised = _re.sub(r'\s+', ' ', title.lower().strip())
+    return f"{normalised}|{loc}|{emp}|{page}"
 
 
 async def _cache_get(key: str) -> dict | None:
@@ -297,7 +299,7 @@ async def _parse_query_llm(raw_query: str) -> dict | None:
         gc = GeminiClient()
         prompt = _LLM_PARSE_PROMPT.format(query=raw_query.replace('"', "'"))
         raw = await asyncio.wait_for(
-            asyncio.to_thread(gc.generate_text, prompt, 0.05, 150),
+            asyncio.to_thread(gc.generate_text, prompt, 0.0, 150),
             timeout=6.0,
         )
         raw = re.sub(r"^```[a-zA-Z]*\s*", "", raw.strip())
@@ -379,8 +381,8 @@ async def _search_jsearch(title: str, loc_key: str, employment_type: str, page: 
             "source":        "jsearch",
         })
 
-    estimated_total = len(jobs) * 10 if jobs else 0
-    return {"jobs": jobs, "total": estimated_total, "page": page, "source": "jsearch"}
+    api_total = data.get("num_pages", 1) * len(jobs) if jobs else 0
+    return {"jobs": jobs, "total": api_total, "page": page, "source": "jsearch"}
 
 
 # ── Adzuna provider ──────────────────────────────────────────────────────────
@@ -513,8 +515,8 @@ async def search_external_jobs(
     # Dropdown selection overrides parsed location
     effective_loc = loc or parsed.get("location", "")
 
-    # ── Cache ─────────────────────────────────────────────────────────────────
-    cache_key = _cache_key(f"{title}|{remote}", effective_loc, emp, page)
+    # ── Cache — key on the raw query so LLM non-determinism can't cause misses ─
+    cache_key = _cache_key(f"{raw_query}|{remote}", effective_loc, emp, page)
     cached = await _cache_get(cache_key)
     if cached is not None:
         return {**cached, "cached": True}
