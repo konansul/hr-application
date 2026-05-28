@@ -47,26 +47,50 @@ function AiInfoBadge({ tooltip }: { tooltip: string }) {
   );
 }
 
+function renderDescription(text: string, truncated = false) {
+  const lines = text.split('\n').filter(l => l.trim() !== '');
+  const hasBullets = lines.some(l => l.trimStart().startsWith('• '));
+  if (hasBullets) {
+    return (
+      <ul className="space-y-1">
+        {lines.map((line, idx) => {
+          const clean = line.trimStart().startsWith('• ') ? line.trimStart().slice(2) : line.trim();
+          return (
+            <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
+              <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-[#7A60F4]/50 dark:bg-[#9EA4FF]/50 shrink-0" />
+              <span>{clean}{truncated && idx === lines.length - 1 && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}</span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+  return (
+    <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
+      {text}{truncated && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}
+    </p>
+  );
+}
+
 function ExpandableText({ text, limit = 280 }: { text: string; limit?: number }) {
   const { language } = useStore();
   const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
   const [expanded, setExpanded] = useState(false);
   if (!text) return null;
-  if (text.length <= limit) {
-    return <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">{text}</p>;
-  }
+  const isTruncated = !expanded && text.length > limit;
+  const displayText = isTruncated ? text.slice(0, limit).trimEnd() : text;
   return (
     <div>
-      <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line">
-        {expanded ? text : <>{text.slice(0, limit).trimEnd()}<span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" /></>}
-      </p>
-      <button
-        type="button"
-        onClick={() => setExpanded(e => !e)}
-        className="mt-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
-      >
-        {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
-      </button>
+      {renderDescription(displayText, isTruncated)}
+      {text.length > limit && (
+        <button
+          type="button"
+          onClick={() => setExpanded(e => !e)}
+          className="mt-1 text-xs font-medium text-[#7A60F4] dark:text-[#9EA4FF] hover:underline"
+        >
+          {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
+        </button>
+      )}
     </div>
   );
 }

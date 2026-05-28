@@ -63,7 +63,7 @@ Adapt the candidate's resume below to make it maximally suitable for the job des
 
 Rules:
 1. Rewrite personal_info.summary to directly address the job's requirements and value proposition using concrete, specific language — no generic filler.
-2. Keep all experience entries but rewrite each description to emphasise aspects most relevant to the job. Use short bullet points starting with "• " (bullet space), one per line, each starting with a strong action verb. Separate each bullet with a newline character (\\n). Replace generic statements with concrete examples and measurable outcomes wherever possible. Do NOT invent new jobs, companies, or dates.
+2. Keep all experience entries but rewrite each description to emphasise aspects most relevant to the job. Use short bullet points starting with "• " (bullet + space), one per line, each starting with a strong action verb. Separate each bullet with a single newline character (\\n) — no blank lines between bullets, no double newlines anywhere. Replace generic statements with concrete examples and measurable outcomes wherever possible. Do NOT invent new jobs, companies, or dates.
 3. Reorder skills so the most job-relevant ones appear first; remove or deprioritise skills that have no bearing on this role.
 4. If certifications or education entries are relevant to the job, briefly mention them in the summary.
 5. Keep all factual data unchanged: company names, institution names, dates, URLs, email, phone.
@@ -85,10 +85,13 @@ def build_cv_parsing_prompt(cv_text: str) -> str:
 Extract all candidate information from the following CV text.
 If a specific piece of information is missing (like a date, city, or skill level), omit the field or use "UNKNOWN" according to the schema enums.
 
-CRITICAL RULES FOR EXPERIENCE DESCRIPTIONS:
+CRITICAL RULES FOR EXPERIENCE AND EDUCATION DESCRIPTIONS:
 - Copy the FULL description text from the CV exactly as written. Do NOT summarize, shorten, truncate, or paraphrase.
 - Include every bullet point, responsibility, achievement, and sentence exactly as it appears.
-- Preserve the original wording, line breaks (use \\n), and detail level.
+- Preserve the original wording and detail level.
+- FORMAT bullet points consistently: convert any bullet character (-, *, ·, ▪, ▸, ►, etc.) to "• " (bullet + space). Each bullet point goes on its own line separated by a single \\n. Do NOT add blank lines between bullets.
+- If the text has no bullet points, keep it as plain prose with no extra blank lines. Use a single \\n for paragraph breaks only where they genuinely exist in the source.
+- NEVER add extra blank lines, double newlines (\\n\\n), or leading/trailing whitespace. Text must be compact with no empty gaps.
 
 CV TEXT:
 {cv_text}

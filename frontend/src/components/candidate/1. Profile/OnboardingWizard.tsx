@@ -132,7 +132,7 @@ export function OnboardingWizard({ userId, onComplete }: Props) {
 
             <button
               onClick={() => setStep(2)}
-              className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-2xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all active:scale-[0.98]"
+              className="w-full py-3 bg-[#7A60F4] text-white text-sm font-semibold rounded-2xl hover:bg-[#6B52E8] transition-all active:scale-[0.98]"
             >
               {w.getStarted ?? 'Get Started →'}
             </button>
