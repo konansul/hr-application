@@ -84,6 +84,68 @@ function CertIcon({ className }: { className?: string }) {
   );
 }
 
+/* ─── formatted text ─────────────────────────────────────────────────────── */
+function FormattedText({ text, multiLineAsBullets = false }: { text: string; multiLineAsBullets?: boolean }) {
+  if (!text) return null;
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const bulletRe = /^[-•*·▪▸►→]\s*/;
+  const numberedRe = /^\d+[.)]\s*/;
+  const isBullet = (l: string) => bulletRe.test(l) || numberedRe.test(l);
+  const bulletCount = lines.filter(isBullet).length;
+
+  if (bulletCount >= 2 || (multiLineAsBullets && lines.length >= 3)) {
+    return (
+      <ul className="space-y-1.5 list-none">
+        {lines.map((line, i) => (
+          <li key={i} className="flex gap-2.5 items-start">
+            <span className="shrink-0 w-1.5 h-1.5 rounded-full mt-[6px]" style={{ background: '#7A60F4' }} />
+            <span className="flex-1 leading-relaxed">{line.replace(bulletRe, '').replace(numberedRe, '')}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  const paras = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+  if (paras.length > 1) {
+    return (
+      <div className="space-y-2.5">
+        {paras.map((p, i) => <p key={i} className="leading-relaxed">{p}</p>)}
+      </div>
+    );
+  }
+
+  return <p className="leading-relaxed">{text}</p>;
+}
+
+function ExpandableText({ text, limit = 380, multiLineAsBullets = false }: { text: string; limit?: number; multiLineAsBullets?: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > limit;
+
+  if (!isLong || expanded) {
+    return (
+      <div>
+        <FormattedText text={text} multiLineAsBullets={multiLineAsBullets} />
+        {isLong && (
+          <button onClick={() => setExpanded(false)} className="mt-2.5 text-[12px] font-semibold block" style={{ color: '#7A60F4' }}>
+            Show less ↑
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const truncated = text.slice(0, limit).replace(/\s+\S*$/, '');
+  return (
+    <div>
+      <p className="leading-relaxed">{truncated}…</p>
+      <button onClick={() => setExpanded(true)} className="mt-2.5 text-[12px] font-semibold block" style={{ color: '#7A60F4' }}>
+        Read more ↓
+      </button>
+    </div>
+  );
+}
+
 /* ─── card heading ────────────────────────────────────────────────────────── */
 function CardHead({ label, pill, pillBg, pillFg, pillBorder }: {
   label: string; pill?: string;
@@ -191,12 +253,11 @@ export function PublicCvView({ token }: { token: string }) {
   return (
     <div
       className="min-h-screen relative overflow-x-hidden print:bg-white"
-      style={{ fontFamily: '"Overused Grotesk", "Inter", system-ui, sans-serif', background: '#fafcff', color: '#2F2F2F' }}
+      style={{ fontFamily: '"Plus Jakarta Sans", "Inter", system-ui, sans-serif', background: '#fafcff', color: '#2F2F2F' }}
     >
       {/* font imports */}
       <style>{`
-        @import url('https://api.fontshare.com/v2/css?f[]=overused-grotesk@400,500,600,700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
       `}</style>
 
       {/* aurora blobs — brand palette */}
@@ -331,7 +392,9 @@ export function PublicCvView({ token }: { token: string }) {
             {info.summary && (
               <article id="about" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
                 <CardHead label="About" />
-                <p className="px-4 py-4 text-[14.5px] leading-relaxed text-[#4B5563]">{info.summary}</p>
+                <div className="px-4 py-4 text-[15px] text-[#2F2F2F]">
+                  <ExpandableText text={info.summary} limit={420} multiLineAsBullets />
+                </div>
               </article>
             )}
 
@@ -367,7 +430,11 @@ export function PublicCvView({ token }: { token: string }) {
                             </span>
                           )}
                         </div>
-                        {exp.description && <p className="text-[12.5px] leading-relaxed text-[#4B5563] mt-1.5">{exp.description}</p>}
+                        {exp.description && (
+                          <div className="text-[13px] text-[#2F2F2F] mt-1.5">
+                            <ExpandableText text={exp.description} limit={260} multiLineAsBullets />
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

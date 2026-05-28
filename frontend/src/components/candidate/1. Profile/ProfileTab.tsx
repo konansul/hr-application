@@ -395,21 +395,47 @@ export function ProfileTab() {
     </div>
   );
 
+  const renderDescription = (text: string, truncated = false) => {
+    const lines = text.split('\n').filter(l => l.trim() !== '');
+    const hasBullets = lines.some(l => l.trimStart().startsWith('• '));
+    if (hasBullets) {
+      return (
+        <ul className="space-y-1">
+          {lines.map((line, idx) => {
+            const clean = line.trimStart().startsWith('• ') ? line.trimStart().slice(2) : line.trim();
+            return (
+              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-neutral-300 leading-relaxed">
+                <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-[#7A60F4]/50 dark:bg-[#9EA4FF]/50 shrink-0" />
+                <span>{clean}{truncated && idx === lines.length - 1 && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}</span>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    }
+    return (
+      <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
+        {text}{truncated && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}
+      </p>
+    );
+  };
+
   const ExpandableText = ({ text, limit = 280 }: { text: string; limit?: number }) => {
     const [expanded, setExpanded] = useState(false);
     if (!text) return null;
-    if (text.length <= limit) return <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{text}</p>;
+    const isTruncated = !expanded && text.length > limit;
+    const displayText = isTruncated ? text.slice(0, limit).trimEnd() : text;
     return (
       <div className="mt-3">
-        <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
-          {expanded ? text : <>{text.slice(0, limit).trimEnd()}<span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" /></>}
-        </p>
-        <button
-          onClick={() => setExpanded(v => !v)}
-          className="mt-1.5 text-xs font-semibold text-[#7A60F4] dark:text-[#9EA4FF] hover:underline focus:outline-none"
-        >
-          {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
-        </button>
+        {renderDescription(displayText, isTruncated)}
+        {text.length > limit && (
+          <button
+            onClick={() => setExpanded(v => !v)}
+            className="mt-1.5 text-xs font-semibold text-[#7A60F4] dark:text-[#9EA4FF] hover:underline focus:outline-none"
+          >
+            {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
+          </button>
+        )}
       </div>
     );
   };
@@ -672,27 +698,36 @@ export function ProfileTab() {
               ) : (
                 <div className="space-y-4">
                   {profileData.experience.map((exp: any, i: number) => (
-                    <div key={i} className="p-5 border border-gray-200 dark:border-neutral-800 rounded-xl relative space-y-4 bg-gray-50/30 dark:bg-neutral-800/30">
-                      <button onClick={() => removeArrayItem('experience', i)} className="absolute top-4 right-4 text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
+                    <div key={i} className="p-7 border border-gray-200 dark:border-neutral-800 rounded-2xl relative space-y-5 bg-gray-50/40 dark:bg-neutral-800/30">
+                      <button onClick={() => removeArrayItem('experience', i)} className="absolute top-5 right-5 text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
-                        <input type="text" placeholder={t.experience.jobTitle} value={exp.title || ''} onChange={(e) => handleArrayChange('experience', i, 'title', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
-                        <input type="text" placeholder={t.experience.company} value={exp.company || ''} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
-
-                        <div className="relative">
-                          <input type="date" placeholder={t.experience.startDate} value={exp.start_date || ''} onChange={(e) => handleArrayChange('experience', i, 'start_date', e.target.value)} className="relative w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pr-10">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.experience.jobTitle}</label>
+                          <input type="text" placeholder={t.experience.jobTitle} value={exp.title || ''} onChange={(e) => handleArrayChange('experience', i, 'title', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
                         </div>
-
-                        <div className="relative">
-                          <input type="date" placeholder={t.experience.endDate} value={exp.end_date || ''} onChange={(e) => handleArrayChange('experience', i, 'end_date', e.target.value)} disabled={exp.is_current} className="relative w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none disabled:bg-gray-100 dark:disabled:bg-neutral-900 disabled:text-gray-400 dark:disabled:text-neutral-600 cursor-pointer disabled:cursor-not-allowed dark:text-white dark:[color-scheme:dark]" />
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.experience.company}</label>
+                          <input type="text" placeholder={t.experience.company} value={exp.company || ''} onChange={(e) => handleArrayChange('experience', i, 'company', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.experience.startDate}</label>
+                          <input type="date" value={exp.start_date || ''} onChange={(e) => handleArrayChange('experience', i, 'start_date', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.experience.endDate}</label>
+                          <input type="date" value={exp.end_date || ''} onChange={(e) => handleArrayChange('experience', i, 'end_date', e.target.value)} disabled={exp.is_current} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none disabled:bg-gray-100 dark:disabled:bg-neutral-900 disabled:text-gray-400 dark:disabled:text-neutral-600 cursor-pointer disabled:cursor-not-allowed dark:text-white dark:[color-scheme:dark]" />
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <input type="checkbox" checked={exp.is_current || false} onChange={(e) => handleArrayChange('experience', i, 'is_current', e.target.checked)} className="w-4 h-4 text-gray-900 dark:text-white rounded border-gray-300 dark:border-neutral-600 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 bg-white dark:bg-neutral-800" />
                         <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">{t.experience.current}</span>
                       </div>
-                      <textarea placeholder={t.experience.desc} value={exp.description || ''} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} rows={3} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-none dark:text-white" />
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.experience.desc}</label>
+                        <textarea placeholder={t.experience.desc} value={exp.description || ''} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} rows={5} className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-y dark:text-white" />
+                      </div>
                     </div>
                   ))}
                   <button onClick={() => addArrayItem('experience', { title: '', company: '', start_date: '', end_date: '', is_current: false, description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -736,7 +771,7 @@ export function ProfileTab() {
                           </div>
                           <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 whitespace-nowrap shrink-0">{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}</p>
                         </div>
-                        {edu.description && <div className="mt-2 w-full"><p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{edu.description}</p></div>}
+                        {edu.description && <div className="mt-2 w-full">{renderDescription(edu.description)}</div>}
                       </div>
                     ))}
                   </div>
@@ -746,20 +781,36 @@ export function ProfileTab() {
               ) : (
                 <div className="space-y-4">
                   {profileData.education.map((edu: any, i: number) => (
-                    <div key={i} className="p-5 border border-gray-200 dark:border-neutral-800 rounded-xl relative space-y-4 bg-gray-50/30 dark:bg-neutral-800/30">
-                      <button onClick={() => removeArrayItem('education', i)} className="absolute top-4 right-4 text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
+                    <div key={i} className="p-7 border border-gray-200 dark:border-neutral-800 rounded-2xl relative space-y-5 bg-gray-50/40 dark:bg-neutral-800/30">
+                      <button onClick={() => removeArrayItem('education', i)} className="absolute top-5 right-5 text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
-                        <input type="text" placeholder={t.education.institution} value={edu.institution || ''} onChange={(e) => handleArrayChange('education', i, 'institution', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
-                        <input type="text" placeholder={t.education.degree} value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
-                        <input type="text" placeholder={t.education.field} value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
-                        <div className="flex gap-2">
-                          <input type="date" placeholder={t.education.start} value={edu.start_date ? (edu.start_date.length === 7 ? edu.start_date + '-01' : edu.start_date) : ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
-                          <input type="date" placeholder={t.education.end} value={edu.end_date ? (edu.end_date.length === 7 ? edu.end_date + '-01' : edu.end_date) : ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pr-10">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.education.institution}</label>
+                          <input type="text" placeholder={t.education.institution} value={edu.institution || ''} onChange={(e) => handleArrayChange('education', i, 'institution', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.education.degree}</label>
+                          <input type="text" placeholder={t.education.degree} value={edu.degree || ''} onChange={(e) => handleArrayChange('education', i, 'degree', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        </div>
+                        <div className="flex flex-col gap-1.5 md:col-span-2">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.education.field}</label>
+                          <input type="text" placeholder={t.education.field} value={edu.field_of_study || ''} onChange={(e) => handleArrayChange('education', i, 'field_of_study', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none dark:text-white" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.education.start}</label>
+                          <input type="date" value={edu.start_date ? (edu.start_date.length === 7 ? edu.start_date + '-01' : edu.start_date) : ''} onChange={(e) => handleArrayChange('education', i, 'start_date', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.education.end}</label>
+                          <input type="date" value={edu.end_date ? (edu.end_date.length === 7 ? edu.end_date + '-01' : edu.end_date) : ''} onChange={(e) => handleArrayChange('education', i, 'end_date', e.target.value)} className="w-full px-4 py-2.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none cursor-pointer dark:text-white dark:[color-scheme:dark]" />
                         </div>
                       </div>
-                      <textarea placeholder={t.education.desc} value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={2} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-none dark:text-white" />
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.education.desc}</label>
+                        <textarea placeholder={t.education.desc} value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={4} className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-y dark:text-white" />
+                      </div>
                     </div>
                   ))}
                   <button onClick={() => addArrayItem('education', { institution: '', degree: '', field_of_study: '', start_date: '', end_date: '', description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
