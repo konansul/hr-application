@@ -1140,7 +1140,7 @@ export function ResumeUploadTab() {
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 w-full">
+        <div className="flex items-center gap-1.5 w-full justify-end">
           <button
             onClick={() => setShowBestPractices(true)}
             className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#6B52E8] transition-colors whitespace-nowrap bg-[#7A60F4] hover:bg-[#6B52E8] text-white"
@@ -1301,7 +1301,7 @@ export function ResumeUploadTab() {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           {message && (
             <div className={`p-4 text-sm rounded-xl border flex items-center gap-2 ${message.type === 'success' ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-100 dark:border-violet-800/50' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800/50'}`}>
               <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1313,91 +1313,117 @@ export function ResumeUploadTab() {
             </div>
           )}
 
-          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></div>
-                {isEditingContent ? (
-                  <input
-                    ref={titleInputRef}
-                    value={titleDraft}
-                    onChange={(e) => setTitleDraft(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Escape') cancelEditingTitle(); }}
-                    disabled={isSavingTitle}
-                    className="flex-1 min-w-0 text-lg font-extrabold text-gray-900 dark:text-white bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
-                    autoFocus
-                  />
-                ) : (
-                  <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate min-w-0 flex-1">{selectedResume?.title || t.untitled}</h3>
-                )}
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto py-1 -my-1">
-                <span className="text-xs font-medium text-gray-400 dark:text-neutral-500 whitespace-nowrap pointer-events-none select-none">
-                  {selectedResume ? sourceTypeLabel(selectedResume.source_type, t) : '—'}
-                </span>
-                {selectedResume && (
-                  isEditingContent ? (
-                    <>
-                      <button
-                        onClick={cancelEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors whitespace-nowrap"
-                      >
-                        {t.actions.cancel}
-                      </button>
-                      <button
-                        onClick={handleSaveContent}
-                        disabled={isSavingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] rounded-lg hover:bg-[#6B52E8] transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                        {isSavingContent ? t.actions.saving : t.actions.save}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      {selectedResume.generated_document_id && (
-                        <button
-                          onClick={() => openOriginalPdf(selectedResume.generated_document_id!)}
-                          className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] border border-[#6B52E8] rounded-lg hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          {(t as any).viewOriginalPdf ?? 'View Original PDF'}
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setShowPdfModal(true)}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] border border-[#6B52E8] rounded-lg hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        {t.actions.exportPdf}
-                      </button>
-                      <button
-                        onClick={openShareModal}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] border border-[#6B52E8] rounded-lg hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        {t.actions.sendByEmail}
-                      </button>
-                      <button
-                        onClick={startEditingContent}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7A60F4] border border-[#6B52E8] rounded-lg hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
-                        </svg>
-                        {t.actions.edit}
-                      </button>
-                    </>
-                  )
-                )}
-              </div>
+          {/* Title Strip */}
+          {selectedResume && (
+            <div className="flex items-center gap-2.5 px-1 min-w-0">
+              <div className="w-2 h-2 rounded-full bg-[#7A60F4] shrink-0" />
+              {editingTitle || isEditingContent ? (
+                <input
+                  ref={titleInputRef}
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (isEditingContent) {
+                      if (e.key === 'Escape') cancelEditingContent();
+                    } else {
+                      if (e.key === 'Enter') handleSaveTitle();
+                      if (e.key === 'Escape') cancelEditingTitle();
+                    }
+                  }}
+                  onBlur={editingTitle && !isEditingContent ? handleSaveTitle : undefined}
+                  disabled={isEditingContent ? isSavingContent : isSavingTitle}
+                  className="flex-1 min-w-0 text-xl font-extrabold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#7A60F4] focus:outline-none"
+                  autoFocus
+                />
+              ) : (
+                <>
+                  <h2 className="text-xl font-extrabold text-gray-900 dark:text-white truncate min-w-0 flex-1">{selectedResume.title || t.untitled}</h2>
+                  <span className="px-2 py-0.5 bg-[#E3F1F6] border border-[#92D8F2]/40 text-slate-600 dark:text-slate-300 dark:bg-slate-700/40 text-[10px] font-bold uppercase tracking-widest rounded-full whitespace-nowrap shrink-0">
+                    {sourceTypeLabel(selectedResume.source_type, t)}
+                  </span>
+                  <span className="px-2 py-0.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 text-[10px] font-bold uppercase rounded-full whitespace-nowrap shrink-0">
+                    {langLabel(selectedResume.language)}
+                  </span>
+                  <span className="text-[11px] text-gray-400 dark:text-neutral-500 whitespace-nowrap shrink-0 hidden sm:inline">
+                    {formatDate(selectedResume.created_at, language)}
+                  </span>
+                </>
+              )}
             </div>
+          )}
+
+          {/* Toolbar — swaps between normal and editing states */}
+          {selectedResume && (
+            isEditingContent ? (
+              <div className="flex items-center gap-2 p-1.5 bg-white dark:bg-neutral-900 border border-[#7A60F4]/40 rounded-2xl shadow-sm ring-2 ring-[#7A60F4]/10">
+                <div className="flex items-center gap-2 pl-2">
+                  <span className="w-2 h-2 rounded-full bg-[#7A60F4] animate-pulse shrink-0" />
+                  <span className="text-xs font-semibold text-gray-900 dark:text-white">Editing</span>
+                  <span className="text-[11px] text-gray-400 dark:text-neutral-500 hidden sm:inline">— unsaved changes</span>
+                </div>
+                <div className="flex-1" />
+                <button
+                  onClick={cancelEditingContent}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap"
+                >
+                  {t.actions.cancel}
+                </button>
+                <button
+                  onClick={handleSaveContent}
+                  disabled={isSavingContent}
+                  className="px-4 py-2 rounded-xl bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  {isSavingContent && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isSavingContent ? t.actions.saving : t.actions.save}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm">
+                {selectedResume.generated_document_id && (
+                  <button
+                    onClick={() => openOriginalPdf(selectedResume.generated_document_id!)}
+                    className="px-3 py-2 text-xs font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {(t as any).viewOriginalPdf ?? 'View Original PDF'}
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowPdfModal(true)}
+                  className="px-3 py-2 text-xs font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {t.actions.exportPdf}
+                </button>
+                <button
+                  onClick={openShareModal}
+                  className="px-3 py-2 text-xs font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  {t.actions.sendByEmail}
+                </button>
+                <div className="w-px h-6 bg-gray-200 dark:bg-neutral-700 self-center mx-1 shrink-0" />
+                <div className="flex-1" />
+                <button
+                  onClick={startEditingContent}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-[#7A60F4]/30"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
+                  </svg>
+                  Edit Resume
+                </button>
+              </div>
+            )
+          )}
+
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
 
             <div className="p-6">
               {!selectedResume ? (
@@ -1471,63 +1497,6 @@ export function ResumeUploadTab() {
                       </div>
                     );
                   })()}
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.metadata.titleLabel}</span>
-                      {editingTitle ? (
-                        <div className="flex items-center gap-1.5 -mx-0.5">
-                          <input
-                            ref={titleInputRef}
-                            value={titleDraft}
-                            onChange={(e) => setTitleDraft(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') cancelEditingTitle(); }}
-                            onBlur={handleSaveTitle}
-                            disabled={isSavingTitle}
-                            className="flex-1 min-w-0 text-sm font-semibold text-gray-900 dark:text-white bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
-                            autoFocus
-                          />
-                          {isSavingTitle && <div className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-600 dark:border-t-neutral-300 rounded-full animate-spin shrink-0" />}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={startEditingTitle}
-                          className="group flex items-center gap-1.5 text-left"
-                          title="Click to rename"
-                        >
-                          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {selectedResume.title || <span className="text-gray-400 italic">{t.untitled}</span>}
-                          </span>
-                          <svg className="w-3 h-3 text-gray-300 group-hover:text-gray-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-
-                    <InfoTag label={t.metadata.created} value={formatDate(selectedResume.created_at, language)} />
-
-                    {(() => {
-                      const src = selectedResume.source_resume_id
-                        ? resumeVersions.find((r) => r.resume_id === selectedResume.source_resume_id)
-                        : null;
-                      return (
-                        <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
-                          <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t.metadata.source}</span>
-                          {src ? (
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{src.title || t.untitled}</p>
-                              <p className="text-[11px] text-gray-400 dark:text-neutral-500 dark:text-neutral-500 mt-0.5">{langLabel(src.language)} · {sourceTypeLabel(src.source_type, t)}</p>
-                            </div>
-                          ) : (
-                            <span className="text-sm font-semibold text-gray-400 italic">
-                              {selectedResume.source_resume_id ? t.metadata.deleted : t.metadata.original}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
 
                   <div className="flex items-center gap-5 py-1">
                     {(isEditingContent ? editDraft?.personal_info?.photo : selectedResume.personal_info?.photo) ? (
