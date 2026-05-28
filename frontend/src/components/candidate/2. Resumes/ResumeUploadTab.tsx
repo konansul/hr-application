@@ -863,12 +863,12 @@ export function ResumeUploadTab() {
     finally { setIsWorking(false); }
   };
 
-  const startEditingTitle = () => {
-    if (!selectedResume) return;
-    setTitleDraft(selectedResume.title || '');
-    setEditingTitle(true);
-    setTimeout(() => titleInputRef.current?.select(), 0);
-  };
+  // const startEditingTitle = () => {
+  //   if (!selectedResume) return;
+  //   setTitleDraft(selectedResume.title || '');
+  //   setEditingTitle(true);
+  //   setTimeout(() => titleInputRef.current?.select(), 0);
+  // };
 
   const cancelEditingTitle = () => {
     setEditingTitle(false);
@@ -1110,16 +1110,16 @@ export function ResumeUploadTab() {
   const removeCertEntry = (i: number) => setEditDraft(d => d ? { ...d, certifications: (d.certifications ?? []).filter((_: any, j: number) => j !== i) } : d);
   const updateCertEntry = (i: number, value: string) => setEditDraft(d => { if (!d) return d; const a = [...(d.certifications ?? [])]; a[i] = value; return { ...d, certifications: a }; });
 
-  const InfoTag = ({ label, value }: { label: string; value: any }) => (
-    <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
-      <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{label}</span>
-      <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-        {value === 'UNKNOWN' || value === '' || value === null || value === undefined
-          ? <span className="text-gray-400 italic">{t.metadata.notSpecified}</span>
-          : String(value)}
-      </span>
-    </div>
-  );
+  // const InfoTag = ({ label, value }: { label: string; value: any }) => (
+  //   <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
+  //     <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{label}</span>
+  //     <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+  //       {value === 'UNKNOWN' || value === '' || value === null || value === undefined
+  //         ? <span className="text-gray-400 italic">{t.metadata.notSpecified}</span>
+  //         : String(value)}
+  //     </span>
+  //   </div>
+  // );
 
   const langLabel = (code?: string) => {
     if (!code) return '';
