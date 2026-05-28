@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi, resumesApi } from '../../../api';
 import { HtmlContent } from '../../shared/HtmlContent';
 import { stripHtml } from '../../../utils/html';
@@ -43,7 +43,7 @@ const LOCATION_OPTIONS: LocationOption[] = [
   { value: 'uk',      label: 'United Kingdom',          keywords: ['uk', 'united kingdom', 'britain', 'london', 'england', 'scotland', 'wales', 'northern ireland', 'manchester', 'birmingham', 'edinburgh', 'leeds', 'bristol'], group: 'Quick Picks', regionCode: 'GB' },
   { value: 'canada',  label: 'Canada',                  keywords: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'edmonton'], group: 'Quick Picks', regionCode: 'CA' },
   // Europe
-  { value: 'germany',     label: 'Germany',        keywords: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt', 'cologne', 'stuttgart', 'düsseldorf'], group: 'Europe', regionCode: 'DE' },
+  { value: 'germany',     label: 'Germany',        keywords: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt', 'cologne', 'stuttgart', 'd�sseldorf'], group: 'Europe', regionCode: 'DE' },
   { value: 'france',      label: 'France',         keywords: ['france', 'paris', 'lyon', 'marseille', 'toulouse', 'nice', 'bordeaux'], group: 'Europe', regionCode: 'FR' },
   { value: 'netherlands', label: 'Netherlands',    keywords: ['netherlands', 'holland', 'amsterdam', 'rotterdam', 'eindhoven', 'utrecht'], group: 'Europe', regionCode: 'NL' },
   { value: 'poland',      label: 'Poland',         keywords: ['poland', 'warsaw', 'krakow', 'wroclaw', 'gdansk', 'poznan'], group: 'Europe', regionCode: 'PL' },
@@ -72,7 +72,7 @@ const LOCATION_OPTIONS: LocationOption[] = [
   { value: 'birmingham',  label: 'Birmingham',     keywords: ['birmingham'], group: 'United Kingdom' },
   { value: 'edinburgh',   label: 'Edinburgh / Scotland', keywords: ['edinburgh', 'scotland', 'glasgow'], group: 'United Kingdom' },
   { value: 'bristol',     label: 'Bristol',        keywords: ['bristol'], group: 'United Kingdom' },
-  // United States — cities / states
+  // United States � cities / states
   { value: 'new-york',    label: 'New York, NY',              keywords: ['new york', 'nyc', 'brooklyn', 'manhattan', 'queens'], group: 'United States' },
   { value: 'sf-bay',      label: 'San Francisco / Bay Area',  keywords: ['san francisco', 'sf', 'silicon valley', 'palo alto', 'san jose', 'oakland', 'bay area'], group: 'United States' },
   { value: 'los-angeles', label: 'Los Angeles, CA',           keywords: ['los angeles', 'la', 'santa monica', 'culver city'], group: 'United States' },
@@ -86,8 +86,8 @@ const LOCATION_OPTIONS: LocationOption[] = [
   // Americas
   { value: 'toronto',   label: 'Toronto, Canada',   keywords: ['toronto', 'ontario'], group: 'Americas' },
   { value: 'vancouver', label: 'Vancouver, Canada', keywords: ['vancouver', 'british columbia'], group: 'Americas' },
-  { value: 'montreal',  label: 'Montréal, Canada',  keywords: ['montreal', 'québec'], group: 'Americas' },
-  { value: 'brazil',    label: 'Brazil',            keywords: ['brazil', 'são paulo', 'sao paulo', 'rio de janeiro', 'brasilia'], group: 'Americas', regionCode: 'BR' },
+  { value: 'montreal',  label: 'Montr�al, Canada',  keywords: ['montreal', 'qu�bec'], group: 'Americas' },
+  { value: 'brazil',    label: 'Brazil',            keywords: ['brazil', 's�o paulo', 'sao paulo', 'rio de janeiro', 'brasilia'], group: 'Americas', regionCode: 'BR' },
   { value: 'mexico',    label: 'Mexico',            keywords: ['mexico', 'mexico city', 'guadalajara', 'monterrey'], group: 'Americas', regionCode: 'MX' },
   // Asia-Pacific
   { value: 'australia',  label: 'Australia',  keywords: ['australia', 'sydney', 'melbourne', 'brisbane', 'perth'], group: 'Asia-Pacific', regionCode: 'AU' },
@@ -193,7 +193,7 @@ function LocationCombobox({
         className={`flex items-center gap-1.5 pl-3 pr-2.5 py-2 text-sm font-medium rounded-xl border transition-all ${
           isActive
             ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60'
-            : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
+            : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
         }`}
       >
         <svg className="w-3.5 h-3.5 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -361,7 +361,7 @@ export function JobsTab() {
     const [externalDetailJob, setExternalDetailJob] = useState<any | null>(null);
     const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
 
-    // Saved jobs tracker — user-specific key matches JobApplicationTab
+    // Saved jobs tracker � user-specific key matches JobApplicationTab
     const lsKey = userId ? `candidate_tracked_jobs_${userId}` : null;
     const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
     const wizardSeenKey = userId ? `hrai_save_job_wizard_seen_${userId}` : null;
@@ -539,7 +539,7 @@ export function JobsTab() {
         }
     }, [smartPrompt, searchQuery, selectedLocation, selectedType, selectedLevelKey]);
 
-    // Auto-search with debounce when in external mode — only when the user has
+    // Auto-search with debounce when in external mode � only when the user has
     // set at least one filter, so opening the tab doesn't auto-load random jobs.
     useEffect(() => {
         if (searchMode !== 'external') return;
@@ -677,7 +677,7 @@ export function JobsTab() {
 
         try {
             const uploadRes = await documentsApi.upload(file);
-            // Если загрузили новое, сразу откликаемся им
+            // ???? ????????? ?????, ????? ??????????? ??
             await screeningApi.applyToJob(pendingApp.jobId, pendingApp.answers, uploadRes.resume_id);
             setShowResumeSelector(false);
             completeApplication();
@@ -783,14 +783,14 @@ export function JobsTab() {
                     <div className="relative group">
                         <button
                             onClick={() => setSearchMode('internal')}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'internal' ? 'border-[#7A60F4] bg-violet-50 dark:bg-violet-950/20' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'internal' ? 'border-[#7A60F4] bg-[#7A60F4] hover:bg-[#6B52E8] hover:border-[#6B52E8]' : 'border-gray-100 dark:border-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}
                         >
-                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'internal' ? 'bg-[#7A60F4] text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'internal' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
                                 </svg>
                             </div>
-                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.platformJobs ?? 'Platform Jobs'}</span>
+                            <span className={`text-xs font-bold ${searchMode === 'internal' ? 'text-white' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.platformJobs ?? 'Platform Jobs'}</span>
                         </button>
                         <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
@@ -801,14 +801,14 @@ export function JobsTab() {
                     <div className="relative group">
                         <button
                             onClick={() => setSearchMode('external')}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'external' ? 'border-[#7A60F4] bg-violet-50 dark:bg-violet-950/20' : 'border-gray-100 dark:border-neutral-800 hover:border-gray-200 dark:hover:border-neutral-700'}`}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border-2 transition-all ${searchMode === 'external' ? 'border-[#7A60F4] bg-[#7A60F4] hover:bg-[#6B52E8] hover:border-[#6B52E8]' : 'border-gray-100 dark:border-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}
                         >
-                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'external' ? 'bg-[#7A60F4] text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${searchMode === 'external' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'}`}>
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.jobMarket ?? 'Job Market'}</span>
+                            <span className={`text-xs font-bold ${searchMode === 'external' ? 'text-white' : 'text-gray-600 dark:text-neutral-300'}`}>{tl.jobMarket ?? 'Job Market'}</span>
                         </button>
                         <div className="pointer-events-none absolute top-full left-0 mt-2 z-50 w-52 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                             <div className="bg-gray-900 dark:bg-neutral-700 text-white text-xs font-medium px-3 py-2 rounded-xl shadow-lg leading-relaxed">
@@ -831,7 +831,7 @@ export function JobsTab() {
                     <div className="absolute top-full left-6 border-4 border-transparent border-t-[#9EA4FF] dark:border-t-[#9EA4FF]/90" />
                 </div>
                 <div
-                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 transition-all">
+                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 transition-all hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50">
                     <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -886,7 +886,7 @@ export function JobsTab() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter' && searchMode === 'external') fetchExternalJobs(1); }}
-                            className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 w-52"
+                            className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 w-52 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50"
                         />
                     </div>
 
@@ -895,7 +895,7 @@ export function JobsTab() {
                         <select
                             value={selectedLevelKey}
                             onChange={(e) => setSelectedLevelKey(e.target.value)}
-                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors"
+                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50"
                         >
                             <option value="all">{tl.allLevels || 'All Levels'}</option>
                             <option value="junior">{t.levels.junior}</option>
@@ -916,7 +916,7 @@ export function JobsTab() {
                         <select
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value)}
-                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors"
+                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50"
                         >
                             <option value="all">{tl.allTypes || 'All Types'}</option>
                             <option value="full-time">{tl.types?.fullTime || 'Full-time'}</option>
@@ -940,7 +940,7 @@ export function JobsTab() {
                         allLabel={tl.allLocations || 'All Locations'}
                     />
 
-                    {/* Smart filter — always visible as a permanent filter tab */}
+                    {/* Smart filter � always visible as a permanent filter tab */}
                     <div
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${
                             smartTags.length > 0
@@ -985,7 +985,7 @@ export function JobsTab() {
                         {tl.smartApply ?? 'Apply'}
                     </button>
 
-                    {/* Clear All button — only shown when filters are active */}
+                    {/* Clear All button � only shown when filters are active */}
                     {(smartPrompt !== '' || searchQuery !== '' || selectedLevelKey !== 'all' || selectedType !== 'all' || selectedLocation !== 'all' || smartTags.length > 0) && (
                         <button
                             onClick={clearSmartFilters}
@@ -1000,7 +1000,7 @@ export function JobsTab() {
                 </div>
             </div>
 
-            {/* ── External Job Market ── */}
+            {/* -- External Job Market -- */}
             {searchMode === 'external' && (
                 <div className="space-y-4">
                     {/* Header row */}
@@ -1021,7 +1021,7 @@ export function JobsTab() {
                             <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500">
                                 <div
                                     className="w-3.5 h-3.5 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-600 dark:border-t-neutral-300 rounded-full animate-spin"/>
-                                {tl.searching ?? 'Searching…'}
+                                {tl.searching ?? 'Searching�'}
                             </div>
                         )}
                     </div>
@@ -1045,7 +1045,7 @@ export function JobsTab() {
                                         <p className="text-sm text-gray-400 dark:text-neutral-500">{tl.searchJobMarketDesc ?? 'Use the prompt above or set a filter to find jobs worldwide.'}</p>
                                     </>
                                 );
-                                if (hasText && !hasFiltersOnly) return <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results — e.g. "Backend developer in Berlin".'}</p>;
+                                if (hasText && !hasFiltersOnly) return <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsNeedLocation ?? 'Add a location to see job results � e.g. "Backend developer in Berlin".'}</p>;
                                 return <p className="text-gray-500 dark:text-neutral-400 font-medium">{tl.noResultsFiltered ?? 'No jobs found. Try adjusting your filters or search terms.'}</p>;
                             })()}
                         </div>
@@ -1056,13 +1056,13 @@ export function JobsTab() {
                             const srcId = String(job.job_id || job.id || '');
                             const isSaved = savedJobIds.has(srcId);
                             const salaryText = job.salary_min && job.salary_max
-                                ? `$${Math.round(job.salary_min / 1000)}k – $${Math.round(job.salary_max / 1000)}k`
+                                ? `$${Math.round(job.salary_min / 1000)}k � $${Math.round(job.salary_max / 1000)}k`
                                 : job.salary_min ? `from $${Math.round(job.salary_min / 1000)}k` : null;
                             return (
                                 <div
                                     key={job.job_id}
                                     onClick={() => setExternalDetailJob(job)}
-                                    className="group bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl flex flex-col hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 transition-all cursor-pointer"
+                                    className="group bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl flex flex-col hover:shadow-md hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 transition-all cursor-pointer"
                                 >
                                     <div className="px-4 py-3 flex-1 flex flex-col gap-2">
                                         {/* Title + save button */}
@@ -1108,25 +1108,25 @@ export function JobsTab() {
                             <button
                                 onClick={() => fetchExternalJobs(externalPage - 1)}
                                 disabled={externalPage <= 1 || externalLoading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
-                                {tl.prevPage ?? '← Previous'}
+                                {tl.prevPage ?? '? Previous'}
                             </button>
                             <span
                                 className="text-sm text-gray-500 dark:text-neutral-400 px-2">{tl.pageLabel ?? 'Page'} {externalPage}</span>
                             <button
                                 onClick={() => fetchExternalJobs(externalPage + 1)}
                                 disabled={externalPage * 20 >= externalTotal || externalLoading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
-                                {tl.nextPage ?? 'Next →'}
+                                {tl.nextPage ?? 'Next ?'}
                             </button>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* ── Platform Jobs ── */}
+            {/* -- Platform Jobs -- */}
             {searchMode === 'internal' && <div className="space-y-2">
                 {/* Result count */}
                 {displayedJobs.length > 0 && (
@@ -1135,7 +1135,7 @@ export function JobsTab() {
                           ? (tl.jobCountFoundSingular ?? '1 job found')
                           : (tl.jobCountFoundPlural ?? '{count} jobs found').replace('{count}', String(displayedJobs.length))
                         }
-                        {totalJobPages > 1 && <> · {(tl.pageOfTotal ?? 'page {page} of {total}').replace('{page}', String(jobsPage)).replace('{total}', String(totalJobPages))}</>}
+                        {totalJobPages > 1 && <> � {(tl.pageOfTotal ?? 'page {page} of {total}').replace('{page}', String(jobsPage)).replace('{total}', String(totalJobPages))}</>}
                     </p>
                 )}
 
@@ -1162,7 +1162,7 @@ export function JobsTab() {
                                     <div
                                         key={jid}
                                         onClick={() => setJobDetailModal(job)}
-                                        className="group bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl flex flex-col hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 transition-all cursor-pointer"
+                                        className="group bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl flex flex-col hover:shadow-md hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 transition-all cursor-pointer"
                                     >
                                         <div className="px-4 py-3 flex-1 flex flex-col gap-2">
                                             {/* Title + apply button */}
@@ -1229,7 +1229,7 @@ export function JobsTab() {
                                 <button
                                     onClick={() => setJobsPage(p => Math.max(1, p - 1))}
                                     disabled={jobsPage === 1}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
                                     Previous
@@ -1255,7 +1255,7 @@ export function JobsTab() {
                                         })[i - 1]) > 1;
                                         return (
                                             <span key={i} className="flex items-center">
-                                                {isEllipsis && <span className="px-1 text-xs text-gray-300 dark:text-neutral-600">…</span>}
+                                                {isEllipsis && <span className="px-1 text-xs text-gray-300 dark:text-neutral-600">�</span>}
                                                 <button
                                                     onClick={() => setJobsPage(page)}
                                                     className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors ${jobsPage === page ? 'bg-[#7A60F4] text-white' : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700'}`}
@@ -1269,7 +1269,7 @@ export function JobsTab() {
                                 <button
                                     onClick={() => setJobsPage(p => Math.min(totalJobPages, p + 1))}
                                     disabled={jobsPage === totalJobPages}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Next
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
@@ -1308,7 +1308,7 @@ export function JobsTab() {
                             className="p-6 overflow-y-auto max-h-[60vh] space-y-4 bg-white dark:bg-neutral-900 transition-colors">
                             {applyingJob.questions_to_render?.map((q: any, idx: number) => (
                                 <div key={q.id}
-                                     className="bg-gray-50 dark:bg-neutral-800/30 border border-gray-100 dark:border-neutral-800 rounded-2xl p-4 transition-colors hover:border-gray-200 dark:hover:border-neutral-700 focus-within:border-gray-300 dark:focus-within:border-neutral-600 focus-within:bg-white dark:focus-within:bg-neutral-800 focus-within:shadow-sm">
+                                     className="bg-gray-50 dark:bg-neutral-800/30 border border-gray-100 dark:border-neutral-800 rounded-2xl p-4 transition-colors hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 focus-within:border-[#7A60F4]/50 dark:focus-within:border-[#7A60F4]/50 focus-within:bg-white dark:focus-within:bg-neutral-800 focus-within:shadow-sm">
                                     <label className="flex items-center gap-2 mb-3">
                                         <span
                                             className="w-5 h-5 rounded-md bg-gray-200 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors">{idx + 1}</span>
@@ -1351,7 +1351,7 @@ export function JobsTab() {
                             <div>
                                 <h3 className="text-base font-bold text-gray-900 dark:text-white">{tl.applyWithResumeTitle ?? 'Apply with Resume'}</h3>
                                 <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
-                                    {applyingJob?.title && <span className="font-semibold text-gray-700 dark:text-neutral-300">{applyingJob.title} · </span>}
+                                    {applyingJob?.title && <span className="font-semibold text-gray-700 dark:text-neutral-300">{applyingJob.title} � </span>}
                                     {tl.selectCvReview ?? 'Select a CV and review the PDF before submitting'}
                                 </p>
                             </div>
@@ -1369,7 +1369,7 @@ export function JobsTab() {
                             {/* Left: resume list */}
                             <div className="w-72 shrink-0 border-r border-gray-100 dark:border-neutral-800 overflow-y-auto flex flex-col gap-1 p-3">
                                 <button onClick={() => { closeResumeSelector(); fileInputRef.current?.click(); }}
-                                        className="w-full mb-1 py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-2xl text-[10px] font-bold text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-white hover:border-gray-300 dark:hover:border-neutral-600 transition-all flex items-center justify-center gap-1.5">
+                                        className="w-full mb-1 py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-2xl text-[10px] font-bold text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-white hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 transition-all flex items-center justify-center gap-1.5">
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                     </svg>
@@ -1406,7 +1406,7 @@ export function JobsTab() {
                                                     {versionLabel}
                                                 </p>
                                                 <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate mt-0.5 capitalize">
-                                                    {sourceLabel}{resume.language ? ` · ${resume.language.toUpperCase()}` : ''}
+                                                    {sourceLabel}{resume.language ? ` � ${resume.language.toUpperCase()}` : ''}
                                                 </p>
                                             </div>
                                         </button>
@@ -1420,7 +1420,7 @@ export function JobsTab() {
                                 {previewLoading ? (
                                     <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-neutral-500">
                                         <div className="w-8 h-8 border-4 border-gray-200 dark:border-neutral-700 border-t-gray-900 dark:border-t-white rounded-full animate-spin"/>
-                                        <p className="text-sm font-medium">{tl.loadingPreview ?? 'Loading preview…'}</p>
+                                        <p className="text-sm font-medium">{tl.loadingPreview ?? 'Loading preview�'}</p>
                                     </div>
                                 ) : previewBlobUrl ? (
                                     <iframe src={previewBlobUrl} className="w-full h-full border-0" title="Resume Preview"/>
@@ -1490,7 +1490,7 @@ export function JobsTab() {
                 </div>
             )}
 
-            {/* Org popover — fixed so it's never clipped by card overflow */}
+            {/* Org popover � fixed so it's never clipped by card overflow */}
             {orgPopover && (
                 <div
                     className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl"
@@ -1568,7 +1568,7 @@ export function JobsTab() {
                 const srcId = String(job.job_id || job.id || '');
                 const isSaved = savedJobIds.has(srcId);
                 const salaryText = job.salary_min && job.salary_max
-                    ? `$${Math.round(job.salary_min / 1000)}k – $${Math.round(job.salary_max / 1000)}k`
+                    ? `$${Math.round(job.salary_min / 1000)}k � $${Math.round(job.salary_max / 1000)}k`
                     : job.salary_min ? `from $${Math.round(job.salary_min / 1000)}k` : null;
                 return (
                     <div
@@ -1615,23 +1615,23 @@ export function JobsTab() {
                                 </div>
                             </div>
 
-                            {/* Body — scrollable description */}
+                            {/* Body � scrollable description */}
                             <div className="flex-1 overflow-y-auto px-6 py-5">
                                 {job.description
                                     ? <HtmlContent html={job.description} className="text-gray-700 dark:text-neutral-300" />
                                     : <p className="text-sm text-gray-400 dark:text-neutral-500 italic">No description provided.</p>
                                 }
-                                {/* Truncation notice — Adzuna always returns a short snippet, never the full text */}
+                                {/* Truncation notice � Adzuna always returns a short snippet, never the full text */}
                                 {job.source === 'adzuna' && job.url && (
                                     <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800 flex items-start gap-2.5">
                                         <svg className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         <p className="text-xs text-gray-500 dark:text-neutral-400">
-                                            This is a preview — the job board only provides a short excerpt.{' '}
+                                            This is a preview � the job board only provides a short excerpt.{' '}
                                             <button
                                                 onClick={() => { setExternalDetailJob(null); setExternalModalUrl(job.url); }}
                                                 className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
                                             >
-                                                Read the full description →
+                                                Read the full description ?
                                             </button>
                                         </p>
                                     </div>
@@ -1658,7 +1658,7 @@ export function JobsTab() {
                                         onClick={() => { setExternalDetailJob(null); setExternalModalUrl(job.url); }}
                                         className="px-5 py-2 text-sm font-bold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl shadow-sm transition-all active:scale-[0.98]"
                                     >
-                                        {tl.applyExternal ?? 'Apply →'}
+                                        {tl.applyExternal ?? 'Apply ?'}
                                     </button>
                                 )}
                             </div>
@@ -1728,7 +1728,7 @@ export function JobsTab() {
                                 </button>
                             </div>
 
-                            {/* Body — scrollable description */}
+                            {/* Body � scrollable description */}
                             <div className="flex-1 overflow-y-auto px-6 py-5">
                                 {job.description
                                     ? <HtmlContent html={job.description} className="text-gray-700 dark:text-neutral-300" />
@@ -1736,7 +1736,7 @@ export function JobsTab() {
                                 }
                             </div>
 
-                            {/* Footer — action */}
+                            {/* Footer � action */}
                             <div className="px-6 py-4 border-t border-gray-100 dark:border-neutral-800 flex items-center justify-end gap-3">
                                 <button
                                     onClick={() => setJobDetailModal(null)}

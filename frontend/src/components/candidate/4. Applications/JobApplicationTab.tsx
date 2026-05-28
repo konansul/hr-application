@@ -522,7 +522,7 @@ export function JobApplicationTab() {
         </div>
       )}
 
-      <div className="flex gap-1 border-b border-gray-100 dark:border-neutral-800 transition-colors">
+      <div className="flex gap-2">
         {([
           { key: 'all',  label: t.filterAll,  count: totalCount },
           { key: 'hr',   label: t.filterHr,   count: hrCount },
@@ -531,14 +531,14 @@ export function JobApplicationTab() {
           <button
             key={f.key}
             onClick={() => setTypeFilter(f.key)}
-            className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors border-b-2 -mb-px flex items-center gap-2 ${
+            className={`px-4 py-2.5 text-xs font-bold rounded-2xl border-2 transition-all flex items-center gap-2 ${
               typeFilter === f.key
-                ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
-                : 'border-transparent text-gray-400 dark:text-neutral-500 hover:text-gray-600 dark:hover:text-neutral-300'
+                ? 'border-[#7A60F4] bg-[#7A60F4] hover:bg-[#6B52E8] hover:border-[#6B52E8] text-white'
+                : 'border-gray-100 dark:border-neutral-800 text-gray-600 dark:text-neutral-300 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
             }`}
           >
             {f.label}
-            <span className="text-[10px] font-bold bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 px-1.5 py-0.5 rounded-full transition-colors">
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full transition-colors ${typeFilter === f.key ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'}`}>
               {f.count}
             </span>
           </button>
@@ -556,7 +556,7 @@ export function JobApplicationTab() {
               placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 focus:ring-2 focus:ring-[#7A60F4]/40 focus:border-[#7A60F4]/60 focus:outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500"
             />
             {searchQuery && (
               <button
@@ -574,10 +574,10 @@ export function JobApplicationTab() {
             <select
               value={stageFilter}
               onChange={e => setStageFilter(e.target.value)}
-              className={`appearance-none pl-3 pr-8 py-2 text-sm font-medium border rounded-xl focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:outline-none cursor-pointer transition-all ${
+              className={`appearance-none pl-3 pr-8 py-2 text-sm font-medium border rounded-xl focus:ring-2 focus:ring-[#7A60F4]/40 focus:border-[#7A60F4]/60 focus:outline-none cursor-pointer transition-all ${
                 stageFilter !== 'all'
                   ? 'bg-[#7A60F4] text-white border-[#7A60F4]'
-                  : 'bg-white dark:bg-neutral-900 text-gray-700 dark:text-white border-gray-200 dark:border-neutral-700 hover:border-gray-400 dark:hover:border-neutral-500'
+                  : 'bg-white dark:bg-neutral-900 text-gray-700 dark:text-white border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
               }`}
             >
               <option value="all">{t.allStages}</option>

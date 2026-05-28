@@ -402,7 +402,7 @@ export function ProfileTab() {
     return (
       <div className="mt-3">
         <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
-          {expanded ? text : `${text.slice(0, limit).trimEnd()}…`}
+          {expanded ? text : <>{text.slice(0, limit).trimEnd()}<span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" /></>}
         </p>
         <button
           onClick={() => setExpanded(v => !v)}
@@ -441,7 +441,7 @@ export function ProfileTab() {
             <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            {(t as any).notCompleted ?? 'Not completed — click to fill in'}
+            {(t as any).notCompleted ?? 'Not completed � click to fill in'}
           </button>
         ) : (
           <span className="text-sm font-medium text-gray-900 dark:text-white">{value}</span>
@@ -502,7 +502,7 @@ export function ProfileTab() {
               {!isEditingPersonalInfo ? (
                 <button
                   onClick={() => setIsEditingPersonalInfo(true)}
-                  className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all"
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all"
                 >
                   {t.editSection}
                 </button>
@@ -581,7 +581,7 @@ export function ProfileTab() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.visa}<span className="text-red-400">*</span></label>
                     <select value={profileData.personal_info.visa_status || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('visa_status', e.target.value)} className={selectClass('visa_status')}>
-                      <option value="UNKNOWN" disabled>— Select visa status —</option>
+                      <option value="UNKNOWN" disabled>� Select visa status �</option>
                       <option value="CITIZEN">Citizen</option>
                       <option value="PERMANENT_RESIDENT">Permanent Resident</option>
                       <option value="WORK_PERMIT">Work Permit</option>
@@ -595,7 +595,7 @@ export function ProfileTab() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.workPref}<span className="text-red-400">*</span></label>
                     <select value={profileData.personal_info.work_preference || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('work_preference', e.target.value)} className={selectClass('work_preference')}>
-                      <option value="UNKNOWN" disabled>— Select preference —</option>
+                      <option value="UNKNOWN" disabled>� Select preference �</option>
                       <option value="ONSITE">Onsite</option>
                       <option value="HYBRID">Hybrid</option>
                       <option value="REMOTE">Remote</option>
@@ -639,7 +639,7 @@ export function ProfileTab() {
                 {profileData.experience?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingExperience ? (
-                <button onClick={() => setIsEditingExperience(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                <button onClick={() => setIsEditingExperience(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all">
                   {t.editSection}
                 </button>
               ) : (
@@ -654,13 +654,15 @@ export function ProfileTab() {
                 profileData.experience?.length > 0 ? (
                   <div className="space-y-0 divide-y divide-gray-100 dark:divide-neutral-800">
                     {profileData.experience.map((exp: any, i: number) => (
-                      <div key={i} className="py-4 first:pt-0 last:pb-0">
-                        <div className="grid grid-cols-3 gap-4 w-full">
-                          <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 min-w-0">{exp.title}{exp._ai_generated && <AiInfoBadge />}</h4>
-                          <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">{exp.company}</p>
-                          <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 text-right">{exp.start_date || 'N/A'} – {exp.is_current ? t.experience.present : (exp.end_date || 'N/A')}</p>
+                      <div key={i} className="py-4 first:pt-0 last:pb-0 w-full">
+                        <div className="flex items-start justify-between gap-4 w-full">
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">{exp.title}{exp._ai_generated && <AiInfoBadge />}</h4>
+                            <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">{exp.company}</p>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 whitespace-nowrap shrink-0">{exp.start_date || 'N/A'} – {exp.is_current ? t.experience.present : (exp.end_date || 'N/A')}</p>
                         </div>
-                        {exp.description && <div className="mt-2 col-span-3"><ExpandableText text={exp.description} /></div>}
+                        {exp.description && <div className="mt-2 w-full"><ExpandableText text={exp.description} /></div>}
                       </div>
                     ))}
                   </div>
@@ -693,7 +695,7 @@ export function ProfileTab() {
                       <textarea placeholder={t.experience.desc} value={exp.description || ''} onChange={(e) => handleArrayChange('experience', i, 'description', e.target.value)} rows={3} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-none dark:text-white" />
                     </div>
                   ))}
-                  <button onClick={() => addArrayItem('experience', { title: '', company: '', start_date: '', end_date: '', is_current: false, description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button onClick={() => addArrayItem('experience', { title: '', company: '', start_date: '', end_date: '', is_current: false, description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {t.experience.addExp}
                   </button>
                 </div>
@@ -709,7 +711,7 @@ export function ProfileTab() {
                 {profileData.education?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingEducation ? (
-                <button onClick={() => setIsEditingEducation(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                <button onClick={() => setIsEditingEducation(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all">
                   {t.editSection}
                 </button>
               ) : (
@@ -724,15 +726,17 @@ export function ProfileTab() {
                 profileData.education?.length > 0 ? (
                   <div className="space-y-0 divide-y divide-gray-100 dark:divide-neutral-800">
                     {profileData.education.map((edu: any, i: number) => (
-                      <div key={i} className="py-4 first:pt-0 last:pb-0">
-                        <div className="grid grid-cols-3 gap-4 w-full">
-                          <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 min-w-0">{edu.institution}{edu._ai_generated && <AiInfoBadge />}</h4>
-                          <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">
-                            {[edu.degree, edu.field_of_study].filter(v => v && v !== 'UNKNOWN').join(' in ')}
-                          </p>
-                          <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 text-right">{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}</p>
+                      <div key={i} className="py-4 first:pt-0 last:pb-0 w-full">
+                        <div className="flex items-start justify-between gap-4 w-full">
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">{edu.institution}{edu._ai_generated && <AiInfoBadge />}</h4>
+                            <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">
+                              {[edu.degree, edu.field_of_study].filter(v => v && v !== 'UNKNOWN').join(' in ')}
+                            </p>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500 whitespace-nowrap shrink-0">{edu.start_date?.slice(0, 7) || 'N/A'} – {edu.end_date?.slice(0, 7) || 'N/A'}</p>
                         </div>
-                        {edu.description && <div className="mt-2"><p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{edu.description}</p></div>}
+                        {edu.description && <div className="mt-2 w-full"><p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{edu.description}</p></div>}
                       </div>
                     ))}
                   </div>
@@ -758,7 +762,7 @@ export function ProfileTab() {
                       <textarea placeholder={t.education.desc} value={edu.description || ''} onChange={(e) => handleArrayChange('education', i, 'description', e.target.value)} rows={2} className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:ring-2 focus:ring-[#7A60F4]/50 dark:focus:ring-[#7A60F4]/50 outline-none resize-none dark:text-white" />
                     </div>
                   ))}
-                  <button onClick={() => addArrayItem('education', { institution: '', degree: '', field_of_study: '', start_date: '', end_date: '', description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button onClick={() => addArrayItem('education', { institution: '', degree: '', field_of_study: '', start_date: '', end_date: '', description: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {t.education.addEdu}
                   </button>
                 </div>
@@ -774,7 +778,7 @@ export function ProfileTab() {
                 {profileData.skills?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingSkills ? (
-                <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                <button onClick={() => setIsEditingSkills(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all">
                   {t.editSection}
                 </button>
               ) : (
@@ -810,7 +814,7 @@ export function ProfileTab() {
                       </button>
                     </div>
                   ))}
-                  <button onClick={() => addArrayItem('skills', { name: '', level: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button onClick={() => addArrayItem('skills', { name: '', level: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {t.skills.addSkill}
                   </button>
                 </div>
@@ -827,7 +831,7 @@ export function ProfileTab() {
                 {profileData.languages?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingLanguages ? (
-                <button onClick={() => setIsEditingLanguages(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                <button onClick={() => setIsEditingLanguages(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all">
                   {t.editSection}
                 </button>
               ) : (
@@ -866,7 +870,7 @@ export function ProfileTab() {
                       </button>
                     </div>
                   ))}
-                  <button onClick={() => addArrayItem('languages', { name: '', level: 'UNKNOWN' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button onClick={() => addArrayItem('languages', { name: '', level: 'UNKNOWN' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {(t as any).languages?.addLang ?? '+ Add Language'}
                   </button>
                 </div>
@@ -883,7 +887,7 @@ export function ProfileTab() {
                 {profileData.certifications?.some((e: any) => e._ai_generated) && <AiInfoBadge />}
               </div>
               {!isEditingCertifications ? (
-                <button onClick={() => setIsEditingCertifications(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                <button onClick={() => setIsEditingCertifications(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all">
                   {t.editSection}
                 </button>
               ) : (
@@ -908,7 +912,7 @@ export function ProfileTab() {
                           {(cert.issue_date || cert.expiration_date) && (
                             <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
                               {cert.issue_date || ''}
-                              {cert.issue_date && cert.expiration_date ? ' – ' : ''}
+                              {cert.issue_date && cert.expiration_date ? ' � ' : ''}
                               {cert.expiration_date || ''}
                             </p>
                           )}
@@ -946,7 +950,7 @@ export function ProfileTab() {
                       </div>
                     </div>
                   ))}
-                  <button onClick={() => addArrayItem('certifications', { name: '', issuer: '', issue_date: '', expiration_date: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button onClick={() => addArrayItem('certifications', { name: '', issuer: '', issue_date: '', expiration_date: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {t.certifications.addCert}
                   </button>
                 </div>
@@ -961,7 +965,7 @@ export function ProfileTab() {
                 <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.references.title}</h3>
               </div>
               {!isEditingReferences ? (
-                <button onClick={() => setIsEditingReferences(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 rounded-lg transition-all">
+                <button onClick={() => setIsEditingReferences(true)} className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 rounded-lg transition-all">
                   {t.editSection}
                 </button>
               ) : (
@@ -1020,7 +1024,7 @@ export function ProfileTab() {
                       </div>
                     </div>
                   ))}
-                  <button onClick={() => addArrayItem('references', { name: '', title: '', company: '', email: '', phone: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-gray-900 dark:hover:border-white hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <button onClick={() => addArrayItem('references', { name: '', title: '', company: '', email: '', phone: '' })} className="w-full py-3 border border-dashed border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs font-semibold rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {t.references.addRef}
                   </button>
                 </div>
@@ -1057,7 +1061,7 @@ export function ProfileTab() {
               <p className="text-xs text-gray-600 dark:text-neutral-400 mb-3">{t.sidebar.fillPrompt}</p>
               <button
                 onClick={() => handleUploadClick('profile')}
-                className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
               >
                 {t.sidebar.autofill}
                 <span className="text-[10px] font-bold bg-[#7A60F4] text-white rounded px-1 py-0.5 leading-none">AI</span>
@@ -1098,7 +1102,7 @@ export function ProfileTab() {
                     {isImportingUrl && (
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     )}
-                    {isImportingUrl ? ((t as any).sidebar?.importing ?? 'Importing…') : ((t as any).sidebar?.importProfile ?? 'Import profile')}
+                    {isImportingUrl ? ((t as any).sidebar?.importing ?? 'Importing�') : ((t as any).sidebar?.importProfile ?? 'Import profile')}
                   </button>
                 </div>
               )}
