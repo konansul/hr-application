@@ -363,22 +363,24 @@ export function PublicCvView({ token }: { token: string }) {
       </section>
 
       {/* ── tab nav ───────────────────────────────────────────────────────── */}
-      <nav ref={navRef} className="sticky top-0 z-30 bg-white border-t border-b border-[#E5EAEE] mt-4 print:hidden">
+      <nav ref={navRef} className="sticky top-0 z-30 mt-4 py-2 print:hidden">
         <div className="max-w-[1100px] mx-auto px-8">
-          <div className="flex items-center overflow-x-auto gap-0.5">
-            {navItems.map(({ id, label }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                className="px-3 py-3 text-[13px] whitespace-nowrap border-b-2 -mb-px transition-colors"
-                style={activeSection === id
-                  ? { color: '#7A60F4', borderColor: '#7A60F4', fontWeight: 700 }
-                  : { color: '#6B7785', borderColor: 'transparent', fontWeight: 500 }}
-              >
-                {label}
-              </a>
-            ))}
-          </div>
+        <div className="flex items-center gap-0.5 px-2 py-1.5 rounded-2xl border border-slate-200/70 bg-white/70 shadow-sm backdrop-blur-md overflow-x-auto w-fit">
+          {navItems.map(({ id, label }) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className="px-3.5 py-2 rounded-xl text-[15px] font-bold whitespace-nowrap transition-all capitalize"
+              style={activeSection === id
+                ? { color: '#7A60F4', background: 'rgba(122,96,244,0.08)' }
+                : { color: '#374151' }}
+              onMouseEnter={e => { if (activeSection !== id) (e.currentTarget as HTMLElement).style.background = '#F1F5F9'; (e.currentTarget as HTMLElement).style.color = '#111827'; }}
+              onMouseLeave={e => { if (activeSection !== id) { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#374151'; } }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
         </div>
       </nav>
 
