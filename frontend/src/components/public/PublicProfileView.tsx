@@ -1,8 +1,69 @@
 import { useEffect, useState } from 'react';
 import { publicApi } from '../../api';
+import { HraiLogo } from '../shared/HraiLogo';
 
 interface PublicCvViewProps {
   slug: string;
+}
+
+function initials(first?: string, last?: string) {
+  return [(first || '').charAt(0), (last || '').charAt(0)].filter(Boolean).join('').toUpperCase() || '?';
+}
+
+function CardHead({ label, pill, pillBg, pillFg, pillBorder }: {
+  label: string; pill?: string;
+  pillBg?: string; pillFg?: string; pillBorder?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#EEF2F4]">
+      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#2F2F2F]">{label}</span>
+      {pill && pillBg && (
+        <span
+          className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+          style={{ background: pillBg, color: pillFg, borderColor: pillBorder, fontFamily: '"JetBrains Mono", monospace', letterSpacing: '0.06em' }}
+        >
+          {pill}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function EmailIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+}
+function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+    </svg>
+  );
+}
+function LocationIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+}
+function CapIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 9l9-5 9 5-9 5-9-5zM6 11v4a6 6 0 0012 0v-4M21 9v6" />
+    </svg>
+  );
 }
 
 export function PublicProfileView({ slug }: PublicCvViewProps) {
@@ -15,250 +76,331 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
         const data = await publicApi.getProfile(slug);
         setProfileData(data);
       } catch (err: any) {
-        if (err.response?.status === 404) {
-          setError("Profile not found or link is invalid.");
-        } else if (err.response?.status === 403) {
-          setError("This profile is private.");
-        } else {
-          setError("Something went wrong loading the profile.");
-        }
+        if (err.response?.status === 404) setError('Profile not found or link is invalid.');
+        else if (err.response?.status === 403) setError('This profile is private.');
+        else setError('Something went wrong loading the profile.');
       }
     };
-
     fetchProfile();
   }, [slug]);
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-neutral-950 px-4 text-center">
-        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-full flex items-center justify-center mb-6">
-           <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+      <div className="min-h-screen bg-[#fafcff] flex items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mx-auto">
+            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-[#6B7785]">{error}</p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="mt-2 px-5 py-2 rounded-xl text-sm font-bold text-white transition-all"
+            style={{ background: '#7A60F4' }}
+          >
+            Go to Homepage
+          </button>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h1>
-        <p className="text-gray-500 dark:text-neutral-400 max-w-md">{error}</p>
-        <button onClick={() => window.location.href = '/'} className="mt-8 px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-gray-800 dark:hover:bg-neutral-200">Go to Homepage</button>
       </div>
     );
   }
 
   if (!profileData) {
-    return null;
+    return (
+      <div className="min-h-screen bg-[#fafcff] flex items-center justify-center">
+        <div className="w-9 h-9 border-4 border-[#C5BAFF] border-t-[#7A60F4] rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const { first_name, last_name, profile_data } = profileData;
   const pInfo = profile_data?.personal_info || {};
-  const experience = profile_data?.experience || [];
-  const education = profile_data?.education || [];
-  const skills = profile_data?.skills || [];
-  const references = profile_data?.references || [];
+  const experience: any[] = profile_data?.experience || [];
+  const education: any[]  = profile_data?.education  || [];
+  const skills: any[]     = profile_data?.skills     || [];
+  const references: any[] = profile_data?.references || [];
 
-  const DetailRow = ({ label, value }: { label: string; value: any }) => {
-    if (!value || value === 'UNKNOWN') return null;
-    return (
-      <div className="flex flex-col border-b border-gray-100 dark:border-neutral-800 py-3">
-        <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest mb-1">{label}</span>
-        <span className="text-sm font-medium text-gray-900 dark:text-white">{value}</span>
-      </div>
-    );
-  };
+  const fullName = [first_name || pInfo.first_name, last_name || pInfo.last_name].filter(Boolean).join(' ') || 'Candidate';
+
+  function dateRange(item: any) {
+    const s = item.start_date || '';
+    const e = item.is_current ? 'Present' : (item.end_date || '');
+    return [s, e].filter(Boolean).join(' – ');
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+    <div
+      className="min-h-screen relative overflow-x-hidden"
+      style={{ fontFamily: '"Plus Jakarta Sans", "Inter", system-ui, sans-serif', background: '#fafcff', color: '#2F2F2F' }}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+      `}</style>
 
-        <div className="mb-8 text-center lg:text-left">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">Candidate Profile</h2>
-          <p className="text-sm text-gray-500 dark:text-neutral-400">Public overview of {first_name}'s professional background</p>
+      {/* aurora blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div style={{ position: 'absolute', top: -240, left: -120, width: 600, height: 600, borderRadius: '50%', background: '#7A60F4', filter: 'blur(160px)', opacity: 0.35 }} />
+        <div style={{ position: 'absolute', top: 40, right: -160, width: 520, height: 520, borderRadius: '50%', background: '#29C5F6', filter: 'blur(160px)', opacity: 0.65 }} />
+        <div style={{ position: 'absolute', top: 360, left: '38%', width: 420, height: 420, borderRadius: '50%', background: '#9EA4FF', filter: 'blur(120px)', opacity: 0.35 }} />
+      </div>
+
+      {/* ── hero ── */}
+      <section className="relative max-w-[1100px] mx-auto px-8 pt-12 pb-5">
+        <div className="flex gap-6 items-center mb-5">
+
+          {/* avatar */}
+          <div
+            className="w-24 h-24 rounded-[22px] flex items-center justify-center shrink-0 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #7A60F4 0%, #9EA4FF 100%)', boxShadow: '0 16px 40px -16px rgba(122,96,244,0.45)' }}
+          >
+            {pInfo.photo ? (
+              <img src={pInfo.photo} alt={fullName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-4xl font-bold text-white tracking-tight">{initials(first_name || pInfo.first_name, last_name || pInfo.last_name)}</span>
+            )}
+          </div>
+
+          {/* name + title + chips */}
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold leading-[1.05] mb-1 text-[#2F2F2F]" style={{ fontSize: 38, letterSpacing: '-0.03em' }}>
+              {fullName}
+            </h1>
+            {pInfo.title && (
+              <p className="text-[14px] font-semibold mb-2" style={{ color: '#7A60F4' }}>{pInfo.title}</p>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {(pInfo.city || pInfo.country) && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563]">
+                  <LocationIcon className="w-3.5 h-3.5 shrink-0" />
+                  {[pInfo.city, pInfo.country].filter(Boolean).join(', ')}
+                </span>
+              )}
+              {pInfo.email && (
+                <a href={`mailto:${pInfo.email}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
+                  <EmailIcon className="w-3.5 h-3.5 shrink-0" />{pInfo.email}
+                </a>
+              )}
+              {pInfo.open_to_remote && (
+                <span className="inline-flex items-center text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563]">
+                  Remote ✓
+                </span>
+              )}
+              {pInfo.open_to_relocation && (
+                <span className="inline-flex items-center text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563]">
+                  Relocation ✓
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* logo */}
+          <div className="shrink-0 ml-auto">
+            <HraiLogo height={90} />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* CTA bar */}
+        <div
+          className="flex items-center justify-between bg-white border border-[#E5EAEE] rounded-[18px] py-3 pl-5 pr-3.5"
+          style={{ boxShadow: '0 20px 40px -24px rgba(47,47,47,0.18)' }}
+        >
+          <span className="text-sm font-semibold text-[#2F2F2F]">Candidate Profile</span>
+          <div className="flex items-center gap-1.5">
+            {pInfo.linkedin_url && (
+              <a
+                href={pInfo.linkedin_url.startsWith('http') ? pInfo.linkedin_url : `https://${pInfo.linkedin_url}`}
+                target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
+              >
+                <LinkedInIcon className="w-3.5 h-3.5" />LinkedIn
+              </a>
+            )}
+            {pInfo.email && (
+              <a
+                href={`mailto:${pInfo.email}`}
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
+              >
+                <EmailIcon className="w-3.5 h-3.5" />Contact
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
 
-          <div className="lg:col-span-8 space-y-6">
+      {/* ── body ── */}
+      <main className="relative max-w-[1100px] mx-auto px-8 py-5 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4 items-start">
 
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
-              <div className="flex items-center px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
-                  <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Personal Info</h3>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="First Name" value={first_name || pInfo.first_name} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Last Name" value={last_name || pInfo.last_name} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Email" value={pInfo.email} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Phone" value={pInfo.phone} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="City" value={pInfo.city} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Country" value={pInfo.country} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Nationality" value={pInfo.nationality} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Visa Status" value={pInfo.visa_status?.replace(/_/g, ' ')} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="Work Preference" value={pInfo.work_preference} />
-                    {/* eslint-disable-next-line react-hooks/static-components */}
-                  <DetailRow label="LinkedIn" value={pInfo.linkedin_url} />
+          {/* LEFT */}
+          <div className="flex flex-col gap-4">
 
-                  {(pInfo.open_to_remote || pInfo.open_to_relocation) && (
-                    <div className="md:col-span-2 flex gap-6 pt-4">
-                      {pInfo.open_to_remote && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
-                          <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">Open to Remote</span>
-                        </div>
-                      )}
-                      {pInfo.open_to_relocation && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
-                          <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300">Open to Relocation</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            {/* Summary */}
+            {pInfo.summary && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="About" />
+                <p className="px-4 py-4 text-[15px] leading-relaxed text-[#2F2F2F]">{pInfo.summary}</p>
+              </article>
+            )}
 
+            {/* Experience */}
             {experience.length > 0 && (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
-                <div className="flex items-center px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Experience</h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="border-l-2 border-gray-100 dark:border-neutral-800 pl-6 space-y-8 py-2">
-                    {experience.map((exp: any, i: number) => (
-                      <div key={i} className="relative">
-                        <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white">{exp.title}</h4>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">{exp.company} • {exp.start_date || 'N/A'} - {exp.is_current ? 'Present' : (exp.end_date || 'N/A')}</p>
-                        {exp.description && <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{exp.description}</p>}
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Experience" pill={`${experience.length} ROLES`} pillBg="#EDE9FF" pillFg="#5B52C8" pillBorder="#C5BAFF" />
+                <div className="px-4 pt-1 pb-2">
+                  {experience.map((exp: any, i: number) => (
+                    <div key={i} className="flex gap-3 pt-3">
+                      <div className="w-3.5 flex flex-col items-center shrink-0 pt-1">
+                        <div className="w-3 h-3 rounded-full bg-white border-2 shrink-0" style={{ borderColor: '#7A60F4', boxShadow: '0 0 0 3px rgba(122,96,244,0.12)' }} />
+                        {i < experience.length - 1 && (
+                          <div className="w-0.5 flex-1 mt-1 min-h-[24px]" style={{ background: 'linear-gradient(180deg, #C5BAFF 0%, #F3F6F8 100%)' }} />
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {education.length > 0 && (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
-                <div className="flex items-center px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-violet-500 dark:bg-violet-400"></div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Education</h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="border-l-2 border-gray-100 dark:border-neutral-800 pl-6 space-y-8 py-2">
-                    {education.map((edu: any, i: number) => (
-                      <div key={i} className="relative">
-                        <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-600 ring-4 ring-white dark:ring-neutral-900" />
-                        <h4 className="text-base font-bold text-gray-900 dark:text-white">{edu.institution}</h4>
-                        <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400 mt-1">{edu.degree} {edu.field_of_study && `in ${edu.field_of_study}`} • {edu.start_date || 'N/A'} - {edu.end_date || 'N/A'}</p>
-                        {edu.description && <p className="text-sm text-gray-600 dark:text-neutral-300 mt-3 leading-relaxed whitespace-pre-wrap">{edu.description}</p>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {references.length > 0 && (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
-                <div className="flex items-center px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 dark:bg-purple-400"></div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">References</h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {references.map((ref: any, i: number) => (
-                      <div key={i} className="p-4 border border-gray-100 dark:border-neutral-800 rounded-xl bg-gray-50/50 dark:bg-neutral-800/30">
-                        <h4 className="text-sm font-bold text-gray-900 dark:text-white">{ref.name}</h4>
-                        <p className="text-xs text-gray-600 dark:text-neutral-400 mt-0.5">{ref.title} {ref.company && `at `}<span className="font-semibold text-gray-800 dark:text-neutral-300">{ref.company}</span></p>
-                        <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-neutral-700/60 space-y-1">
-                          {ref.email && <p className="text-[11px] text-gray-500 dark:text-neutral-400 flex items-center gap-2"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> {ref.email}</p>}
-                          {ref.phone && <p className="text-[11px] text-gray-500 dark:text-neutral-400 flex items-center gap-2"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg> {ref.phone}</p>}
+                      <div className={`flex-1 min-w-0 pb-3 ${i < experience.length - 1 ? 'border-b border-[#EEF2F4]' : ''}`}>
+                        <div className="flex justify-between items-start gap-3">
+                          <div>
+                            <div className="text-sm font-bold text-[#2F2F2F]">{exp.title || 'Role'}</div>
+                            {exp.company && <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: '#7A60F4' }}>{exp.company}</div>}
+                          </div>
+                          {dateRange(exp) && (
+                            <span className="text-[10.5px] text-[#6B7785] bg-[#F3F6F8] border border-[#E5EAEE] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
+                              {dateRange(exp)}
+                            </span>
+                          )}
                         </div>
+                        {exp.description && (
+                          <p className="text-[13px] leading-relaxed text-[#4B5563] mt-1.5 whitespace-pre-wrap">{exp.description}</p>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              </article>
             )}
 
-            {skills.length > 0 && (
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
-                <div className="flex items-center px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">Skills</h3>
+            {/* Education */}
+            {education.length > 0 && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Education" pill="EDU" pillBg="#E6E8FF" pillFg="#4A55C9" pillBorder="#D2D6FF" />
+                {education.map((edu: any, i: number) => (
+                  <div key={i} className="flex items-start gap-3 px-4 py-2.5 border-t border-[#EEF2F4]">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border mt-0.5" style={{ background: '#E6E8FF', color: '#4A55C9', borderColor: '#D2D6FF' }}>
+                      <CapIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-bold text-[#2F2F2F]">{edu.degree || 'Degree'}{edu.field_of_study ? ` in ${edu.field_of_study}` : ''}</div>
+                      {edu.institution && <div className="text-[11.5px] text-[#6B7785] mt-0.5">{edu.institution}</div>}
+                      {edu.description && <p className="text-[12px] text-[#4B5563] mt-1 leading-relaxed">{edu.description}</p>}
+                    </div>
+                    {(edu.start_date || edu.end_date) && (
+                      <div className="text-[10.5px] text-[#6B7785] whitespace-nowrap shrink-0 mt-0.5" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
+                        {[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}
+                      </div>
+                    )}
                   </div>
+                ))}
+              </article>
+            )}
+
+            {/* References */}
+            {references.length > 0 && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="References" pill={String(references.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
+                <div className="px-4 py-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {references.map((ref: any, i: number) => (
+                    <div key={i} className="p-3 border border-[#EEF2F4] rounded-xl bg-[#F3F6F8]/50">
+                      <div className="text-[13px] font-bold text-[#2F2F2F]">{ref.name}</div>
+                      <div className="text-[11.5px] text-[#6B7785] mt-0.5">{ref.title}{ref.company ? ` · ${ref.company}` : ''}</div>
+                      <div className="mt-2 pt-2 border-t border-[#EEF2F4] space-y-1">
+                        {ref.email && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-[#6B7785]">
+                            <EmailIcon className="w-3 h-3 shrink-0" />{ref.email}
+                          </div>
+                        )}
+                        {ref.phone && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-[#6B7785]">
+                            <PhoneIcon className="w-3 h-3 shrink-0" />{ref.phone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="p-6">
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((s: any, i: number) => (
-                      <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold shadow-sm transition-colors">
-                        {s.name} {s.level && <span className="text-gray-400 dark:text-neutral-500 text-[10px] ml-1">{s.level}</span>}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              </article>
             )}
 
           </div>
 
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-8 flex flex-col items-center text-center transition-colors">
-              <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-5 border border-indigo-100 dark:border-indigo-800/50 shadow-sm transition-colors">
-                <span className="text-3xl font-bold">
-                  {first_name?.[0] || 'C'}
-                </span>
-              </div>
+          {/* RIGHT */}
+          <div className="flex flex-col gap-4">
 
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                {first_name || ''} {last_name || ''}
-              </h3>
-
-              {pInfo.title && (
-                 <p className="text-sm font-semibold text-indigo-500 dark:text-indigo-400 mb-6">{pInfo.title}</p>
-              )}
-
-              {pInfo.summary && (
-                <p className="text-sm text-gray-600 dark:text-neutral-400 mb-6 leading-relaxed">
-                  {pInfo.summary}
-                </p>
-              )}
-
-              <div className="w-full space-y-3 mt-2">
+            {/* Contact */}
+            {(pInfo.email || pInfo.phone || pInfo.linkedin_url) && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Contact" />
                 {pInfo.email && (
-                  <a href={`mailto:${pInfo.email}`} className="w-full py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all shadow-sm flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                    Contact via Email
+                  <a href={`mailto:${pInfo.email}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors hover:bg-[#F3F6F8]">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                      <EmailIcon className="w-3.5 h-3.5" />
+                    </div>
+                    {pInfo.email}
+                  </a>
+                )}
+                {pInfo.phone && (
+                  <a href={`tel:${pInfo.phone}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors hover:bg-[#F3F6F8]">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                      <PhoneIcon className="w-3.5 h-3.5" />
+                    </div>
+                    {pInfo.phone}
                   </a>
                 )}
                 {pInfo.linkedin_url && (
-                   <a href={pInfo.linkedin_url.startsWith('http') ? pInfo.linkedin_url : `https://${pInfo.linkedin_url}`} target="_blank" rel="noreferrer" className="w-full py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
-                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                     LinkedIn Profile
-                   </a>
+                  <a href={pInfo.linkedin_url.startsWith('http') ? pInfo.linkedin_url : `https://${pInfo.linkedin_url}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors hover:bg-[#F3F6F8]">
+                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                      <LinkedInIcon className="w-3.5 h-3.5" />
+                    </div>
+                    LinkedIn
+                  </a>
                 )}
-              </div>
-            </div>
-          </div>
+              </article>
+            )}
 
+            {/* Skills */}
+            {skills.length > 0 && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Skills" pill={String(skills.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
+                <div className="flex flex-wrap gap-1.5 px-4 py-3">
+                  {skills.map((s: any, i: number) => (
+                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                      {s.name || s}{s.level ? ` · ${s.level}` : ''}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            )}
+
+            {/* Personal Info */}
+            <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+              <CardHead label="Personal Info" />
+              {[
+                { label: 'Nationality', value: pInfo.nationality },
+                { label: 'Visa Status', value: pInfo.visa_status?.replace(/_/g, ' ') },
+                { label: 'Work Preference', value: pInfo.work_preference },
+              ].filter(r => r.value && r.value !== 'UNKNOWN').map((row, i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-2.5 border-t border-[#EEF2F4]">
+                  <span className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#6B7785]">{row.label}</span>
+                  <span className="text-[12.5px] font-semibold text-[#2F2F2F]">{row.value}</span>
+                </div>
+              ))}
+            </article>
+
+          </div>
         </div>
-      </div>
+      </main>
+
+      <footer className="relative text-center text-[11px] text-[#9CA3AF] py-6 pb-8 tracking-wider">
+        Shared via HRAIPP · Read-only public link
+      </footer>
     </div>
   );
 }
