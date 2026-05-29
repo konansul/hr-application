@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, pdf, Image, Svg, Circle, Path, Font } from '@react-pdf/renderer';
+﻿import { Document, Page, Text, View, StyleSheet, pdf, Image, Svg, Circle, Path, Font } from '@react-pdf/renderer';
 
 const CDN = 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf';
 
@@ -13,6 +13,65 @@ Font.register({
 });
 
 Font.registerHyphenationCallback(word => [word]);
+
+// ── Description parser ────────────────────────────────────────────────────────
+// PDF parsers insert \n at every visual line break. This normalises the text:
+// • consecutive non-bullet lines after a bullet are merged into that bullet
+// • single \n in prose are joined with a space; \n\n creates a paragraph break
+
+function parsePdfText(raw: string): { bullet: boolean; text: string }[] {
+  const lines = raw.split('\n');
+  const hasBullets = lines.some(l => l.trimStart().startsWith('• '));
+  if (hasBullets) {
+    const groups: { bullet: boolean; text: string }[] = [];
+    for (const line of lines.filter(l => l.trim() !== '')) {
+      if (line.trimStart().startsWith('• ')) {
+        groups.push({ bullet: true, text: line.trimStart().slice(2).trim() });
+      } else if (groups.length > 0) {
+        groups[groups.length - 1].text += ' ' + line.trim();
+      } else {
+        groups.push({ bullet: false, text: line.trim() });
+      }
+    }
+    return groups;
+  }
+  const paras = raw.split(/\n{2,}/)
+    .map(p => p.replace(/\n/g, ' ').replace(/  +/g, ' ').trim())
+    .filter(Boolean);
+  return paras.map(t => ({ bullet: false, text: t }));
+}
+
+function PdfDescription({ text, textStyle, dotColor = '#555', bulletGap = 2 }: {
+  text: string; textStyle: object; dotColor?: string; bulletGap?: number;
+}) {
+  const items = parsePdfText(text);
+  const hasBullets = items.some(it => it.bullet);
+  if (!hasBullets) {
+    return (
+      <View>
+        {items.map((it, i) => (
+          <Text key={i} style={[textStyle, { textAlign: 'justify', marginTop: i > 0 ? 4 : 0 }]}>
+            {it.text}
+          </Text>
+        ))}
+      </View>
+    );
+  }
+  return (
+    <View>
+      {items.map((it, i) => (
+        it.bullet ? (
+          <View key={i} style={{ flexDirection: 'row', marginBottom: bulletGap, marginTop: i === 0 ? 0 : bulletGap }}>
+            <Text style={[textStyle, { width: 10, color: dotColor }]}>•</Text>
+            <Text style={[textStyle, { flex: 1, textAlign: 'justify' }]}>{it.text}</Text>
+          </View>
+        ) : (
+          <Text key={i} style={[textStyle, { textAlign: 'justify', marginBottom: 4 }]}>{it.text}</Text>
+        )
+      ))}
+    </View>
+  );
+}
 
 function clean(v: any): string {
   const s = typeof v === 'string' ? v.trim() : '';
@@ -47,6 +106,27 @@ function dateRange(e: any, present = 'Present') {
 }
 
 function hasList(arr: any[]) { return arr && arr.length > 0; }
+
+// Each leading newline in a description = 5pt of extra gap before the text.
+// This lets users press Enter at the start of a description in the live editor
+// to push the text down, and have that space appear identically in the PDF.
+function leadingGap(raw: string): { gap: number; text: string } {
+  const m = raw.match(/^\n+/);
+  if (!m) return { gap: 0, text: raw };
+  return { gap: m[0].length * 5, text: raw.slice(m[0].length) };
+}
+
+function shortContact(s: string, max = 34): string {
+  if (!s || s.length <= max) return s;
+  if (s.startsWith('http')) {
+    try {
+      const url = new URL(s);
+      const path = url.pathname.length > 16 ? url.pathname.slice(0, 14) + '…' : url.pathname;
+      return url.hostname + path;
+    } catch { /* fall through */ }
+  }
+  return s.slice(0, max - 1) + '…';
+}
 
 const PDF_LABELS: Record<string, {
   profile: string; about: string; aboutMe: string; contact: string;
@@ -86,10 +166,11 @@ function skillLevel(s: any): number | null {
   return map[String(raw).toLowerCase()] ?? null;
 }
 
-function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb = 6, labelFs = 8 }: {
-  skills: any[]; barColor?: string; chipStyle?: object; defaultLevel?: number; itemMb?: number; labelFs?: number;
+function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb = 6, labelFs = 8, textColor = '#333', trackColor = '#e5e7eb' }: {
+  skills: any[]; barColor?: string; chipStyle?: object; defaultLevel?: number; itemMb?: number; labelFs?: number; textColor?: string; trackColor?: string;
 }) {
   const withLevel = skills.filter(s => skillLevel(s) !== null);
+  // Always render as chips. If levels are present, show a progress bar per skill.
   if (withLevel.length === 0 && !defaultLevel) {
     return (
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -109,10 +190,9 @@ function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb 
         return (
           <View key={i} style={{ width: '48%', marginBottom: itemMb, marginRight: '2%' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
-              <Text style={{ fontSize: labelFs, color: '#333' }}>{skillName(s)}</Text>
-              {pct !== null && skillLevel(s) !== null && <Text style={{ fontSize: labelFs - 1, color: '#999' }}>{pct}%</Text>}
+              <Text style={{ fontSize: labelFs, color: textColor }}>{skillName(s)}</Text>
             </View>
-            <View style={{ height: 3, backgroundColor: '#e5e7eb', borderRadius: 2 }}>
+            <View style={{ height: 3, backgroundColor: trackColor, borderRadius: 2 }}>
               {pct !== null && (
                 <View style={{ height: 3, width: `${pct}%`, backgroundColor: barColor, borderRadius: 2 }} />
               )}
@@ -143,13 +223,13 @@ const CL = StyleSheet.create({
   secTitle:  { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', textTransform: 'uppercase',
                letterSpacing: 1.8, marginBottom: 6, color: '#111' },
   thinRule:  { borderBottomWidth: 0.5, borderBottomColor: '#bbb', marginBottom: 7 },
-  entry:     { marginBottom: 7 },
+  entry:     { marginBottom: 18, paddingBottom: 6 },
   row:       { flexDirection: 'row', justifyContent: 'space-between' },
-  bold:      { fontFamily: 'DejaVu Sans', fontWeight: 'bold', fontSize: 9.5, color: '#111' },
+  bold:      { fontFamily: 'DejaVu Sans', fontWeight: 'bold', fontSize: 9.5, color: '#111', flex: 1, paddingRight: 8 },
   sub:       { fontSize: 8.5, color: '#555', marginTop: 1 },
-  dates:     { fontSize: 8, color: '#888', textAlign: 'right' },
-  desc:      { fontSize: 8.5, color: '#333', lineHeight: 1.55, marginTop: 3 },
-  summary:   { fontSize: 9.5, color: '#333', lineHeight: 1.6 },
+  dates:     { fontSize: 8, color: '#888', textAlign: 'right', flexShrink: 0 },
+  desc:      { fontSize: 8.5, color: '#333', lineHeight: 1.65, marginTop: 4 },
+  summary:   { fontSize: 9.5, color: '#333', lineHeight: 1.7, textAlign: 'justify' },
   skills:    { flexDirection: 'row', flexWrap: 'wrap' },
   skill:     { fontSize: 8.5, backgroundColor: '#f0f0f0', paddingHorizontal: 7,
                paddingVertical: 3, marginRight: 5, marginBottom: 4 },
@@ -158,7 +238,7 @@ const CL = StyleSheet.create({
   photo:     { width: 68, height: 68, borderRadius: 4, marginLeft: 14 },
 });
 
-function ClassicPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
+function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }: { data: any; title?: string | null; photo?: string; language?: string; accentColor?: string; entrySpacing?: number }) {
   const info  = data.personal_info ?? {};
   const exp   = data.experience    ?? [];
   const edu   = data.education     ?? [];
@@ -166,6 +246,8 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
   const la    = data.languages     ?? [];
   const ce    = data.certifications ?? [];
   const L = getPdfLabels(language);
+  const ac = accentColor ?? '#111';
+  const extraSpacing = entrySpacing ?? data._formatting?.entrySpacing ?? 0;
 
   return (
     <Document>
@@ -173,7 +255,7 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
         <View style={CL.header}>
           <View style={CL.headerRow}>
             <View style={{ flex: 1 }}>
-              <Text style={CL.name}>{fullName(info, title)}</Text>
+              <Text style={[CL.name, { color: ac }]}>{fullName(info, title)}</Text>
               <View style={CL.contacts}>
                 {contactParts(info).map((c, i) => <Text key={i} style={CL.contact}>{c}</Text>)}
               </View>
@@ -181,27 +263,31 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
             {photo ? <PhotoRect src={photo} w={68} h={68} radius={4} /> : null}
           </View>
         </View>
-        <View style={CL.rule} />
+        <View style={[CL.rule, { borderBottomColor: ac }]} />
 
         {info.summary ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>{L.profile}</Text>
+            <Text style={[CL.secTitle, { color: ac }]}>{L.profile}</Text>
             <View style={CL.thinRule} />
-            <Text style={CL.summary}>{info.summary}</Text>
+            <PdfDescription text={info.summary} textStyle={CL.summary} dotColor={ac} />
           </View>
         ) : null}
 
         {hasList(exp) ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>{L.experience}</Text>
+            <Text style={[CL.secTitle, { color: ac }]}>{L.experience}</Text>
             <View style={CL.thinRule} />
             {exp.map((e: any, i: number) => (
-              <View key={i} style={CL.entry}>
+              <View key={i} style={[CL.entry, extraSpacing > 0 ? { marginBottom: 18 + extraSpacing } : {}]}>
                 <View style={CL.row}>
-                  <Text style={CL.bold}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
+                  <Text style={[CL.bold, { color: ac }]}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
                   <Text style={CL.dates}>{dateRange(e, L.present)}</Text>
                 </View>
-                {e.description ? <Text style={CL.desc}>{e.description}</Text> : null}
+                {e.description ? (
+                  <View style={{ marginTop: 4 + (e.descriptionGap ?? 0) * 12 }}>
+                    <PdfDescription text={e.description} textStyle={{ ...CL.desc, marginTop: 0 }} dotColor="#555" bulletGap={3} />
+                  </View>
+                ) : null}
               </View>
             ))}
           </View>
@@ -209,20 +295,20 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
 
         {hasList(edu) ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>{L.education}</Text>
+            <Text style={[CL.secTitle, { color: ac }]}>{L.education}</Text>
             <View style={CL.thinRule} />
             {edu.map((e: any, i: number) => {
               const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
               if (!label && !inst) return null;
               return (
-                <View key={i} style={CL.entry}>
+                <View key={i} style={[CL.entry, extraSpacing > 0 ? { marginBottom: 18 + extraSpacing } : {}]}>
                   <View style={CL.row}>
-                    {label ? <Text style={CL.bold}>{label}</Text> : null}
+                    {label ? <Text style={[CL.bold, { color: ac }]}>{label}</Text> : null}
                     {(e.start_date || e.end_date) ? <Text style={CL.dates}>{dateRange(e, L.present)}</Text> : null}
                   </View>
                   {inst  ? <Text style={CL.sub}>{inst}</Text>  : null}
                   {grade ? <Text style={CL.sub}>{grade}</Text> : null}
-                  {desc  ? <Text style={CL.desc}>{desc}</Text> : null}
+                  {desc  ? <View style={{ marginTop: 4 + (e.descriptionGap ?? 0) * 12 }}><Text style={{ ...CL.desc, marginTop: 0 }}>{desc}</Text></View> : null}
                 </View>
               );
             })}
@@ -231,9 +317,9 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
 
         {hasList(sk) ? (
           <View style={CL.section}>
-            <Text style={CL.secTitle}>{L.skills}</Text>
+            <Text style={[CL.secTitle, { color: ac }]}>{L.skills}</Text>
             <View style={CL.thinRule} />
-            <SkillBars skills={sk} barColor="#111" />
+            <SkillBars skills={sk} barColor={ac} />
           </View>
         ) : null}
 
@@ -241,14 +327,14 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
           <View style={{ flexDirection: 'row' }}>
             {hasList(la) ? (
               <View style={[CL.section, { flex: 1, marginRight: 20 }]}>
-                <Text style={CL.secTitle}>{L.languages}</Text>
+                <Text style={[CL.secTitle, { color: ac }]}>{L.languages}</Text>
                 <View style={CL.thinRule} />
                 <Text style={CL.misc}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
             {hasList(ce) ? (
               <View style={[CL.section, { flex: 1 }]}>
-                <Text style={CL.secTitle}>{L.certifications}</Text>
+                <Text style={[CL.secTitle, { color: ac }]}>{L.certifications}</Text>
                 <View style={CL.thinRule} />
                 <Text style={CL.misc}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
               </View>
@@ -257,7 +343,7 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
         ) : null}
 
         <View style={CL.section}>
-          <Text style={CL.secTitle}>{L.references}</Text>
+          <Text style={[CL.secTitle, { color: ac }]}>{L.references}</Text>
           <View style={CL.thinRule} />
           <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</Text>
         </View>
@@ -269,29 +355,29 @@ function ClassicPdf({ data, title, photo, language }: { data: any; title?: strin
 
 const MO = StyleSheet.create({
   page:    { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
-  sidebar: { width: '33%', backgroundColor: '#1e293b', padding: 26 },
-  main:    { width: '67%', padding: 28 },
-  sName:   { fontSize: 16, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
-  sRole:   { fontSize: 8.5, color: '#94a3b8', marginBottom: 20, lineHeight: 1.4 },
+  sidebar: { flex: 1, backgroundColor: '#1e293b', padding: 22, overflow: 'hidden' },
+  main:    { flex: 2, padding: 28 },
+  sName:   { fontSize: 15, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3, flexWrap: 'wrap' },
+  sRole:   { fontSize: 8, color: '#94a3b8', marginBottom: 16, lineHeight: 1.4 },
   sSecT:   { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase',
              letterSpacing: 1.5, marginBottom: 6 },
-  sSec:    { marginBottom: 16 },
-  sCon:    { fontSize: 8.5, color: '#cbd5e1', marginBottom: 4, lineHeight: 1.4 },
-  sSumm:   { fontSize: 8.5, color: '#94a3b8', lineHeight: 1.55 },
+  sSec:    { marginBottom: 14 },
+  sCon:    { fontSize: 7.5, color: '#cbd5e1', marginBottom: 3, lineHeight: 1.4 },
+  sSumm:   { fontSize: 8, color: '#94a3b8', lineHeight: 1.65 },
   sWrap:   { flexDirection: 'row', flexWrap: 'wrap' },
-  sSkill:  { fontSize: 7.5, color: '#e2e8f0', backgroundColor: '#334155',
-             paddingHorizontal: 5, paddingVertical: 2, marginRight: 4, marginBottom: 4 },
+  sSkill:  { fontSize: 7, color: '#e2e8f0', backgroundColor: '#334155',
+             paddingHorizontal: 4, paddingVertical: 2, marginRight: 3, marginBottom: 3 },
   photo:   { width: 72, height: 72, borderRadius: 36, marginBottom: 16, alignSelf: 'center' },
   mSecT:   { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#4f46e5', textTransform: 'uppercase',
              letterSpacing: 1.5, marginBottom: 7, borderBottomWidth: 0.5,
              borderBottomColor: '#e0e7ff', paddingBottom: 4 },
   mSec:    { marginBottom: 14 },
-  mEntry:  { marginBottom: 8 },
+  mEntry:  { marginBottom: 18 },
   mRow:    { flexDirection: 'row', justifyContent: 'space-between' },
-  mBold:   { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111827' },
+  mBold:   { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111827', flex: 1, paddingRight: 8 },
   mSub:    { fontSize: 8.5, color: '#6b7280', marginTop: 1 },
-  mDates:  { fontSize: 8, color: '#9ca3af' },
-  mDesc:   { fontSize: 8.5, color: '#374151', lineHeight: 1.55, marginTop: 3 },
+  mDates:  { fontSize: 8, color: '#9ca3af', flexShrink: 0 },
+  mDesc:   { fontSize: 8.5, color: '#374151', lineHeight: 1.65, marginTop: 4 },
 });
 
 function ModernPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
@@ -321,13 +407,13 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
 
           <View style={[MO.sSec, { marginBottom: secMb }]}>
             <Text style={MO.sSecT}>{L.contact}</Text>
-            {contactParts(info).map((c, i) => <Text key={i} style={MO.sCon}>{c}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={MO.sCon}>{shortContact(c)}</Text>)}
           </View>
 
           {info.summary ? (
             <View style={[MO.sSec, { marginBottom: secMb }]}>
               <Text style={MO.sSecT}>{L.profile}</Text>
-              <Text style={MO.sSumm}>{info.summary}</Text>
+              <PdfDescription text={info.summary} textStyle={MO.sSumm} dotColor="#94a3b8" bulletGap={2} />
             </View>
           ) : null}
 
@@ -345,7 +431,7 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
                   ))}
                 </View>
               ) : (
-                <SkillBars skills={sk} barColor="#e2e8f0" itemMb={itemMb} labelFs={labelFs} />
+                <SkillBars skills={sk} barColor="#e2e8f0" textColor="#e2e8f0" trackColor="#334155" itemMb={itemMb} labelFs={labelFs} chipStyle={{ backgroundColor: '#334155', color: '#e2e8f0' }} />
               )}
             </View>
           ) : null}
@@ -369,7 +455,7 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
                     <Text style={MO.mDates}>{dateRange(e, L.present)}</Text>
                   </View>
                   {e.company ? <Text style={MO.mSub}>{e.company}</Text> : null}
-                  {e.description ? <Text style={MO.mDesc}>{e.description}</Text> : null}
+                  {e.description ? <PdfDescription text={e.description} textStyle={MO.mDesc} dotColor="#6b7280" bulletGap={3} /> : null}
                 </View>
               ))}
             </View>
@@ -389,7 +475,7 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
                     </View>
                     {inst  ? <Text style={MO.mSub}>{inst}</Text>  : null}
                     {grade ? <Text style={MO.mSub}>{grade}</Text> : null}
-                    {desc  ? <Text style={MO.mDesc}>{desc}</Text> : null}
+                    {desc  ? <PdfDescription text={desc} textStyle={MO.mDesc} dotColor="#6b7280" bulletGap={3} /> : null}
                   </View>
                 );
               })}
@@ -428,13 +514,13 @@ const MI = StyleSheet.create({
   sec:     { marginBottom: 16 },
   secT:    { fontSize: 7.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', textTransform: 'uppercase',
              letterSpacing: 2.5, color: '#999', marginBottom: 9 },
-  entry:   { marginBottom: 9 },
+  entry:   { marginBottom: 18, paddingBottom: 6 },
   row:     { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
-  bold:    { fontSize: 10, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
+  bold:    { fontSize: 10, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', flex: 1, paddingRight: 8 },
   sub:     { fontSize: 9, color: '#666' },
-  dates:   { fontSize: 8.5, color: '#aaa' },
-  desc:    { fontSize: 9, color: '#444', lineHeight: 1.65, marginTop: 3 },
-  summary: { fontSize: 10, color: '#444', lineHeight: 1.7, textAlign: 'center' },
+  dates:   { fontSize: 8.5, color: '#aaa', flexShrink: 0, textAlign: 'right' },
+  desc:    { fontSize: 9, color: '#444', lineHeight: 1.7, marginTop: 4 },
+  summary: { fontSize: 10, color: '#444', lineHeight: 1.75, textAlign: 'justify' },
   skills:  { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   skill:   { fontSize: 8.5, color: '#555', marginHorizontal: 6, marginBottom: 4 },
   misc:    { fontSize: 9, color: '#555', lineHeight: 1.7 },
@@ -464,7 +550,7 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
         {info.summary ? (
           <View style={MI.sec}>
             <Text style={MI.secT}>{L.about}</Text>
-            <Text style={MI.summary}>{info.summary}</Text>
+            <PdfDescription text={info.summary} textStyle={MI.summary} dotColor="#555" bulletGap={3} />
           </View>
         ) : null}
 
@@ -477,7 +563,7 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
                   <Text style={MI.bold}>{e.title || 'Role'}{e.company ? `, ${e.company}` : ''}</Text>
                   <Text style={MI.dates}>{dateRange(e, L.present)}</Text>
                 </View>
-                {e.description ? <Text style={MI.desc}>{e.description}</Text> : null}
+                {e.description ? <PdfDescription text={e.description} textStyle={MI.desc} dotColor="#555" bulletGap={3} /> : null}
               </View>
             ))}
           </View>
@@ -497,7 +583,7 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
                   </View>
                   {inst  ? <Text style={MI.sub}>{inst}</Text>  : null}
                   {grade ? <Text style={MI.sub}>{grade}</Text> : null}
-                  {desc  ? <Text style={MI.desc}>{desc}</Text> : null}
+                  {desc  ? <PdfDescription text={desc} textStyle={MI.desc} dotColor="#555" bulletGap={3} /> : null}
                 </View>
               );
             })}
@@ -551,13 +637,13 @@ const RE = StyleSheet.create({
              letterSpacing: 1.6, color: '#1a3a5c', marginBottom: 6, borderBottomWidth: 1,
              borderBottomColor: '#1a3a5c', paddingBottom: 3 },
   sec:     { marginBottom: 14 },
-  entry:   { marginBottom: 7 },
+  entry:   { marginBottom: 18, paddingBottom: 6 },
   row:     { flexDirection: 'row', justifyContent: 'space-between' },
-  bold:    { fontSize: 9, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
+  bold:    { fontSize: 9, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', flex: 1, paddingRight: 8 },
   sub:     { fontSize: 8, color: '#6b7280', marginTop: 1 },
-  dates:   { fontSize: 7.5, color: '#9ca3af' },
-  desc:    { fontSize: 8, color: '#374151', lineHeight: 1.55, marginTop: 3 },
-  summ:    { fontSize: 8.5, color: '#374151', lineHeight: 1.6 },
+  dates:   { fontSize: 7.5, color: '#9ca3af', flexShrink: 0, textAlign: 'right' },
+  desc:    { fontSize: 8, color: '#374151', lineHeight: 1.65, marginTop: 4 },
+  summ:    { fontSize: 8.5, color: '#374151', lineHeight: 1.7 },
   skills:  { flexDirection: 'row', flexWrap: 'wrap' },
   skill:   { fontSize: 7.5, color: '#1a3a5c', borderWidth: 0.5, borderColor: '#93c5fd',
              paddingHorizontal: 5, paddingVertical: 2, marginRight: 4, marginBottom: 4 },
@@ -595,7 +681,7 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
             {info.summary ? (
               <View style={RE.sec}>
                 <Text style={RE.secT}>{L.profile}</Text>
-                <Text style={RE.summ}>{info.summary}</Text>
+                <PdfDescription text={info.summary} textStyle={RE.summ} dotColor="#374151" bulletGap={3} />
               </View>
             ) : null}
 
@@ -613,7 +699,7 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
                       </View>
                       {inst  ? <Text style={RE.sub}>{inst}</Text>  : null}
                       {grade ? <Text style={RE.sub}>{grade}</Text> : null}
-                      {desc  ? <Text style={RE.desc}>{desc}</Text> : null}
+                      {desc  ? <PdfDescription text={desc} textStyle={RE.desc} dotColor="#1a3a5c" bulletGap={3} /> : null}
                     </View>
                   );
                 })}
@@ -652,7 +738,7 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
                       <Text style={RE.bold}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
                       <Text style={RE.dates}>{dateRange(e, L.present)}</Text>
                     </View>
-                    {e.description ? <Text style={RE.desc}>{e.description}</Text> : null}
+                    {e.description ? <PdfDescription text={e.description} textStyle={RE.desc} dotColor="#1a3a5c" bulletGap={3} /> : null}
                   </View>
                 ))}
               </View>
@@ -672,29 +758,29 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
 
 const FR = StyleSheet.create({
   page:     { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
-  strip:    { width: '30%', backgroundColor: '#2d2d2d', padding: 24 },
-  body:     { width: '70%', padding: '28 28 28 24' },
+  strip:    { flex: 3, backgroundColor: '#2d2d2d', padding: 20, overflow: 'hidden' },
+  body:     { flex: 7, padding: '26 26 26 22' },
   sName:    { fontSize: 17, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', lineHeight: 1.3 },
   sRole:    { fontSize: 8.5, color: '#aaa', marginTop: 3, marginBottom: 18, lineHeight: 1.4 },
   sSecT:    { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#888', textTransform: 'uppercase',
               letterSpacing: 1.5, marginBottom: 6 },
   sSec:     { marginBottom: 16 },
-  sCon:     { fontSize: 8, color: '#ccc', marginBottom: 4, lineHeight: 1.4 },
-  sSumm:    { fontSize: 8, color: '#bbb', lineHeight: 1.55 },
-  sSkillW:  { flexDirection: 'row', flexWrap: 'wrap' },
+  sCon:     { fontSize: 7.5, color: '#ccc', marginBottom: 3, lineHeight: 1.4 },
+  sSumm:    { fontSize: 8, color: '#bbb', lineHeight: 1.65 },
+  sSkillW:  { flexDirection: 'row', flexWrap: 'wrap', maxWidth: '100%' },
   sSkill:   { fontSize: 7.5, color: '#ddd', marginRight: 6, marginBottom: 3 },
   photo:    { width: 70, height: 70, borderRadius: 35, marginBottom: 16, alignSelf: 'center' },
   bSecT:    { fontSize: 9, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#e07b39',
               textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 },
   bRule:    { borderBottomWidth: 1, borderBottomColor: '#e07b39', marginBottom: 8 },
   bSec:     { marginBottom: 14 },
-  bEntry:   { marginBottom: 8 },
+  bEntry:   { marginBottom: 18 },
   bRow:     { flexDirection: 'row', justifyContent: 'space-between' },
-  bBold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
+  bBold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', flex: 1, paddingRight: 8 },
   bSub:     { fontSize: 8.5, color: '#666', marginTop: 1 },
-  bDates:   { fontSize: 8, color: '#aaa' },
-  bDesc:    { fontSize: 8.5, color: '#333', lineHeight: 1.55, marginTop: 3 },
-  bSumm:    { fontSize: 9, color: '#444', lineHeight: 1.6 },
+  bDates:   { fontSize: 8, color: '#aaa', flexShrink: 0, textAlign: 'right' },
+  bDesc:    { fontSize: 8.5, color: '#333', lineHeight: 1.65, marginTop: 4 },
+  bSumm:    { fontSize: 9, color: '#444', lineHeight: 1.7 },
 });
 
 function FriggeriFdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
@@ -716,13 +802,13 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
 
           <View style={FR.sSec}>
             <Text style={FR.sSecT}>{L.contact}</Text>
-            {contactParts(info).map((c, i) => <Text key={i} style={FR.sCon}>{c}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={FR.sCon}>{shortContact(c)}</Text>)}
           </View>
 
           {hasList(sk) ? (
             <View style={FR.sSec}>
               <Text style={FR.sSecT}>{L.skills}</Text>
-              <SkillBars skills={sk} barColor="#ddd" />
+              <SkillBars skills={sk} barColor="#ddd" textColor="#ddd" trackColor="#4a4a4a" chipStyle={{ backgroundColor: '#3d3d3d', color: '#ddd' }} />
             </View>
           ) : null}
 
@@ -739,7 +825,7 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
             <View style={FR.bSec}>
               <Text style={FR.bSecT}>{L.aboutMe}</Text>
               <View style={FR.bRule} />
-              <Text style={FR.bSumm}>{info.summary}</Text>
+              <PdfDescription text={info.summary} textStyle={FR.bSumm} dotColor="#555" bulletGap={3} />
             </View>
           ) : null}
 
@@ -754,7 +840,7 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
                     <Text style={FR.bDates}>{dateRange(e, L.present)}</Text>
                   </View>
                   {e.company ? <Text style={FR.bSub}>{e.company}</Text> : null}
-                  {e.description ? <Text style={FR.bDesc}>{e.description}</Text> : null}
+                  {e.description ? <PdfDescription text={e.description} textStyle={FR.bDesc} dotColor="#e07b39" bulletGap={3} /> : null}
                 </View>
               ))}
             </View>
@@ -775,7 +861,7 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
                     </View>
                     {inst  ? <Text style={FR.bSub}>{inst}</Text>  : null}
                     {grade ? <Text style={FR.bSub}>{grade}</Text> : null}
-                    {desc  ? <Text style={FR.bDesc}>{desc}</Text> : null}
+                    {desc  ? <PdfDescription text={desc} textStyle={FR.bDesc} dotColor="#e07b39" bulletGap={3} /> : null}
                   </View>
                 );
               })}
@@ -821,13 +907,13 @@ const HI = StyleSheet.create({
   secT:    { fontSize: 8, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#0f766e', textTransform: 'uppercase',
              letterSpacing: 1.5, marginBottom: 6, marginTop: 12 },
   rule:    { borderBottomWidth: 0.5, borderBottomColor: '#d1fae5', marginBottom: 8 },
-  entry:   { marginBottom: 8 },
+  entry:   { marginBottom: 18, paddingBottom: 6 },
   row:     { flexDirection: 'row', justifyContent: 'space-between' },
-  bold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111' },
+  bold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', flex: 1, paddingRight: 8 },
   sub:     { fontSize: 8.5, color: '#6b7280', marginTop: 1 },
-  dates:   { fontSize: 8, color: '#9ca3af' },
-  desc:    { fontSize: 8.5, color: '#374151', lineHeight: 1.55, marginTop: 3 },
-  summ:    { fontSize: 9, color: '#374151', lineHeight: 1.6, marginTop: 4 },
+  dates:   { fontSize: 8, color: '#9ca3af', flexShrink: 0, textAlign: 'right' },
+  desc:    { fontSize: 8.5, color: '#374151', lineHeight: 1.65, marginTop: 4 },
+  summ:    { fontSize: 9, color: '#374151', lineHeight: 1.7, marginTop: 4 },
   skills:  { flexDirection: 'row', flexWrap: 'wrap' },
   skill:   { fontSize: 7.5, backgroundColor: '#f0fdf4', color: '#065f46', borderWidth: 0.5,
              borderColor: '#a7f3d0', paddingHorizontal: 5, paddingVertical: 2,
@@ -864,7 +950,7 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
 
         <View style={HI.content}>
           {info.summary ? (
-            <Text style={HI.summ}>{info.summary}</Text>
+            <PdfDescription text={info.summary} textStyle={HI.summ} dotColor="#0f766e" bulletGap={3} />
           ) : null}
 
           <View style={HI.colRow}>
@@ -884,7 +970,7 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
                         </View>
                         {inst  ? <Text style={HI.sub}>{inst}</Text>  : null}
                         {grade ? <Text style={HI.sub}>{grade}</Text> : null}
-                        {desc  ? <Text style={HI.desc}>{desc}</Text> : null}
+                        {desc  ? <PdfDescription text={desc} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
                       </View>
                     );
                   })}
@@ -928,7 +1014,7 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
                         <Text style={HI.dates}>{dateRange(e, L.present)}</Text>
                       </View>
                       {e.company ? <Text style={HI.sub}>{e.company}</Text> : null}
-                      {e.description ? <Text style={HI.desc}>{e.description}</Text> : null}
+                      {e.description ? <PdfDescription text={e.description} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
                     </View>
                   ))}
                 </>
@@ -973,8 +1059,8 @@ function PieSkill({ pct, size = 10, fg = '#E96D1F', bg = '#4a4e68' }:
 
 const AC = StyleSheet.create({
   page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
-  sidebar:   { width: '32%', backgroundColor: '#2B2D42', padding: '28 16 28 18' },
-  main:      { width: '68%', padding: '28 24 28 20' },
+  sidebar:   { flex: 1, backgroundColor: '#2B2D42', padding: '26 14 26 16', overflow: 'hidden' },
+  main:      { flex: 2, padding: '28 24 28 20' },
 
   photoWrap: { alignItems: 'center', marginBottom: 12 },
   sName:     { fontSize: 13, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
@@ -983,10 +1069,10 @@ const AC = StyleSheet.create({
   sSecT:     { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#E96D1F', textTransform: 'uppercase',
                letterSpacing: 1.5, marginBottom: 8 },
   sSec:      { marginBottom: 14 },
-  sCon:      { fontSize: 7.5, color: '#cbd5e1', lineHeight: 1.5, marginBottom: 4 },
+  sCon:      { fontSize: 7.5, color: '#cbd5e1', lineHeight: 1.5, marginBottom: 3 },
   sSkillRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   sSkillName:{ fontSize: 8, color: '#e2e8f0', flex: 1, marginLeft: 7 },
-  sSumm:     { fontSize: 7.5, color: '#94a3b8', lineHeight: 1.55 },
+  sSumm:     { fontSize: 7.5, color: '#94a3b8', lineHeight: 1.65 },
 
   mName:     { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#2B2D42', marginBottom: 2 },
   mTagline:  { fontSize: 9.5, color: '#E96D1F', marginBottom: 16, fontFamily: 'DejaVu Sans', fontStyle: 'italic' },
@@ -994,13 +1080,13 @@ const AC = StyleSheet.create({
                letterSpacing: 1.5, paddingBottom: 3, borderBottomWidth: 0.75, borderBottomColor: '#E96D1F',
                marginBottom: 8 },
   mSec:      { marginBottom: 14 },
-  mEntry:    { flexDirection: 'row', marginBottom: 9 },
+  mEntry:    { flexDirection: 'row', marginBottom: 18 },
   mDot:      { width: 8, paddingTop: 2, marginRight: 8, alignItems: 'center' },
   mContent:  { flex: 1 },
   mBold:     { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#2B2D42' },
   mSub:      { fontSize: 8.5, color: '#E96D1F', marginTop: 1 },
-  mDates:    { fontSize: 7.5, color: '#94a3b8', marginTop: 1 },
-  mDesc:     { fontSize: 8, color: '#475569', lineHeight: 1.55, marginTop: 3 },
+  mDates:    { fontSize: 7.5, color: '#94a3b8', marginTop: 1, flexShrink: 0 },
+  mDesc:     { fontSize: 8, color: '#475569', lineHeight: 1.65, marginTop: 4 },
   mMisc:     { fontSize: 8.5, color: '#475569', lineHeight: 1.65 },
 });
 
@@ -1031,14 +1117,14 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
 
           <View style={[AC.sSec, { marginBottom: secMb }]}>
             <Text style={AC.sSecT}>{L.contact}</Text>
-            {contactParts(info).map((c, i) => <Text key={i} style={AC.sCon}>{c}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={AC.sCon}>{shortContact(c)}</Text>)}
           </View>
 
           {info.summary ? (
             <View style={[AC.sSec, { marginBottom: secMb }]}>
               <Text style={AC.sSecT}>{L.profile}</Text>
               <View style={AC.sDivider} />
-              <Text style={AC.sSumm}>{info.summary}</Text>
+              <PdfDescription text={info.summary} textStyle={AC.sSumm} dotColor="#94a3b8" bulletGap={2} />
             </View>
           ) : null}
 
@@ -1085,7 +1171,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
                     <Text style={AC.mBold}>{e.title || 'Role'}</Text>
                     {e.company ? <Text style={AC.mSub}>{e.company}</Text> : null}
                     {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
-                    {e.description ? <Text style={AC.mDesc}>{e.description}</Text> : null}
+                    {e.description ? <PdfDescription text={e.description} textStyle={AC.mDesc} dotColor="#E96D1F" bulletGap={3} /> : null}
                   </View>
                 </View>
               ))}
@@ -1108,7 +1194,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
                       {inst  ? <Text style={AC.mSub}>{inst}</Text>   : null}
                       {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
                       {grade ? <Text style={AC.mSub}>{grade}</Text>  : null}
-                      {desc  ? <Text style={{ fontSize: 8.5, color: '#475569', lineHeight: 1.55, marginTop: 2 }}>{desc}</Text> : null}
+                      {desc  ? <PdfDescription text={desc} textStyle={{ fontSize: 8.5, color: '#475569', lineHeight: 1.65 }} dotColor="#E96D1F" bulletGap={3} /> : null}
                     </View>
                   </View>
                 );
@@ -1167,10 +1253,11 @@ export async function generateResumePdfBlob(
   title?: string | null,
   photo?: string,
   language?: string,
+  options?: { classicAccentColor?: string; classicEntrySpacing?: number },
 ): Promise<Blob> {
   const props = { data: resumeData, title, photo, language };
   const doc =
-    templateId === 'classic'    ? <ClassicPdf    {...props} /> :
+    templateId === 'classic'    ? <ClassicPdf    {...props} accentColor={options?.classicAccentColor} entrySpacing={options?.classicEntrySpacing} /> :
     templateId === 'modern'     ? <ModernPdf     {...props} /> :
     templateId === 'researcher' ? <ResearcherPdf {...props} /> :
     templateId === 'friggeri'   ? <FriggeriFdf   {...props} /> :
@@ -1188,11 +1275,12 @@ export async function downloadResumePdf(
   title?: string | null,
   photo?: string,
   language?: string,
+  options?: { classicAccentColor?: string; classicEntrySpacing?: number },
 ) {
   const props = { data: resumeData, title, photo, language };
 
   const doc =
-    templateId === 'classic'    ? <ClassicPdf    {...props} /> :
+    templateId === 'classic'    ? <ClassicPdf    {...props} accentColor={options?.classicAccentColor} entrySpacing={options?.classicEntrySpacing} /> :
     templateId === 'modern'     ? <ModernPdf     {...props} /> :
     templateId === 'researcher' ? <ResearcherPdf {...props} /> :
     templateId === 'friggeri'   ? <FriggeriFdf   {...props} /> :
