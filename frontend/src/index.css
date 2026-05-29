@@ -35,6 +35,12 @@
   50%       { transform: scaleY(1); }
 }
 
+/* ===== Justified prose text ===== */
+.prose-justify {
+  text-align: justify !important;
+  hyphens: auto;
+}
+
 /* ===== Remove all focus/hover edge highlights from interactive elements ===== */
 button,
 select,

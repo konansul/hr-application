@@ -48,27 +48,67 @@ function AiInfoBadge({ tooltip }: { tooltip: string }) {
 }
 
 function renderDescription(text: string, truncated = false) {
-  const lines = text.split('\n').filter(l => l.trim() !== '');
+  const trail = <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />;
+  const lines = text.split('\n');
   const hasBullets = lines.some(l => l.trimStart().startsWith('• '));
+
   if (hasBullets) {
+    // Group consecutive non-bullet lines into the preceding bullet so each
+    // bullet contains its full text (PDF line-breaks split mid-sentence lines).
+    const groups: { isBullet: boolean; text: string }[] = [];
+    for (const line of lines.filter(l => l.trim() !== '')) {
+      if (line.trimStart().startsWith('• ')) {
+        groups.push({ isBullet: true, text: line.trimStart().slice(2).trim() });
+      } else if (groups.length > 0) {
+        groups[groups.length - 1].text += ' ' + line.trim();
+      } else {
+        groups.push({ isBullet: false, text: line.trim() });
+      }
+    }
     return (
-      <ul className="space-y-1">
-        {lines.map((line, idx) => {
-          const clean = line.trimStart().startsWith('• ') ? line.trimStart().slice(2) : line.trim();
+      <div className="space-y-1.5">
+        {groups.map(({ isBullet, text }, idx) => {
+          const isLast = idx === groups.length - 1;
+          if (isBullet) {
+            return (
+              <div key={idx} className="flex items-start gap-3 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
+                <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-[#7A60F4]/50 dark:bg-[#9EA4FF]/50 shrink-0" />
+                <div className="flex-1 prose-justify">{text}{truncated && isLast && trail}</div>
+              </div>
+            );
+          }
           return (
-            <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
-              <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-[#7A60F4]/50 dark:bg-[#9EA4FF]/50 shrink-0" />
-              <span>{clean}{truncated && idx === lines.length - 1 && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}</span>
-            </li>
+            <p key={idx} className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed prose-justify">
+              {text}{truncated && isLast && trail}
+            </p>
           );
         })}
-      </ul>
+      </div>
+    );
+  }
+
+  // Prose: PDF parsers insert \n at every visual line break. Join single newlines
+  // into spaces so the text flows as a paragraph; only \n\n creates a new paragraph.
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map(p => p.replace(/\n/g, ' ').replace(/  +/g, ' ').trim())
+    .filter(Boolean);
+
+  if (paragraphs.length <= 1) {
+    return (
+      <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed prose-justify">
+        {paragraphs[0] ?? text}{truncated && trail}
+      </p>
     );
   }
   return (
-    <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
-      {text}{truncated && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}
-    </p>
+    <div className="space-y-2">
+      {paragraphs.map((para, idx) => (
+        <p key={idx} className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed prose-justify">
+          {para}{truncated && idx === paragraphs.length - 1 && trail}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -80,13 +120,14 @@ function ExpandableText({ text, limit = 280 }: { text: string; limit?: number })
   const isTruncated = !expanded && text.length > limit;
   const displayText = isTruncated ? text.slice(0, limit).trimEnd() : text;
   return (
-    <div>
+    <div style={{ textAlign: 'justify', hyphens: 'auto' }}>
       {renderDescription(displayText, isTruncated)}
       {text.length > limit && (
         <button
           type="button"
           onClick={() => setExpanded(e => !e)}
           className="mt-1 text-xs font-medium text-[#7A60F4] dark:text-[#9EA4FF] hover:underline"
+          style={{ textAlign: 'left' }}
         >
           {expanded ? ((t as any).showLess ?? 'Show less') : ((t as any).showMore ?? 'Show more')}
         </button>
@@ -1581,9 +1622,11 @@ export function ResumeUploadTab() {
                         placeholder="Professional summary..."
                       />
                     ) : (
-                      <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl p-5">
-                        {selectedResume.personal_info?.summary || t.placeholders.noSummary}
-                      </p>
+                      <div className="bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl p-5">
+                        {selectedResume.personal_info?.summary
+                          ? <ExpandableText text={selectedResume.personal_info.summary} />
+                          : <span className="text-sm italic text-gray-400">{t.placeholders.noSummary}</span>}
+                      </div>
                     )}
                   </div>
 
@@ -1615,9 +1658,9 @@ export function ResumeUploadTab() {
                     ) : (
                       <>
                         {selectedResume.experience?.length ? selectedResume.experience.map((exp: any, i: number) => (
-                          <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800">
-                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
-                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3">{exp.start_date || '�'} � {exp.end_date || t.placeholders.present}</p>
+                          <div key={i} className="p-5 border border-gray-100 dark:border-neutral-700 rounded-2xl bg-gray-50/50 dark:bg-neutral-800" style={{ textAlign: 'justify', hyphens: 'auto' }}>
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1" style={{ textAlign: 'left' }}>{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
+                            <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3" style={{ textAlign: 'left' }}>{exp.start_date || '–'} – {exp.end_date || t.placeholders.present}</p>
                             {exp.description
                               ? <ExpandableText text={exp.description} />
                               : <p className="text-sm text-gray-400 italic">{t.placeholders.noDesc}</p>}

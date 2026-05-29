@@ -396,27 +396,65 @@ export function ProfileTab() {
   );
 
   const renderDescription = (text: string, truncated = false) => {
-    const lines = text.split('\n').filter(l => l.trim() !== '');
+    const trail = <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />;
+    const lines = text.split('\n');
     const hasBullets = lines.some(l => l.trimStart().startsWith('• '));
+
     if (hasBullets) {
+      const groups: { isBullet: boolean; text: string }[] = [];
+      for (const line of lines.filter(l => l.trim() !== '')) {
+        if (line.trimStart().startsWith('• ')) {
+          groups.push({ isBullet: true, text: line.trimStart().slice(2).trim() });
+        } else if (groups.length > 0) {
+          groups[groups.length - 1].text += ' ' + line.trim();
+        } else {
+          groups.push({ isBullet: false, text: line.trim() });
+        }
+      }
       return (
-        <ul className="space-y-1">
-          {lines.map((line, idx) => {
-            const clean = line.trimStart().startsWith('• ') ? line.trimStart().slice(2) : line.trim();
+        <div className="space-y-1.5">
+          {groups.map(({ isBullet, text }, idx) => {
+            const isLast = idx === groups.length - 1;
+            if (isBullet) {
+              return (
+                <div key={idx} className="flex items-start gap-3 text-sm text-gray-600 dark:text-neutral-300 leading-relaxed">
+                  <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-[#7A60F4]/50 dark:bg-[#9EA4FF]/50 shrink-0" />
+                  <div className="flex-1 prose-justify">{text}{truncated && isLast && trail}</div>
+                </div>
+              );
+            }
             return (
-              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-neutral-300 leading-relaxed">
-                <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-[#7A60F4]/50 dark:bg-[#9EA4FF]/50 shrink-0" />
-                <span>{clean}{truncated && idx === lines.length - 1 && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}</span>
-              </li>
+              <p key={idx} className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed prose-justify">
+                {text}{truncated && isLast && trail}
+              </p>
             );
           })}
-        </ul>
+        </div>
+      );
+    }
+
+    // Prose: PDF parsers insert \n at every visual line break. Join single newlines
+    // into spaces so the text flows as a paragraph; only \n\n creates a new paragraph.
+    const paragraphs = text
+      .split(/\n{2,}/)
+      .map(p => p.replace(/\n/g, ' ').replace(/  +/g, ' ').trim())
+      .filter(Boolean);
+
+    if (paragraphs.length <= 1) {
+      return (
+        <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed prose-justify">
+          {paragraphs[0] ?? text}{truncated && trail}
+        </p>
       );
     }
     return (
-      <p className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
-        {text}{truncated && <span className="inline-block w-6 h-[3px] bg-gray-300 dark:bg-neutral-600 rounded-full align-middle ml-0.5" />}
-      </p>
+      <div className="space-y-2">
+        {paragraphs.map((para, idx) => (
+          <p key={idx} className="text-sm text-gray-600 dark:text-neutral-300 leading-relaxed prose-justify">
+            {para}{truncated && idx === paragraphs.length - 1 && trail}
+          </p>
+        ))}
+      </div>
     );
   };
 
