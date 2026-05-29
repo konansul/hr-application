@@ -41,6 +41,11 @@ export const screeningApi = {
     return response.data;
   },
 
+  saveJob: async (jobId: string) => {
+    const response = await apiClient.post('/v1/applications/save-job', { job_id: jobId });
+    return response.data;
+  },
+
   getCandidateAnswers: async (ownerUserId: string, jobId: string) => {
     const response = await apiClient.get('/v1/applications/answers', { params: { owner_user_id: ownerUserId, job_id: jobId } });
     return response.data;

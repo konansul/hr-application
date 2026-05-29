@@ -25,7 +25,7 @@ type OrgPopover = {
   right: number;
 };
 
-const DISPLAY_STAGES = ['Applied', 'In Progress', 'Decision'];
+const DISPLAY_STAGES = ['Saved', 'Applied', 'In Progress', 'Decision'];
 
 const SELF_STAGES = [
   { value: 'Saved',          label: 'Saved' },
@@ -40,9 +40,11 @@ const REJECTED_VALUE = 'Rejected';
 
 function getDisplayStageIdx(status: string) {
   const n = status?.toUpperCase().replace(/ /g, '_') || '';
-  if (n.includes('OFFER') || n.includes('HIRE') || n.includes('ACCEPT') || n.includes('REJECT') || n.includes('FAIL')) return 2;
-  if (n !== '' && !n.includes('APPLIED') && !n.includes('NOT_APPLIED')) return 1;
-  return 0;
+  if (n.includes('OFFER') || n.includes('HIRE') || n.includes('ACCEPT') || n.includes('REJECT') || n.includes('FAIL')) return 3;
+  if (n !== '' && !n.includes('APPLIED') && !n.includes('NOT_APPLIED') && !n.includes('SAVED')) return 2;
+  if (n.includes('APPLIED')) return 1;
+  if (n === 'SAVED') return 0;
+  return 1;
 }
 
 // function stageIcon(norm: string, size = 'w-4 h-4') {
@@ -136,7 +138,7 @@ export function JobApplicationTab() {
     const sl = t.stageLabels;
     if (!sl) return s;
     const map: Record<string, string> = {
-      'Applied': sl.applied, 'In Progress': sl.inProgress, 'Decision': sl.decision,
+      'Saved': sl.saved ?? 'Saved', 'Applied': sl.applied, 'In Progress': sl.inProgress, 'Decision': sl.decision,
     };
     return map[s] ?? s;
   };
@@ -153,6 +155,19 @@ export function JobApplicationTab() {
   const [expandedId, setExpandedId]           = useState<string | null>(null);
 
   const [externalModalUrl, setExternalModalUrl] = useState<string | null>(null);
+  const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
+
+  const handleApplyFromSaved = async (jobId: string) => {
+    setApplyingJobId(jobId);
+    try {
+      await screeningApi.applyToJob(jobId);
+      await fetchApplications(true);
+    } catch (e: any) {
+      alert(e?.response?.data?.detail || 'Failed to submit application');
+    } finally {
+      setApplyingJobId(null);
+    }
+  };
 
   const [typeFilter, setTypeFilter]     = useState<'all' | 'hr' | 'self'>('all');
   const [stageFilter, setStageFilter]   = useState<string>('all');
@@ -287,7 +302,8 @@ export function JobApplicationTab() {
     const filterNorm = normalizeStatus(stageFilter);
     if (filterNorm === 'REJECTED') return norm.includes('REJECT') || norm.includes('FAIL');
     if (norm.includes('REJECT') || norm.includes('FAIL')) return false;
-    // If the selected stage belongs only to the self-tracked pipeline, no HR app matches
+    if (filterNorm === 'SAVED') return norm === 'SAVED';
+    if (norm === 'SAVED') return false;
     const isHrStage = DISPLAY_STAGES.some(s => normalizeStatus(s) === filterNorm);
     if (!isHrStage) return false;
     return getDisplayStageIdx(appStatus) >= getDisplayStageIdx(stageFilter);
@@ -367,21 +383,24 @@ export function JobApplicationTab() {
         <div className="flex justify-between items-center relative max-w-xl">
           <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-neutral-800 -translate-y-1/2 z-0 rounded-full" />
           <div
-            className={`absolute top-1/2 left-0 h-1 ${isOffer ? 'bg-violet-500 dark:bg-violet-600' : 'bg-indigo-500 dark:bg-white'} -translate-y-1/2 z-0 transition-all duration-700 rounded-full`}
+            className={`absolute top-1/2 left-0 h-1 ${isOffer ? 'bg-violet-500 dark:bg-violet-600' : 'bg-[#7A60F4]'} -translate-y-1/2 z-0 transition-all duration-700 rounded-full`}
             style={{ width: `${Math.min(100, Math.max(0, (idx / (DISPLAY_STAGES.length - 1)) * 100))}%` }}
           />
           {DISPLAY_STAGES.map((label, i) => {
             const isActive  = i <= idx;
             const isCurrent = i === idx;
+            const isSavedDot = label === 'Saved';
             let dot = 'bg-white dark:bg-black border-gray-300 dark:border-neutral-700';
-            if (isCurrent) dot = isOffer ? 'bg-white dark:bg-black border-violet-500 dark:border-violet-600 shadow-sm' : 'bg-white dark:bg-black border-indigo-500 dark:border-white shadow-sm';
-            else if (isActive) dot = isOffer ? 'bg-violet-500 dark:bg-violet-600 border-violet-500 dark:border-violet-600' : 'bg-indigo-500 dark:bg-white border-indigo-500 dark:border-white';
+            if (isCurrent) dot = isOffer ? 'bg-white dark:bg-black border-violet-500 dark:border-violet-600 shadow-sm' : 'bg-white dark:bg-black border-[#7A60F4] shadow-sm';
+            else if (isActive) dot = isOffer ? 'bg-violet-500 dark:bg-violet-600 border-violet-500 dark:border-violet-600' : 'bg-[#7A60F4] border-[#7A60F4]';
             return (
               <div key={label} className="relative z-10 flex flex-col items-center">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${dot}`}>
                   {isActive && !isCurrent
-                    ? <svg className="w-3.5 h-3.5 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    : <span className={`text-[10px] font-bold ${isCurrent ? (isOffer ? 'text-violet-600 dark:text-violet-400' : 'text-indigo-600 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>{i + 1}</span>
+                    ? <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    : isSavedDot
+                      ? <svg className={`w-3 h-3 ${isCurrent ? (isOffer ? 'text-violet-600 dark:text-violet-400' : 'text-[#7A60F4]') : 'text-gray-400 dark:text-neutral-500'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                      : <span className={`text-[10px] font-bold ${isCurrent ? (isOffer ? 'text-violet-600 dark:text-violet-400' : 'text-[#7A60F4]') : 'text-gray-400 dark:text-neutral-500'}`}>{i + 1}</span>
                   }
                 </div>
                 <span className={`absolute -bottom-6 text-[9px] font-bold uppercase whitespace-nowrap tracking-wider ${isCurrent ? (isOffer ? 'text-violet-700 dark:text-violet-400' : 'text-gray-900 dark:text-white') : 'text-gray-400 dark:text-neutral-500'}`}>
@@ -736,6 +755,20 @@ export function JobApplicationTab() {
                     </div>
                   )}
                   {renderHrPipeline(app)}
+                  {normalizeStatus(app.status) === 'SAVED' && !isClosed && (
+                    <div className="mt-5 pt-4 border-t border-gray-100 dark:border-neutral-800 flex items-center justify-between gap-4">
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">
+                        {(t.savedApplyHint as string | undefined) ?? 'Ready to apply? Submit your application now.'}
+                      </p>
+                      <button
+                        onClick={() => handleApplyFromSaved(app.job_id)}
+                        disabled={applyingJobId === app.job_id}
+                        className="shrink-0 px-4 py-2 text-sm font-bold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl shadow-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {applyingJobId === app.job_id ? '…' : ((t.applyNow as string | undefined) ?? 'Apply Now')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

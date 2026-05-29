@@ -239,6 +239,19 @@ def apply_to_job(
     ).first()
 
     if existing_app:
+        if existing_app.status == "SAVED":
+            # Upgrade saved → applied
+            existing_app.status = "APPLIED"
+            existing_app.resume_id = resume.resume_id
+            if req.answers:
+                existing_app.answers_to_screening_json = json.dumps(req.answers, ensure_ascii=False)
+            db.commit()
+            db.refresh(existing_app)
+            return {
+                "status": "success",
+                "application_id": existing_app.application_id,
+                "message": "Application submitted successfully"
+            }
         raise HTTPException(status_code=400, detail="You have already applied for this position")
 
     new_application = Application(
@@ -259,6 +272,75 @@ def apply_to_job(
         "application_id": new_application.application_id,
         "message": "Application submitted successfully"
     }
+
+
+class SaveJobRequest(BaseModel):
+    job_id: str
+
+
+@router.post("/applications/save-job")
+def save_job(
+        req: SaveJobRequest,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "candidate":
+        raise HTTPException(status_code=403, detail="Only candidates can save jobs")
+
+    job = db.query(Job).filter(Job.job_id == req.job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+    if not person:
+        raise HTTPException(status_code=400, detail="Please complete your profile first")
+
+    existing = db.query(Application).filter(
+        Application.job_id == req.job_id,
+        Application.person_id == person.person_id
+    ).first()
+
+    if existing:
+        return {"status": "exists", "application_id": existing.application_id, "current_status": existing.status}
+
+    new_app = Application(
+        application_id=new_id("app"),
+        job_id=req.job_id,
+        person_id=person.person_id,
+        resume_id=None,
+        status="SAVED",
+    )
+    db.add(new_app)
+    db.commit()
+    db.refresh(new_app)
+    return {"status": "saved", "application_id": new_app.application_id}
+
+
+@router.delete("/applications/{application_id}")
+def delete_application(
+        application_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    if current_user.role != "candidate":
+        raise HTTPException(status_code=403, detail="Only candidates can delete applications")
+
+    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+    if not person:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    app = db.query(Application).filter(
+        Application.application_id == application_id,
+        Application.person_id == person.person_id,
+        Application.status == "SAVED"
+    ).first()
+
+    if not app:
+        raise HTTPException(status_code=404, detail="Saved application not found")
+
+    db.delete(app)
+    db.commit()
+    return {"status": "deleted"}
 
 
 @router.get("/applications/answers")

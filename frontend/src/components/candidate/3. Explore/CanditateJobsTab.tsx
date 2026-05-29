@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { jobsApi, screeningApi, authApi, documentsApi, externalJobsApi, resumesApi } from '../../../api';
 import { HtmlContent } from '../../shared/HtmlContent';
 import { stripHtml } from '../../../utils/html';
@@ -361,11 +361,42 @@ export function JobsTab() {
     const [externalDetailJob, setExternalDetailJob] = useState<any | null>(null);
     const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
 
-    // Saved jobs tracker � user-specific key matches JobApplicationTab
+    // Saved jobs tracker — user-specific key matches JobApplicationTab
     const lsKey = userId ? `candidate_tracked_jobs_${userId}` : null;
     const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
     const wizardSeenKey = userId ? `hrai_save_job_wizard_seen_${userId}` : null;
     const [showSaveWizard, setShowSaveWizard] = useState(false);
+
+    // Platform job save (backend-tracked, appears in HR-Managed / Applications)
+    const [savingPlatformJobIds, setSavingPlatformJobIds] = useState<Set<string>>(new Set());
+
+    const savePlatformJob = async (job: any) => {
+        const jid = String(job.id || job.job_id || '');
+        if (!jid || savingPlatformJobIds.has(jid)) return;
+        setSavingPlatformJobIds(prev => new Set([...prev, jid]));
+        try {
+            await screeningApi.saveJob(jid);
+            const updatedApps = await screeningApi.getMyApplications();
+            setApplications(updatedApps);
+            window.dispatchEvent(new Event('tracked-jobs-updated'));
+            if (wizardSeenKey && !localStorage.getItem(wizardSeenKey)) setShowSaveWizard(true);
+        } catch { /* ignore */ } finally {
+            setSavingPlatformJobIds(prev => { const next = new Set(prev); next.delete(jid); return next; });
+        }
+    };
+
+    const unsavePlatformJob = async (applicationId: string, jid: string) => {
+        if (!applicationId || savingPlatformJobIds.has(jid)) return;
+        setSavingPlatformJobIds(prev => new Set([...prev, jid]));
+        try {
+            await screeningApi.deleteApplication(applicationId);
+            const updatedApps = await screeningApi.getMyApplications();
+            setApplications(updatedApps);
+            window.dispatchEvent(new Event('tracked-jobs-updated'));
+        } catch { /* ignore */ } finally {
+            setSavingPlatformJobIds(prev => { const next = new Set(prev); next.delete(jid); return next; });
+        }
+    };
 
     useEffect(() => {
         const handler = () => {
@@ -692,7 +723,8 @@ export function JobsTab() {
         const appliedJob = applyingJob;
         const updatedApps = await screeningApi.getMyApplications();
         setApplications(updatedApps);
-        if (appliedJob) saveJobToTracker(appliedJob, 'Applied');
+        // Only track in localStorage for external (Job Market) jobs — platform jobs go to HR-Managed via backend
+        if (appliedJob && appliedJob.source) saveJobToTracker(appliedJob, 'Applied');
         setApplyingJob(null);
         setAnswers({});
         alert(t.successMsg);
@@ -1170,21 +1202,33 @@ export function JobsTab() {
                                                 <span className={`text-sm font-semibold leading-snug line-clamp-2 flex-1 min-w-0 ${isClosed ? 'text-gray-400 dark:text-neutral-500' : 'text-gray-900 dark:text-white'}`}>
                                                     {job.title}
                                                 </span>
-                                                <div onClick={e => e.stopPropagation()}>
+                                                <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 shrink-0">
                                                     {isClosed ? (
-                                                        <span className="shrink-0 text-[10px] text-gray-400 dark:text-neutral-500 font-medium mt-0.5">{tl.positionClosed ?? 'Closed'}</span>
-                                                    ) : userApp ? (
-                                                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-[#92D8F2] text-slate-800 shadow-sm whitespace-nowrap">
+                                                        <span className="text-[10px] text-gray-400 dark:text-neutral-500 font-medium mt-0.5">{tl.positionClosed ?? 'Closed'}</span>
+                                                    ) : userApp && userApp.status !== 'SAVED' ? (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-[#92D8F2] text-slate-800 shadow-sm whitespace-nowrap">
                                                             <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                                             {t.appSubmittedBtn}
                                                         </span>
                                                     ) : (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleApplyClick(job); }}
-                                                            className="shrink-0 px-2.5 py-1 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-[10px] font-bold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
-                                                        >
-                                                            {t.quickApplyBtn}
-                                                        </button>
+                                                        <>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); userApp ? unsavePlatformJob(userApp.application_id, jid) : savePlatformJob(job); }}
+                                                                title={userApp ? (tl.unsaveJob ?? 'Remove from saved') : (tl.saveJob ?? 'Save job')}
+                                                                disabled={savingPlatformJobIds.has(jid)}
+                                                                className={`p-1 rounded-lg transition-all active:scale-95 disabled:opacity-50 ${userApp ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-300 dark:text-neutral-600 hover:text-[#7A60F4] dark:hover:text-[#9EA4FF]'}`}
+                                                            >
+                                                                <svg className="w-3.5 h-3.5" fill={userApp ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                                </svg>
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleApplyClick(job); }}
+                                                                className="shrink-0 px-2.5 py-1 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-[10px] font-bold rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                                                            >
+                                                                {t.quickApplyBtn}
+                                                            </button>
+                                                        </>
                                                     )}
                                                 </div>
                                             </div>
@@ -1198,7 +1242,7 @@ export function JobsTab() {
                                                 )}
                                                 {userApp && (
                                                     <span className="px-1.5 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[9px] font-bold uppercase tracking-wider">
-                                                        {tl.stages?.applied ?? 'Applied'}
+                                                        {userApp.status === 'SAVED' ? (tl.stages?.saved ?? 'Saved') : (tl.stages?.applied ?? 'Applied')}
                                                     </span>
                                                 )}
                                                 {job.region && (
@@ -1699,8 +1743,11 @@ export function JobsTab() {
                                         )}
                                         {userApp && (
                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[10px] font-bold uppercase tracking-wider">
-                                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                                {tl.stages?.applied ?? 'Applied'}
+                                                {userApp.status === 'SAVED'
+                                                    ? <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                                                    : <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                }
+                                                {userApp.status === 'SAVED' ? (tl.stages?.saved ?? 'Saved') : (tl.stages?.applied ?? 'Applied')}
                                             </span>
                                         )}
                                         {job.region && (
@@ -1744,13 +1791,29 @@ export function JobsTab() {
                                 >
                                     {t.showLess}
                                 </button>
-                                {!isClosed && !userApp && (
-                                    <button
-                                        onClick={() => { setJobDetailModal(null); handleApplyClick(job); }}
-                                        className="px-5 py-2 text-sm font-bold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl shadow-sm transition-all active:scale-[0.98]"
-                                    >
-                                        {t.quickApplyBtn}
-                                    </button>
+                                {!isClosed && (
+                                    <>
+                                        {(!userApp || userApp.status === 'SAVED') && (
+                                            <button
+                                                onClick={() => userApp ? unsavePlatformJob(userApp.application_id, jid) : savePlatformJob(job)}
+                                                disabled={savingPlatformJobIds.has(jid)}
+                                                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border-2 transition-all disabled:opacity-50 ${userApp ? 'border-[#7A60F4] text-[#7A60F4] dark:text-[#9EA4FF] hover:bg-[#7A60F4]/5' : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}
+                                            >
+                                                <svg className="w-4 h-4" fill={userApp ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                </svg>
+                                                {userApp ? (tl.unsaveJob ?? 'Unsave') : (tl.saveJob ?? 'Save')}
+                                            </button>
+                                        )}
+                                        {(!userApp || userApp.status === 'SAVED') && (
+                                            <button
+                                                onClick={() => { setJobDetailModal(null); handleApplyClick(job); }}
+                                                className="px-5 py-2 text-sm font-bold text-white bg-[#7A60F4] hover:bg-[#6B52E8] rounded-xl shadow-sm transition-all active:scale-[0.98]"
+                                            >
+                                                {t.quickApplyBtn}
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
