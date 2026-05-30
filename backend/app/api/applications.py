@@ -56,42 +56,50 @@ def update_application_status(
                 job = db.query(Job).filter(Job.job_id == app.job_id).first()
                 job_title = job.title if job else "a job"
 
-                # Map HR internal statuses → candidate-facing display stage + message.
-                # Use substring matching (same logic as the candidate UI's getDisplayStageIdx)
-                # so custom pipeline stages like HR_INTERVIEW / TECH_INTERVIEW are handled too.
-                _s = update.status.upper()
-                if "OFFER" in _s or "HIRE" in _s or "ACCEPT" in _s:
-                    notification_message = (
-                        f'Decision on your application for "{job_title}": '
-                        f"Congratulations — you've received an offer!"
-                    )
-                elif "REJECT" in _s or "FAIL" in _s:
-                    notification_message = (
-                        f'Decision on your application for "{job_title}": '
-                        f"Thank you for your interest — this role has been filled by another candidate."
-                    )
-                elif "INTERVIEW" in _s or "SHORTLIST" in _s:
-                    notification_message = (
-                        f'Your application for "{job_title}" is In Progress.'
-                    )
-                elif _s == "APPLIED":
-                    # No notification needed when re-set to Applied
-                    notification_message = None
-                else:
-                    # Any other custom stage that isn't Applied → generic In Progress message
-                    notification_message = (
-                        f'Your application for "{job_title}" is In Progress.'
-                    )
+                def candidate_stage(status: str) -> str:
+                    """Map any HR status to the candidate-facing stage."""
+                    s = status.upper()
+                    if "OFFER" in s or "HIRE" in s or "ACCEPT" in s:
+                        return "offer"
+                    if "REJECT" in s or "FAIL" in s:
+                        return "rejected"
+                    if s == "APPLIED":
+                        return "applied"
+                    return "in_progress"
 
-                if notification_message:
-                    notification = Notification(
-                        notification_id=new_id("notif"),
-                        user_id=candidate_user.user_id,
-                        application_id=app.application_id,
-                        message=notification_message,
-                        is_read=False,
-                    )
-                    db.add(notification)
+                old_stage = candidate_stage(old_status)
+                new_stage = candidate_stage(update.status)
+
+                # Only notify if the candidate-facing stage actually changed.
+                # This prevents duplicate "In Progress" notifications when HR
+                # moves between intermediate stages (e.g. HR_INTERVIEW → TECH_INTERVIEW).
+                if new_stage != old_stage:
+                    if new_stage == "offer":
+                        notification_message = (
+                            f'Decision on your application for "{job_title}": '
+                            f"Congratulations — you've received an offer!"
+                        )
+                    elif new_stage == "rejected":
+                        notification_message = (
+                            f'Decision on your application for "{job_title}": '
+                            f"Thank you for your interest — this role has been filled by another candidate."
+                        )
+                    elif new_stage == "in_progress":
+                        notification_message = (
+                            f'Your application for "{job_title}" is In Progress.'
+                        )
+                    else:
+                        notification_message = None
+
+                    if notification_message:
+                        notification = Notification(
+                            notification_id=new_id("notif"),
+                            user_id=candidate_user.user_id,
+                            application_id=app.application_id,
+                            message=notification_message,
+                            is_read=False,
+                        )
+                        db.add(notification)
 
     db.commit()
     return {"ok": True, "new_status": app.status}

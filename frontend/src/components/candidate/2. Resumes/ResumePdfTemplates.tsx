@@ -1,4 +1,5 @@
 ﻿import { Document, Page, Text, View, StyleSheet, pdf, Image, Svg, Circle, Path, Font } from '@react-pdf/renderer';
+import type { Style } from '@react-pdf/types';
 
 const CDN = 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf';
 
@@ -42,7 +43,7 @@ function parsePdfText(raw: string): { bullet: boolean; text: string }[] {
 }
 
 function PdfDescription({ text, textStyle, dotColor = '#555', bulletGap = 2 }: {
-  text: string; textStyle: object; dotColor?: string; bulletGap?: number;
+  text: string; textStyle: Style; dotColor?: string; bulletGap?: number;
 }) {
   const items = parsePdfText(text);
   const hasBullets = items.some(it => it.bullet);
@@ -110,11 +111,11 @@ function hasList(arr: any[]) { return arr && arr.length > 0; }
 // Each leading newline in a description = 5pt of extra gap before the text.
 // This lets users press Enter at the start of a description in the live editor
 // to push the text down, and have that space appear identically in the PDF.
-function leadingGap(raw: string): { gap: number; text: string } {
-  const m = raw.match(/^\n+/);
-  if (!m) return { gap: 0, text: raw };
-  return { gap: m[0].length * 5, text: raw.slice(m[0].length) };
-}
+// function leadingGap(raw: string): { gap: number; text: string } {
+//   const m = raw.match(/^\n+/);
+//   if (!m) return { gap: 0, text: raw };
+//   return { gap: m[0].length * 5, text: raw.slice(m[0].length) };
+// }
 
 function shortContact(s: string, max = 34): string {
   if (!s || s.length <= max) return s;
@@ -167,7 +168,7 @@ function skillLevel(s: any): number | null {
 }
 
 function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb = 6, labelFs = 8, textColor = '#333', trackColor = '#e5e7eb' }: {
-  skills: any[]; barColor?: string; chipStyle?: object; defaultLevel?: number; itemMb?: number; labelFs?: number; textColor?: string; trackColor?: string;
+  skills: any[]; barColor?: string; chipStyle?: Style; defaultLevel?: number; itemMb?: number; labelFs?: number; textColor?: string; trackColor?: string;
 }) {
   const withLevel = skills.filter(s => skillLevel(s) !== null);
   // Always render as chips. If levels are present, show a progress bar per skill.

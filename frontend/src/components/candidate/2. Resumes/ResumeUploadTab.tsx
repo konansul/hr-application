@@ -720,6 +720,7 @@ function EditableTextarea({ value, onSave, style, className = '' }: {
   const localRef = useRef(value);
   const ref = useRef<HTMLTextAreaElement>(null);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setLocal(value); localRef.current = value; }, [value]);
 
   useEffect(() => {
@@ -948,6 +949,7 @@ function ClassicLiveEditor({ pdfDraft, updatePdfDraft, photo, language, accentCo
 export function ResumeUploadTab() {
   const { language, activeTab, setActiveTab } = useStore();
   const t = DICT[language as keyof typeof DICT]?.resumes || DICT.en.resumes;
+  const tProfile = DICT[language as keyof typeof DICT]?.profile || DICT.en.profile;
 
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -1003,7 +1005,7 @@ export function ResumeUploadTab() {
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const [pdfDraft, setPdfDraft] = useState<any>(null);
   const pdfDraftRef = useRef<any>(null);
-  const [pdfEditMode, setPdfEditMode] = useState(false);
+  const [_pdfEditMode, setPdfEditMode] = useState(false);
   const [classicAccentColor, setClassicAccentColor] = useState('#111111');
   const [classicEntrySpacing, setClassicEntrySpacing] = useState(0);
   const [isSavingClassicEdits, setIsSavingClassicEdits] = useState(false);
@@ -1132,11 +1134,18 @@ export function ResumeUploadTab() {
   }, [resumeVersions, searchQuery]);
 
   useEffect(() => {
-    if (!selectedResume?.resume_id) { setManuallyEditedSections(new Set()); return; }
+    if (!selectedResume?.resume_id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setManuallyEditedSections(new Set()); return;
+    }
     try {
       const stored = localStorage.getItem(`hrai_manual_sections_${selectedResume.resume_id}`);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setManuallyEditedSections(stored ? new Set(JSON.parse(stored)) : new Set());
-    } catch { setManuallyEditedSections(new Set()); }
+    } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setManuallyEditedSections(new Set());
+    }
   }, [selectedResume?.resume_id]);
 
   // Auto-populate email message template when resume or recipient name changes
@@ -1154,6 +1163,7 @@ export function ResumeUploadTab() {
     const greeting = sendEmailRecipientName.trim()
       ? eb.greeting.replace('{name}', sendEmailRecipientName.trim())
       : eb.hiringManager;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSendEmailMessage(
       `${greeting}\n\n${eb.line1}\n\n${eb.line2attach}\n\n${eb.line3}\n${cvLink}\n\n${eb.line4}\n\n${eb.line5}\n\n${eb.regards}\n${senderName}`
     );
@@ -1364,7 +1374,7 @@ export function ResumeUploadTab() {
     setInlineLinkCopied(false);
   };
 
-  const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string, language?: string, options?: { classicAccentColor?: string }) => {
+  const handlePreviewTemplate = async (templateId: string, resumeData: any, title?: string | null, photo?: string, language?: string, options?: { classicAccentColor?: string; classicEntrySpacing?: number }) => {
     if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
     setPreviewingTemplateId(templateId);
     setPreviewBlobUrl(null);
@@ -1461,7 +1471,10 @@ export function ResumeUploadTab() {
 
   const startEditingContent = () => {
     if (!selectedResume) return;
-    setEditDraft({ ...selectedResume });
+    const normalizedSkills = (selectedResume.skills ?? []).map((s: any) =>
+      typeof s === 'string' ? { name: s, level: '' } : { name: s.name || '', level: s.level || '' }
+    );
+    setEditDraft({ ...selectedResume, skills: normalizedSkills });
     setTitleDraft(selectedResume.title || '');
     setIsEditingContent(true);
     setTimeout(() => titleInputRef.current?.focus(), 0);
@@ -1481,7 +1494,7 @@ export function ResumeUploadTab() {
         personal_info: { ...(editDraft.personal_info ?? {}), summary: editDraft.personal_info?.summary ?? '' },
         experience:     editDraft.experience     ?? [],
         education:      editDraft.education      ?? [],
-        skills:         editDraft.skills         ?? [],
+        skills:         (editDraft.skills ?? []).filter((s: any) => (typeof s === 'string' ? s : s.name || '').trim()),
         languages:       (editDraft.languages      ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.language || '').trim()).filter(Boolean),
         certifications:  (editDraft.certifications ?? []).map((s: any) => (typeof s === 'string' ? s : s.name || s.title  || '').trim()).filter(Boolean),
         hide_references: editDraft.hide_references ?? false,
@@ -1532,6 +1545,10 @@ export function ResumeUploadTab() {
   const removeCertEntry = (i: number) => setEditDraft(d => d ? { ...d, certifications: (d.certifications ?? []).filter((_: any, j: number) => j !== i) } : d);
   const updateCertEntry = (i: number, value: string) => setEditDraft(d => { if (!d) return d; const a = [...(d.certifications ?? [])]; a[i] = value; return { ...d, certifications: a }; });
 
+  const addSkillEntry = () => setEditDraft(d => d ? { ...d, skills: [...(d.skills ?? []), { name: '', level: '' }] } : d);
+  const removeSkillEntry = (i: number) => setEditDraft(d => d ? { ...d, skills: (d.skills ?? []).filter((_: any, j: number) => j !== i) } : d);
+  const updateSkillField = (i: number, field: string, value: string) => setEditDraft(d => { if (!d) return d; const a = [...(d.skills ?? [])]; a[i] = { ...a[i], [field]: value }; return { ...d, skills: a }; });
+
   // const InfoTag = ({ label, value }: { label: string; value: any }) => (
   //   <div className="flex flex-col gap-1 p-3 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
   //     <span className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{label}</span>
@@ -1550,7 +1567,7 @@ export function ResumeUploadTab() {
   };
   const noModals = !showProfileModal && !showDuplicateModal && !showJobDescModal;
 
-  return (
+    return (
     <div className="w-full max-w-none mx-auto space-y-6 animate-in fade-in duration-300 pb-32 overflow-x-hidden">
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-center">
@@ -2033,15 +2050,43 @@ export function ResumeUploadTab() {
                       {isAiGenerated && !manuallyEditedSections.has('skills') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                     </p>
                     {isEditingContent ? (
-                      <div className="space-y-1">
-                        <textarea
-                          className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none"
-                          rows={3}
-                          value={(editDraft?.skills ?? []).map((s: any) => typeof s === 'string' ? s : s.name || '').join(', ')}
-                          onChange={e => setEditDraft(d => d ? { ...d, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) } : d)}
-                          placeholder="Skill 1, Skill 2, Skill 3..."
-                        />
-                        <p className="text-xs text-gray-400 dark:text-neutral-500">{t.placeholders.skillHint}</p>
+                      <div className="space-y-2">
+                        {(editDraft?.skills ?? []).map((skill: any, i: number) => (
+                          <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800">
+                            <input
+                              type="text"
+                              placeholder={tProfile.skills.skillName}
+                              value={skill.name || ''}
+                              onChange={e => updateSkillField(i, 'name', e.target.value)}
+                              className="flex-1 rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10"
+                            />
+                            <select
+                              value={skill.level || ''}
+                              onChange={e => updateSkillField(i, 'level', e.target.value)}
+                              className="px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 dark:text-white"
+                            >
+                              <option value="">{tProfile.skills.level}</option>
+                              <option value="Beginner">{tProfile.skills.beginner}</option>
+                              <option value="Intermediate">{tProfile.skills.intermediate}</option>
+                              <option value="Advanced">{tProfile.skills.advanced}</option>
+                              <option value="Expert">{tProfile.skills.expert}</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => removeSkillEntry(i)}
+                              className="text-gray-400 dark:text-neutral-500 hover:text-red-500 transition-colors shrink-0"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={addSkillEntry}
+                          className="w-full py-2 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-2xl transition-all"
+                        >
+                          {tProfile.skills.addSkill}
+                        </button>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
