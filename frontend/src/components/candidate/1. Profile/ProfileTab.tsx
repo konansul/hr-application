@@ -200,7 +200,7 @@ export function ProfileTab() {
         const markAi = (items: any[]) => (items || []).map((item: any) => ({ ...item, _ai_generated: true }));
         const updatedProfile = {
           ...prev,
-          personal_info: { ...prev.personal_info, ...pd.personal_info },
+          personal_info: { ...prev.personal_info, ...pd.personal_info, summary: prev.personal_info.summary },
           skills: pd.skills?.length ? markAi(pd.skills) : prev.skills,
           experience: pd.experience?.length ? markAi(pd.experience) : prev.experience,
           education: pd.education?.length ? markAi(pd.education) : prev.education,

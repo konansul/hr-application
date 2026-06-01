@@ -80,6 +80,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
 
   const [acceptedSummary, setAcceptedSummary] = useState(false);
   const [acceptedKeywords, setAcceptedKeywords] = useState<Set<number>>(new Set());
@@ -172,6 +173,21 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       }
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteHistory = async (e: React.MouseEvent, improvementId: string) => {
+    e.stopPropagation();
+    setDeletingHistoryId(improvementId);
+    try {
+      await screeningApi.deleteImprovementHistory(improvementId);
+      setHistory(prev => prev.filter(h => h.improvement_id !== improvementId));
+      if (activeHistoryId === improvementId) {
+        setActiveHistoryId(null);
+        setResult(null);
+      }
+    } catch { /* ignore */ } finally {
+      setDeletingHistoryId(null);
     }
   };
 
@@ -367,27 +383,37 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {history.map(item => (
-                <button
+                <div
                   key={item.improvement_id}
                   onClick={() => handleLoadHistory(item)}
-                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-sm ${
+                  className={`group/card p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-sm cursor-pointer ${
                     activeHistoryId === item.improvement_id
                       ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-neutral-800'
                       : 'border-gray-100 dark:border-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 bg-white dark:bg-black'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-start gap-2 mb-2">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate flex-1">
                       {item.filename || ((t as any).untitled ?? 'Untitled')}
                     </p>
                     <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${scoreColor(item.overall_score)}`}>
                       {item.overall_score}
                     </span>
+                    <button
+                      onClick={(e) => handleDeleteHistory(e, item.improvement_id)}
+                      disabled={deletingHistoryId === item.improvement_id}
+                      title="Delete"
+                      className="shrink-0 p-1 rounded-lg text-gray-300 dark:text-neutral-600 hover:text-red-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-neutral-700 opacity-0 group-hover/card:opacity-100 transition-all disabled:opacity-40"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                   <p className="text-[11px] text-gray-400 dark:text-neutral-500">
                     {formatDate(item.created_at, language)}
                   </p>
-                </button>
+                </div>
               ))}
             </div>
           )}

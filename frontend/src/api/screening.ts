@@ -83,6 +83,10 @@ export const screeningApi = {
     return response.data;
   },
 
+  deleteImprovementHistory: async (improvementId: string) => {
+    await apiClient.delete(`/v1/improve-cv-history/${improvementId}`);
+  },
+
   generateImprovedVersion: async (payload: {
     resume_id: string;
     accepted_summary: string | null;

@@ -412,6 +412,15 @@ export function JobsTab() {
         return () => window.removeEventListener('tracked-jobs-updated', handler);
     }, [lsKey]);
 
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const appId = (e as CustomEvent).detail?.applicationId;
+            if (appId) setApplications(prev => prev.filter((a: any) => a.application_id !== appId));
+        };
+        window.addEventListener('platform-application-deleted', handler);
+        return () => window.removeEventListener('platform-application-deleted', handler);
+    }, []);
+
     const saveJobToTracker = (job: any, status: string) => {
         if (!lsKey) return;
         try {

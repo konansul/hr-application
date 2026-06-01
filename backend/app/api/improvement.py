@@ -44,6 +44,23 @@ def get_improvement_history(
     return results
 
 
+@router.delete("/improve-cv-history/{improvement_id}")
+def delete_improvement_history(
+        improvement_id: str,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    record = db.query(CVImprovementResultDB).filter(
+        CVImprovementResultDB.improvement_id == improvement_id,
+        CVImprovementResultDB.owner_user_id == current_user.user_id,
+    ).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="History item not found")
+    db.delete(record)
+    db.commit()
+    return {"status": "deleted"}
+
+
 @router.post("/improve-cv-file", response_model=CVImprovementResult)
 async def improve_cv_file(
         file: UploadFile = File(...),

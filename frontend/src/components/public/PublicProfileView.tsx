@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { publicApi } from '../../api';
 import { HraiLogo } from '../shared/HraiLogo';
+import { HtmlContent } from '../shared/HtmlContent';
+
+// Plain text (textarea) uses whitespace-pre-wrap; HTML content uses HtmlContent.
+function SmartText({ text, className }: { text: string; className?: string }) {
+  if (!text) return null;
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    return <HtmlContent html={text} className={className} />;
+  }
+  return <p className={`whitespace-pre-wrap ${className ?? ''}`}>{text}</p>;
+}
 
 interface PublicCvViewProps {
   slug: string;
@@ -235,13 +245,6 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
           {/* LEFT */}
           <div className="flex flex-col gap-4">
 
-            {/* Summary */}
-            {pInfo.summary && (
-              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
-                <CardHead label="About" />
-                <p className="px-4 py-4 text-[15px] leading-relaxed text-[#2F2F2F]">{pInfo.summary}</p>
-              </article>
-            )}
 
             {/* Experience */}
             {experience.length > 0 && (
@@ -269,7 +272,7 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
                           )}
                         </div>
                         {exp.description && (
-                          <p className="text-[13px] leading-relaxed text-[#4B5563] mt-1.5 whitespace-pre-wrap">{exp.description}</p>
+                          <SmartText text={exp.description} className="text-[13px] leading-relaxed text-[#4B5563] mt-1.5" />
                         )}
                       </div>
                     </div>
@@ -290,7 +293,7 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-bold text-[#2F2F2F]">{edu.degree || 'Degree'}{edu.field_of_study ? ` in ${edu.field_of_study}` : ''}</div>
                       {edu.institution && <div className="text-[11.5px] text-[#6B7785] mt-0.5">{edu.institution}</div>}
-                      {edu.description && <p className="text-[12px] text-[#4B5563] mt-1 leading-relaxed">{edu.description}</p>}
+                      {edu.description && <SmartText text={edu.description} className="text-[12px] text-[#4B5563] mt-1 leading-relaxed" />}
                     </div>
                     {(edu.start_date || edu.end_date) && (
                       <div className="text-[10.5px] text-[#6B7785] whitespace-nowrap shrink-0 mt-0.5" style={{ fontFamily: '"JetBrains Mono", monospace' }}>

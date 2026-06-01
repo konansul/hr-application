@@ -169,8 +169,8 @@ function skillLevel(s: any): number | null {
   return map[String(raw).toLowerCase()] ?? null;
 }
 
-function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb = 6, labelFs = 8, textColor = '#333', trackColor = '#e5e7eb' }: {
-  skills: any[]; barColor?: string; chipStyle?: Style; defaultLevel?: number; itemMb?: number; labelFs?: number; textColor?: string; trackColor?: string;
+function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb = 6, labelFs = 8, textColor = '#333', trackColor = '#e5e7eb', itemWidth = '48%' }: {
+  skills: any[]; barColor?: string; chipStyle?: Style; defaultLevel?: number; itemMb?: number; labelFs?: number; textColor?: string; trackColor?: string; itemWidth?: string;
 }) {
   const withLevel = skills.filter(s => skillLevel(s) !== null);
   // Always render as chips. If levels are present, show a progress bar per skill.
@@ -191,7 +191,7 @@ function SkillBars({ skills, barColor = '#111', chipStyle, defaultLevel, itemMb 
       {skills.map((s, i) => {
         const pct = skillLevel(s) ?? defaultLevel ?? null;
         return (
-          <View key={i} style={{ width: '48%', marginBottom: itemMb, marginRight: '2%' }}>
+          <View key={i} wrap={false} style={{ width: itemWidth, marginBottom: itemMb, marginRight: '2%' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
               <Text style={{ fontSize: labelFs, color: textColor }}>{skillName(s)}</Text>
             </View>
@@ -254,6 +254,23 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
   const expGaps: number[] = data._formatting?.experienceGaps ?? [];
   const eduGaps: number[] = data._formatting?.educationGaps ?? [];
 
+  // Estimate total content weight to drive compactness
+  const contentWeight = exp.length * 3 + edu.length * 2 + Math.ceil(sk.length / 2) + la.length + ce.length;
+  const dense      = contentWeight > 20;
+  const veryDense  = contentWeight > 32;
+
+  // Section/entry spacing shrinks when content is heavy
+  const sectionMb  = veryDense ? 7  : dense ? 9  : 13;
+  const entryMb    = veryDense ? 8  : dense ? 12 : 18;
+  const secFs      = veryDense ? 7  : 7.5;
+  const bodyFs     = veryDense ? 8  : 8.5;
+
+  // Skills: always use SkillBars (levels preserved); switch to 3-col + shrink when many
+  const skillThreeCol = sk.length > 18;
+  const skillItemW    = skillThreeCol ? '31%' : '48%';
+  const skillLabelFs  = sk.length > 24 ? 6.5 : sk.length > 14 ? 7 : bodyFs - 0.5;
+  const skillItemMb   = sk.length > 24 ? 2   : sk.length > 14 ? 3 : dense ? 3 : 6;
+
   return (
     <Document>
       <Page size="A4" style={CL.page}>
@@ -271,26 +288,26 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
         <View style={[CL.rule, { borderBottomColor: ac }]} />
 
         {clean(info.summary) ? (
-          <View style={CL.section}>
-            <Text style={[CL.secTitle, { color: ac }]}>{L.profile}</Text>
+          <View style={[CL.section, { marginBottom: sectionMb }]}>
+            <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.profile}</Text>
             <View style={CL.thinRule} />
-            <PdfDescription text={clean(info.summary)} textStyle={CL.summary} dotColor={ac} />
+            <PdfDescription text={clean(info.summary)} textStyle={{ ...CL.summary, fontSize: bodyFs }} dotColor={ac} />
           </View>
         ) : null}
 
         {hasList(exp) ? (
-          <View style={CL.section}>
-            <Text style={[CL.secTitle, { color: ac }]}>{L.experience}</Text>
+          <View style={[CL.section, { marginBottom: sectionMb }]}>
+            <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.experience}</Text>
             <View style={CL.thinRule} />
             {exp.map((e: any, i: number) => (
-              <View key={i} style={[CL.entry, extraSpacing > 0 ? { marginBottom: 18 + extraSpacing } : {}]}>
+              <View key={i} style={[CL.entry, { marginBottom: extraSpacing > 0 ? entryMb + extraSpacing : entryMb }]}>
                 <View style={CL.row}>
-                  <Text style={[CL.bold, { color: ac }]}>{clean(e.title)}{clean(e.company) ? ` — ${clean(e.company)}` : ''}</Text>
+                  <Text style={[CL.bold, { color: ac, fontSize: bodyFs + 1 }]}>{clean(e.title)}{clean(e.company) ? ` — ${clean(e.company)}` : ''}</Text>
                   <Text style={CL.dates}>{dateRange(e, L.present)}</Text>
                 </View>
                 {clean(e.description) ? (
                   <View style={{ marginTop: 4 + (e.descriptionGap ?? expGaps[i] ?? 0) * 12 }}>
-                    <PdfDescription text={clean(e.description)} textStyle={{ ...CL.desc, marginTop: 0 }} dotColor="#555" bulletGap={3} />
+                    <PdfDescription text={clean(e.description)} textStyle={{ ...CL.desc, fontSize: bodyFs, marginTop: 0 }} dotColor="#555" bulletGap={3} />
                   </View>
                 ) : null}
               </View>
@@ -299,21 +316,21 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
         ) : null}
 
         {hasList(edu) ? (
-          <View style={CL.section}>
-            <Text style={[CL.secTitle, { color: ac }]}>{L.education}</Text>
+          <View style={[CL.section, { marginBottom: sectionMb }]}>
+            <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.education}</Text>
             <View style={CL.thinRule} />
             {edu.map((e: any, i: number) => {
               const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
               if (!label && !inst) return null;
               return (
-                <View key={i} style={[CL.entry, extraSpacing > 0 ? { marginBottom: 18 + extraSpacing } : {}]}>
+                <View key={i} style={[CL.entry, { marginBottom: extraSpacing > 0 ? entryMb + extraSpacing : entryMb }]}>
                   <View style={CL.row}>
-                    {label ? <Text style={[CL.bold, { color: ac }]}>{label}</Text> : null}
+                    {label ? <Text style={[CL.bold, { color: ac, fontSize: bodyFs + 1 }]}>{label}</Text> : null}
                     {(e.start_date || e.end_date) ? <Text style={CL.dates}>{dateRange(e, L.present)}</Text> : null}
                   </View>
-                  {inst  ? <Text style={CL.sub}>{inst}</Text>  : null}
-                  {grade ? <Text style={CL.sub}>{grade}</Text> : null}
-                  {desc  ? <View style={{ marginTop: 4 + (e.descriptionGap ?? eduGaps[i] ?? 0) * 12 }}><Text style={{ ...CL.desc, marginTop: 0 }}>{desc}</Text></View> : null}
+                  {inst  ? <Text style={[CL.sub, { fontSize: bodyFs - 0.5 }]}>{inst}</Text>  : null}
+                  {grade ? <Text style={[CL.sub, { fontSize: bodyFs - 0.5 }]}>{grade}</Text> : null}
+                  {desc  ? <View style={{ marginTop: 4 + (e.descriptionGap ?? eduGaps[i] ?? 0) * 12 }}><Text style={{ ...CL.desc, fontSize: bodyFs, marginTop: 0 }}>{desc}</Text></View> : null}
                 </View>
               );
             })}
@@ -321,37 +338,37 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
         ) : null}
 
         {hasList(sk) ? (
-          <View style={CL.section}>
-            <Text style={[CL.secTitle, { color: ac }]}>{L.skills}</Text>
+          <View style={[CL.section, { marginBottom: sectionMb }]}>
+            <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.skills}</Text>
             <View style={CL.thinRule} />
-            <SkillBars skills={sk} barColor={ac} />
+            <SkillBars skills={sk} barColor={ac} labelFs={skillLabelFs} itemMb={skillItemMb} itemWidth={skillItemW} />
           </View>
         ) : null}
 
         {(hasList(la) || hasList(ce)) ? (
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', marginBottom: sectionMb }}>
             {hasList(la) ? (
-              <View style={[CL.section, { flex: 1, marginRight: 20 }]}>
-                <Text style={[CL.secTitle, { color: ac }]}>{L.languages}</Text>
+              <View style={[CL.section, { flex: 1, marginRight: 20, marginBottom: 0 }]}>
+                <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.languages}</Text>
                 <View style={CL.thinRule} />
-                <Text style={CL.misc}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
+                <Text style={[CL.misc, { fontSize: bodyFs }]}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
             {hasList(ce) ? (
-              <View style={[CL.section, { flex: 1 }]}>
-                <Text style={[CL.secTitle, { color: ac }]}>{L.certifications}</Text>
+              <View style={[CL.section, { flex: 1, marginBottom: 0 }]}>
+                <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.certifications}</Text>
                 <View style={CL.thinRule} />
-                <Text style={CL.misc}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
+                <Text style={[CL.misc, { fontSize: bodyFs }]}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
           </View>
         ) : null}
 
         {!data.hide_references ? (
-          <View style={CL.section}>
-            <Text style={[CL.secTitle, { color: ac }]}>{L.references}</Text>
+          <View style={[CL.section, { marginBottom: sectionMb }]}>
+            <Text style={[CL.secTitle, { color: ac, fontSize: secFs }]}>{L.references}</Text>
             <View style={CL.thinRule} />
-            <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+            <Text style={{ fontSize: bodyFs, color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</Text>
           </View>
         ) : null}
       </Page>
@@ -361,9 +378,11 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
 
 
 const MO = StyleSheet.create({
-  page:    { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
-  sidebar: { flex: 1, backgroundColor: '#1e293b', padding: 22, overflow: 'hidden' },
-  main:    { flex: 2, padding: 28 },
+  page:      { fontFamily: 'DejaVu Sans', backgroundColor: '#fff', paddingTop: 24, paddingBottom: 24 },
+  sidebarBg: { position: 'absolute', top: -24, left: 0, bottom: -24, width: '33.33%', backgroundColor: '#1e293b' },
+  row:       { flexDirection: 'row' },
+  sidebar:   { width: '33.33%', padding: 22, overflow: 'hidden' },
+  main:      { flex: 1, padding: 28 },
   sName:   { fontSize: 15, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3, flexWrap: 'wrap' },
   sRole:   { fontSize: 8, color: '#94a3b8', marginBottom: 16, lineHeight: 1.4 },
   sSecT:   { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase',
@@ -407,6 +426,8 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
   return (
     <Document>
       <Page size="A4" style={MO.page}>
+        <View fixed style={MO.sidebarBg} />
+        <View style={MO.row}>
         <View style={MO.sidebar}>
           {photo ? <View style={{ alignSelf: 'center', marginBottom: 16 }}><PhotoCircle src={photo} size={72} /></View> : null}
           <Text style={MO.sName}>{fullName(info, title)}</Text>
@@ -507,6 +528,7 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
             </View>
           ) : null}
         </View>
+        </View>
       </Page>
     </Document>
   );
@@ -545,10 +567,28 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
   const ce   = data.certifications ?? [];
   const L = getPdfLabels(language);
 
+  // Adaptive layout — same approach as Classic
+  const contentWeight = exp.length * 3 + edu.length * 2 + Math.ceil(sk.length / 2) + la.length + ce.length;
+  const dense     = contentWeight > 18;
+  const veryDense = contentWeight > 28;
+
+  const headerMb  = veryDense ? 10 : dense ? 14 : 22;
+  const sectionMb = veryDense ? 7  : dense ? 10 : 16;
+  const entryMb   = veryDense ? 8  : dense ? 12 : 18;
+  const secFs     = veryDense ? 7  : 7.5;
+  const bodyFs    = veryDense ? 8  : dense ? 8.5 : 9;
+  const boldFs    = veryDense ? 9  : dense ? 9.5 : 10;
+
+  // SkillBars: 3-col + shrink when many skills
+  const skillThreeCol = sk.length > 18;
+  const skillItemW    = skillThreeCol ? '31%' : '48%';
+  const skillLabelFs  = sk.length > 24 ? 6.5 : sk.length > 14 ? 7 : bodyFs - 0.5;
+  const skillItemMb   = sk.length > 24 ? 2   : sk.length > 14 ? 3 : dense ? 3 : 6;
+
   return (
     <Document>
       <Page size="A4" style={MI.page}>
-        <View style={MI.header}>
+        <View style={[MI.header, { marginBottom: headerMb }]}>
           <Text style={MI.name}>{fullName(info, title)}</Text>
           <View style={MI.cons}>
             {contactParts(info).map((c, i) => <Text key={i} style={MI.con}>{wrapContact(c)}</Text>)}
@@ -557,42 +597,42 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
         <View style={MI.rule} />
 
         {clean(info.summary) ? (
-          <View style={MI.sec}>
-            <Text style={MI.secT}>{L.about}</Text>
-            <PdfDescription text={clean(info.summary)} textStyle={MI.summary} dotColor="#555" bulletGap={3} />
+          <View style={[MI.sec, { marginBottom: sectionMb }]}>
+            <Text style={[MI.secT, { fontSize: secFs }]}>{L.about}</Text>
+            <PdfDescription text={clean(info.summary)} textStyle={{ ...MI.summary, fontSize: bodyFs + 1 }} dotColor="#555" bulletGap={3} />
           </View>
         ) : null}
 
         {hasList(exp) ? (
-          <View style={MI.sec}>
-            <Text style={MI.secT}>{L.experience}</Text>
+          <View style={[MI.sec, { marginBottom: sectionMb }]}>
+            <Text style={[MI.secT, { fontSize: secFs }]}>{L.experience}</Text>
             {exp.map((e: any, i: number) => (
-              <View key={i} style={MI.entry}>
+              <View key={i} style={[MI.entry, { marginBottom: entryMb }]}>
                 <View style={MI.row}>
-                  <Text style={MI.bold}>{clean(e.title)}{clean(e.company) ? `, ${clean(e.company)}` : ''}</Text>
+                  <Text style={[MI.bold, { fontSize: boldFs }]}>{clean(e.title)}{clean(e.company) ? `, ${clean(e.company)}` : ''}</Text>
                   <Text style={MI.dates}>{dateRange(e, L.present)}</Text>
                 </View>
-                {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={MI.desc} dotColor="#555" bulletGap={3} /> : null}
+                {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={{ ...MI.desc, fontSize: bodyFs }} dotColor="#555" bulletGap={3} /> : null}
               </View>
             ))}
           </View>
         ) : null}
 
         {hasList(edu) ? (
-          <View style={MI.sec}>
-            <Text style={MI.secT}>{L.education}</Text>
+          <View style={[MI.sec, { marginBottom: sectionMb }]}>
+            <Text style={[MI.secT, { fontSize: secFs }]}>{L.education}</Text>
             {edu.map((e: any, i: number) => {
               const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
               if (!label && !inst) return null;
               return (
-                <View key={i} style={MI.entry}>
+                <View key={i} style={[MI.entry, { marginBottom: entryMb }]}>
                   <View style={MI.row}>
-                    {label ? <Text style={MI.bold}>{label}</Text> : null}
+                    {label ? <Text style={[MI.bold, { fontSize: boldFs }]}>{label}</Text> : null}
                     {(e.start_date || e.end_date) ? <Text style={MI.dates}>{dateRange(e, L.present)}</Text> : null}
                   </View>
-                  {inst  ? <Text style={MI.sub}>{inst}</Text>  : null}
-                  {grade ? <Text style={MI.sub}>{grade}</Text> : null}
-                  {desc  ? <PdfDescription text={desc} textStyle={MI.desc} dotColor="#555" bulletGap={3} /> : null}
+                  {inst  ? <Text style={[MI.sub, { fontSize: bodyFs - 0.5 }]}>{inst}</Text>  : null}
+                  {grade ? <Text style={[MI.sub, { fontSize: bodyFs - 0.5 }]}>{grade}</Text> : null}
+                  {desc  ? <PdfDescription text={desc} textStyle={{ ...MI.desc, fontSize: bodyFs }} dotColor="#555" bulletGap={3} /> : null}
                 </View>
               );
             })}
@@ -600,33 +640,33 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
         ) : null}
 
         {hasList(sk) ? (
-          <View style={MI.sec}>
-            <Text style={MI.secT}>{L.skills}</Text>
-            <SkillBars skills={sk} barColor="#555" />
+          <View style={[MI.sec, { marginBottom: sectionMb }]}>
+            <Text style={[MI.secT, { fontSize: secFs }]}>{L.skills}</Text>
+            <SkillBars skills={sk} barColor="#555" labelFs={skillLabelFs} itemMb={skillItemMb} itemWidth={skillItemW} />
           </View>
         ) : null}
 
         {(hasList(la) || hasList(ce)) ? (
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', marginBottom: sectionMb }}>
             {hasList(la) ? (
-              <View style={[MI.sec, { flex: 1, marginRight: 24 }]}>
-                <Text style={MI.secT}>{L.languages}</Text>
-                <Text style={MI.misc}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
+              <View style={[MI.sec, { flex: 1, marginRight: 24, marginBottom: 0 }]}>
+                <Text style={[MI.secT, { fontSize: secFs }]}>{L.languages}</Text>
+                <Text style={[MI.misc, { fontSize: bodyFs }]}>{la.map(langName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
             {hasList(ce) ? (
-              <View style={[MI.sec, { flex: 1 }]}>
-                <Text style={MI.secT}>{L.certifications}</Text>
-                <Text style={MI.misc}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
+              <View style={[MI.sec, { flex: 1, marginBottom: 0 }]}>
+                <Text style={[MI.secT, { fontSize: secFs }]}>{L.certifications}</Text>
+                <Text style={[MI.misc, { fontSize: bodyFs }]}>{ce.map(certName).filter(Boolean).join('  ·  ')}</Text>
               </View>
             ) : null}
           </View>
         ) : null}
 
         {!data.hide_references ? (
-          <View style={MI.sec}>
-            <Text style={MI.secT}>{L.references}</Text>
-            <Text style={{ fontSize: 9, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>{L.referencesNote}</Text>
+          <View style={[MI.sec, { marginBottom: sectionMb }]}>
+            <Text style={[MI.secT, { fontSize: secFs }]}>{L.references}</Text>
+            <Text style={{ fontSize: bodyFs, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>{L.referencesNote}</Text>
           </View>
         ) : null}
       </Page>
@@ -770,9 +810,11 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
 
 
 const FR = StyleSheet.create({
-  page:     { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
-  strip:    { flex: 3, backgroundColor: '#2d2d2d', padding: 20, overflow: 'hidden' },
-  body:     { flex: 7, padding: '26 26 26 22' },
+  page:     { fontFamily: 'DejaVu Sans', backgroundColor: '#fff', paddingTop: 24, paddingBottom: 24 },
+  stripBg:  { position: 'absolute', top: -24, left: 0, bottom: -24, width: '30%', backgroundColor: '#2d2d2d' },
+  row:      { flexDirection: 'row' },
+  strip:    { width: '30%', padding: 20, overflow: 'hidden' },
+  body:     { flex: 1, padding: '26 26 26 22' },
   sName:    { fontSize: 17, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', lineHeight: 1.3 },
   sRole:    { fontSize: 8.5, color: '#aaa', marginTop: 3, marginBottom: 18, lineHeight: 1.4 },
   sSecT:    { fontSize: 7, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#888', textTransform: 'uppercase',
@@ -808,6 +850,8 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
   return (
     <Document>
       <Page size="A4" style={FR.page}>
+        <View fixed style={FR.stripBg} />
+        <View style={FR.row}>
         <View style={FR.strip}>
           {photo ? <View style={{ alignSelf: 'center', marginBottom: 16 }}><PhotoCircle src={photo} size={70} /></View> : null}
           <Text style={FR.sName}>{fullName(info, title)}</Text>
@@ -901,15 +945,16 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
             </View>
           ) : null}
         </View>
+        </View>
       </Page>
     </Document>
   );
 }
 
 const HI = StyleSheet.create({
-  // Zero top padding so the accent banner sits perfectly flush on Page 1
-  page:    { paddingTop: 0, paddingBottom: 24, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
-  accent:  { backgroundColor: '#0f766e', padding: '24 36 16 36' },
+  // paddingTop on page gives page 2+ a top margin; accent pulls itself back up on page 1 via marginTop: -24
+  page:    { paddingTop: 24, paddingBottom: 24, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
+  accent:  { backgroundColor: '#0f766e', padding: '24 36 16 36', marginTop: -24 },
   name:    { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
   tagline: { fontSize: 9, color: '#99f6e4', marginBottom: 10 },
   cons:    { flexDirection: 'row', flexWrap: 'wrap' },
@@ -1100,9 +1145,11 @@ function PieSkill({ pct, size = 10, fg = '#E96D1F', bg = '#4a4e68' }:
 }
 
 const AC = StyleSheet.create({
-  page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff'},
-  sidebar:   { flex: 1, backgroundColor: '#2B2D42', padding: '24 14 24 16', overflow: 'hidden' },
-  main:      { flex: 2, padding: '0 24 24 20' },
+  page:      { fontFamily: 'DejaVu Sans', backgroundColor: '#fff', paddingTop: 24, paddingBottom: 24 },
+  sidebarBg: { position: 'absolute', top: -24, left: 0, bottom: -24, width: '33.33%', backgroundColor: '#2B2D42' },
+  row:       { flexDirection: 'row' },
+  sidebar:   { width: '33.33%', padding: '0 14 0 16' },
+  main:      { flex: 1, padding: '0 24 0 20' },
 
   photoWrap: { alignItems: 'center', marginBottom: 12 },
   sName:     { fontSize: 13, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
@@ -1153,6 +1200,8 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
         to encourage pages to fill up entirely instead of dropping sections down early.
       */}
       <Page size="A4" style={AC.page}>
+        <View fixed style={AC.sidebarBg} />
+        <View style={AC.row}>
 
         {/* Sidebar flows seamlessly top-to-bottom across all pages */}
         <View style={AC.sidebar}>
@@ -1203,13 +1252,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
 
         {/* Main Column */}
         <View style={AC.main}>
-          {/* FIX PART 1: Dynamic Top Margin Injector. 
-            This element renders fixed padding/space only if pageNumber > 1. 
-            On Page 1 it evaluates to height: 24, but on page 2+ it evaluates to height: 45.
-          */}
-          <View render={({ pageNumber }) => (
-            <View style={{ height: pageNumber > 1 ? 45 : 24 }} />
-          )} fixed />
+          {/* Page-level paddingTop provides 24pt uniformly; no extra spacer needed */}
 
           <Text style={AC.mName}>{fullName(info, title)}</Text>
           {title ? <Text style={AC.mTagline}>{title}</Text> : null}
@@ -1296,6 +1339,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
             </View>
           ) : null}
         </View>
+        </View>
 
       </Page>
     </Document>
@@ -1312,7 +1356,7 @@ export const TEMPLATES: {
   supportsPhoto: boolean;
 }[] = [
   { id: 'classic',    label: 'Classic',       supportsPhoto: true, description: 'Traditional single-column with name top-left, section rules, tags for skills.' },
-  { id: 'modern',     label: 'Modern Sidebar', supportsPhoto: true, description: 'Dark sidebar for contact & skills; indigo-accented main column for experience.' },
+  { id: 'modern',     label: 'Modern', supportsPhoto: true, description: 'Dark sidebar for contact & skills; indigo-accented main column for experience.' },
   { id: 'minimal',    label: 'Minimal',        supportsPhoto: false, description: 'Centered header with generous whitespace — content-first, zero decoration.' },
   { id: 'researcher', label: 'Researcher',     supportsPhoto: true, description: 'Navy banner header, two-column body: meta/education left, experience right.' },
   { id: 'friggeri',   label: 'Friggeri',       supportsPhoto: true, description: 'Charcoal sidebar, orange section accents — bold creative professional style.' },

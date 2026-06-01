@@ -156,6 +156,19 @@ export function JobApplicationTab() {
 
   const [externalModalUrl, setExternalModalUrl] = useState<string | null>(null);
   const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
+  const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
+
+  const handleDeleteHrApp = async (applicationId: string) => {
+    setDeletingAppId(applicationId);
+    try {
+      await screeningApi.deleteApplication(applicationId);
+      setApiApplications(prev => prev.filter(a => a.application_id !== applicationId));
+      window.dispatchEvent(new CustomEvent('platform-application-deleted', { detail: { applicationId } }));
+      window.dispatchEvent(new Event('tracked-jobs-updated'));
+    } catch { /* ignore */ } finally {
+      setDeletingAppId(null);
+    }
+  };
 
   const handleApplyFromSaved = async (jobId: string) => {
     setApplyingJobId(jobId);
@@ -726,7 +739,7 @@ export function JobApplicationTab() {
                         )}
                       </div>
                     </div>
-                    <div className="shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {isOffer && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-violet-100 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-900/50 transition-colors">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -739,6 +752,16 @@ export function JobApplicationTab() {
                           {t.rejected}
                         </span>
                       )}
+                      <button
+                        onClick={() => handleDeleteHrApp(app.application_id)}
+                        disabled={deletingAppId === app.application_id}
+                        title={t.removeFromTracker}
+                        className="p-1.5 text-gray-300 dark:text-neutral-600 hover:text-red-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-neutral-800 rounded-lg transition-colors disabled:opacity-40"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                   {app.job_description && (
