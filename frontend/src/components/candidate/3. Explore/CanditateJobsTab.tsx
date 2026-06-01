@@ -1241,9 +1241,20 @@ export function JobsTab() {
                                                     </span>
                                                 )}
                                                 {userApp && (
-                                                    <span className="px-1.5 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[9px] font-bold uppercase tracking-wider">
-                                                        {userApp.status === 'SAVED' ? (tl.stages?.saved ?? 'Saved') : (tl.stages?.applied ?? 'Applied')}
-                                                    </span>
+                                                    userApp.status === 'SAVED' ? (
+                                                        <span
+                                                            onClick={e => { e.stopPropagation(); unsavePlatformJob(userApp.application_id, jid); }}
+                                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[9px] font-bold uppercase tracking-wider cursor-pointer hover:bg-red-50 hover:text-red-500 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 dark:hover:border-red-500/30 transition-colors"
+                                                            title={tl.unsaveJob ?? 'Remove from saved'}
+                                                        >
+                                                            {tl.stages?.saved ?? 'Saved'}
+                                                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-1.5 py-0.5 bg-[#7A60F4]/10 dark:bg-[#7A60F4]/20 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/25 dark:border-[#7A60F4]/30 rounded text-[9px] font-bold uppercase tracking-wider">
+                                                            {tl.stages?.applied ?? 'Applied'}
+                                                        </span>
+                                                    )
                                                 )}
                                                 {job.region && (
                                                     <span className="flex items-center gap-0.5">

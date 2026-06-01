@@ -187,20 +187,30 @@ def delete_application(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    if current_user.role != "hr":
-        raise HTTPException(status_code=403, detail="Only HR can delete applications")
-
-    app = db.query(Application).join(Job).filter(
-        Application.application_id == application_id,
-        Job.org_id == current_user.org_id
-    ).first()
-
-    if not app:
-        raise HTTPException(status_code=404, detail="Application not found")
+    if current_user.role == "hr":
+        app = db.query(Application).join(Job).filter(
+            Application.application_id == application_id,
+            Job.org_id == current_user.org_id
+        ).first()
+        if not app:
+            raise HTTPException(status_code=404, detail="Application not found")
+    elif current_user.role == "candidate":
+        person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
+        if not person:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        app = db.query(Application).filter(
+            Application.application_id == application_id,
+            Application.person_id == person.person_id,
+            Application.status == "SAVED"
+        ).first()
+        if not app:
+            raise HTTPException(status_code=404, detail="Saved application not found")
+    else:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
     db.delete(app)
     db.commit()
-    return {"ok": True}
+    return {"status": "deleted"}
 
 
 class ApplyRequest(BaseModel):
@@ -322,33 +332,6 @@ def save_job(
     db.commit()
     db.refresh(new_app)
     return {"status": "saved", "application_id": new_app.application_id}
-
-
-@router.delete("/applications/{application_id}")
-def delete_application(
-        application_id: str,
-        db: Session = Depends(get_db),
-        current_user: User = Depends(get_current_user)
-):
-    if current_user.role != "candidate":
-        raise HTTPException(status_code=403, detail="Only candidates can delete applications")
-
-    person = db.query(Person).filter(Person.user_id == current_user.user_id).first()
-    if not person:
-        raise HTTPException(status_code=404, detail="Profile not found")
-
-    app = db.query(Application).filter(
-        Application.application_id == application_id,
-        Application.person_id == person.person_id,
-        Application.status == "SAVED"
-    ).first()
-
-    if not app:
-        raise HTTPException(status_code=404, detail="Saved application not found")
-
-    db.delete(app)
-    db.commit()
-    return {"status": "deleted"}
 
 
 @router.get("/applications/answers")

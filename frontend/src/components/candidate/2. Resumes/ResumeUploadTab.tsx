@@ -39,9 +39,9 @@ function AiInfoBadge({ tooltip }: { tooltip: string }) {
       <svg className="w-3 h-3 text-amber-500 dark:text-amber-400 cursor-help shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-blue-600 text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
+      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#9EA4FF] text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
         {tooltip}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-blue-600" />
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-[#9EA4FF]" />
       </div>
     </div>
   );
@@ -662,289 +662,6 @@ function JobDescriptionAccordion({ text }: { text: string }) {
 }
 
 
-// ── Classic template WYSIWYG live editor ────────────────────────────────────
-
-function EditableSpan({ value, onSave, style, className = '' }: {
-  value: string; onSave: (v: string) => void; style?: React.CSSProperties; className?: string;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isFocused = useRef(false);
-  useEffect(() => {
-    if (!isFocused.current && ref.current && ref.current.textContent !== value)
-      ref.current.textContent = value;
-  }, [value]);
-  return (
-    <span
-      ref={ref}
-      contentEditable
-      suppressContentEditableWarning
-      onFocus={() => { isFocused.current = true; }}
-      onBlur={e => { isFocused.current = false; const v = e.currentTarget.textContent ?? ''; if (v !== value) onSave(v); }}
-      style={{ outline: 'none', cursor: 'text', display: 'inline-block', minWidth: '4px', ...style }}
-      className={`hover:bg-indigo-50/70 dark:hover:bg-indigo-900/20 focus:bg-indigo-50 dark:focus:bg-indigo-900/30 rounded-[2px] px-px -mx-px transition-colors ${className}`}
-    />
-  );
-}
-
-function EditableBlock({ value, onSave, style, className = '' }: {
-  value: string; onSave: (v: string) => void; style?: React.CSSProperties; className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isFocused = useRef(false);
-  useEffect(() => {
-    if (!isFocused.current && ref.current && ref.current.innerText !== value)
-      ref.current.innerText = value;
-  }, [value]);
-  return (
-    <div
-      ref={ref}
-      contentEditable
-      suppressContentEditableWarning
-      onFocus={() => { isFocused.current = true; }}
-      onBlur={e => { isFocused.current = false; const v = e.currentTarget.innerText ?? ''; if (v !== value) onSave(v); }}
-      style={{ outline: 'none', cursor: 'text', whiteSpace: 'pre-wrap', minHeight: '1em', ...style }}
-      className={`hover:bg-indigo-50/70 dark:hover:bg-indigo-900/20 focus:bg-indigo-50 dark:focus:bg-indigo-900/30 rounded-sm transition-colors ${className}`}
-    />
-  );
-}
-
-
-// Textarea-based editable field — preserves ALL whitespace including leading/trailing
-// newlines, unlike contentEditable whose innerText behaviour is inconsistent.
-function EditableTextarea({ value, onSave, style, className = '' }: {
-  value: string; onSave: (v: string) => void; style?: React.CSSProperties; className?: string;
-}) {
-  const [local, setLocal] = useState(value);
-  // Ref mirrors local but is updated synchronously in onChange so onBlur always
-  // reads the latest typed value even if React hasn't re-rendered yet.
-  const localRef = useRef(value);
-  const ref = useRef<HTMLTextAreaElement>(null);
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setLocal(value); localRef.current = value; }, [value]);
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.style.height = 'auto';
-      ref.current.style.height = ref.current.scrollHeight + 'px';
-    }
-  }, [local]);
-
-  return (
-    <textarea
-      ref={ref}
-      value={local}
-      rows={1}
-      onChange={e => { const v = e.target.value; setLocal(v); localRef.current = v; }}
-      onBlur={() => { if (localRef.current !== value) onSave(localRef.current); }}
-      style={{
-        display: 'block',
-        width: '100%',
-        resize: 'none',
-        overflow: 'hidden',
-        background: 'transparent',
-        border: 'none',
-        outline: 'none',
-        padding: 0,
-        margin: 0,
-        fontFamily: 'inherit',
-        lineHeight: 'inherit',
-        ...style,
-      }}
-      className={`hover:bg-indigo-50/70 dark:hover:bg-indigo-900/20 focus:bg-indigo-50 dark:focus:bg-indigo-900/30 rounded-sm transition-colors ${className}`}
-    />
-  );
-}
-
-function ClassicLiveEditor({ pdfDraft, updatePdfDraft, photo, language, accentColor, entrySpacing = 0 }: {
-  pdfDraft: any;
-  updatePdfDraft: (updater: (d: any) => any) => void;
-  photo?: string;
-  language?: string;
-  accentColor: string;
-  entrySpacing?: number;
-}) {
-  const info = pdfDraft?.personal_info ?? {};
-  const exp: any[] = pdfDraft?.experience ?? [];
-  const edu: any[] = pdfDraft?.education ?? [];
-  const sk: any[] = pdfDraft?.skills ?? [];
-  const la: any[] = pdfDraft?.languages ?? [];
-  const ce: any[] = pdfDraft?.certifications ?? [];
-  const L = getPdfLabels(language);
-  const pi = (field: string) => (v: string) =>
-    updatePdfDraft(d => ({ ...d, personal_info: { ...(d.personal_info ?? {}), [field]: v } }));
-  // 1pt ≈ 1.08px at 595px paper width
-  const s = (pt: number) => `${(pt * 1.08).toFixed(1)}px`;
-  const contacts: { key: string; val: string }[] = [
-    { key: 'email',        val: info.email ?? '' },
-    { key: 'phone',        val: info.phone ?? '' },
-    { key: 'location',     val: info.city && info.country ? `${info.city}, ${info.country}` : (info.city || info.country || '') },
-    { key: 'linkedin_url', val: info.linkedin_url ?? '' },
-    { key: 'github_url',   val: info.github_url ?? '' },
-  ].filter(c => c.val);
-
-  return (
-    <div style={{ width: '595px', minWidth: '595px', padding: `${s(40)} ${s(48)}`, backgroundColor: '#fff', fontFamily: '"Helvetica Neue", Arial, sans-serif', fontSize: s(9), color: '#333', boxShadow: '0 2px 20px rgba(0,0,0,0.13)', margin: '0 auto' }}>
-
-      {/* Header */}
-      <div style={{ marginBottom: s(14), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
-          <EditableSpan
-            value={[info.first_name, info.last_name].filter(Boolean).join(' ') || 'Your Name'}
-            onSave={v => { const p = v.trim().split(/\s+/); updatePdfDraft(d => ({ ...d, personal_info: { ...(d.personal_info ?? {}), first_name: p[0] ?? '', last_name: p.slice(1).join(' ') } })); }}
-            style={{ fontSize: s(22), fontWeight: '700', color: accentColor, display: 'block', marginBottom: s(4), lineHeight: '1.2' }}
-          />
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-            {contacts.map(({ key, val }) => (
-              <span key={key} style={{ marginRight: s(14), marginBottom: s(2) }}>
-                <EditableSpan
-                  value={val}
-                  onSave={v => {
-                    if (key === 'location') { const [city, ...rest] = v.split(',').map((x: string) => x.trim()); updatePdfDraft(d => ({ ...d, personal_info: { ...(d.personal_info ?? {}), city: city ?? '', country: rest.join(', ') } })); }
-                    else { pi(key)(v); }
-                  }}
-                  style={{ fontSize: s(8.5), color: '#555' }}
-                />
-              </span>
-            ))}
-          </div>
-        </div>
-        {photo && <img src={photo} alt="" style={{ width: s(68), height: s(68), borderRadius: s(4), objectFit: 'cover', marginLeft: s(14), flexShrink: 0 }} />}
-      </div>
-
-      {/* Thick rule */}
-      <div style={{ borderTop: `1.5px solid ${accentColor}`, marginBottom: s(11) }} />
-
-      {/* Profile */}
-      <div style={{ marginBottom: s(13) }}>
-        <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.profile}</div>
-        <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-        <EditableTextarea value={info.summary ?? ''} onSave={pi('summary')} style={{ fontSize: s(9.5), color: '#333', lineHeight: '1.7', textAlign: 'justify' }} />
-      </div>
-
-      {/* Experience */}
-      {exp.length > 0 && (
-        <div style={{ marginBottom: s(13) }}>
-          <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.experience}</div>
-          <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-          {exp.map((e: any, i: number) => (
-            <div key={i} style={{ marginBottom: s(14 + entrySpacing), paddingBottom: s(4) }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: s(8) }}>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px' }}>
-                  <EditableSpan value={e.title ?? ''} onSave={v => updatePdfDraft(d => { const a = [...d.experience]; a[i] = { ...a[i], title: v }; return { ...d, experience: a }; })} style={{ fontWeight: '700', fontSize: s(9.5), color: accentColor }} />
-                  {e.company !== undefined && <>
-                    <span style={{ fontWeight: '700', fontSize: s(9.5), color: accentColor }}>{' — '}</span>
-                    <EditableSpan value={e.company ?? ''} onSave={v => updatePdfDraft(d => { const a = [...d.experience]; a[i] = { ...a[i], company: v }; return { ...d, experience: a }; })} style={{ fontWeight: '700', fontSize: s(9.5), color: accentColor }} />
-                  </>}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: '3px' }}>
-                  <EditableSpan value={e.start_date ?? ''} onSave={v => updatePdfDraft(d => { const a = [...d.experience]; a[i] = { ...a[i], start_date: v }; return { ...d, experience: a }; })} style={{ fontSize: s(8), color: '#888' }} />
-                  {(e.start_date || e.end_date) && <span style={{ fontSize: s(8), color: '#888' }}>{' – '}</span>}
-                  <EditableSpan value={e.end_date || L.present} onSave={v => updatePdfDraft(d => { const a = [...d.experience]; a[i] = { ...a[i], end_date: v === L.present ? '' : v }; return { ...d, experience: a }; })} style={{ fontSize: s(8), color: '#888' }} />
-                </div>
-              </div>
-              {e.description !== undefined && (
-                <EditableTextarea
-                  value={'\n'.repeat(e.descriptionGap ?? 0) + (e.description ?? '')}
-                  onSave={v => {
-                    const gap = (v.match(/^\n*/) ?? [''])[0].length;
-                    const clean = v.slice(gap);
-                    updatePdfDraft(d => { const a = [...d.experience]; a[i] = { ...a[i], description: clean, descriptionGap: gap }; return { ...d, experience: a }; });
-                  }}
-                  style={{ fontSize: s(8.5), color: '#333', lineHeight: '1.65', marginTop: s(4) }}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Education */}
-      {edu.length > 0 && (
-        <div style={{ marginBottom: s(13) }}>
-          <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.education}</div>
-          <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-          {edu.map((e: any, i: number) => {
-            const deg = [e.degree, e.field_of_study].filter(Boolean).join(' in ');
-            const inst = (e.institution ?? '').trim(); const grade = (e.grade ?? '').trim(); const desc = (e.description ?? '').trim();
-            return (
-              <div key={i} style={{ marginBottom: s(14 + entrySpacing), paddingBottom: s(4) }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: s(8) }}>
-                  <EditableSpan value={deg || 'Degree'} onSave={v => { const [d0, ...rest] = v.split(' in '); updatePdfDraft(d => { const a = [...d.education]; a[i] = { ...a[i], degree: d0?.trim() ?? '', field_of_study: rest.join(' in ').trim() }; return { ...d, education: a }; }); }} style={{ fontWeight: '700', fontSize: s(9.5), color: accentColor, flex: '1' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: '3px' }}>
-                    <EditableSpan value={e.start_date ?? ''} onSave={v => updatePdfDraft(d => { const a = [...d.education]; a[i] = { ...a[i], start_date: v }; return { ...d, education: a }; })} style={{ fontSize: s(8), color: '#888' }} />
-                    {(e.start_date || e.end_date) && <span style={{ fontSize: s(8), color: '#888' }}>{' – '}</span>}
-                    <EditableSpan value={e.end_date || L.present} onSave={v => updatePdfDraft(d => { const a = [...d.education]; a[i] = { ...a[i], end_date: v === L.present ? '' : v }; return { ...d, education: a }; })} style={{ fontSize: s(8), color: '#888' }} />
-                  </div>
-                </div>
-                {inst && <EditableSpan value={inst} onSave={v => updatePdfDraft(d => { const a = [...d.education]; a[i] = { ...a[i], institution: v }; return { ...d, education: a }; })} style={{ fontSize: s(8.5), color: '#555', display: 'block', marginTop: s(1) }} />}
-                {grade && <EditableSpan value={grade} onSave={v => updatePdfDraft(d => { const a = [...d.education]; a[i] = { ...a[i], grade: v }; return { ...d, education: a }; })} style={{ fontSize: s(8.5), color: '#555', display: 'block', marginTop: s(1) }} />}
-                {desc && (
-                  <EditableTextarea
-                    value={'\n'.repeat(e.descriptionGap ?? 0) + desc}
-                    onSave={v => {
-                      const gap = (v.match(/^\n*/) ?? [''])[0].length;
-                      const clean = v.slice(gap);
-                      updatePdfDraft(d => { const a = [...d.education]; a[i] = { ...a[i], description: clean, descriptionGap: gap }; return { ...d, education: a }; });
-                    }}
-                    style={{ fontSize: s(8.5), color: '#333', lineHeight: '1.65', marginTop: s(4) }}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Skills */}
-      {sk.length > 0 && (
-        <div style={{ marginBottom: s(13) }}>
-          <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.skills}</div>
-          <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-            {sk.map((sk_: any, i: number) => {
-              const name = typeof sk_ === 'string' ? sk_ : (sk_?.name ?? '');
-              return (
-                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#f0f0f0', paddingLeft: s(7), paddingRight: s(3), paddingTop: s(3), paddingBottom: s(3), marginRight: s(5), marginBottom: s(4), borderRadius: '2px' }}>
-                  <EditableSpan value={name} onSave={v => updatePdfDraft(d => { const a = [...d.skills]; a[i] = v; return { ...d, skills: a }; })} style={{ fontSize: s(8.5) }} />
-                  <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => updatePdfDraft(d => ({ ...d, skills: (d.skills ?? []).filter((_: any, j: number) => j !== i) }))} style={{ marginLeft: '3px', color: '#999', border: 'none', background: 'none', padding: '0 2px', fontSize: '11px', cursor: 'pointer', lineHeight: '1' }}>&#215;</button>
-                </span>
-              );
-            })}
-            <button type="button" onClick={() => updatePdfDraft(d => ({ ...d, skills: [...(d.skills ?? []), 'New Skill'] }))} style={{ fontSize: s(8.5), backgroundColor: '#e8e8e8', border: '1px dashed #bbb', padding: `${s(3)} ${s(7)}`, marginBottom: s(4), cursor: 'pointer', color: '#777', borderRadius: '2px' }}>+ Add</button>
-          </div>
-        </div>
-      )}
-
-      {/* Languages + Certifications */}
-      {(la.length > 0 || ce.length > 0) && (
-        <div style={{ display: 'flex', marginBottom: s(13) }}>
-          {la.length > 0 && (
-            <div style={{ flex: 1, marginRight: s(20) }}>
-              <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.languages}</div>
-              <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-              <EditableBlock value={la.map((l: any) => typeof l === 'string' ? l : (l?.name || l?.language || '')).filter(Boolean).join('  \xb7  ')} onSave={v => updatePdfDraft(d => ({ ...d, languages: v.split(/[\xb7,\n]/).map((x: string) => x.trim()).filter(Boolean) }))} style={{ fontSize: s(9), color: '#333', lineHeight: '1.6' }} />
-            </div>
-          )}
-          {ce.length > 0 && (
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.certifications}</div>
-              <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-              <EditableBlock value={ce.map((c: any) => typeof c === 'string' ? c : (c?.name || c?.title || '')).filter(Boolean).join('  \xb7  ')} onSave={v => updatePdfDraft(d => ({ ...d, certifications: v.split(/[\xb7,\n]/).map((x: string) => x.trim()).filter(Boolean) }))} style={{ fontSize: s(9), color: '#333', lineHeight: '1.6' }} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* References */}
-      <div>
-        <div style={{ fontSize: s(7.5), fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.8px', marginBottom: s(6), color: accentColor }}>{L.references}</div>
-        <div style={{ borderTop: '0.5px solid #bbb', marginBottom: s(7) }} />
-        <span style={{ fontSize: s(8.5), color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</span>
-      </div>
-    </div>
-  );
-}
 
 export function ResumeUploadTab() {
   const { language, activeTab, setActiveTab } = useStore();
@@ -1003,13 +720,6 @@ export function ResumeUploadTab() {
   const [savingPdfTemplateId, setSavingPdfTemplateId] = useState<string | null>(null);
   const [previewingTemplateId, setPreviewingTemplateId] = useState<string | null>(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
-  const [pdfDraft, setPdfDraft] = useState<any>(null);
-  const pdfDraftRef = useRef<any>(null);
-  const [_pdfEditMode, setPdfEditMode] = useState(false);
-  const [classicAccentColor, setClassicAccentColor] = useState('#111111');
-  const [classicEntrySpacing, setClassicEntrySpacing] = useState(0);
-  const [isSavingClassicEdits, setIsSavingClassicEdits] = useState(false);
-  const pdfRegenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showDocViewerModal, setShowDocViewerModal] = useState(false);
   const [docViewerUrl, setDocViewerUrl] = useState<string | null>(null);
   const [docViewerLoading, setDocViewerLoading] = useState(false);
@@ -1275,72 +985,6 @@ export function ResumeUploadTab() {
     setShowSavePdfModal(false);
     if (previewBlobUrl) { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); }
     setPreviewingTemplateId(null);
-    setPdfEditMode(false);
-    setPdfDraft(null);
-    pdfDraftRef.current = null;
-    setClassicAccentColor('#111111');
-    setClassicEntrySpacing(0);
-    if (pdfRegenTimer.current) clearTimeout(pdfRegenTimer.current);
-  };
-
-  const openPdfModalWithDraft = () => {
-    const data = selectedResume?.resume_data ? JSON.parse(JSON.stringify(selectedResume.resume_data)) : null;
-    setPdfDraft(data);
-    pdfDraftRef.current = data;
-    setClassicAccentColor(data?._formatting?.classicAccentColor ?? '#111111');
-    setClassicEntrySpacing(data?._formatting?.entrySpacing ?? 0);
-    setPdfEditMode(false);
-    setShowPdfModal(true);
-  };
-
-  const handleSaveClassicEdits = async () => {
-    if (!selectedResume) return;
-    // Flush any in-progress contentEditable edit: blur fires onSave → updatePdfDraft
-    // which synchronously updates pdfDraftRef.current before we read it below.
-    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-    const draft = pdfDraftRef.current;
-    if (!draft) return;
-    setIsSavingClassicEdits(true);
-    try {
-      const resume_data = {
-        ...draft,
-        languages: (draft.languages ?? []).map((l: any) => (typeof l === 'string' ? l : (l?.name || l?.language || '')).trim()).filter(Boolean),
-        certifications: (draft.certifications ?? []).map((c: any) => (typeof c === 'string' ? c : (c?.name || c?.title || '')).trim()).filter(Boolean),
-        _formatting: { classicAccentColor, entrySpacing: classicEntrySpacing },
-      };
-      await resumesApi.update(selectedResume.resume_id, { resume_data });
-      setResumeVersions(prev =>
-        prev.map(r => r.resume_id === selectedResume.resume_id ? { ...r, resume_data } : r)
-      );
-      setMessage({ text: 'Classic template changes saved.', type: 'success' });
-    } catch {
-      setMessage({ text: 'Could not save changes.', type: 'error' });
-    } finally {
-      setIsSavingClassicEdits(false);
-    }
-  };
-
-  const updatePdfDraft = (updater: (d: any) => any) => {
-    // Compute next from the ref (always in sync) so the ref update is synchronous.
-    // Using setPdfDraft's prev callback would defer this update to the next render,
-    // which means pdfDraftRef.current would still be stale when Save reads it.
-    const next = updater(pdfDraftRef.current ? JSON.parse(JSON.stringify(pdfDraftRef.current)) : {});
-    pdfDraftRef.current = next;
-    setPdfDraft(next);
-    // Only auto-regen the PDF preview if the iframe is already showing.
-    // Never auto-switch from the live editor to the PDF view on every keystroke/gap click.
-    if (previewBlobUrl && previewingTemplateId && selectedResume) {
-      if (pdfRegenTimer.current) clearTimeout(pdfRegenTimer.current);
-      pdfRegenTimer.current = setTimeout(() => {
-        handlePreviewTemplate(
-          previewingTemplateId, next,
-          selectedResume.title,
-          pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined,
-          selectedResume.language,
-          previewingTemplateId === 'classic' ? { classicAccentColor, classicEntrySpacing } : undefined
-        );
-      }, 900);
-    }
   };
 
   const closeDocViewer = () => {
@@ -1830,7 +1474,7 @@ export function ResumeUploadTab() {
                   </button>
                 )}
                 <button
-                  onClick={() => openPdfModalWithDraft()}
+                  onClick={() => setShowPdfModal(true)}
                   className="px-3 py-2 text-xs font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1983,10 +1627,15 @@ export function ResumeUploadTab() {
                   )}
 
                   <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-                      {t.sections.summary}
-                      {isAiGenerated && !manuallyEditedSections.has('summary') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
-                    </p>
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                        {t.sections.summary}
+                        {isAiGenerated && !manuallyEditedSections.has('summary') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                      </p>
+                      {isEditingContent && (editDraft?.personal_info?.summary ?? '').trim() && (
+                        <button type="button" onClick={() => setEditDraft(d => d ? { ...d, personal_info: { ...(d.personal_info ?? {}), summary: '' } } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                      )}
+                    </div>
                     {isEditingContent ? (
                       <textarea
                         className="w-full text-sm text-gray-700 dark:text-neutral-300 leading-relaxed bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-2xl p-5 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 resize-none"
@@ -2045,10 +1694,15 @@ export function ResumeUploadTab() {
                   </div>
 
                   <div className="space-y-3 border-t border-gray-100 dark:border-neutral-800 pt-6">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-                      {t.sections.skills}
-                      {isAiGenerated && !manuallyEditedSections.has('skills') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
-                    </p>
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                        {t.sections.skills}
+                        {isAiGenerated && !manuallyEditedSections.has('skills') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                      </p>
+                      {isEditingContent && (editDraft?.skills ?? []).length > 0 && (
+                        <button type="button" onClick={() => setEditDraft(d => d ? { ...d, skills: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                      )}
+                    </div>
                     {isEditingContent ? (
                       <div className="space-y-2">
                         {(editDraft?.skills ?? []).map((skill: any, i: number) => (
@@ -2135,7 +1789,7 @@ export function ResumeUploadTab() {
                               {(edu.degree && edu.degree !== 'UNKNOWN' ? edu.degree : '') || 'Degree'}{edu.field_of_study && edu.field_of_study !== 'UNKNOWN' ? ` in ${edu.field_of_study}` : ''}
                             </h4>
                             {edu.institution && <p className="text-xs font-medium text-gray-500 dark:text-neutral-400">{edu.institution}</p>}
-                            {(edu.start_date || edu.end_date) && <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{[edu.start_date, edu.end_date].filter(Boolean).join(' � ')}</p>}
+                            {(edu.start_date || edu.end_date) && <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mt-1">{edu.start_date || '–'} – {edu.end_date || t.placeholders.present}</p>}
                             {edu.grade && <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{edu.grade}</p>}
                             {edu.description && <p className="text-xs text-gray-600 dark:text-neutral-300 mt-1 leading-relaxed whitespace-pre-line">{edu.description}</p>}
                           </div>
@@ -2157,8 +1811,8 @@ export function ResumeUploadTab() {
                             {(t.sections as any)?.languages ?? getPdfLabels(selectedResume.language).languages}
                             {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
-                          {isEditingContent && (
-                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">?</button>
+                          {isEditingContent && (editDraft?.languages ?? []).length > 0 && (
+                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                           )}
                         </div>
                         {isEditingContent ? (
@@ -2191,8 +1845,8 @@ export function ResumeUploadTab() {
                             {(t.sections as any)?.certifications ?? getPdfLabels(selectedResume.language).certifications}
                             {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
                           </p>
-                          {isEditingContent && (
-                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">?</button>
+                          {isEditingContent && (editDraft?.certifications ?? []).length > 0 && (
+                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                           )}
                         </div>
                         {isEditingContent ? (
@@ -2227,7 +1881,7 @@ export function ResumeUploadTab() {
                           {isEditingContent && (
                             editDraft?.hide_references
                               ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] text-violet-600 dark:text-violet-400 hover:text-violet-700 font-medium px-1.5 py-0.5 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors">Restore</button>
-                              : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">?</button>
+                              : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                           )}
                         </div>
                         {editDraft?.hide_references && isEditingContent
@@ -2297,7 +1951,7 @@ export function ResumeUploadTab() {
                         {t.pdfCard.downloadBtn}
                       </button>
                       <button
-                        onClick={() => { setPdfDraft(selectedResume?.resume_data ? JSON.parse(JSON.stringify(selectedResume.resume_data)) : null); setPdfEditMode(false); setShowSavePdfModal(true); }}
+                        onClick={() => { setShowSavePdfModal(true); }}
                         className="flex items-center gap-1.5 px-4 py-2 bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 text-[#5B52C8] dark:text-[#9EA4FF] text-sm font-semibold rounded-xl border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -2318,7 +1972,7 @@ export function ResumeUploadTab() {
                   <>
                     <p className="text-sm text-gray-500 dark:text-neutral-400">{t.pdfCard.notSavedDesc}</p>
                     <button
-                      onClick={() => { setPdfDraft(selectedResume?.resume_data ? JSON.parse(JSON.stringify(selectedResume.resume_data)) : null); setPdfEditMode(false); setShowSavePdfModal(true); }}
+                      onClick={() => { setShowSavePdfModal(true); }}
                       className="flex items-center gap-2 px-4 py-2.5 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
@@ -2572,7 +2226,7 @@ export function ResumeUploadTab() {
                   </a>
                 )}
                 <button
-                  onClick={() => { closeDocViewer(); openPdfModalWithDraft(); }}
+                  onClick={() => { closeDocViewer(); setShowPdfModal(true); }}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5B52C8] dark:text-[#9EA4FF] bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 border border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25 rounded-lg hover:bg-[#9EA4FF]/25 dark:hover:bg-[#9EA4FF]/20 transition-colors"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -2598,7 +2252,7 @@ export function ResumeUploadTab() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-8">
                     <svg className="w-10 h-10 text-gray-300 dark:text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     <p className="text-sm font-semibold text-gray-500 dark:text-neutral-400">Could not load PDF</p>
-                    <button onClick={() => { closeDocViewer(); openPdfModalWithDraft(); }} className="text-xs text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:no-underline">Generate a new PDF instead</button>
+                    <button onClick={() => { closeDocViewer(); setShowPdfModal(true); }} className="text-xs text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:no-underline">Generate a new PDF instead</button>
                   </div>
                 )}
               </div>
@@ -2641,7 +2295,7 @@ export function ResumeUploadTab() {
 
       {showPdfModal && selectedResume && (
         <div className="fixed inset-0 z-50 bg-gray-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={closePdfModals}>
-          <div className={`bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full overflow-hidden flex transition-all duration-300 max-h-[90vh] ${previewBlobUrl || previewingTemplateId === 'classic' ? 'max-w-5xl' : 'max-w-sm'}`} onClick={e => e.stopPropagation()}>
+          <div className={`bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full overflow-hidden flex transition-all duration-300 max-h-[90vh] ${previewBlobUrl ? 'max-w-5xl' : 'max-w-sm'}`} onClick={e => e.stopPropagation()}>
             <div className="flex flex-col w-full max-w-sm shrink-0 bg-white dark:bg-neutral-900">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                 <div>
@@ -2675,7 +2329,7 @@ export function ResumeUploadTab() {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
-                          onClick={() => handlePreviewTemplate(tmpl.id, pdfDraft ?? selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
+                          onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
                           disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
                           className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-[#9EA4FF]/20 text-[#5B52C8] border-[#9EA4FF]/40' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                         >
@@ -2683,17 +2337,6 @@ export function ResumeUploadTab() {
                             ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
                             : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
                         </button>
-                        {tmpl.id === 'classic' && (
-                          <button
-                            onClick={() => {
-                              if (previewBlobUrl) { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); }
-                              setPreviewingTemplateId('classic');
-                            }}
-                            className="px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors bg-white dark:bg-neutral-800 text-[#7A60F4] border-[#7A60F4]/40 hover:bg-[#7A60F4]/5 dark:hover:bg-[#7A60F4]/10"
-                          >
-                            Edit
-                          </button>
-                        )}
                         <button
                           disabled={isGeneratingPdf}
                           onClick={async () => {
@@ -2701,12 +2344,11 @@ export function ResumeUploadTab() {
                             try {
                               await downloadResumePdf(
   tmpl.id as TemplateId,
-  (tmpl.id === 'classic' && pdfDraftRef.current) ? pdfDraftRef.current : (selectedResume.resume_data ?? {}),
+  selectedResume.resume_data ?? {},
   selectedResume.resume_id,
   selectedResume.title,
   pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined,
-  selectedResume.language,
-  tmpl.id === 'classic' ? { classicAccentColor, classicEntrySpacing } : undefined
+  selectedResume.language
 );
                               closePdfModals();
                             } finally { setIsGeneratingPdf(false); }
@@ -2724,97 +2366,17 @@ export function ResumeUploadTab() {
                 })}
               </div>
             </div>
-            {(previewBlobUrl || previewingTemplateId === 'classic') && (
+            {previewBlobUrl && (
               <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 overflow-hidden">
-                {/* Classic formatting toolbar */}
-                {previewingTemplateId === 'classic' && (
-                  <div className="px-4 py-2.5 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/80 dark:bg-neutral-900 flex items-center gap-4 shrink-0 flex-wrap">
-                    <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-widest shrink-0">Classic Editor</p>
-                    <div className="flex items-center gap-2">
-                      <label className="text-[10px] font-semibold text-gray-400 dark:text-neutral-500 uppercase tracking-wider whitespace-nowrap">Accent Color</label>
-                      <input
-                        type="color"
-                        value={classicAccentColor}
-                        onChange={e => {
-                          const c = e.target.value;
-                          setClassicAccentColor(c);
-                          if (pdfRegenTimer.current) clearTimeout(pdfRegenTimer.current);
-                          pdfRegenTimer.current = setTimeout(() => {
-                            if (previewBlobUrl && selectedResume) handlePreviewTemplate('classic', pdfDraft ?? selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language, { classicAccentColor: c });
-                          }, 600);
-                        }}
-                        className="w-7 h-7 rounded cursor-pointer border border-gray-200 dark:border-neutral-600 p-0.5 bg-white"
-                      />
-                      <button type="button" onClick={() => setClassicAccentColor('#111111')} className="text-[10px] text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300 underline underline-offset-1">Reset</button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-[10px] font-semibold text-gray-400 dark:text-neutral-500 uppercase tracking-wider whitespace-nowrap">Entry Spacing</label>
-                      <button type="button" onClick={() => setClassicEntrySpacing(v => Math.max(0, v - 4))} className="w-5 h-5 flex items-center justify-center rounded border border-gray-200 dark:border-neutral-600 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 text-xs font-bold">−</button>
-                      <span className="text-xs font-mono text-gray-500 dark:text-neutral-400 w-6 text-center">{classicEntrySpacing}</span>
-                      <button type="button" onClick={() => setClassicEntrySpacing(v => Math.min(40, v + 4))} className="w-5 h-5 flex items-center justify-center rounded border border-gray-200 dark:border-neutral-600 text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 text-xs font-bold">+</button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleSaveClassicEdits}
-                      disabled={isSavingClassicEdits}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#7A60F4] hover:bg-[#6B52E8] text-white transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-                    >
-                      {isSavingClassicEdits
-                        ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>}
-                      {isSavingClassicEdits ? 'Saving…' : 'Save'}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900 shrink-0">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
+                    <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
-                    <div className="flex items-center gap-2 ml-auto">
-                      <p className="text-[10px] text-gray-400 dark:text-neutral-500 hidden md:block italic">Click any text to edit inline</p>
-                      {!previewBlobUrl ? (
-                        <button
-                          onClick={() => handlePreviewTemplate('classic', pdfDraftRef.current ?? selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language, { classicAccentColor, classicEntrySpacing })}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-[#9EA4FF]/40 bg-[#9EA4FF]/10 text-[#5B52C8] dark:text-[#9EA4FF] hover:bg-[#9EA4FF]/20 transition-colors shrink-0 flex items-center gap-1.5"
-                        >
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                          PDF Preview
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); }}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-[#7A60F4]/40 bg-[#7A60F4]/10 text-[#7A60F4] dark:text-[#9EA4FF] hover:bg-[#7A60F4]/20 transition-colors shrink-0 flex items-center gap-1.5"
-                        >
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
-                          Back to Editor
-                        </button>
-                      )}
-                    </div>
                   </div>
-                )}
-                {/* Classic live editor view */}
-                {previewingTemplateId === 'classic' && !previewBlobUrl && pdfDraft && (
-                  <div className="flex-1 overflow-auto bg-gray-100 dark:bg-neutral-800 p-6">
-                    <ClassicLiveEditor
-                      pdfDraft={pdfDraft}
-                      updatePdfDraft={updatePdfDraft}
-                      photo={pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined}
-                      language={selectedResume.language}
-                      accentColor={classicAccentColor}
-                      entrySpacing={classicEntrySpacing}
-                    />
-                  </div>
-                )}
-                {/* Classic PDF preview iframe */}
-                {previewingTemplateId === 'classic' && previewBlobUrl && (
                   <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
-                )}
-                {/* Other templates: PDF preview iframe */}
-                {previewBlobUrl && previewingTemplateId !== 'classic' && (
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900 shrink-0">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
-                      <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      </button>
-                    </div>
-                    <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
-                  </div>
-                )}
+                </div>
               </div>
             )}
           </div>

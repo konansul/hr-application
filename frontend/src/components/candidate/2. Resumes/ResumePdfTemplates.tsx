@@ -62,7 +62,7 @@ function PdfDescription({ text, textStyle, dotColor = '#555', bulletGap = 2 }: {
     <View>
       {items.map((it, i) => (
         it.bullet ? (
-          <View key={i} style={{ flexDirection: 'row', marginBottom: bulletGap, marginTop: i === 0 ? 0 : bulletGap }}>
+          <View key={i} wrap={false} style={{ flexDirection: 'row', marginBottom: bulletGap, marginTop: i === 0 ? 0 : bulletGap }}>
             <Text style={[textStyle, { width: 10, color: dotColor }]}>•</Text>
             <Text style={[textStyle, { flex: 1, textAlign: 'justify' }]}>{it.text}</Text>
           </View>
@@ -88,22 +88,27 @@ const langName  = (l: any) => { const n = typeof l === 'string' ? l : (l?.name |
 const certName  = (c: any) => { const n = typeof c === 'string' ? c : (c?.name || c?.title || ''); return clean(n); };
 
 function fullName(info: any, fallback?: string | null) {
-  return [info?.first_name, info?.last_name].filter(Boolean).join(' ') || fallback || 'Resume';
+  return [clean(info?.first_name), clean(info?.last_name)].filter(Boolean).join(' ') || clean(fallback) || '';
 }
 
 function contactParts(info: any): string[] {
+  const city = clean(info?.city);
+  const country = clean(info?.country);
+  const location = city && country ? `${city}, ${country}` : city || country;
   return [
-    info?.email,
-    info?.phone,
-    info?.city && info?.country ? `${info.city}, ${info.country}` : info?.city || info?.country,
-    info?.linkedin_url,
-    info?.github_url,
+    clean(info?.email),
+    clean(info?.phone),
+    location,
+    clean(info?.linkedin_url),
+    clean(info?.github_url),
   ].filter(Boolean) as string[];
 }
 
 function dateRange(e: any, present = 'Present') {
-  if (!e.start_date && !e.end_date) return '';
-  return `${e.start_date || ''}${e.end_date ? ` – ${e.end_date}` : e.start_date ? ` – ${present}` : ''}`;
+  const start = clean(e.start_date);
+  const end = clean(e.end_date);
+  if (!start && !end) return '';
+  return `${start}${end ? ` – ${end}` : start ? ` – ${present}` : ''}`;
 }
 
 function hasList(arr: any[]) { return arr && arr.length > 0; }
@@ -117,16 +122,13 @@ function hasList(arr: any[]) { return arr && arr.length > 0; }
 //   return { gap: m[0].length * 5, text: raw.slice(m[0].length) };
 // }
 
-function shortContact(s: string, max = 34): string {
-  if (!s || s.length <= max) return s;
-  if (s.startsWith('http')) {
-    try {
-      const url = new URL(s);
-      const path = url.pathname.length > 16 ? url.pathname.slice(0, 14) + '…' : url.pathname;
-      return url.hostname + path;
-    } catch { /* fall through */ }
-  }
-  return s.slice(0, max - 1) + '…';
+function wrapContact(s: string, maxLen = 36): string {
+  if (!s || !s.startsWith('http')) return s;
+  const display = s.replace(/^https?:\/\/(www\.)?/, '');
+  if (display.length <= maxLen) return display;
+  const breakAt = display.lastIndexOf('/', maxLen);
+  if (breakAt > 0) return display.slice(0, breakAt + 1) + '\n' + display.slice(breakAt + 1);
+  return display.slice(0, maxLen) + '\n' + display.slice(maxLen);
 }
 
 const PDF_LABELS: Record<string, {
@@ -249,6 +251,8 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
   const L = getPdfLabels(language);
   const ac = accentColor ?? '#111';
   const extraSpacing = entrySpacing ?? data._formatting?.entrySpacing ?? 0;
+  const expGaps: number[] = data._formatting?.experienceGaps ?? [];
+  const eduGaps: number[] = data._formatting?.educationGaps ?? [];
 
   return (
     <Document>
@@ -258,7 +262,7 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
             <View style={{ flex: 1 }}>
               <Text style={[CL.name, { color: ac }]}>{fullName(info, title)}</Text>
               <View style={CL.contacts}>
-                {contactParts(info).map((c, i) => <Text key={i} style={CL.contact}>{c}</Text>)}
+                {contactParts(info).map((c, i) => <Text key={i} style={CL.contact}>{wrapContact(c)}</Text>)}
               </View>
             </View>
             {photo ? <PhotoRect src={photo} w={68} h={68} radius={4} /> : null}
@@ -266,11 +270,11 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
         </View>
         <View style={[CL.rule, { borderBottomColor: ac }]} />
 
-        {info.summary ? (
+        {clean(info.summary) ? (
           <View style={CL.section}>
             <Text style={[CL.secTitle, { color: ac }]}>{L.profile}</Text>
             <View style={CL.thinRule} />
-            <PdfDescription text={info.summary} textStyle={CL.summary} dotColor={ac} />
+            <PdfDescription text={clean(info.summary)} textStyle={CL.summary} dotColor={ac} />
           </View>
         ) : null}
 
@@ -281,12 +285,12 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
             {exp.map((e: any, i: number) => (
               <View key={i} style={[CL.entry, extraSpacing > 0 ? { marginBottom: 18 + extraSpacing } : {}]}>
                 <View style={CL.row}>
-                  <Text style={[CL.bold, { color: ac }]}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
+                  <Text style={[CL.bold, { color: ac }]}>{clean(e.title)}{clean(e.company) ? ` — ${clean(e.company)}` : ''}</Text>
                   <Text style={CL.dates}>{dateRange(e, L.present)}</Text>
                 </View>
-                {e.description ? (
-                  <View style={{ marginTop: 4 + (e.descriptionGap ?? 0) * 12 }}>
-                    <PdfDescription text={e.description} textStyle={{ ...CL.desc, marginTop: 0 }} dotColor="#555" bulletGap={3} />
+                {clean(e.description) ? (
+                  <View style={{ marginTop: 4 + (e.descriptionGap ?? expGaps[i] ?? 0) * 12 }}>
+                    <PdfDescription text={clean(e.description)} textStyle={{ ...CL.desc, marginTop: 0 }} dotColor="#555" bulletGap={3} />
                   </View>
                 ) : null}
               </View>
@@ -309,7 +313,7 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
                   </View>
                   {inst  ? <Text style={CL.sub}>{inst}</Text>  : null}
                   {grade ? <Text style={CL.sub}>{grade}</Text> : null}
-                  {desc  ? <View style={{ marginTop: 4 + (e.descriptionGap ?? 0) * 12 }}><Text style={{ ...CL.desc, marginTop: 0 }}>{desc}</Text></View> : null}
+                  {desc  ? <View style={{ marginTop: 4 + (e.descriptionGap ?? eduGaps[i] ?? 0) * 12 }}><Text style={{ ...CL.desc, marginTop: 0 }}>{desc}</Text></View> : null}
                 </View>
               );
             })}
@@ -343,11 +347,13 @@ function ClassicPdf({ data, title, photo, language, accentColor, entrySpacing }:
           </View>
         ) : null}
 
-        <View style={CL.section}>
-          <Text style={[CL.secTitle, { color: ac }]}>{L.references}</Text>
-          <View style={CL.thinRule} />
-          <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</Text>
-        </View>
+        {!data.hide_references ? (
+          <View style={CL.section}>
+            <Text style={[CL.secTitle, { color: ac }]}>{L.references}</Text>
+            <View style={CL.thinRule} />
+            <Text style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );
@@ -408,13 +414,13 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
 
           <View style={[MO.sSec, { marginBottom: secMb }]}>
             <Text style={MO.sSecT}>{L.contact}</Text>
-            {contactParts(info).map((c, i) => <Text key={i} style={MO.sCon}>{shortContact(c)}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={MO.sCon}>{wrapContact(c, 28)}</Text>)}
           </View>
 
-          {info.summary ? (
+          {clean(info.summary) ? (
             <View style={[MO.sSec, { marginBottom: secMb }]}>
               <Text style={MO.sSecT}>{L.profile}</Text>
-              <PdfDescription text={info.summary} textStyle={MO.sSumm} dotColor="#94a3b8" bulletGap={2} />
+              <PdfDescription text={clean(info.summary)} textStyle={MO.sSumm} dotColor="#94a3b8" bulletGap={2} />
             </View>
           ) : null}
 
@@ -452,11 +458,11 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
               {exp.map((e: any, i: number) => (
                 <View key={i} style={MO.mEntry}>
                   <View style={MO.mRow}>
-                    <Text style={MO.mBold}>{e.title || 'Role'}</Text>
+                    <Text style={MO.mBold}>{clean(e.title)}</Text>
                     <Text style={MO.mDates}>{dateRange(e, L.present)}</Text>
                   </View>
-                  {e.company ? <Text style={MO.mSub}>{e.company}</Text> : null}
-                  {e.description ? <PdfDescription text={e.description} textStyle={MO.mDesc} dotColor="#6b7280" bulletGap={3} /> : null}
+                  {clean(e.company) ? <Text style={MO.mSub}>{clean(e.company)}</Text> : null}
+                  {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={MO.mDesc} dotColor="#6b7280" bulletGap={3} /> : null}
                 </View>
               ))}
             </View>
@@ -494,10 +500,12 @@ function ModernPdf({ data, title, photo, language }: { data: any; title?: string
             </View>
           ) : null}
 
-          <View style={MO.mSec}>
-            <Text style={MO.mSecT}>{L.references}</Text>
-            <Text style={{ fontSize: 8.5, color: '#6b7280', fontStyle: 'italic' }}>{L.referencesNote}</Text>
-          </View>
+          {!data.hide_references ? (
+            <View style={MO.mSec}>
+              <Text style={MO.mSecT}>{L.references}</Text>
+              <Text style={{ fontSize: 8.5, color: '#6b7280', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+            </View>
+          ) : null}
         </View>
       </Page>
     </Document>
@@ -543,15 +551,15 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
         <View style={MI.header}>
           <Text style={MI.name}>{fullName(info, title)}</Text>
           <View style={MI.cons}>
-            {contactParts(info).map((c, i) => <Text key={i} style={MI.con}>{c}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={MI.con}>{wrapContact(c)}</Text>)}
           </View>
         </View>
         <View style={MI.rule} />
 
-        {info.summary ? (
+        {clean(info.summary) ? (
           <View style={MI.sec}>
             <Text style={MI.secT}>{L.about}</Text>
-            <PdfDescription text={info.summary} textStyle={MI.summary} dotColor="#555" bulletGap={3} />
+            <PdfDescription text={clean(info.summary)} textStyle={MI.summary} dotColor="#555" bulletGap={3} />
           </View>
         ) : null}
 
@@ -561,10 +569,10 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
             {exp.map((e: any, i: number) => (
               <View key={i} style={MI.entry}>
                 <View style={MI.row}>
-                  <Text style={MI.bold}>{e.title || 'Role'}{e.company ? `, ${e.company}` : ''}</Text>
+                  <Text style={MI.bold}>{clean(e.title)}{clean(e.company) ? `, ${clean(e.company)}` : ''}</Text>
                   <Text style={MI.dates}>{dateRange(e, L.present)}</Text>
                 </View>
-                {e.description ? <PdfDescription text={e.description} textStyle={MI.desc} dotColor="#555" bulletGap={3} /> : null}
+                {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={MI.desc} dotColor="#555" bulletGap={3} /> : null}
               </View>
             ))}
           </View>
@@ -615,10 +623,12 @@ function MinimalPdf({ data, title, language }: { data: any; title?: string | nul
           </View>
         ) : null}
 
-        <View style={MI.sec}>
-          <Text style={MI.secT}>{L.references}</Text>
-          <Text style={{ fontSize: 9, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>{L.referencesNote}</Text>
-        </View>
+        {!data.hide_references ? (
+          <View style={MI.sec}>
+            <Text style={MI.secT}>{L.references}</Text>
+            <Text style={{ fontSize: 9, color: '#555', fontStyle: 'italic', textAlign: 'center' }}>{L.referencesNote}</Text>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );
@@ -670,7 +680,7 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
             <View style={{ flex: 1 }}>
               <Text style={RE.name}>{fullName(info, title)}</Text>
               <View style={RE.cons}>
-                {contactParts(info).map((c, i) => <Text key={i} style={RE.con}>{c}</Text>)}
+                {contactParts(info).map((c, i) => <Text key={i} style={RE.con}>{wrapContact(c, 32)}</Text>)}
               </View>
             </View>
             {photo ? <View style={{ marginLeft: 14 }}><PhotoRect src={photo} w={72} h={72} radius={4} /></View> : null}
@@ -679,10 +689,10 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
 
         <View style={RE.body}>
           <View style={RE.left}>
-            {info.summary ? (
+            {clean(info.summary) ? (
               <View style={RE.sec}>
                 <Text style={RE.secT}>{L.profile}</Text>
-                <PdfDescription text={info.summary} textStyle={RE.summ} dotColor="#374151" bulletGap={3} />
+                <PdfDescription text={clean(info.summary)} textStyle={RE.summ} dotColor="#374151" bulletGap={3} />
               </View>
             ) : null}
 
@@ -736,10 +746,10 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
                 {exp.map((e: any, i: number) => (
                   <View key={i} style={RE.entry}>
                     <View style={RE.row}>
-                      <Text style={RE.bold}>{e.title || 'Role'}{e.company ? ` — ${e.company}` : ''}</Text>
+                      <Text style={RE.bold}>{clean(e.title)}{clean(e.company) ? ` — ${clean(e.company)}` : ''}</Text>
                       <Text style={RE.dates}>{dateRange(e, L.present)}</Text>
                     </View>
-                    {e.description ? <PdfDescription text={e.description} textStyle={RE.desc} dotColor="#1a3a5c" bulletGap={3} /> : null}
+                    {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={RE.desc} dotColor="#1a3a5c" bulletGap={3} /> : null}
                   </View>
                 ))}
               </View>
@@ -747,10 +757,12 @@ function ResearcherPdf({ data, title, photo, language }: { data: any; title?: st
           </View>
         </View>
 
-        <View style={RE.sec}>
-          <Text style={RE.secT}>{L.references}</Text>
-          <Text style={{ fontSize: 8, color: '#6b7280', fontStyle: 'italic' }}>{L.referencesNote}</Text>
-        </View>
+        {!data.hide_references ? (
+          <View style={RE.sec}>
+            <Text style={RE.secT}>{L.references}</Text>
+            <Text style={{ fontSize: 8, color: '#6b7280', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );
@@ -803,7 +815,7 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
 
           <View style={FR.sSec}>
             <Text style={FR.sSecT}>{L.contact}</Text>
-            {contactParts(info).map((c, i) => <Text key={i} style={FR.sCon}>{shortContact(c)}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={FR.sCon}>{wrapContact(c, 28)}</Text>)}
           </View>
 
           {hasList(sk) ? (
@@ -822,11 +834,11 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
         </View>
 
         <View style={FR.body}>
-          {info.summary ? (
+          {clean(info.summary) ? (
             <View style={FR.bSec}>
               <Text style={FR.bSecT}>{L.aboutMe}</Text>
               <View style={FR.bRule} />
-              <PdfDescription text={info.summary} textStyle={FR.bSumm} dotColor="#555" bulletGap={3} />
+              <PdfDescription text={clean(info.summary)} textStyle={FR.bSumm} dotColor="#555" bulletGap={3} />
             </View>
           ) : null}
 
@@ -837,11 +849,11 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
               {exp.map((e: any, i: number) => (
                 <View key={i} style={FR.bEntry}>
                   <View style={FR.bRow}>
-                    <Text style={FR.bBold}>{e.title || 'Role'}</Text>
+                    <Text style={FR.bBold}>{clean(e.title)}</Text>
                     <Text style={FR.bDates}>{dateRange(e, L.present)}</Text>
                   </View>
-                  {e.company ? <Text style={FR.bSub}>{e.company}</Text> : null}
-                  {e.description ? <PdfDescription text={e.description} textStyle={FR.bDesc} dotColor="#e07b39" bulletGap={3} /> : null}
+                  {clean(e.company) ? <Text style={FR.bSub}>{clean(e.company)}</Text> : null}
+                  {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={FR.bDesc} dotColor="#e07b39" bulletGap={3} /> : null}
                 </View>
               ))}
             </View>
@@ -881,11 +893,13 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
             </View>
           ) : null}
 
-          <View style={FR.bSec}>
-            <Text style={FR.bSecT}>{L.references}</Text>
-            <View style={FR.bRule} />
-            <Text style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{L.referencesNote}</Text>
-          </View>
+          {!data.hide_references ? (
+            <View style={FR.bSec}>
+              <Text style={FR.bSecT}>{L.references}</Text>
+              <View style={FR.bRule} />
+              <Text style={{ fontSize: 8.5, color: '#666', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+            </View>
+          ) : null}
         </View>
       </Page>
     </Document>
@@ -895,13 +909,13 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
 
 
 const HI = StyleSheet.create({
-  page:    { padding: 0, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
-  accent:  { backgroundColor: '#0f766e', padding: '20 36 16 36' },
+  page:    { paddingTop: 20, paddingBottom: 20, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
+  accent:  { backgroundColor: '#0f766e', padding: '0 36 16 36' },
   name:    { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
   tagline: { fontSize: 9, color: '#99f6e4', marginBottom: 10 },
   cons:    { flexDirection: 'row', flexWrap: 'wrap' },
   con:     { fontSize: 8, color: '#ccfbf1', marginRight: 14, marginBottom: 2 },
-  content: { padding: '20 36 36 36' },
+  content: { padding: '0 36 36 36' },
   colRow:  { flexDirection: 'row' },
   left:    { width: '38%', paddingRight: 18 },
   right:   { width: '62%', paddingLeft: 18, borderLeftWidth: 0.5, borderLeftColor: '#d1fae5' },
@@ -942,7 +956,7 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
               <Text style={HI.name}>{fullName(info, title)}</Text>
               {title ? <Text style={HI.tagline}>{title}</Text> : null}
               <View style={HI.cons}>
-                {contactParts(info).map((c, i) => <Text key={i} style={HI.con}>{c}</Text>)}
+                {contactParts(info).map((c, i) => <Text key={i} style={HI.con}>{wrapContact(c)}</Text>)}
               </View>
             </View>
             {photo ? <View style={{ marginLeft: 16 }}><PhotoCircle src={photo} size={70} /></View> : null}
@@ -950,8 +964,8 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
         </View>
 
         <View style={HI.content}>
-          {info.summary ? (
-            <PdfDescription text={info.summary} textStyle={HI.summ} dotColor="#0f766e" bulletGap={3} />
+          {clean(info.summary) ? (
+            <PdfDescription text={clean(info.summary)} textStyle={HI.summ} dotColor="#0f766e" bulletGap={3} />
           ) : null}
 
           <View style={HI.colRow}>
@@ -965,12 +979,14 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
                     if (!label && !inst) return null;
                     return (
                       <View key={i} style={HI.entry}>
-                        <View style={HI.row}>
-                          {label ? <Text style={HI.bold}>{label}</Text> : null}
-                          {(e.start_date || e.end_date) ? <Text style={HI.dates}>{dateRange(e, L.present)}</Text> : null}
+                        <View wrap={false}>
+                          <View style={HI.row}>
+                            {label ? <Text style={HI.bold}>{label}</Text> : null}
+                            {(e.start_date || e.end_date) ? <Text style={HI.dates}>{dateRange(e, L.present)}</Text> : null}
+                          </View>
+                          {inst  ? <Text style={HI.sub}>{inst}</Text>  : null}
+                          {grade ? <Text style={HI.sub}>{grade}</Text> : null}
                         </View>
-                        {inst  ? <Text style={HI.sub}>{inst}</Text>  : null}
-                        {grade ? <Text style={HI.sub}>{grade}</Text> : null}
                         {desc  ? <PdfDescription text={desc} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
                       </View>
                     );
@@ -1010,12 +1026,14 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
                   <View style={HI.rule} />
                   {exp.map((e: any, i: number) => (
                     <View key={i} style={HI.entry}>
-                      <View style={HI.row}>
-                        <Text style={HI.bold}>{e.title || 'Role'}</Text>
-                        <Text style={HI.dates}>{dateRange(e, L.present)}</Text>
+                      <View wrap={false}>
+                        <View style={HI.row}>
+                          <Text style={HI.bold}>{clean(e.title)}</Text>
+                          <Text style={HI.dates}>{dateRange(e, L.present)}</Text>
+                        </View>
+                        {clean(e.company) ? <Text style={HI.sub}>{clean(e.company)}</Text> : null}
                       </View>
-                      {e.company ? <Text style={HI.sub}>{e.company}</Text> : null}
-                      {e.description ? <PdfDescription text={e.description} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
+                      {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
                     </View>
                   ))}
                 </>
@@ -1023,11 +1041,13 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
             </View>
           </View>
 
-          <View>
-            <Text style={HI.secT}>{L.references}</Text>
-            <View style={HI.rule} />
-            <Text style={{ fontSize: 8.5, color: '#374151', fontStyle: 'italic' }}>{L.referencesNote}</Text>
-          </View>
+          {!data.hide_references ? (
+            <View>
+              <Text style={HI.secT}>{L.references}</Text>
+              <View style={HI.rule} />
+              <Text style={{ fontSize: 8.5, color: '#374151', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+            </View>
+          ) : null}
         </View>
       </Page>
     </Document>
@@ -1059,9 +1079,9 @@ function PieSkill({ pct, size = 10, fg = '#E96D1F', bg = '#4a4e68' }:
 }
 
 const AC = StyleSheet.create({
-  page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff' },
-  sidebar:   { flex: 1, backgroundColor: '#2B2D42', padding: '26 14 26 16', overflow: 'hidden' },
-  main:      { flex: 2, padding: '28 24 28 20' },
+  page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff', paddingTop: 20, paddingBottom: 20 },
+  sidebar:   { flex: 1, backgroundColor: '#2B2D42', padding: '6 14 6 16', overflow: 'hidden' },
+  main:      { flex: 2, padding: '8 24 8 20' },
 
   photoWrap: { alignItems: 'center', marginBottom: 12 },
   sName:     { fontSize: 13, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
@@ -1118,14 +1138,14 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
 
           <View style={[AC.sSec, { marginBottom: secMb }]}>
             <Text style={AC.sSecT}>{L.contact}</Text>
-            {contactParts(info).map((c, i) => <Text key={i} style={AC.sCon}>{shortContact(c)}</Text>)}
+            {contactParts(info).map((c, i) => <Text key={i} style={AC.sCon}>{wrapContact(c, 28)}</Text>)}
           </View>
 
-          {info.summary ? (
+          {clean(info.summary) ? (
             <View style={[AC.sSec, { marginBottom: secMb }]}>
               <Text style={AC.sSecT}>{L.profile}</Text>
               <View style={AC.sDivider} />
-              <PdfDescription text={info.summary} textStyle={AC.sSumm} dotColor="#94a3b8" bulletGap={2} />
+              <PdfDescription text={clean(info.summary)} textStyle={AC.sSumm} dotColor="#94a3b8" bulletGap={2} />
             </View>
           ) : null}
 
@@ -1164,16 +1184,22 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
             <View style={AC.mSec}>
               <Text style={AC.mSecT}>{L.experience}</Text>
               {exp.map((e: any, i: number) => (
-                <View key={i} style={AC.mEntry}>
-                  <View style={AC.mDot}>
-                    <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
+                <View key={i} style={{ marginBottom: 18 }}>
+                  <View wrap={false} style={{ flexDirection: 'row' }}>
+                    <View style={AC.mDot}>
+                      <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
+                    </View>
+                    <View style={AC.mContent}>
+                      <Text style={AC.mBold}>{clean(e.title)}</Text>
+                      {clean(e.company) ? <Text style={AC.mSub}>{clean(e.company)}</Text> : null}
+                      {(clean(e.start_date) || clean(e.end_date)) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
+                    </View>
                   </View>
-                  <View style={AC.mContent}>
-                    <Text style={AC.mBold}>{e.title || 'Role'}</Text>
-                    {e.company ? <Text style={AC.mSub}>{e.company}</Text> : null}
-                    {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
-                    {e.description ? <PdfDescription text={e.description} textStyle={AC.mDesc} dotColor="#E96D1F" bulletGap={3} /> : null}
-                  </View>
+                  {clean(e.description) ? (
+                    <View style={{ paddingLeft: 16 }}>
+                      <PdfDescription text={clean(e.description)} textStyle={AC.mDesc} dotColor="#E96D1F" bulletGap={3} />
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -1186,17 +1212,23 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
                 const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                 if (!label && !inst) return null;
                 return (
-                  <View key={i} style={AC.mEntry}>
-                    <View style={AC.mDot}>
-                      <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
+                  <View key={i} style={{ marginBottom: 18 }}>
+                    <View wrap={false} style={{ flexDirection: 'row' }}>
+                      <View style={AC.mDot}>
+                        <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
+                      </View>
+                      <View style={AC.mContent}>
+                        {label ? <Text style={AC.mBold}>{label}</Text> : null}
+                        {inst  ? <Text style={AC.mSub}>{inst}</Text>   : null}
+                        {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
+                        {grade ? <Text style={AC.mSub}>{grade}</Text>  : null}
+                      </View>
                     </View>
-                    <View style={AC.mContent}>
-                      {label ? <Text style={AC.mBold}>{label}</Text> : null}
-                      {inst  ? <Text style={AC.mSub}>{inst}</Text>   : null}
-                      {(e.start_date || e.end_date) ? <Text style={AC.mDates}>{dateRange(e, L.present)}</Text> : null}
-                      {grade ? <Text style={AC.mSub}>{grade}</Text>  : null}
-                      {desc  ? <PdfDescription text={desc} textStyle={{ fontSize: 8.5, color: '#475569', lineHeight: 1.65 }} dotColor="#E96D1F" bulletGap={3} /> : null}
-                    </View>
+                    {desc ? (
+                      <View style={{ paddingLeft: 16 }}>
+                        <PdfDescription text={desc} textStyle={{ fontSize: 8.5, color: '#475569', lineHeight: 1.65 }} dotColor="#E96D1F" bulletGap={3} />
+                      </View>
+                    ) : null}
                   </View>
                 );
               })}
@@ -1219,10 +1251,12 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
             </View>
           ) : null}
 
-          <View style={AC.mSec}>
-            <Text style={AC.mSecT}>{L.references}</Text>
-            <Text style={{ fontSize: 8.5, color: '#475569', fontStyle: 'italic' }}>{L.referencesNote}</Text>
-          </View>
+          {!data.hide_references ? (
+            <View style={AC.mSec}>
+              <Text style={AC.mSecT}>{L.references}</Text>
+              <Text style={{ fontSize: 8.5, color: '#475569', fontStyle: 'italic' }}>{L.referencesNote}</Text>
+            </View>
+          ) : null}
         </View>
       </Page>
     </Document>
