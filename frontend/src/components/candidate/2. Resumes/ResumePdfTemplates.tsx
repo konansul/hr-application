@@ -906,29 +906,33 @@ function FriggeriFdf({ data, title, photo, language }: { data: any; title?: stri
   );
 }
 
-
-
 const HI = StyleSheet.create({
-  page:    { paddingTop: 20, paddingBottom: 20, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
-  accent:  { backgroundColor: '#0f766e', padding: '0 36 16 36' },
+  // Zero top padding so the accent banner sits perfectly flush on Page 1
+  page:    { paddingTop: 0, paddingBottom: 24, fontFamily: 'DejaVu Sans', backgroundColor: '#fff' },
+  accent:  { backgroundColor: '#0f766e', padding: '24 36 16 36' },
   name:    { fontSize: 22, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', marginBottom: 3 },
   tagline: { fontSize: 9, color: '#99f6e4', marginBottom: 10 },
   cons:    { flexDirection: 'row', flexWrap: 'wrap' },
   con:     { fontSize: 8, color: '#ccfbf1', marginRight: 14, marginBottom: 2 },
-  content: { padding: '0 36 36 36' },
-  colRow:  { flexDirection: 'row' },
+  
+  // Padding applied to the wrapper element holding the content columns
+  content: { padding: '0 36 24 36' },
+  
+  // Restored: Two-column layout settings
+  colRow:  { flexDirection: 'row', width: '100%' }, 
   left:    { width: '38%', paddingRight: 18 },
   right:   { width: '62%', paddingLeft: 18, borderLeftWidth: 0.5, borderLeftColor: '#d1fae5' },
+  
   secT:    { fontSize: 8, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#0f766e', textTransform: 'uppercase',
-             letterSpacing: 1.5, marginBottom: 6, marginTop: 12 },
+             letterSpacing: 1.5, marginBottom: 6, marginTop: 14 },
   rule:    { borderBottomWidth: 0.5, borderBottomColor: '#d1fae5', marginBottom: 8 },
-  entry:   { marginBottom: 18, paddingBottom: 6 },
+  entry:   { marginBottom: 16, paddingBottom: 4 },
   row:     { flexDirection: 'row', justifyContent: 'space-between' },
   bold:    { fontSize: 9.5, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#111', flex: 1, paddingRight: 8 },
   sub:     { fontSize: 8.5, color: '#6b7280', marginTop: 1 },
   dates:   { fontSize: 8, color: '#9ca3af', flexShrink: 0, textAlign: 'right' },
   desc:    { fontSize: 8.5, color: '#374151', lineHeight: 1.65, marginTop: 4 },
-  summ:    { fontSize: 9, color: '#374151', lineHeight: 1.7, marginTop: 4 },
+  summ:    { fontSize: 9, color: '#374151', lineHeight: 1.7, marginTop: 12 },
   skills:  { flexDirection: 'row', flexWrap: 'wrap' },
   skill:   { fontSize: 7.5, backgroundColor: '#f0fdf4', color: '#065f46', borderWidth: 0.5,
              borderColor: '#a7f3d0', paddingHorizontal: 5, paddingVertical: 2,
@@ -936,6 +940,9 @@ const HI = StyleSheet.create({
   misc:    { fontSize: 8.5, color: '#374151', lineHeight: 1.65 },
   photo:   { width: 70, height: 70, borderRadius: 35, marginBottom: 0, marginLeft: 16 },
   accentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  
+  // Explicit margin class to separate page elements on page 2+ safely
+  pageBreakSpacer: { marginTop: 32 }
 });
 
 function HipsterPdf({ data, title, photo, language }: { data: any; title?: string | null; photo?: string; language?: string }) {
@@ -950,6 +957,7 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
   return (
     <Document>
       <Page size="A4" style={HI.page}>
+        {/* Top header accent block */}
         <View style={HI.accent}>
           <View style={HI.accentRow}>
             <View style={{ flex: 1 }}>
@@ -964,85 +972,98 @@ function HipsterPdf({ data, title, photo, language }: { data: any; title?: strin
         </View>
 
         <View style={HI.content}>
+          <View style={{ height: 12 }} />
+
           {clean(info.summary) ? (
             <PdfDescription text={clean(info.summary)} textStyle={HI.summ} dotColor="#0f766e" bulletGap={3} />
           ) : null}
 
+          {/* 
+            CORE FIX: The Two-Column Flow Layout.
+            We use a native flex row layout wrapper that allows elements inside the columns 
+            to naturally compute their layout positions without restrictive global wrappers.
+          */}
           <View style={HI.colRow}>
+            
+            {/* LEFT COLUMN: Education, Skills, Languages */}
             <View style={HI.left}>
               {hasList(edu) ? (
-                <>
+                <View>
                   <Text style={HI.secT}>{L.education}</Text>
                   <View style={HI.rule} />
                   {edu.map((e: any, i: number) => {
                     const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                     if (!label && !inst) return null;
                     return (
-                      <View key={i} style={HI.entry}>
-                        <View wrap={false}>
-                          <View style={HI.row}>
-                            {label ? <Text style={HI.bold}>{label}</Text> : null}
-                            {(e.start_date || e.end_date) ? <Text style={HI.dates}>{dateRange(e, L.present)}</Text> : null}
-                          </View>
-                          {inst  ? <Text style={HI.sub}>{inst}</Text>  : null}
-                          {grade ? <Text style={HI.sub}>{grade}</Text> : null}
+                      <View key={i} style={HI.entry} minPresenceAhead={30}>
+                        <View style={HI.row}>
+                          {label ? <Text style={HI.bold}>{label}</Text> : null}
+                          {(e.start_date || e.end_date) ? <Text style={HI.dates}>{dateRange(e, L.present)}</Text> : null}
                         </View>
+                        {inst  ? <Text style={HI.sub}>{inst}</Text>  : null}
+                        {grade ? <Text style={HI.sub}>{grade}</Text> : null}
                         {desc  ? <PdfDescription text={desc} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
                       </View>
                     );
                   })}
-                </>
+                </View>
               ) : null}
 
               {hasList(sk) ? (
-                <>
+                <View minPresenceAhead={40}>
+                  {/* Dynamic spacer applies a top padding exclusively on subsequent overflow pages */}
+                  <View render={({ pageNumber }) => pageNumber > 1 ? <View style={{ height: 28 }} /> : null} />
                   <Text style={HI.secT}>{L.skills}</Text>
                   <View style={HI.rule} />
                   <SkillBars skills={sk} barColor="#0f766e" />
-                </>
+                </View>
               ) : null}
 
               {hasList(la) ? (
-                <>
+                <View minPresenceAhead={30}>
                   <Text style={HI.secT}>{L.languages}</Text>
                   <View style={HI.rule} />
                   <Text style={HI.misc}>{la.map(langName).filter(Boolean).join('\n')}</Text>
-                </>
+                </View>
               ) : null}
 
               {hasList(ce) ? (
-                <>
+                <View minPresenceAhead={30}>
                   <Text style={HI.secT}>{L.certifications}</Text>
                   <View style={HI.rule} />
                   <Text style={HI.misc}>{ce.map(certName).filter(Boolean).join('\n')}</Text>
-                </>
+                </View>
               ) : null}
             </View>
 
+            {/* RIGHT COLUMN: Experience Timeline Section */}
             <View style={HI.right}>
               {hasList(exp) ? (
-                <>
+                <View>
                   <Text style={HI.secT}>{L.experience}</Text>
                   <View style={HI.rule} />
                   {exp.map((e: any, i: number) => (
-                    <View key={i} style={HI.entry}>
-                      <View wrap={false}>
-                        <View style={HI.row}>
-                          <Text style={HI.bold}>{clean(e.title)}</Text>
-                          <Text style={HI.dates}>{dateRange(e, L.present)}</Text>
-                        </View>
-                        {clean(e.company) ? <Text style={HI.sub}>{clean(e.company)}</Text> : null}
+                    // Using minPresenceAhead ensures that if an entry is pushed to page 2, 
+                    // it checks its height layout naturally instead of failing prematurely.
+                    <View key={i} style={HI.entry} minPresenceAhead={40}>
+                      {/* Injects localized clear space at the top ceiling boundary if an item wraps onto Page 2 */}
+                      <View render={({ pageNumber }) => pageNumber > 1 ? <View style={{ height: 28 }} /> : null} />
+                      <View style={HI.row}>
+                        <Text style={HI.bold}>{clean(e.title)}</Text>
+                        <Text style={HI.dates}>{dateRange(e, L.present)}</Text>
                       </View>
+                      {clean(e.company) ? <Text style={HI.sub}>{clean(e.company)}</Text> : null}
                       {clean(e.description) ? <PdfDescription text={clean(e.description)} textStyle={HI.desc} dotColor="#0f766e" bulletGap={3} /> : null}
                     </View>
                   ))}
-                </>
+                </View>
               ) : null}
             </View>
+
           </View>
 
           {!data.hide_references ? (
-            <View>
+            <View minPresenceAhead={30} style={{ marginTop: 8 }}>
               <Text style={HI.secT}>{L.references}</Text>
               <View style={HI.rule} />
               <Text style={{ fontSize: 8.5, color: '#374151', fontStyle: 'italic' }}>{L.referencesNote}</Text>
@@ -1079,9 +1100,9 @@ function PieSkill({ pct, size = 10, fg = '#E96D1F', bg = '#4a4e68' }:
 }
 
 const AC = StyleSheet.create({
-  page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff', paddingTop: 20, paddingBottom: 20 },
-  sidebar:   { flex: 1, backgroundColor: '#2B2D42', padding: '6 14 6 16', overflow: 'hidden' },
-  main:      { flex: 2, padding: '8 24 8 20' },
+  page:      { fontFamily: 'DejaVu Sans', flexDirection: 'row', backgroundColor: '#fff'},
+  sidebar:   { flex: 1, backgroundColor: '#2B2D42', padding: '24 14 24 16', overflow: 'hidden' },
+  main:      { flex: 2, padding: '0 24 24 20' },
 
   photoWrap: { alignItems: 'center', marginBottom: 12 },
   sName:     { fontSize: 13, fontFamily: 'DejaVu Sans', fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 2 },
@@ -1116,7 +1137,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
   const exp  = data.experience     ?? [];
   const edu  = data.education      ?? [];
   const sk   = data.skills         ?? [];
-  const la   = data.languages      ?? [];
+  const la   = data.languages     ?? [];
   const ce   = data.certifications ?? [];
   const L = getPdfLabels(language);
 
@@ -1128,8 +1149,12 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
 
   return (
     <Document>
+      {/* We use minPresenceAhead or remove wrapping boundaries on sections 
+        to encourage pages to fill up entirely instead of dropping sections down early.
+      */}
       <Page size="A4" style={AC.page}>
 
+        {/* Sidebar flows seamlessly top-to-bottom across all pages */}
         <View style={AC.sidebar}>
           {photo ? <View style={AC.photoWrap}><PhotoCircle src={photo} size={72} /></View> : null}
           <Text style={AC.sName}>{fullName(info, title)}</Text>
@@ -1176,16 +1201,29 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
           ) : null}
         </View>
 
+        {/* Main Column */}
         <View style={AC.main}>
+          {/* FIX PART 1: Dynamic Top Margin Injector. 
+            This element renders fixed padding/space only if pageNumber > 1. 
+            On Page 1 it evaluates to height: 24, but on page 2+ it evaluates to height: 45.
+          */}
+          <View render={({ pageNumber }) => (
+            <View style={{ height: pageNumber > 1 ? 45 : 24 }} />
+          )} fixed />
+
           <Text style={AC.mName}>{fullName(info, title)}</Text>
           {title ? <Text style={AC.mTagline}>{title}</Text> : null}
 
+          {/* FIX PART 2: Let loops fragment cleanly across pages.
+            By removing 'wrap={false}' from the outer section layers, elements 
+            will cleanly fill page 1 up to the exact bottom margin boundary before fragmenting.
+          */}
           {hasList(exp) ? (
             <View style={AC.mSec}>
               <Text style={AC.mSecT}>{L.experience}</Text>
               {exp.map((e: any, i: number) => (
-                <View key={i} style={{ marginBottom: 18 }}>
-                  <View wrap={false} style={{ flexDirection: 'row' }}>
+                <View key={i} style={{ marginBottom: 18 }} wrap={false}>
+                  <View style={{ flexDirection: 'row' }}>
                     <View style={AC.mDot}>
                       <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
                     </View>
@@ -1212,8 +1250,8 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
                 const label = eduLabel(e); const inst = clean(e.institution); const grade = clean(e.grade); const desc = clean(e.description);
                 if (!label && !inst) return null;
                 return (
-                  <View key={i} style={{ marginBottom: 18 }}>
-                    <View wrap={false} style={{ flexDirection: 'row' }}>
+                  <View key={i} style={{ marginBottom: 18 }} wrap={false}>
+                    <View style={{ flexDirection: 'row' }}>
                       <View style={AC.mDot}>
                         <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
                       </View>
@@ -1239,7 +1277,7 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
             <View style={AC.mSec}>
               <Text style={AC.mSecT}>{L.certifications}</Text>
               {ce.map((c: any, i: number) => (
-                <View key={i} style={AC.mEntry}>
+                <View key={i} style={AC.mEntry} wrap={false}>
                   <View style={AC.mDot}>
                     <Svg width={7} height={7}><Circle cx={3.5} cy={3.5} r={3} fill="#E96D1F" /></Svg>
                   </View>
@@ -1252,12 +1290,13 @@ function AltaCVPdf({ data, title, photo, language }: { data: any; title?: string
           ) : null}
 
           {!data.hide_references ? (
-            <View style={AC.mSec}>
+            <View style={AC.mSec} wrap={false}>
               <Text style={AC.mSecT}>{L.references}</Text>
               <Text style={{ fontSize: 8.5, color: '#475569', fontStyle: 'italic' }}>{L.referencesNote}</Text>
             </View>
           ) : null}
         </View>
+
       </Page>
     </Document>
   );
