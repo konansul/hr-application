@@ -108,6 +108,22 @@ class Resume(Base):
     generated_document = relationship("Document", foreign_keys=[generated_document_id], back_populates="generated_for_resumes")
     source_resume = relationship("Resume", remote_side=[resume_id], back_populates="derived_resumes")
     derived_resumes = relationship("Resume", back_populates="source_resume")
+    shares = relationship("ResumeShare", back_populates="resume", cascade="all, delete-orphan")
+
+
+class ResumeShare(Base):
+    __tablename__ = "resume_shares"
+
+    id = Column(Integer, primary_key=True, index=True)
+    share_id = Column(String(64), unique=True, nullable=False, index=True)
+    resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=False, index=True)
+    shared_by_user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
+    recipient_email = Column(String(255), nullable=False)
+    recipient_name = Column(String(255), nullable=True)
+    access_token = Column(String(128), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    resume = relationship("Resume", back_populates="shares")
 
 
 class Job(Base):

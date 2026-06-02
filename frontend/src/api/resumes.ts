@@ -45,4 +45,18 @@ export const resumesApi = {
         const response = await apiClient.patch(`/v1/resumes/${resumeId}/sharing`, { enabled });
         return response.data;
     },
+    listShares: async (resumeId: string) => {
+        const response = await apiClient.get(`/v1/resumes/${resumeId}/shares`);
+        return response.data;
+    },
+    createShare: async (resumeId: string, recipientEmail: string, recipientName: string) => {
+        const response = await apiClient.post(`/v1/resumes/${resumeId}/shares`, {
+            recipient_email: recipientEmail,
+            recipient_name: recipientName,
+        });
+        return response.data;
+    },
+    deleteShare: async (resumeId: string, shareId: string) => {
+        await apiClient.delete(`/v1/resumes/${resumeId}/shares/${shareId}`);
+    },
 };

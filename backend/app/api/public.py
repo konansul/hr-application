@@ -7,7 +7,7 @@ from backend.app.api.jobs import DEFAULT_PIPELINE_STAGES
 from backend.app.api.resumes import resume_payload
 from backend.app.schemas import PublicProfileOut, JobOut
 from backend.database.db import get_db
-from backend.database.models import Person, Job, Resume
+from backend.database.models import Person, Job, Resume, ResumeShare
 
 router = APIRouter()
 
@@ -75,11 +75,30 @@ def get_public_job(
         requirements=job.requirements
     )
 
-@router.get("/resumes/public/{resume_id}")
-def get_public_resume(resume_id: str, db: Session = Depends(get_db)):
-    resume = db.query(Resume).filter(Resume.resume_id == resume_id).first()
+@router.get("/resumes/public/{token}")
+def get_public_resume(token: str, db: Session = Depends(get_db)):
+    # 1. Try as a per-recipient share token (no public_sharing_enabled check needed)
+    # Wrapped in try/except in case the migration hasn't run yet on older deployments
+    try:
+        share = db.query(ResumeShare).filter(ResumeShare.access_token == token).first()
+        if share:
+            resume = share.resume
+            if not resume:
+                raise HTTPException(status_code=404, detail="Resume not found")
+            return {
+                "title": resume.title,
+                "language": resume.language,
+                "resume_data": resume_payload(resume),
+            }
+    except HTTPException:
+        raise
+    except Exception:
+        pass  # Table may not exist yet — fall through to resume_id lookup
+
+    # 2. Try as a resume_id (existing public link)
+    resume = db.query(Resume).filter(Resume.resume_id == token).first()
     if not resume:
-        person = db.query(Person).filter(Person.public_url_slug == resume_id).first()
+        person = db.query(Person).filter(Person.public_url_slug == token).first()
         if person:
             resume = (
                 db.query(Resume)
