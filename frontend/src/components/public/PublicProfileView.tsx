@@ -129,6 +129,7 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
   const experience: any[] = profile_data?.experience || [];
   const education: any[]  = profile_data?.education  || [];
   const skills: any[]     = profile_data?.skills     || [];
+  const languages: any[]  = profile_data?.languages  || [];
   const references: any[] = profile_data?.references || [];
 
   const fullName = [first_name || pInfo.first_name, last_name || pInfo.last_name].filter(Boolean).join(' ') || 'Candidate';
@@ -378,6 +379,41 @@ export function PublicProfileView({ slug }: PublicCvViewProps) {
                       {s.name || s}{s.level ? ` · ${s.level}` : ''}
                     </span>
                   ))}
+                </div>
+              </article>
+            )}
+
+            {/* Languages */}
+            {languages.length > 0 && (
+              <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
+                <CardHead label="Languages" pill={String(languages.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
+                <div className="px-4 py-3 flex flex-col gap-2.5">
+                  {(() => {
+                    const LEVEL_MAP: Record<string, { pct: number; label: string }> = {
+                      BEGINNER:     { pct: 20,  label: 'Beginner'     },
+                      INTERMEDIATE: { pct: 40,  label: 'Intermediate' },
+                      ADVANCED:     { pct: 60,  label: 'Advanced'     },
+                      FLUENT:       { pct: 80,  label: 'Fluent'       },
+                      NATIVE:       { pct: 100, label: 'Native'       },
+                    };
+                    return languages.map((l: any, i: number) => {
+                      const name = typeof l === 'string' ? l : l.name || l.language || '';
+                      if (!name) return null;
+                      const rawLevel = typeof l === 'string' ? null : (l.level && l.level !== 'UNKNOWN' ? String(l.level).toUpperCase() : null);
+                      const lvl = rawLevel ? LEVEL_MAP[rawLevel] ?? null : null;
+                      return (
+                        <div key={i}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 600, color: '#2F2F2F' }}>{name}</span>
+                            {lvl && <span style={{ fontSize: 10.5, fontWeight: 500, color: '#6B7785' }}>{lvl.label}</span>}
+                          </div>
+                          <div style={{ height: 6, width: '100%', borderRadius: 9999, background: '#EEF2F4', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: lvl ? `${lvl.pct}%` : '0%', borderRadius: 9999, background: '#7A60F4' }} />
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </article>
             )}

@@ -163,6 +163,7 @@ export function CandidateDashboard() {
   }, [activeTab]);
 
   const navigate = useCallback((tab: string) => {
+    setMountedTabs(prev => prev.has(tab) ? prev : new Set([...prev, tab]));
     setActiveTab(tab as any);
     const path = tabToPath(tab);
     if (!window.location.pathname.startsWith(path)) {

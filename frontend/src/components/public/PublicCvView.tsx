@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { resumesApi } from '../../api';
 import { generateResumePdfBlob } from '../candidate/2. Resumes/ResumePdfTemplates.tsx';
 import { HraiLogo } from '../shared/HraiLogo';
@@ -93,13 +93,15 @@ function FormattedText({ text, multiLineAsBullets = false }: { text: string; mul
   const isBullet = (l: string) => bulletRe.test(l) || numberedRe.test(l);
   const bulletCount = lines.filter(isBullet).length;
 
+  const justifyStyle: React.CSSProperties = { textAlign: 'justify', hyphens: 'auto' };
+
   if (bulletCount >= 2 || (multiLineAsBullets && lines.length >= 3)) {
     return (
       <ul className="space-y-1.5 list-none">
         {lines.map((line, i) => (
           <li key={i} className="flex gap-2.5 items-start">
             <span className="shrink-0 w-1.5 h-1.5 rounded-full mt-[6px]" style={{ background: '#7A60F4' }} />
-            <span className="flex-1 leading-relaxed">{line.replace(bulletRe, '').replace(numberedRe, '')}</span>
+            <span className="flex-1 leading-relaxed" style={justifyStyle}>{line.replace(bulletRe, '').replace(numberedRe, '')}</span>
           </li>
         ))}
       </ul>
@@ -110,12 +112,12 @@ function FormattedText({ text, multiLineAsBullets = false }: { text: string; mul
   if (paras.length > 1) {
     return (
       <div className="space-y-2.5">
-        {paras.map((p, i) => <p key={i} className="leading-relaxed">{p}</p>)}
+        {paras.map((p, i) => <p key={i} className="leading-relaxed" style={justifyStyle}>{p}</p>)}
       </div>
     );
   }
 
-  return <p className="leading-relaxed">{text}</p>;
+  return <p className="leading-relaxed" style={justifyStyle}>{text}</p>;
 }
 
 function ExpandableText({ text, limit = 380, multiLineAsBullets = false }: { text: string; limit?: number; multiLineAsBullets?: boolean }) {
@@ -138,7 +140,7 @@ function ExpandableText({ text, limit = 380, multiLineAsBullets = false }: { tex
   const truncated = text.slice(0, limit).replace(/\s+\S*$/, '');
   return (
     <div>
-      <p className="leading-relaxed">{truncated}…</p>
+      <p className="leading-relaxed" style={{ textAlign: 'justify', hyphens: 'auto' }}>{truncated}…</p>
       <button onClick={() => setExpanded(true)} className="mt-2.5 text-[12px] font-semibold block" style={{ color: '#7A60F4' }}>
         Read more ↓
       </button>
@@ -533,24 +535,33 @@ export function PublicCvView({ token }: { token: string }) {
             {languages.length > 0 && (
               <article id="languages" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
                 <CardHead label="Languages" />
-                {languages.map((l: any, i: number) => {
-                  const raw = langName(l);
-                  const parts = raw.split(' — ');
-                  const langLabel = parts[0];
-                  const level = parts[1] || (typeof l === 'object' ? (l.level || l.proficiency || '') : '');
-                  const pct = level === 'Native' ? 100 : level === 'Fluent' ? 85 : level === 'Conversational' ? 55 : level ? 65 : 70;
-                  return (
-                    <div key={i} className="px-4 py-2.5 border-t border-[#EEF2F4]">
-                      <div className="flex justify-between items-baseline mb-1.5">
-                        <span className="text-[12.5px] font-bold text-[#2F2F2F]">{langLabel}</span>
-                        {level && <span className="text-[10.5px] text-[#6B7785]">{level}</span>}
+                {(() => {
+                  const LEVEL_MAP: Record<string, { pct: number; label: string }> = {
+                    BEGINNER:     { pct: 20,  label: 'Beginner'     },
+                    INTERMEDIATE: { pct: 40,  label: 'Intermediate' },
+                    ADVANCED:     { pct: 60,  label: 'Advanced'     },
+                    FLUENT:       { pct: 80,  label: 'Fluent'       },
+                    NATIVE:       { pct: 100, label: 'Native'       },
+                  };
+                  return languages.map((l: any, i: number) => {
+                    const raw = langName(l);
+                    const parts = raw.split(' — ');
+                    const langLabel = parts[0];
+                    const rawLevel = parts[1] || (typeof l === 'object' ? (l.level || l.proficiency || '') : '');
+                    const lvl = rawLevel ? (LEVEL_MAP[rawLevel.trim().toUpperCase()] ?? null) : null;
+                    return (
+                      <div key={i} className="px-4 py-2.5 border-t border-[#EEF2F4]">
+                        <div className="flex justify-between items-baseline mb-1.5">
+                          <span className="text-[12.5px] font-bold text-[#2F2F2F]">{langLabel}</span>
+                          {lvl && <span className="text-[10.5px] text-[#6B7785]">{lvl.label}</span>}
+                        </div>
+                        <div style={{ height: 4, borderRadius: 9999, background: '#EEF2F4', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: lvl ? `${lvl.pct}%` : '0%', borderRadius: 9999, background: 'linear-gradient(90deg, #7A60F4, #92D8F2)' }} />
+                        </div>
                       </div>
-                      <div className="h-1 rounded-full overflow-hidden" style={{ background: '#EEF2F4' }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #7A60F4, #92D8F2)' }} />
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
               </article>
             )}
 
