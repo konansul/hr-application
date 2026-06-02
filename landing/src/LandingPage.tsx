@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-const APP_URL = import.meta.env.DEV ? 'http://localhost:5173/?login' : 'https://app.hraipp.com/?login';
+const APP_URL = import.meta.env.DEV ? 'http://localhost:5173/login' : 'https://app.hraipp.com/login';
 
 // Brand palette
 // Purple  #7A60F4 (primary)  hover #6B52E8   dark text #5B52C8

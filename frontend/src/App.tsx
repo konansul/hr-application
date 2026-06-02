@@ -24,7 +24,7 @@ if (cvToken) {
 
 const pathname = window.location.pathname;
 const searchParams = new URLSearchParams(window.location.search);
-const forceLogin = searchParams.has('login');
+const forceLogin = searchParams.has('login') || pathname === '/login';
 const hasResetToken = searchParams.has('reset_token');
 
 const isPublicCv = pathname.startsWith('/p/cv/');
