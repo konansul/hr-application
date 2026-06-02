@@ -46,6 +46,7 @@ interface HistoryItem {
   overall_score: number;
   created_at: string;
   full_result_json: string;
+  resume_id?: string | null;
 }
 
 interface ImproveCvTabProps {
@@ -197,9 +198,29 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
       setResult(parsed);
       setActiveHistoryId(item.improvement_id);
       resetAcceptance();
+
+      // Auto-select the CV used for this analysis
+      let autoId: string | null = null;
+      if (item.resume_id) {
+        // New history: direct resume_id match
+        if (dropdownOptions.some(o => o.resume_id === item.resume_id)) {
+          autoId = item.resume_id;
+        }
+      }
+      if (!autoId && item.filename) {
+        // Old history fallback: match by label (filename or resume title)
+        const match = dropdownOptions.find(o => o.label === item.filename);
+        if (match) autoId = match.resume_id;
+      }
+      if (autoId) {
+        setSelectedResumeId(autoId);
+        setDropdownValue(autoId);
+        setFile(null);
+      }
+
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     } catch {
-      // malformed json � ignore
+      // malformed json� ignore
     }
   };
 
@@ -252,8 +273,20 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
     return c;
   }, [result, selectedResumeId, resumesList, acceptedSummary, acceptedBullets, acceptedKeywords]);
 
-  const selectedDoc = myDocuments.find(d => d.resume_id === selectedResumeId);
-  const displayFileName = file ? file.name : (selectedDoc ? selectedDoc.filename : t.none);
+  // Merged dropdown: uploaded docs first, then any resume that has no associated document
+  const dropdownOptions = useMemo(() => {
+    const docResumeIds = new Set(myDocuments.map((d: any) => d.resume_id).filter(Boolean));
+    const docOpts = myDocuments
+      .filter((d: any) => d.resume_id)
+      .map((d: any) => ({ resume_id: d.resume_id as string, label: d.filename as string }));
+    const resumeOpts = resumesList
+      .filter((r: any) => r.resume_id && !docResumeIds.has(r.resume_id))
+      .map((r: any) => ({ resume_id: r.resume_id as string, label: (r.title || 'Untitled') as string }));
+    return [...docOpts, ...resumeOpts];
+  }, [myDocuments, resumesList]);
+
+  const selectedDoc = dropdownOptions.find(o => o.resume_id === selectedResumeId);
+  const displayFileName = file ? file.name : (selectedDoc ? selectedDoc.label : t.none);
 
   return (
     <div className="w-full max-w-none mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
@@ -279,8 +312,8 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
                 className="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-black border border-gray-300 dark:border-neutral-700 rounded-xl hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 focus:ring-2 focus:ring-[#7A60F4]/40 focus:border-[#7A60F4]/60 focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">{(t as any).selectCvPlaceholder ?? 'Select a CV...'}</option>
-                {myDocuments.map(doc => (
-                  <option key={doc.resume_id} value={doc.resume_id}>{doc.filename}</option>
+                {dropdownOptions.map(opt => (
+                  <option key={opt.resume_id} value={opt.resume_id}>{opt.label}</option>
                 ))}
               </select>
 
@@ -542,10 +575,32 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
             </div>
 
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                {t.actionableAdvice}
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-neutral-500 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  {t.actionableAdvice}
+                  {result.improvements && result.improvements.length > 0 && (
+                    <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+                      {acceptedImprovements.size}/{result.improvements.length}
+                    </span>
+                  )}
+                </h3>
+                {result.improvements && result.improvements.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (acceptedImprovements.size === result.improvements!.length) {
+                        setAcceptedImprovements(new Set());
+                      } else {
+                        setAcceptedImprovements(new Set(result.improvements!.map((_, i) => i)));
+                      }
+                    }}
+                    className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    {acceptedImprovements.size === result.improvements.length ? 'Clear all' : 'Select all'}
+                  </button>
+                )}
+              </div>
               <ul className="space-y-1.5">
                 {result.improvements && result.improvements.length > 0 ? (
                   result.improvements.map((item, i) => (
@@ -594,7 +649,31 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
           )}
 
           <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm transition-colors">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">{t.bulletRewrites}</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                {t.bulletRewrites}
+                {result.rewritten_bullets && result.rewritten_bullets.length > 0 && (
+                  <span className="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full">
+                    {acceptedBullets.size}/{result.rewritten_bullets.length}
+                  </span>
+                )}
+              </h3>
+              {result.rewritten_bullets && result.rewritten_bullets.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (acceptedBullets.size === result.rewritten_bullets!.length) {
+                      setAcceptedBullets(new Set());
+                    } else {
+                      setAcceptedBullets(new Set(result.rewritten_bullets!.map((_, i) => i)));
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                >
+                  {acceptedBullets.size === result.rewritten_bullets.length ? 'Clear all' : 'Select all'}
+                </button>
+              )}
+            </div>
 
             {result.rewritten_bullets && result.rewritten_bullets.length > 0 ? (
               <div className="space-y-4">
@@ -657,7 +736,7 @@ export function ImproveCvTab({ initialJobDescription }: ImproveCvTabProps) {
               {versionCreated && (
                 <div className="flex items-center gap-2">
                   <p className="text-xs text-violet-600 dark:text-violet-400 font-medium">
-                    ? {(t as any).versionCreated ?? 'New resume version created!'}
+                    {(t as any).versionCreated ?? 'New resume version created!'}
                   </p>
                   <button
                     onClick={() => setActiveTab('upload-cv')}

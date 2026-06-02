@@ -218,6 +218,7 @@ class CVImprovementResult(Base):
     improvement_id = Column(String(64), unique=True, nullable=False, index=True)
     owner_user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
     document_id = Column(String(64), ForeignKey("documents.document_id"), nullable=True, index=True)
+    resume_id = Column(String(64), ForeignKey("resumes.resume_id"), nullable=True, index=True)
     filename = Column(String(255), nullable=True)
 
     overall_score = Column(Integer, nullable=False)

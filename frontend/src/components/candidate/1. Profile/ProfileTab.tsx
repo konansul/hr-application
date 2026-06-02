@@ -422,13 +422,13 @@ export function ProfileTab() {
     }
   };
 
-  const AiInfoBadge = () => (
+  const AiInfoBadge = ({ tooltip = t.aiParsedTooltip }: { tooltip?: string } = {}) => (
     <div className="relative group inline-flex items-center">
       <svg className="w-3 h-3 text-amber-500 dark:text-amber-400 cursor-help shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#9EA4FF] text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
-        {t.aiParsedTooltip}
+      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#9EA4FF] text-white text-[10px] font-medium normal-case tracking-normal rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
+        {tooltip}
         <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-[#9EA4FF]" />
       </div>
     </div>

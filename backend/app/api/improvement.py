@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.api.helpers.extract import extract_cv_text, sha256_bytes
 from backend.app.schemas import CVImprovementResult
-from backend.app.pipeline import run_cv_improvement
+from backend.app.pipeline import run_cv_improvement, apply_improvements_to_resume
 
 from backend.database.db import get_db
 from backend.database.models import Document, CVImprovementResult as CVImprovementResultDB, User, Person, Resume
@@ -41,7 +41,17 @@ def get_improvement_history(
         .limit(50)
         .all()
     )
-    return results
+    return [
+        {
+            "improvement_id": r.improvement_id,
+            "filename": r.filename,
+            "overall_score": r.overall_score,
+            "created_at": r.created_at.isoformat(),
+            "full_result_json": r.full_result_json,
+            "resume_id": r.resume_id,
+        }
+        for r in results
+    ]
 
 
 @router.delete("/improve-cv-history/{improvement_id}")
@@ -182,6 +192,7 @@ async def improve_cv_existing(
         improvement_id=new_id("imp"),
         owner_user_id=current_user.user_id,
         document_id=db_document.document_id,
+        resume_id=resume_id,
         filename=filename,
         overall_score=result.overall_score,
         full_result_json=result.model_dump_json(),
@@ -232,16 +243,6 @@ def generate_improved_version(
         data.setdefault("personal_info", {})
         data["personal_info"]["summary"] = body.accepted_summary
 
-    if body.accepted_keywords:
-        existing_names = {
-            (s if isinstance(s, str) else s.get("name", "")).lower()
-            for s in data.get("skills", [])
-        }
-        for kw in body.accepted_keywords:
-            if kw.lower() not in existing_names:
-                data.setdefault("skills", []).append({"name": kw, "level": "BEGINNER", "years_of_experience": 0})
-                existing_names.add(kw.lower())
-
     if body.accepted_bullets:
         for exp in data.get("experience", []):
             desc = exp.get("description", "") or ""
@@ -249,6 +250,27 @@ def generate_improved_version(
                 if bullet.original in desc:
                     desc = desc.replace(bullet.original, bullet.improved, 1)
             exp["description"] = desc
+
+    if body.accepted_improvements:
+        consume_ai_quota(db, current_user)
+        try:
+            data = apply_improvements_to_resume(data, body.accepted_improvements)
+        except Exception as e:
+            if current_user.ai_used > 0:
+                current_user.ai_used -= 1
+                db.commit()
+            raise HTTPException(status_code=500, detail=f"Failed to apply improvements: {str(e)}")
+
+    # Keywords are added LAST — after any LLM calls — so _ai_generated is never stripped
+    if body.accepted_keywords:
+        existing_names = {
+            (s if isinstance(s, str) else s.get("name", "")).lower()
+            for s in data.get("skills", [])
+        }
+        for kw in body.accepted_keywords:
+            if kw.lower() not in existing_names:
+                data.setdefault("skills", []).append({"name": kw, "level": "BEGINNER", "years_of_experience": 0, "_ai_generated": True})
+                existing_names.add(kw.lower())
 
     new_resume = Resume(
         resume_id=new_id("res"),

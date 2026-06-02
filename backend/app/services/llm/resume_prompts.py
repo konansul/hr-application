@@ -45,7 +45,7 @@ Rules:
 - Translate all free-text content: summaries, descriptions, job titles, degree names, skill names, certification names.
 - ALWAYS translate spoken/written language names using their name in {language_name} (e.g. in French: "English"→"Anglais", "German"→"Allemand", "Spanish"→"Espagnol", "French"→"Français"). These are NOT proper nouns — they must be translated.
 - Keep proper nouns UNCHANGED: company names, institution names, people's names, URLs, email addresses, phone numbers, programming language names, software/tool names, and technology names.
-- Keep all date strings UNCHANGED (e.g. "2020-01", "Present", "2019").
+- Keep all date strings UNCHANGED exactly as they are (e.g. "2020-01", "Present", "2025-06", "2026"). NEVER alter, correct, or normalise any date — dates that appear to be in the future are valid and must be preserved verbatim.
 - Keep all JSON field/key names UNCHANGED (keys must stay in English).
 - Keep ALL enum/status values UNCHANGED exactly as-is: visa_status values (CITIZEN, PERMANENT_RESIDENT, WORK_PERMIT, STUDENT_VISA, SPONSORED_VISA, NO_WORK_AUTHORIZATION, OTHER, UNKNOWN), work_preference values (ONSITE, HYBRID, REMOTE, FLEXIBLE, UNKNOWN), skill level values (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT, UNKNOWN), language level values (BASIC, INTERMEDIATE, ADVANCED, FLUENT, NATIVE, UNKNOWN), boolean values (true, false), and null values.
 - Do NOT add or remove any fields.
@@ -66,7 +66,7 @@ Rules:
 2. Keep all experience entries but rewrite each description to emphasise aspects most relevant to the job. Use short bullet points starting with "• " (bullet + space), one per line, each starting with a strong action verb. Separate each bullet with a single newline character (\\n) — no blank lines between bullets, no double newlines anywhere. Replace generic statements with concrete examples and measurable outcomes wherever possible. Do NOT invent new jobs, companies, or dates.
 3. Reorder skills so the most job-relevant ones appear first; remove or deprioritise skills that have no bearing on this role.
 4. If certifications or education entries are relevant to the job, briefly mention them in the summary.
-5. Keep all factual data unchanged: company names, institution names, dates, URLs, email, phone.
+5. Keep all factual data unchanged: company names, institution names, dates (including dates that appear to be in the future — they are valid and must not be altered), URLs, email, phone.
 6. Keep all JSON field names unchanged (keys stay in English).
 7. Keep ALL enum/status values UNCHANGED exactly as-is: visa_status values (CITIZEN, PERMANENT_RESIDENT, WORK_PERMIT, STUDENT_VISA, SPONSORED_VISA, NO_WORK_AUTHORIZATION, OTHER, UNKNOWN), work_preference values (ONSITE, HYBRID, REMOTE, FLEXIBLE, UNKNOWN), skill level values (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT, UNKNOWN), language level values (BASIC, INTERMEDIATE, ADVANCED, FLUENT, NATIVE, UNKNOWN), boolean values, and null values.
 8. Write all free-text content in {language_name}: summary, experience descriptions, job titles, degree names, skill names, certification names. For spoken/written language names, ALWAYS translate them to their {language_name} equivalent (e.g. in French: "English"→"Anglais", "German"→"Allemand", "Spanish"→"Espagnol", "French"→"Français").
@@ -76,6 +76,27 @@ Job Description:
 {job_description}
 
 Candidate Resume JSON:
+{json.dumps(resume_data, ensure_ascii=False, indent=2)}
+"""
+
+
+def build_apply_improvements_prompt(resume_data: dict, improvements: list) -> str:
+    improvements_text = "\n".join(f"{i + 1}. {imp}" for i, imp in enumerate(improvements))
+    return f"""You are an expert CV editor. Apply each of the listed improvements to the resume JSON below.
+
+IMPROVEMENTS TO APPLY:
+{improvements_text}
+
+Rules:
+- Apply every listed improvement to the relevant section(s) of the resume.
+- Bullet points must use "• " (bullet + space) at the start, one bullet per line, separated by a single \\n. No blank lines between bullets, no double newlines.
+- Do NOT add, remove, or rename any experience/education/certification entries.
+- Keep ALL factual data unchanged: company names, institution names, dates (including dates that appear to be in the future — they are valid, do not alter them), URLs, email, phone.
+- Keep all JSON field names unchanged (keys stay in English).
+- Keep ALL enum values unchanged: visa_status, work_preference, skill level, language level, boolean, null.
+- Output ONLY the modified JSON object. No markdown, no explanation.
+
+Resume JSON:
 {json.dumps(resume_data, ensure_ascii=False, indent=2)}
 """
 
@@ -90,6 +111,10 @@ LANGUAGE DETECTION — REQUIRED:
 - Use the ISO 639-1 two-letter code (e.g. "de" for German, "en" for English, "ru" for Russian, "fr" for French, "es" for Spanish, "tr" for Turkish, "pl" for Polish, "pt" for Portuguese, "it" for Italian, "ar" for Arabic, "zh" for Chinese, "ja" for Japanese, "ko" for Korean, "nl" for Dutch, "sv" for Swedish).
 - Base this on the actual language of the CV body text, NOT the candidate's native language or spoken languages list.
 - If the CV mixes languages, use the dominant one.
+
+DATES — CRITICAL:
+- Copy ALL dates exactly as they appear in the CV. NEVER alter, correct, or normalise any date.
+- Dates such as 2025, 2026, or later are valid — do NOT treat them as errors or future dates. The candidate may be currently employed or the CV may describe recent/ongoing work. Your training cutoff is irrelevant; use only what the CV says.
 
 CRITICAL RULES FOR EXPERIENCE AND EDUCATION DESCRIPTIONS:
 - Copy the FULL description text from the CV exactly as written. Do NOT summarize, shorten, truncate, or paraphrase.

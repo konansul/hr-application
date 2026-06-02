@@ -40,7 +40,7 @@ function AiInfoBadge({ tooltip }: { tooltip: string }) {
       <svg className="w-3 h-3 text-amber-500 dark:text-amber-400 cursor-help shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#9EA4FF] text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
+      <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#9EA4FF] text-white text-[10px] font-medium normal-case tracking-normal rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
         {tooltip}
         <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-[#9EA4FF]" />
       </div>
@@ -1873,9 +1873,10 @@ export function ResumeUploadTab() {
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => (
-                          <span key={i} className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold text-gray-900 dark:text-white shadow-sm">
+                          <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold text-gray-900 dark:text-white shadow-sm">
                             {typeof skill === 'string' ? skill : skill.name || 'Skill'}
                             {typeof skill === 'object' && skill.level && skill.level !== 'UNKNOWN' ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
+                            {typeof skill === 'object' && skill._ai_generated && <AiInfoBadge tooltip={(t as any).aiAddedSkillTooltip ?? 'Added by AI based on job analysis'} />}
                           </span>
                         )) : <span className="text-sm text-gray-400 italic">{t.placeholders.noSkills}</span>}
                       </div>
