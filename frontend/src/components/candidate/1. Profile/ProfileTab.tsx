@@ -28,16 +28,17 @@ function computeAiPersonalFields(personal: any): Set<string> {
   return result;
 }
 
-function sanitizeProfileForSave(pd: any): any {
+function sanitizeProfileForSave(pd: any, sectionsToStrip?: Set<string>): any {
   const strip = (items: any[]) => (items || []).map(({ _ai_generated, ...rest }: any) => rest);
+  const should = (s: string) => !sectionsToStrip || sectionsToStrip.has(s);
   return {
     ...pd,
-    experience: strip(pd.experience),
-    education: strip(pd.education),
-    skills: strip(pd.skills),
-    languages: strip(pd.languages),
-    certifications: strip(pd.certifications),
-    references: strip(pd.references),
+    experience:     should('experience')     ? strip(pd.experience)     : (pd.experience     ?? []),
+    education:      should('education')      ? strip(pd.education)      : (pd.education      ?? []),
+    skills:         should('skills')         ? strip(pd.skills)         : (pd.skills         ?? []),
+    languages:      should('languages')      ? strip(pd.languages)      : (pd.languages      ?? []),
+    certifications: should('certifications') ? strip(pd.certifications) : (pd.certifications ?? []),
+    references:     should('references')     ? strip(pd.references)     : (pd.references     ?? []),
   };
 }
 
@@ -201,15 +202,15 @@ export function ProfileTab() {
         const updatedProfile = {
           ...prev,
           personal_info: { ...prev.personal_info, ...pd.personal_info, summary: prev.personal_info.summary },
-          skills: pd.skills?.length ? markAi(pd.skills) : prev.skills,
-          experience: pd.experience?.length ? markAi(pd.experience) : prev.experience,
-          education: pd.education?.length ? markAi(pd.education) : prev.education,
-          languages: pd.languages?.length ? markAi(pd.languages) : prev.languages,
+          skills:         pd.skills?.length         ? markAi(pd.skills)         : prev.skills,
+          experience:     pd.experience?.length     ? markAi(pd.experience)     : prev.experience,
+          education:      pd.education?.length      ? markAi(pd.education)      : prev.education,
+          languages:      pd.languages?.length      ? markAi(pd.languages)      : prev.languages,
           certifications: pd.certifications?.length ? markAi(pd.certifications) : prev.certifications,
           references: prev.references
         };
         setProfileData(updatedProfile);
-        await authApi.updateProfile(sanitizeProfileForSave(updatedProfile));
+        await authApi.updateProfile(updatedProfile);
         const sections = new Set<string>();
         if (pd.experience?.length) sections.add('experience');
         if (pd.education?.length) sections.add('education');
@@ -232,8 +233,15 @@ export function ProfileTab() {
       }
       setFile(null);
       setUploadIntent(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      setMessage({ text: 'Failed to process document', type: 'error' });
+      const status = err?.response?.status;
+      if (status === 429) {
+        setMessage({ text: 'Daily AI limit reached. Please try again tomorrow.', type: 'error' });
+      } else {
+        setMessage({ text: 'Failed to process document. Please try again.', type: 'error' });
+      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } finally {
       setIsUploading(false);
     }
@@ -316,7 +324,7 @@ export function ProfileTab() {
   const handleArrayChange = (section: 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'references', index: number, field: string, value: any) => {
     setProfileData((prev: any) => {
       const newArray = [...prev[section]];
-      newArray[index] = { ...newArray[index], [field]: value, _ai_generated: false };
+      newArray[index] = { ...newArray[index], [field]: value };
       return { ...prev, [section]: newArray };
     });
   };
@@ -357,16 +365,47 @@ export function ProfileTab() {
       document.getElementById('personal-info-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
+    // Capture which sections are open for editing before any state changes
+    const editingSections = new Set<string>([
+      ...(isEditingExperience     ? ['experience']     : []),
+      ...(isEditingEducation      ? ['education']      : []),
+      ...(isEditingSkills         ? ['skills']         : []),
+      ...(isEditingLanguages      ? ['languages']      : []),
+      ...(isEditingCertifications ? ['certifications'] : []),
+      ...(isEditingReferences     ? ['references']     : []),
+    ]);
+    const savingPersonalInfo = isEditingPersonalInfo;
     setValidationErrors(new Set());
     setIsUploading(true);
     try {
-      await authApi.updateProfile(sanitizeProfileForSave(profileData));
-      setAiParsedSections(new Set());
-      setAiPersonalFields(new Set());
-      if (user?.user_id) {
-        localStorage.removeItem(`hrai_ai_sections_${user.user_id}`);
-        localStorage.removeItem(`hrai_ai_personal_fields_${user.user_id}`);
+      await authApi.updateProfile(sanitizeProfileForSave(profileData, editingSections));
+      // Strip _ai_generated only from the sections that were just saved
+      const strip = (items: any[]) => (items || []).map(({ _ai_generated, ...rest }: any) => rest);
+      setProfileData((prev: any) => ({
+        ...prev,
+        ...(editingSections.has('experience')     && { experience:     strip(prev.experience)     }),
+        ...(editingSections.has('education')      && { education:      strip(prev.education)      }),
+        ...(editingSections.has('skills')         && { skills:         strip(prev.skills)         }),
+        ...(editingSections.has('languages')      && { languages:      strip(prev.languages)      }),
+        ...(editingSections.has('certifications') && { certifications: strip(prev.certifications) }),
+        ...(editingSections.has('references')     && { references:     strip(prev.references)     }),
+      }));
+      // Clear personal-info AI indicators only if that section was saved
+      if (savingPersonalInfo) {
+        setAiPersonalFields(new Set());
+        if (user?.user_id) {
+          localStorage.removeItem(`hrai_ai_personal_fields_${user.user_id}`);
+        }
       }
+      setAiParsedSections((prev: Set<string>) => {
+        const next = new Set(prev);
+        editingSections.forEach(s => next.delete(s));
+        if (savingPersonalInfo) next.delete('personal');
+        if (user?.user_id) {
+          localStorage.setItem(`hrai_ai_sections_${user.user_id}`, JSON.stringify([...next]));
+        }
+        return next;
+      });
       setMessage({ text: 'Profile saved successfully!', type: 'success' });
       setIsEditingPersonalInfo(false);
       setIsEditingExperience(false);
@@ -385,7 +424,7 @@ export function ProfileTab() {
 
   const AiInfoBadge = () => (
     <div className="relative group inline-flex items-center">
-      <svg className="w-3.5 h-3.5 text-[#7A60F4] dark:text-[#9EA4FF] cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-3 h-3 text-amber-500 dark:text-amber-400 cursor-help shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <div className="pointer-events-none absolute left-full ml-1.5 top-1/2 -translate-y-1/2 w-56 px-2.5 py-1.5 bg-[#9EA4FF] text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 leading-snug">
@@ -645,7 +684,7 @@ export function ProfileTab() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.visa}<span className="text-red-400">*</span></label>
                     <select value={profileData.personal_info.visa_status || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('visa_status', e.target.value)} className={selectClass('visa_status')}>
-                      <option value="UNKNOWN" disabled>� Select visa status �</option>
+                      <option value="UNKNOWN" disabled>Select visa status</option>
                       <option value="CITIZEN">Citizen</option>
                       <option value="PERMANENT_RESIDENT">Permanent Resident</option>
                       <option value="WORK_PERMIT">Work Permit</option>
@@ -659,7 +698,7 @@ export function ProfileTab() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1">{t.personal.workPref}<span className="text-red-400">*</span></label>
                     <select value={profileData.personal_info.work_preference || 'UNKNOWN'} onChange={(e) => handlePersonalInputChange('work_preference', e.target.value)} className={selectClass('work_preference')}>
-                      <option value="UNKNOWN" disabled>� Select preference �</option>
+                      <option value="UNKNOWN" disabled>Select preference</option>
                       <option value="ONSITE">Onsite</option>
                       <option value="HYBRID">Hybrid</option>
                       <option value="REMOTE">Remote</option>
