@@ -770,31 +770,31 @@ export function JobsTab() {
     const totalJobPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
     const pagedJobs = displayedJobs.slice((jobsPage - 1) * JOBS_PER_PAGE, jobsPage * JOBS_PER_PAGE);
 
-    // const orgCache = useRef<Record<string, OrgInfo>>({});
+    const orgCache = useRef<Record<string, OrgInfo>>({});
     const orgCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLSpanElement>, jobId: string, orgId: string) => {
-    //     if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
-    //     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    //     const top = rect.bottom + window.scrollY + 6;
-    //     const right = window.innerWidth - rect.right;
-    //     if (orgCache.current[orgId]) {
-    //         setOrgPopover({ jobId, orgId, loading: false, data: orgCache.current[orgId], top, right });
-    //         return;
-    //     }
-    //     setOrgPopover({ jobId, orgId, loading: true, data: null, top, right });
-    //     try {
-    //         const data = await authApi.getOrganizationPublic(orgId);
-    //         orgCache.current[orgId] = data;
-    //         setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data, top, right } : prev);
-    //     } catch {
-    //         setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data: null, top, right } : prev);
-    //     }
-    // };
-    //
-    // const handleOrgMouseLeave = () => {
-    //     orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
-    // };
+    const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLSpanElement>, jobId: string, orgId: string) => {
+        if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const top = rect.bottom + window.scrollY + 6;
+        const right = window.innerWidth - rect.right;
+        if (orgCache.current[orgId]) {
+            setOrgPopover({ jobId, orgId, loading: false, data: orgCache.current[orgId], top, right });
+            return;
+        }
+        setOrgPopover({ jobId, orgId, loading: true, data: null, top, right });
+        try {
+            const data = await authApi.getOrganizationPublic(orgId);
+            orgCache.current[orgId] = data;
+            setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data, top, right } : prev);
+        } catch {
+            setOrgPopover(prev => prev?.jobId === jobId ? { jobId, orgId, loading: false, data: null, top, right } : prev);
+        }
+    };
+
+    const handleOrgMouseLeave = () => {
+        orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
+    };
 
     const handlePopoverMouseEnter = () => {
         if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
@@ -1272,7 +1272,11 @@ export function JobsTab() {
                                                     </span>
                                                 )}
                                                 {job.organization_name && (
-                                                    <span className="flex items-center gap-0.5 truncate">
+                                                    <span
+                                                        className={`flex items-center gap-0.5 truncate${job.org_id ? ' cursor-pointer hover:text-[#7A60F4] dark:hover:text-[#9EA4FF] transition-colors' : ''}`}
+                                                        onMouseEnter={job.org_id ? (e) => handleOrgMouseEnter(e as any, String(jid), job.org_id) : undefined}
+                                                        onMouseLeave={job.org_id ? handleOrgMouseLeave : undefined}
+                                                    >
                                                         <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                                         <span className="truncate max-w-[100px]">{job.organization_name}</span>
                                                     </span>

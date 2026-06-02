@@ -286,15 +286,11 @@ def adapt_resume_for_job(
 
 def run_cv_parsing(cv_text: str) -> dict:
     prompt = build_cv_parsing_prompt(cv_text)
-    try:
-        return gemini.generate_json(prompt, CV_PARSING_SCHEMA)
-    except Exception as e:
-        logger.error(f"Error parsing CV text: {e}")
-        return {
-            "personal_info": {"first_name": "Unknown", "last_name": "Unknown"},
-            "experience": [],
-            "education": [],
-            "skills": [],
-            "languages": [],
-            "certifications": [],
-        }
+    result = gemini.generate_json(prompt, CV_PARSING_SCHEMA)
+    # Guard: model echoed the schema instead of returning CV data
+    if set(result.keys()) <= {'type', 'properties', 'required', '$schema', 'title', 'description'}:
+        raise RuntimeError(
+            "Model returned the JSON schema instead of extracted CV data. "
+            f"Got keys: {list(result.keys())}"
+        )
+    return result

@@ -85,6 +85,12 @@ def build_cv_parsing_prompt(cv_text: str) -> str:
 Extract all candidate information from the following CV text.
 If a specific piece of information is missing (like a date, city, or skill level), omit the field or use "UNKNOWN" according to the schema enums.
 
+LANGUAGE DETECTION — REQUIRED:
+- Detect the language the CV text is written in and return it as the "language" field.
+- Use the ISO 639-1 two-letter code (e.g. "de" for German, "en" for English, "ru" for Russian, "fr" for French, "es" for Spanish, "tr" for Turkish, "pl" for Polish, "pt" for Portuguese, "it" for Italian, "ar" for Arabic, "zh" for Chinese, "ja" for Japanese, "ko" for Korean, "nl" for Dutch, "sv" for Swedish).
+- Base this on the actual language of the CV body text, NOT the candidate's native language or spoken languages list.
+- If the CV mixes languages, use the dominant one.
+
 CRITICAL RULES FOR EXPERIENCE AND EDUCATION DESCRIPTIONS:
 - Copy the FULL description text from the CV exactly as written. Do NOT summarize, shorten, truncate, or paraphrase.
 - Include every bullet point, responsibility, achievement, and sentence exactly as it appears.

@@ -83,17 +83,25 @@ async def upload_document(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    print(f"[CV UPLOAD] Extracted text length: {len(cv_text)} chars. First 200: {cv_text[:200]!r}")
+
     consume_ai_quota(db, current_user)
 
     try:
         parsed_data = run_cv_parsing(cv_text)
+        print(f"[CV UPLOAD] Parsed OK. Keys: {list(parsed_data.keys())}. "
+              f"exp={len(parsed_data.get('experience', []))}, "
+              f"edu={len(parsed_data.get('education', []))}, "
+              f"skills={len(parsed_data.get('skills', []))}, "
+              f"lang={parsed_data.get('language', '?')}")
     except Exception as e:
+        print(f"[CV UPLOAD] AI parsing FAILED: {e}")
         if current_user.ai_used > 0:
             current_user.ai_used -= 1
             db.commit()
         raise HTTPException(
             status_code=500,
-            detail=f"AI parsing failed due to connection or API error: {str(e)}"
+            detail=f"AI parsing failed: {str(e)}"
         )
 
     person = db.query(Person).filter(Person.user_id == current_user.user_id).first()

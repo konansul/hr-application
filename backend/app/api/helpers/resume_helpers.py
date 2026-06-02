@@ -60,8 +60,8 @@ def resume_payload(resume: Resume) -> Dict[str, Any]:
     return loads(resume.payload, {})
 
 
-def apply_translation(resume_data: Dict[str, Any], language: str) -> Dict[str, Any]:
-    if not language or language == "en":
+def apply_translation(resume_data: Dict[str, Any], language: str, source_language: str = "en") -> Dict[str, Any]:
+    if not language or language == source_language:
         return resume_data
     try:
         return translate_resume_data(resume_data, language)

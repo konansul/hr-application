@@ -79,9 +79,13 @@ class GeminiClient:
     ) -> Dict[str, Any]:
 
         system_prompt = (
-            "You are an expert HR AI. You must analyze the provided CV and Job Description. "
-            "You must respond ONLY with a valid JSON object. "
-            f"The JSON must strictly follow this exact schema:\n{json.dumps(schema)}"
+            "You are an expert HR AI. "
+            "Analyze the provided input and extract real data from it. "
+            "Respond ONLY with a valid JSON object containing actual extracted values — "
+            "do NOT return the schema structure itself. "
+            "Do NOT include keys named 'type', 'properties', or 'required' at the top level. "
+            "Return a filled JSON object instance that conforms to this schema:\n"
+            f"{json.dumps(schema)}"
         )
 
         try:
@@ -98,16 +102,33 @@ class GeminiClient:
             )
 
             result_text = (response.choices[0].message.content or "").strip()
+
+            # Strip markdown code fences
             if result_text.startswith("```"):
                 lines = result_text.splitlines()
                 end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
-                result_text = "\n".join(lines[1:end])
+                result_text = "\n".join(lines[1:end]).strip()
 
-            return json.loads(result_text)
+            # Try direct parse first
+            try:
+                return json.loads(result_text)
+            except json.JSONDecodeError:
+                pass
 
-        except json.JSONDecodeError as e:
-            logger.exception("Failed to parse JSON from OpenRouter")
-            raise RuntimeError(f"Model returned invalid JSON: {str(e)}")
+            # Fallback: extract the outermost {...} block in case model added preamble/postamble
+            import re
+            match = re.search(r'\{[\s\S]*\}', result_text)
+            if match:
+                try:
+                    return json.loads(match.group())
+                except json.JSONDecodeError:
+                    pass
+
+            logger.error("Model response could not be parsed as JSON. Raw response:\n%s", result_text[:2000])
+            raise RuntimeError(f"Model returned invalid JSON. First 200 chars: {result_text[:200]!r}")
+
+        except RuntimeError:
+            raise
         except Exception as e:
             logger.exception("OpenRouter JSON generation failed")
             raise RuntimeError(f"OpenRouter JSON API error: {str(e)}")

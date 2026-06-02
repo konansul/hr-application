@@ -132,9 +132,13 @@ CV_PARSING_SCHEMA = {
                 },
                 "required": ["name"]
             }
+        },
+        "language": {
+            "type": "string",
+            "description": "ISO 639-1 code of the language the CV text is written in (e.g. 'en', 'de', 'ru', 'fr', 'es', 'tr', 'pl', 'pt', 'it', 'ar', 'zh', 'ja', 'ko', 'nl', 'sv')"
         }
     },
-    "required": ["personal_info", "experience", "education", "skills", "languages", "certifications"]
+    "required": ["personal_info", "experience", "education", "skills", "languages", "certifications", "language"]
 }
 
 SCREENING_SCHEMA = {

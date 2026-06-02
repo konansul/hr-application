@@ -92,7 +92,15 @@ def create_resume_from_profile(
         for section in request.removed_sections:
             resume_data.pop(section, None)
 
-    resume_data = apply_translation(resume_data, request.language or "en")
+    # Infer the profile's source language from the person's most recent resume
+    last_resume = (
+        db.query(Resume)
+        .filter(Resume.person_id == person.person_id)
+        .order_by(Resume.created_at.desc())
+        .first()
+    )
+    profile_source_language = last_resume.language if last_resume else "en"
+    resume_data = apply_translation(resume_data, request.language or "en", profile_source_language)
 
     attach_document_id = request.attach_document_id
     if attach_document_id:
@@ -153,7 +161,7 @@ def duplicate_resume_version(
     target_language = request.language or source_resume.language or "en"
     source_language = source_resume.language or "en"
     if target_language != source_language:
-        resume_data = apply_translation(resume_data, target_language)
+        resume_data = apply_translation(resume_data, target_language, source_language)
 
     new_resume = Resume(
         resume_id=new_id("res"),
@@ -354,10 +362,18 @@ def create_resume_from_job_description(
             raise HTTPException(status_code=404, detail="Source resume version not found")
         base_data = copy.deepcopy(resume_payload(source_resume))
         profile_snapshot = source_resume.profile_snapshot_json
+        base_source_language = source_resume.language or "en"
     else:
         profile_data = profile_payload(person, current_user)
         base_data = copy.deepcopy(profile_data)
         profile_snapshot = json.dumps(profile_data, ensure_ascii=False)
+        last_resume = (
+            db.query(Resume)
+            .filter(Resume.person_id == person.person_id)
+            .order_by(Resume.created_at.desc())
+            .first()
+        )
+        base_source_language = last_resume.language if last_resume else "en"
 
     if request.removed_sections:
         for section in request.removed_sections:
@@ -367,7 +383,7 @@ def create_resume_from_job_description(
         resume_data = adapt_resume_for_job(base_data, request.job_description, target_language)
     except Exception as e:
         logger.warning(f"adapt_resume_for_job failed ({e}), falling back to translation-only")
-        resume_data = apply_translation(base_data, target_language)
+        resume_data = apply_translation(base_data, target_language, base_source_language)
 
     resume = Resume(
         resume_id=new_id("res"),
