@@ -2382,28 +2382,26 @@ export function ResumeUploadTab() {
                 {TEMPLATES.map(tmpl => {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === tmpl.id;
+                  const isLoading = isActive && !previewBlobUrl;
                   return (
-                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}>
+                    <div
+                      key={tmpl.id}
+                      onClick={() => { if (!isLoading) handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language); }}
+                      className={`cursor-pointer flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}
+                    >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
                           {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-[#5B52C8] bg-[#9EA4FF]/15 px-1.5 py-0.5 rounded-full border border-[#9EA4FF]/40">photo</span>}
+                          {isLoading && <span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
-                          disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
-                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-[#9EA4FF]/20 text-[#5B52C8] border-[#9EA4FF]/40' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
-                        >
-                          {previewingTemplateId === tmpl.id && !previewBlobUrl
-                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
-                            : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
-                        </button>
+                      <div className="shrink-0">
                         <button
                           disabled={isGeneratingPdf}
-                          onClick={async () => {
+                          onClick={async (e) => {
+                            e.stopPropagation();
                             setIsGeneratingPdf(true);
                             try {
                               await downloadResumePdf(
@@ -2430,16 +2428,19 @@ export function ResumeUploadTab() {
                 })}
               </div>
             </div>
-            {previewBlobUrl && (
+            {(previewBlobUrl || (previewingTemplateId && !previewBlobUrl)) && (
               <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 overflow-hidden">
                 <div className="flex-1 flex flex-col overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900 shrink-0">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
-                    <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
+                    <button onClick={() => { if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
-                  <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
+                  {previewBlobUrl
+                    ? <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
+                    : <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#C5BAFF] border-t-[#7A60F4] rounded-full animate-spin" /></div>
+                  }
                 </div>
               </div>
             )}
@@ -2472,28 +2473,26 @@ export function ResumeUploadTab() {
                 {TEMPLATES.map(tmpl => {
                   const hasPhoto = !!selectedResume.personal_info?.photo;
                   const isActive = previewingTemplateId === tmpl.id;
+                  const isLoading = isActive && !previewBlobUrl;
                   return (
-                    <div key={tmpl.id} className={`flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}>
+                    <div
+                      key={tmpl.id}
+                      onClick={() => { if (!isLoading) handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language); }}
+                      className={`cursor-pointer flex items-center gap-2 p-3 rounded-2xl border transition-all ${isActive ? 'border-[#9EA4FF]/60 dark:border-[#9EA4FF]/40 bg-[#9EA4FF]/10 dark:bg-[#9EA4FF]/10' : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'}`}
+                    >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold text-gray-900 dark:text-white">{tmpl.label}</p>
                           {hasPhoto && tmpl.supportsPhoto && <span className="text-[10px] font-semibold text-[#5B52C8] bg-[#9EA4FF]/15 px-1.5 py-0.5 rounded-full border border-[#9EA4FF]/40">photo</span>}
+                          {isLoading && <span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-neutral-400 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5 truncate">{tmpl.description}</p>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={() => handlePreviewTemplate(tmpl.id, selectedResume.resume_data ?? {}, selectedResume.title, pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined, selectedResume.language)}
-                          disabled={previewingTemplateId === tmpl.id && !previewBlobUrl}
-                          className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${isActive ? 'bg-[#9EA4FF]/20 text-[#5B52C8] border-[#9EA4FF]/40' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
-                        >
-                          {previewingTemplateId === tmpl.id && !previewBlobUrl
-                            ? <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-[#9EA4FF]/40 border-t-[#9EA4FF] rounded-full animate-spin inline-block" />{(t as any).pdfExport?.loading ?? 'Loading'}</span>
-                            : isActive ? ((t as any).pdfExport?.previewing ?? 'Previewing') : ((t as any).pdfExport?.preview ?? 'Preview')}
-                        </button>
+                      <div className="shrink-0">
                         <button
                           disabled={savingPdfTemplateId !== null}
-                          onClick={async () => {
+                          onClick={async (e) => {
+                            e.stopPropagation();
                             setSavingPdfTemplateId(tmpl.id);
                             try {
                               const photo = pdfIncludePhoto ? (selectedResume.personal_info?.photo ?? undefined) : undefined;
@@ -2521,15 +2520,18 @@ export function ResumeUploadTab() {
                 })}
               </div>
             </div>
-            {previewBlobUrl && (
+            {(previewBlobUrl || (previewingTemplateId && !previewBlobUrl)) && (
               <div className="flex-1 border-l border-gray-100 dark:border-neutral-800 flex flex-col min-w-0 bg-white dark:bg-neutral-900">
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{TEMPLATES.find(t => t.id === previewingTemplateId)?.label}</p>
-                  <button onClick={() => { URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
+                  <button onClick={() => { if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl); setPreviewBlobUrl(null); setPreviewingTemplateId(null); }} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-400 dark:text-neutral-500 transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
-                <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
+                {previewBlobUrl
+                  ? <iframe src={previewBlobUrl} className="flex-1 w-full" style={{ minHeight: '560px' }} title="PDF Preview" />
+                  : <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#C5BAFF] border-t-[#7A60F4] rounded-full animate-spin" /></div>
+                }
               </div>
             )}
           </div>
