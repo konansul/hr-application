@@ -1049,9 +1049,6 @@ export function ResumeUploadTab() {
     setShareEmailTo('');
     setShareEmailRecipientName('');
     setAddShareEmail('');
-    setAddShareName('');
-    const resume = resumeVersions.find(r => r.resume_id === selectedResumeId);
-    setPublicLinkEnabled(resume?.public_sharing_enabled ?? false);
     setShowShareModal(true);
     if (selectedResumeId) {
       setSharesLoading(true);
