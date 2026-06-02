@@ -202,6 +202,9 @@ export function HrDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
+          <div className="ml-auto">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF', letterSpacing: '0.08em' }}>BETA</span>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">

@@ -333,7 +333,8 @@ export function CandidateDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF', letterSpacing: '0.08em' }}>BETA</span>
               {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />
           </div>
@@ -343,7 +344,8 @@ export function CandidateDashboard() {
           <div className="flex items-center">
             <HraiLogo height={72} />
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF', letterSpacing: '0.08em' }}>BETA</span>
               {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />
             <button onClick={handleLogout} className="p-2 text-[#c05020] dark:text-[#FF906D] hover:bg-[#FF906D]/10 dark:hover:bg-[#FF906D]/10 rounded-lg transition-colors">
