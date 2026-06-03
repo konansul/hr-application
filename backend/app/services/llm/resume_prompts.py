@@ -88,6 +88,7 @@ IMPROVEMENTS TO APPLY:
 {improvements_text}
 
 Rules:
+- If any field contains photo data, base64-encoded images, or binary content, copy it through unchanged — do not process or expand it.
 - Apply every listed improvement to the relevant section(s) of the resume.
 - Bullet points must use "• " (bullet + space) at the start, one bullet per line, separated by a single \\n. No blank lines between bullets, no double newlines.
 - Do NOT add, remove, or rename any experience/education/certification entries.
@@ -123,6 +124,9 @@ CRITICAL RULES FOR EXPERIENCE AND EDUCATION DESCRIPTIONS:
 - FORMAT bullet points consistently: convert any bullet character (-, *, ·, ▪, ▸, ►, etc.) to "• " (bullet + space). Each bullet point goes on its own line separated by a single \\n. Do NOT add blank lines between bullets.
 - If the text has no bullet points, keep it as plain prose with no extra blank lines. Use a single \\n for paragraph breaks only where they genuinely exist in the source.
 - NEVER add extra blank lines, double newlines (\\n\\n), or leading/trailing whitespace. Text must be compact with no empty gaps.
+
+PHOTO / IMAGE DATA:
+- If the CV text contains any photo, embedded image data, base64-encoded content, or binary artifacts, ignore it completely. Do not extract, reference, or process it.
 
 CV TEXT:
 {cv_text}
