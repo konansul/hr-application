@@ -347,7 +347,7 @@ export function JobsTab() {
     const [selectedLocation, setSelectedLocation] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [smartPrompt, setSmartPrompt] = useState('');
-    const [smartTags, setSmartTags] = useState<string[]>([]);
+    const [_smartTags, setSmartTags] = useState<string[]>([]);
 
     // Job Market (external search) state
     const [searchMode, setSearchMode] = useState<'internal' | 'external'>('internal');
