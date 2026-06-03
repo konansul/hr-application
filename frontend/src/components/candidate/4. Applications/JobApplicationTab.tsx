@@ -185,6 +185,7 @@ export function JobApplicationTab() {
   const [typeFilter, setTypeFilter]     = useState<'all' | 'hr' | 'self'>('all');
   const [stageFilter, setStageFilter]   = useState<string>('all');
   const [searchQuery, setSearchQuery]   = useState('');
+  const [showKanban, setShowKanban]     = useState(false);
 
   const firstLoad = useRef(true);
   const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
@@ -507,6 +508,43 @@ export function JobApplicationTab() {
     );
   };
 
+  const KANBAN_STAGES = [...SELF_STAGES, { value: REJECTED_VALUE, label: REJECTED_VALUE }];
+
+  const getKanbanAccent = (value: string, index: number) => {
+    const v = value.toUpperCase();
+    if (v === 'SAVED')          return { text: 'text-gray-500 dark:text-neutral-400', dot: 'bg-gray-400', badge: 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 border-gray-200 dark:border-neutral-700' };
+    if (v === 'APPLIED')        return { text: 'text-slate-600 dark:text-[#92D8F2]',  dot: 'bg-[#92D8F2]', badge: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border-[#92D8F2]/40 dark:border-[#92D8F2]/25' };
+    if (v === 'OFFER')          return { text: 'text-[#5B52C8] dark:text-[#9EA4FF]',  dot: 'bg-[#7A60F4]', badge: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/30 dark:border-[#7A60F4]/25' };
+    if (v === 'REJECTED')       return { text: 'text-[#c05020] dark:text-[#FF906D]',  dot: 'bg-[#FF906D]', badge: 'bg-[#FF906D]/10 dark:bg-[#FF906D]/10 text-[#c05020] dark:text-[#FF906D] border-[#FF906D]/30 dark:border-[#FF906D]/25' };
+    const palettes = [
+      { text: 'text-[#5B52C8] dark:text-[#9EA4FF]', dot: 'bg-[#9EA4FF]', badge: 'bg-[#9EA4FF]/15 dark:bg-[#9EA4FF]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#9EA4FF]/40 dark:border-[#9EA4FF]/25' },
+      { text: 'text-slate-600 dark:text-[#92D8F2]',  dot: 'bg-[#92D8F2]', badge: 'bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border-[#92D8F2]/40 dark:border-[#92D8F2]/25' },
+      { text: 'text-[#5B52C8] dark:text-[#9EA4FF]', dot: 'bg-[#7A60F4]', badge: 'bg-[#7A60F4]/10 dark:bg-[#7A60F4]/10 text-[#5B52C8] dark:text-[#9EA4FF] border-[#7A60F4]/30 dark:border-[#7A60F4]/25' },
+    ];
+    return palettes[index % palettes.length];
+  };
+
+  const handleKanbanDragStart = (e: React.DragEvent<HTMLDivElement>, jobId: string) => {
+    e.dataTransfer.setData('text/plain', jobId);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => (e.currentTarget as HTMLElement).classList.add('opacity-40', 'scale-95'), 0);
+  };
+  const handleKanbanDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.classList.remove('opacity-40', 'scale-95');
+  };
+  const handleKanbanDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+  const handleKanbanDrop = (e: React.DragEvent<HTMLDivElement>, targetStatus: string) => {
+    e.preventDefault();
+    const jobId = e.dataTransfer.getData('text/plain');
+    if (!jobId) return;
+    const job = trackedJobs.find(j => j.id === jobId);
+    if (!job || normalizeStatus(job.status) === normalizeStatus(targetStatus)) return;
+    handleTrackedStageUpdate(jobId, targetStatus);
+  };
+
   if (loading) return <LoadingOverlay />;
 
   return (
@@ -554,7 +592,7 @@ export function JobApplicationTab() {
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {([
           { key: 'all',  label: t.filterAll,  count: totalCount },
           { key: 'hr',   label: t.filterHr,   count: hrCount },
@@ -562,7 +600,7 @@ export function JobApplicationTab() {
         ] as const).map(f => (
           <button
             key={f.key}
-            onClick={() => setTypeFilter(f.key)}
+            onClick={() => { setTypeFilter(f.key); if (f.key !== 'self') setShowKanban(false); }}
             className={`px-4 py-2.5 text-xs font-bold rounded-2xl border-2 transition-all flex items-center gap-2 ${
               typeFilter === f.key
                 ? 'border-[#7A60F4] bg-[#7A60F4] hover:bg-[#6B52E8] hover:border-[#6B52E8] text-white'
@@ -575,6 +613,22 @@ export function JobApplicationTab() {
             </span>
           </button>
         ))}
+
+        {selfCount > 0 && (typeFilter === 'self' || typeFilter === 'all') && (
+          <button
+            onClick={() => { setShowKanban(v => !v); if (!showKanban) setTypeFilter('self'); }}
+            className={`ml-auto px-4 py-2.5 text-xs font-bold rounded-2xl border-2 transition-all flex items-center gap-2 ${
+              showKanban
+                ? 'border-[#7A60F4] bg-[#7A60F4] text-white'
+                : 'border-gray-100 dark:border-neutral-800 text-gray-600 dark:text-neutral-300 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            Kanban View
+          </button>
+        )}
       </div>
 
       {totalCount > 0 && (
@@ -649,7 +703,7 @@ export function JobApplicationTab() {
             {t.emptyDesc1}<span className="font-semibold">{t.emptyDesc2}</span>{t.emptyDesc3}
           </p>
         </div>
-      ) : !hasResults ? (
+      ) : (!hasResults && !showKanban) ? (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl transition-colors">
           <svg className="w-10 h-10 text-gray-300 dark:text-neutral-700 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
@@ -797,7 +851,91 @@ export function JobApplicationTab() {
             );
           })}
 
-          {filteredTracked.map(job => {
+          {showKanban ? (
+            <div className="flex gap-4 overflow-x-auto pb-4 items-start -mx-1 px-1">
+              {KANBAN_STAGES.map((stage, index) => {
+                const accent = getKanbanAccent(stage.value, index);
+                const stageJobs = trackedJobs.filter(
+                  j => normalizeStatus(j.status) === normalizeStatus(stage.value) &&
+                       matchesSelfStageFilter(j.status) &&
+                       (!searchQuery || j.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+                return (
+                  <div
+                    key={stage.value}
+                    onDragOver={handleKanbanDragOver}
+                    onDrop={(e) => handleKanbanDrop(e, stage.value)}
+                    className="flex-shrink-0 w-[300px] bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-900 rounded-2xl p-4 flex flex-col shadow-sm transition-all"
+                  >
+                    <div className="flex justify-between items-center mb-4 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${accent.dot}`} />
+                        <h3 className={`text-[11px] font-bold uppercase tracking-widest ${accent.text}`}>
+                          {stageLabel(stage.value)}
+                        </h3>
+                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${accent.badge}`}>
+                        {stageJobs.length}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-3 overflow-y-auto px-1 py-1">
+                      {stageJobs.map(job => (
+                        <div
+                          key={job.id}
+                          draggable
+                          onDragStart={(e) => handleKanbanDragStart(e, job.id)}
+                          onDragEnd={handleKanbanDragEnd}
+                          className="group bg-white dark:bg-neutral-900 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-700 transition-all cursor-grab active:cursor-grabbing shrink-0 flex flex-col gap-2"
+                        >
+                          <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-[#7A60F4] dark:group-hover:text-[#9EA4FF] transition-colors line-clamp-2">
+                            {job.title}
+                          </h4>
+                          {job.company && (
+                            <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">{job.company}</p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-400 dark:text-neutral-500 font-medium">
+                            {job.location && (
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                {job.location}
+                              </span>
+                            )}
+                            <span>{new Date(job.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            {job.url ? (
+                              <button
+                                onClick={() => setExternalModalUrl(job.url ?? null)}
+                                className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 hover:underline uppercase tracking-wide"
+                              >
+                                {t.viewJob ?? 'View job'} →
+                              </button>
+                            ) : <span />}
+                            <button
+                              onClick={() => handleDeleteTracked(job.id)}
+                              className="p-1 text-gray-300 dark:text-neutral-600 hover:text-red-400 dark:hover:text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {stageJobs.length === 0 && (
+                        <div className="h-24 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center text-[10px] font-bold text-gray-400 dark:text-neutral-600 uppercase tracking-widest bg-white/50 dark:bg-black/20 transition-all">
+                          {t.dropHere ?? 'Drop here'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : filteredTracked.map(job => {
             const norm = normalizeStatus(job.status);
             const isOffer    = norm === 'OFFER';
             const isRejected = norm === 'REJECTED';
