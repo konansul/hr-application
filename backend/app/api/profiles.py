@@ -53,7 +53,8 @@ def get_profile(
     return {
         "profile_data": profile_data,
         "visibility_level": person.visibility_level,
-        "public_url_slug": person.public_url_slug
+        "public_url_slug": person.public_url_slug,
+        "primary_resume_id": person.primary_resume_id,
     }
 
 

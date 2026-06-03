@@ -71,6 +71,7 @@ class Person(Base):
     city = Column(String(128), nullable=True)
     country = Column(String(128), nullable=True)
     profile_json = Column(Text, nullable=True)
+    primary_resume_id = Column(String(64), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     visibility_level = Column(String(32), nullable=False, default="public")

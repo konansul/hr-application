@@ -1,5 +1,5 @@
 ﻿import { useState, useRef, useEffect } from 'react';
-import { documentsApi, authApi } from '../../../api';
+import { documentsApi, authApi, resumesApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 import { OnboardingWizard } from './OnboardingWizard';
@@ -80,6 +80,9 @@ export function ProfileTab() {
 
   const [user, setUser] = useState<any>(null);
   const [resumeVersions, setResumeVersions] = useState<any[]>([]);
+  const [resumeList, setResumeList] = useState<any[]>([]);
+  const [primaryResumeId, setPrimaryResumeId] = useState<string | null>(null);
+  const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
 
   const [profileData, setProfileData] = useState<any>({
     personal_info: {
@@ -115,6 +118,7 @@ export function ProfileTab() {
       const savedProfile = await authApi.getProfile().catch(() => null);
       if (savedProfile && savedProfile.profile_data && Object.keys(savedProfile.profile_data).length > 0) {
         setProfileData({ ...savedProfile.profile_data, references: savedProfile.profile_data.references || [] });
+        if (savedProfile.primary_resume_id) setPrimaryResumeId(savedProfile.primary_resume_id);
       } else if (currentUser) {
         setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, email: currentUser.email } }));
       }
@@ -145,13 +149,17 @@ export function ProfileTab() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [userData, docs] = await Promise.all([
+        const [userData, docs, resumes, profile] = await Promise.all([
           authApi.getMe(),
           documentsApi.getMyDocuments(),
+          resumesApi.list().catch(() => []),
+          authApi.getProfile().catch(() => null),
         ]);
 
         setUser(userData);
         setResumeVersions(docs);
+        setResumeList(resumes || []);
+        if (profile?.primary_resume_id) setPrimaryResumeId(profile.primary_resume_id);
 
         if (userData?.user_id) {
           const onboardKey = `hrai_onboarding_${userData.user_id}`;
@@ -419,6 +427,24 @@ export function ProfileTab() {
       setMessage({ text: 'Error saving profile to database', type: 'error' });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleSetPrimary = async (resumeId: string) => {
+    if (settingPrimaryId) return;
+    setSettingPrimaryId(resumeId);
+    try {
+      await resumesApi.setPrimary(resumeId);
+      setPrimaryResumeId(resumeId);
+      // Reload profile so the page reflects the resume data immediately
+      await loadProfile();
+      setMessage({ text: 'Primary resume set — your profile has been updated.', type: 'success' });
+      setTimeout(() => setMessage(null), 4000);
+    } catch {
+      setMessage({ text: 'Failed to set primary resume.', type: 'error' });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setSettingPrimaryId(null);
     }
   };
 
@@ -1313,16 +1339,49 @@ export function ProfileTab() {
             <div className="px-6 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <h3 className="text-sm font-bold text-gray-700 dark:text-white uppercase tracking-widest">{t.sidebar.resumeLibrary}</h3>
               <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-white text-[10px] font-bold flex items-center justify-center">
-                {resumeVersions.length}
+                {resumeList.length || resumeVersions.length}
               </span>
             </div>
             <div className="p-3">
-              {resumeVersions.length > 0 ? (
+              {resumeList.length > 0 ? (
+                <div className="space-y-1">
+                  {resumeList.map((resume: any) => {
+                    const isPrimary = resume.resume_id === primaryResumeId;
+                    const isSetting = settingPrimaryId === resume.resume_id;
+                    return (
+                      <div key={resume.resume_id} className={`group flex items-center gap-2.5 p-2.5 rounded-xl border transition-all ${isPrimary ? 'border-[#7A60F4]/30 bg-[#7A60F4]/5 dark:bg-[#7A60F4]/10 dark:border-[#7A60F4]/30' : 'border-transparent hover:border-gray-100 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800/50'}`}>
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary ? 'bg-[#7A60F4]/15 dark:bg-[#7A60F4]/20' : 'bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700'}`}>
+                          <svg className={`w-3.5 h-3.5 ${isPrimary ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-400 dark:text-neutral-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-gray-700 dark:text-neutral-300 truncate leading-tight">{resume.title || 'Untitled'}</p>
+                          {isPrimary && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#7A60F4] dark:text-[#9EA4FF] uppercase tracking-wider">
+                              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                              Primary
+                            </span>
+                          )}
+                        </div>
+                        {!isPrimary && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimary(resume.resume_id)}
+                            disabled={!!settingPrimaryId}
+                            className="opacity-0 group-hover:opacity-100 shrink-0 text-[10px] font-semibold text-gray-400 dark:text-neutral-500 hover:text-[#7A60F4] dark:hover:text-[#9EA4FF] px-2 py-1 rounded-lg hover:bg-[#7A60F4]/10 transition-all disabled:opacity-30 whitespace-nowrap"
+                          >
+                            {isSetting ? '…' : 'Make Primary'}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : resumeVersions.length > 0 ? (
                 <div className="space-y-1">
                   {resumeVersions.map((doc: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-transparent overflow-hidden">
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 flex items-center justify-center shrink-0">
-                        <svg className="w-4 h-4 text-gray-500 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-xl">
+                      <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5 text-gray-400 dark:text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                       </div>
                       <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 truncate">{doc.filename || `Version_${i+1}.pdf`}</span>
                     </div>

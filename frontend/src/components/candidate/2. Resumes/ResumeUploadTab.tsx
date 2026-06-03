@@ -734,6 +734,7 @@ export function ResumeUploadTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const createMenuRef = useRef<HTMLDivElement>(null);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [primaryResumeId, setPrimaryResumeId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -762,6 +763,7 @@ export function ResumeUploadTab() {
     authApi.getProfile().then((p: any) => {
       const photo = p?.profile_data?.personal_info?.photo;
       if (photo) setProfilePhoto(photo);
+      if (p?.primary_resume_id) setPrimaryResumeId(p.primary_resume_id);
     }).catch(() => {});
     const normalized = (versions || []).map((r: ResumeVersion) => normalizeResume(r)).filter(Boolean) as ResumeVersion[];
     const currentSelectedResumeId = selectedResumeIdRef.current;
@@ -1364,6 +1366,7 @@ export function ResumeUploadTab() {
             filteredResumes.length > 0 ? (filteredResumes.map((resume) => {
               const isActive = resume.resume_id === selectedResume?.resume_id;
               const isPendingDelete = confirmDeleteId === resume.resume_id;
+              const isPrimary = resume.resume_id === primaryResumeId;
               return (
                 <div
                   key={resume.resume_id}
@@ -1378,6 +1381,11 @@ export function ResumeUploadTab() {
                       <div className="min-w-0 flex-1 text-left">
                         <div className="flex items-center w-full gap-2 min-w-0">
                           <h4 className="text-sm font-semibold leading-snug break-words flex-1 min-w-0">{resume.title || 'Untitled Resume'}</h4>
+                          {isPrimary && (
+                            <span title="Primary resume" className={`shrink-0 ${isActive ? 'text-yellow-300' : 'text-amber-400 dark:text-amber-400'}`}>
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                            </span>
+                          )}
                           <span className={`text-xs whitespace-nowrap shrink-0 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
                             {resume.created_at ? new Intl.DateTimeFormat(language, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(resume.created_at)) : '�'}
                           </span>
@@ -1790,7 +1798,7 @@ export function ResumeUploadTab() {
                           <div key={i} className="p-4 border border-gray-200 dark:border-neutral-700 rounded-2xl bg-white dark:bg-neutral-800 space-y-2">
                             <div className="flex justify-between items-center">
                               <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">{t.edit.entry} {i + 1}</span>
-                              <button type="button" onClick={() => removeExpEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
+                              <button type="button" onClick={() => removeExpEntry(i)} className="text-[10px] font-medium text-red-400 dark:text-red-500 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <input value={exp.title ?? ''} onChange={e => updateExpField(i, 'title', e.target.value)} placeholder="Job title" className="rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
@@ -1892,7 +1900,7 @@ export function ResumeUploadTab() {
                           <div key={i} className="p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl space-y-2">
                             <div className="flex justify-between items-center">
                               <span className="text-xs font-semibold text-gray-400 dark:text-neutral-500">{t.edit.entry} {i + 1}</span>
-                              <button type="button" onClick={() => removeEduEntry(i)} className="text-xs text-red-400 dark:text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
+                              <button type="button" onClick={() => removeEduEntry(i)} className="text-[10px] font-medium text-red-400 dark:text-red-500 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">{t.edit.remove}</button>
                             </div>
                             <input value={edu.degree ?? ''} onChange={e => updateEduField(i, 'degree', e.target.value)} placeholder="Degree / Qualification" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
                             <input value={edu.field_of_study ?? ''} onChange={e => updateEduField(i, 'field_of_study', e.target.value)} placeholder="Field of Study / Specialization" className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
@@ -1925,119 +1933,128 @@ export function ResumeUploadTab() {
                   </div>
 
                   {(isEditingContent || (selectedResume.languages?.length ?? 0) > 0 || (selectedResume.certifications?.length ?? 0) > 0 || !selectedResume.hide_references) && (
-                  <div className="border-t border-gray-100 dark:border-neutral-800 pt-6 space-y-6">
-                    <div className="flex flex-wrap gap-6">
+                  <div className="border-t border-gray-100 dark:border-neutral-800 pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                      {/* Languages */}
-                      {(isEditingContent || (selectedResume.languages?.length ?? 0) > 0) && (
-                      <div className="flex-1 min-w-[200px] space-y-2">
-                        <div className="flex items-center justify-between gap-1">
-                          <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
-                            {(t.sections as any)?.languages ?? getPdfLabels(selectedResume.language).languages}
-                            {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
-                          </p>
-                          {isEditingContent && (editDraft?.languages ?? []).length > 0 && (
-                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                      {/* Left column: Languages + References stacked */}
+                      <div className="space-y-6">
+
+                        {/* Languages */}
+                        {(isEditingContent || (selectedResume.languages?.length ?? 0) > 0) && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                              {(t.sections as any)?.languages ?? getPdfLabels(selectedResume.language).languages}
+                              {isAiGenerated && !manuallyEditedSections.has('languages') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                            </p>
+                            {isEditingContent && (editDraft?.languages ?? []).length > 0 && (
+                              <button type="button" onClick={() => setEditDraft(d => d ? { ...d, languages: [] } : d)} className="text-[10px] font-medium text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                            )}
+                          </div>
+                          {isEditingContent ? (
+                            <div className="space-y-1.5">
+                              {(editDraft?.languages ?? []).map((l: any, i: number) => {
+                                const name = typeof l === 'string' ? l : l.name || l.language || '';
+                                const level = typeof l === 'string' ? 'UNKNOWN' : (l.level || 'UNKNOWN');
+                                return (
+                                  <div key={i} className="flex items-center gap-1.5">
+                                    <input value={name} onChange={e => updateLangEntry(i, e.target.value)} placeholder="e.g. English" className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-neutral-700 px-2.5 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                                    <select value={level} onChange={e => updateLangLevel(i, e.target.value)} className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 shrink-0">
+                                      <option value="UNKNOWN">Level</option>
+                                      <option value="BASIC">Basic</option>
+                                      <option value="INTERMEDIATE">Intermediate</option>
+                                      <option value="ADVANCED">Advanced</option>
+                                      <option value="FLUENT">Fluent</option>
+                                      <option value="NATIVE">Native</option>
+                                    </select>
+                                    <button type="button" onClick={() => removeLangEntry(i)} className="text-[10px] font-medium text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">{t.edit.remove}</button>
+                                  </div>
+                                );
+                              })}
+                              <button type="button" onClick={addLangEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {selectedResume.languages!.map((item: any, i: number) => {
+                                const name = typeof item === 'string' ? item : item.name || item.language || '';
+                                const level = typeof item === 'string' ? null : (item.level && item.level !== 'UNKNOWN' ? item.level : null);
+                                if (!name) return null;
+                                return (
+                                  <span key={i} className="px-2.5 py-1 bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border border-[#92D8F2]/40 dark:border-[#92D8F2]/25 rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+                                    {name}
+                                    {level && <span className="text-slate-500 dark:text-[#92D8F2]/70 text-[10px]">{level.charAt(0) + level.slice(1).toLowerCase()}</span>}
+                                  </span>
+                                );
+                              })}
+                            </div>
                           )}
                         </div>
-                        {isEditingContent ? (
-                          <div className="space-y-1.5">
-                            {(editDraft?.languages ?? []).map((l: any, i: number) => {
-                              const name = typeof l === 'string' ? l : l.name || l.language || '';
-                              const level = typeof l === 'string' ? 'UNKNOWN' : (l.level || 'UNKNOWN');
-                              return (
-                                <div key={i} className="flex items-center gap-1.5">
-                                  <input value={name} onChange={e => updateLangEntry(i, e.target.value)} placeholder="e.g. English" className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-neutral-700 px-2.5 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-                                  <select value={level} onChange={e => updateLangLevel(i, e.target.value)} className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10 shrink-0">
-                                    <option value="UNKNOWN">Level</option>
-                                    <option value="BASIC">Basic</option>
-                                    <option value="INTERMEDIATE">Intermediate</option>
-                                    <option value="ADVANCED">Advanced</option>
-                                    <option value="FLUENT">Fluent</option>
-                                    <option value="NATIVE">Native</option>
-                                  </select>
-                                  <button type="button" onClick={() => removeLangEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">{t.edit.remove}</button>
-                                </div>
-                              );
-                            })}
-                            <button type="button" onClick={addLangEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap gap-1.5">
-                            {selectedResume.languages!.map((item: any, i: number) => {
-                              const name = typeof item === 'string' ? item : item.name || item.language || '';
-                              const level = typeof item === 'string' ? null : (item.level && item.level !== 'UNKNOWN' ? item.level : null);
-                              if (!name) return null;
-                              return (
-                                <span key={i} className="px-2.5 py-1 bg-[#92D8F2]/15 dark:bg-[#92D8F2]/10 text-slate-700 dark:text-[#92D8F2] border border-[#92D8F2]/40 dark:border-[#92D8F2]/25 rounded-lg text-xs font-semibold inline-flex items-center gap-1">
-                                  {name}
-                                  {level && <span className="text-slate-500 dark:text-[#92D8F2]/70 text-[10px]">{level.charAt(0) + level.slice(1).toLowerCase()}</span>}
-                                </span>
-                              );
-                            })}
-                          </div>
                         )}
-                      </div>
-                      )}
 
-                      {/* Certifications */}
-                      {(isEditingContent || (selectedResume.certifications?.length ?? 0) > 0) && (
-                      <div className="flex-1 min-w-[200px] space-y-2">
-                        <div className="flex items-center justify-between gap-1">
-                          <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                            {(t.sections as any)?.certifications ?? getPdfLabels(selectedResume.language).certifications}
-                            {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
-                          </p>
-                          {isEditingContent && (editDraft?.certifications ?? []).length > 0 && (
-                            <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                        {/* References — below Languages in the same column */}
+                        {(isEditingContent || !selectedResume.hide_references) && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                              {(t.sections as any)?.references ?? getPdfLabels(selectedResume.language).references}
+                            </p>
+                            {isEditingContent && (
+                              editDraft?.hide_references
+                                ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 px-1.5 py-0.5 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors">Restore</button>
+                                : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] font-medium text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                            )}
+                          </div>
+                          {editDraft?.hide_references && isEditingContent
+                            ? <p className="text-xs text-gray-400 dark:text-neutral-500 italic">Hidden from resume.</p>
+                            : <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{getPdfLabels(selectedResume.language).referencesNote}</p>
+                          }
+                        </div>
+                        )}
+
+                      </div>
+
+                      {/* Right column: Certifications */}
+                      <div className="space-y-6">
+
+                        {/* Certifications */}
+                        {(isEditingContent || (selectedResume.certifications?.length ?? 0) > 0) && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                              {(t.sections as any)?.certifications ?? getPdfLabels(selectedResume.language).certifications}
+                              {isAiGenerated && !manuallyEditedSections.has('certifications') && <AiInfoBadge tooltip={(t as any).aiParsedTooltip} />}
+                            </p>
+                            {isEditingContent && (editDraft?.certifications ?? []).length > 0 && (
+                              <button type="button" onClick={() => setEditDraft(d => d ? { ...d, certifications: [] } : d)} className="text-[10px] font-medium text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                            )}
+                          </div>
+                          {isEditingContent ? (
+                            <div className="space-y-1.5">
+                              {(editDraft?.certifications ?? []).map((c: any, i: number) => {
+                                const val = typeof c === 'string' ? c : c.name || c.title || '';
+                                return (
+                                  <div key={i} className="flex items-center gap-1.5">
+                                    <input value={val} onChange={e => updateCertEntry(i, e.target.value)} placeholder="e.g. AWS Certified" className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-neutral-700 px-2.5 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
+                                    <button type="button" onClick={() => removeCertEntry(i)} className="text-[10px] font-medium text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">{t.edit.remove}</button>
+                                  </div>
+                                );
+                              })}
+                              <button type="button" onClick={addCertEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
+                              {selectedResume.certifications!.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')}
+                            </p>
                           )}
                         </div>
-                        {isEditingContent ? (
-                          <div className="space-y-1.5">
-                            {(editDraft?.certifications ?? []).map((c: any, i: number) => {
-                              const val = typeof c === 'string' ? c : c.name || c.title || '';
-                              return (
-                                <div key={i} className="flex items-center gap-1.5">
-                                  <input value={val} onChange={e => updateCertEntry(i, e.target.value)} placeholder="e.g. AWS Certified" className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-neutral-700 px-2.5 py-1.5 text-sm bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/10" />
-                                  <button type="button" onClick={() => removeCertEntry(i)} className="text-xs text-red-400 hover:text-red-600 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0">{t.edit.remove}</button>
-                                </div>
-                              );
-                            })}
-                            <button type="button" onClick={addCertEntry} className="w-full py-1.5 border-2 border-dashed border-gray-200 dark:border-neutral-700 text-xs text-gray-500 dark:text-neutral-400 hover:border-[#7A60F4]/50 hover:text-gray-700 dark:hover:text-neutral-300 rounded-xl transition-all">+ Add</button>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">
-                            {selectedResume.certifications!.map((item: any) => typeof item === 'string' ? item : item.name || item.title).filter(Boolean).join(', ')}
-                          </p>
                         )}
+
                       </div>
-                      )}
 
                     </div>
-
-                      {/* References — own row so languages & certs always have full width */}
-                      {(isEditingContent || !selectedResume.hide_references) && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-1">
-                          <p className="text-[10px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            {(t.sections as any)?.references ?? getPdfLabels(selectedResume.language).references}
-                          </p>
-                          {isEditingContent && (
-                            editDraft?.hide_references
-                              ? <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: false } : d)} className="text-[10px] text-violet-600 dark:text-violet-400 hover:text-violet-700 font-medium px-1.5 py-0.5 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors">Restore</button>
-                              : <button type="button" onClick={() => setEditDraft(d => d ? { ...d, hide_references: true } : d)} className="text-[10px] text-red-400 hover:text-red-600 font-medium px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
-                          )}
-                        </div>
-                        {editDraft?.hide_references && isEditingContent
-                          ? <p className="text-xs text-gray-400 dark:text-neutral-500 italic">Hidden from resume.</p>
-                          : <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed">{getPdfLabels(selectedResume.language).referencesNote}</p>
-                        }
-                      </div>
-                      )}
-
                   </div>
                   )}
 

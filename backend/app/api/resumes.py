@@ -275,6 +275,44 @@ class ResumeSharingRequest(BaseModel):
     enabled: bool
 
 
+@router.patch("/resumes/{resume_id}/set-primary")
+def set_primary_resume(
+    resume_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    person = ensure_person(db, current_user)
+    resume = (
+        db.query(Resume)
+        .filter(Resume.resume_id == resume_id, Resume.person_id == person.person_id)
+        .first()
+    )
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume version not found")
+
+    person.primary_resume_id = resume_id
+
+    # Copy resume data into the profile so the profile reflects this resume
+    resume_data = resume_payload(resume)
+    if resume_data:
+        # Strip internal flags before storing as profile
+        import copy
+        profile_data = copy.deepcopy(resume_data)
+        for skill in profile_data.get("skills", []):
+            skill.pop("_ai_generated", None)
+        person.profile_json = json.dumps(profile_data, ensure_ascii=False)
+        # Sync top-level person fields from personal_info
+        pi = profile_data.get("personal_info", {})
+        if pi.get("first_name"): person.first_name = pi["first_name"]
+        if pi.get("last_name"):  person.last_name  = pi["last_name"]
+        if pi.get("phone"):      person.phone      = pi["phone"]
+        if pi.get("city"):       person.city       = pi["city"]
+        if pi.get("country"):    person.country    = pi["country"]
+
+    db.commit()
+    return {"ok": True, "primary_resume_id": resume_id}
+
+
 @router.patch("/resumes/{resume_id}/sharing")
 def update_resume_sharing(
     resume_id: str,

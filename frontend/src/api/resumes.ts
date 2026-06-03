@@ -59,4 +59,8 @@ export const resumesApi = {
     deleteShare: async (resumeId: string, shareId: string) => {
         await apiClient.delete(`/v1/resumes/${resumeId}/shares/${shareId}`);
     },
+    setPrimary: async (resumeId: string) => {
+        const response = await apiClient.patch(`/v1/resumes/${resumeId}/set-primary`);
+        return response.data;
+    },
 };
