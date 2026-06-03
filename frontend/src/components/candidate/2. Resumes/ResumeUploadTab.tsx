@@ -34,6 +34,39 @@ type ResumeVersion = {
   updated_at?: string | null;
 };
 
+function diffWords(oldText: string, newText: string): { type: 'equal' | 'add' | 'del'; text: string }[] {
+  const oldTokens = oldText.split(/(\s+)/);
+  const newTokens = newText.split(/(\s+)/);
+  const m = oldTokens.length, n = newTokens.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = m - 1; i >= 0; i--)
+    for (let j = n - 1; j >= 0; j--)
+      dp[i][j] = oldTokens[i] === newTokens[j] ? 1 + dp[i + 1][j + 1] : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const result: { type: 'equal' | 'add' | 'del'; text: string }[] = [];
+  let i = 0, j = 0;
+  while (i < m || j < n) {
+    if (i < m && j < n && oldTokens[i] === newTokens[j]) { result.push({ type: 'equal', text: oldTokens[i] }); i++; j++; }
+    else if (j < n && (i >= m || dp[i][j + 1] >= dp[i + 1][j])) { result.push({ type: 'add', text: newTokens[j] }); j++; }
+    else { result.push({ type: 'del', text: oldTokens[i] }); i++; }
+  }
+  return result;
+}
+
+function DiffView({ oldText, newText }: { oldText: string; newText: string }) {
+  const parts = diffWords(oldText || '', newText || '');
+  const hasChanges = parts.some(p => p.type !== 'equal');
+  if (!hasChanges) return <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">{newText}</p>;
+  return (
+    <p className="text-sm text-gray-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
+      {parts.map((p, idx) =>
+        p.type === 'equal' ? <span key={idx}>{p.text}</span>
+        : p.type === 'add' ? <mark key={idx} className="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 rounded-sm not-italic">{p.text}</mark>
+        : <del key={idx} className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-sm">{p.text}</del>
+      )}
+    </p>
+  );
+}
+
 function AiInfoBadge({ tooltip }: { tooltip: string }) {
   return (
     <div className="relative group inline-flex items-center">
@@ -687,6 +720,7 @@ export function ResumeUploadTab() {
   const [isSavingTitle, setIsSavingTitle] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editDraft, setEditDraft] = useState<ResumeVersion | null>(null);
+  const [showDiff, setShowDiff] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
   const [manuallyEditedSections, setManuallyEditedSections] = useState<Set<string>>(new Set());
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -845,6 +879,13 @@ export function ResumeUploadTab() {
   }, [resumeVersions, selectedResumeId]);
 
   const isAiGenerated = ['job_description', 'profile', 'profile_extract', 'cv_upload', 'duplicate'].includes(selectedResume?.source_type ?? '');
+
+  const sourceResume = useMemo(() => {
+    if (!selectedResume?.source_resume_id) return null;
+    return resumeVersions.find(r => r.resume_id === selectedResume.source_resume_id) ?? null;
+  }, [selectedResume, resumeVersions]);
+
+  useEffect(() => { setShowDiff(false); }, [selectedResumeId]);
 
   const filteredResumes = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -1548,6 +1589,21 @@ export function ResumeUploadTab() {
                 </button>
                 <div className="w-px h-6 bg-gray-200 dark:bg-neutral-700 self-center mx-1 shrink-0" />
                 <div className="flex-1" />
+                {sourceResume && (
+                  <button
+                    onClick={() => setShowDiff(d => !d)}
+                    className={`px-3 py-2 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                      showDiff
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
+                        : 'border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
+                    }`}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    {showDiff ? 'Hide Changes' : 'Show Changes'}
+                  </button>
+                )}
                 <button
                   onClick={startEditingContent}
                   className="px-4 py-2 text-xs font-semibold text-white bg-[#7A60F4] rounded-xl hover:bg-[#6B52E8] transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm shadow-[#7A60F4]/30"
@@ -1780,7 +1836,9 @@ export function ResumeUploadTab() {
                     ) : (
                       <div className="bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl p-5">
                         {selectedResume.personal_info?.summary
-                          ? <ExpandableText text={selectedResume.personal_info.summary} />
+                          ? (showDiff && sourceResume
+                              ? <DiffView oldText={sourceResume.personal_info?.summary ?? ''} newText={selectedResume.personal_info.summary} />
+                              : <ExpandableText text={selectedResume.personal_info.summary} />)
                           : <span className="text-sm italic text-gray-400">{t.placeholders.noSummary}</span>}
                       </div>
                     )}
@@ -1818,7 +1876,9 @@ export function ResumeUploadTab() {
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1" style={{ textAlign: 'left' }}>{exp.title || t.placeholders.untitledRole}{exp.company ? ` @ ${exp.company}` : ''}</h4>
                             <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-3" style={{ textAlign: 'left' }}>{exp.start_date || '–'} – {exp.end_date || t.placeholders.present}</p>
                             {exp.description
-                              ? <ExpandableText text={exp.description} />
+                              ? (showDiff && sourceResume
+                                  ? <DiffView oldText={sourceResume.experience?.[i]?.description ?? ''} newText={exp.description} />
+                                  : <ExpandableText text={exp.description} />)
                               : <p className="text-sm text-gray-400 italic">{t.placeholders.noDesc}</p>}
                           </div>
                         )) : <p className="text-sm text-gray-400 italic">{t.placeholders.noExp}</p>}
@@ -1877,13 +1937,23 @@ export function ResumeUploadTab() {
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
-                        {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => (
-                          <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs font-semibold text-gray-900 dark:text-white shadow-sm">
-                            {typeof skill === 'string' ? skill : skill.name || 'Skill'}
-                            {typeof skill === 'object' && skill.level && skill.level !== 'UNKNOWN' ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
-                            {typeof skill === 'object' && skill._ai_generated && <AiInfoBadge tooltip={(t as any).aiAddedSkillTooltip ?? 'Added by AI based on job analysis'} />}
-                          </span>
-                        )) : <span className="text-sm text-gray-400 italic">{t.placeholders.noSkills}</span>}
+                        {selectedResume.skills?.length ? selectedResume.skills.map((skill: any, i: number) => {
+                          const skillName = typeof skill === 'string' ? skill : skill.name || 'Skill';
+                          const isNew = showDiff && sourceResume && !(sourceResume.skills ?? []).some((s: any) =>
+                            (typeof s === 'string' ? s : s.name || '') === skillName
+                          );
+                          return (
+                            <span key={i} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm ${
+                              isNew
+                                ? 'bg-green-100 dark:bg-green-900/50 border border-green-300 dark:border-green-700 text-green-800 dark:text-green-300'
+                                : 'bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white'
+                            }`}>
+                              {skillName}
+                              {typeof skill === 'object' && skill.level && skill.level !== 'UNKNOWN' ? <span className="text-gray-400 text-[10px] ml-1">{skill.level}</span> : null}
+                              {typeof skill === 'object' && skill._ai_generated && !showDiff && <AiInfoBadge tooltip={(t as any).aiAddedSkillTooltip ?? 'Added by AI based on job analysis'} />}
+                            </span>
+                          );
+                        }) : <span className="text-sm text-gray-400 italic">{t.placeholders.noSkills}</span>}
                       </div>
                     )}
                   </div>
