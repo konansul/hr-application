@@ -59,6 +59,16 @@ export const resumesApi = {
     deleteShare: async (resumeId: string, shareId: string) => {
         await apiClient.delete(`/v1/resumes/${resumeId}/shares/${shareId}`);
     },
+    sendShareEmail: async (resumeId: string, recipientEmail: string, recipientName: string, message: string, attachment?: { base64: string; filename: string }, baseUrl?: string) => {
+        const response = await apiClient.post(`/v1/resumes/${resumeId}/shares/send-email`, {
+            recipient_email: recipientEmail,
+            recipient_name: recipientName,
+            message,
+            ...(attachment ? { attachment_base64: attachment.base64, attachment_filename: attachment.filename } : {}),
+            ...(baseUrl ? { base_url: baseUrl } : {}),
+        });
+        return response.data;
+    },
     setPrimary: async (resumeId: string) => {
         const response = await apiClient.patch(`/v1/resumes/${resumeId}/set-primary`);
         return response.data;
