@@ -100,6 +100,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [filterLevel, setFilterLevel] = useState<string>('All');
   const [filterRegion, setFilterRegion] = useState<string>('All');
+  const [jobSearchQuery, setJobSearchQuery] = useState<string>('');
 
   const [currentJob, setCurrentJob] = useState<Job | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
@@ -162,6 +163,7 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
     if (filterStatus !== 'All' && job.status !== filterStatus) return false;
     if (filterLevel !== 'All' && job.level !== filterLevel) return false;
     if (filterRegion !== 'All' && job.region !== filterRegion) return false;
+    if (jobSearchQuery.trim() && !job.title.toLowerCase().includes(jobSearchQuery.toLowerCase())) return false;
     return true;
   });
 
@@ -368,6 +370,25 @@ export function JobTab({ setGlobalJobDescription }: { setGlobalJobDescription: (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-4 flex flex-col gap-6 h-[800px] sticky top-6">
           <div className={`bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-3xl shadow-sm flex flex-col overflow-hidden transition-all ${currentJob ? 'h-[50%]' : 'h-full'}`}>
+            <div className="px-2 py-2 border-b border-gray-100 dark:border-neutral-800 shrink-0">
+              <div className="relative">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-neutral-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={jobSearchQuery}
+                  onChange={e => setJobSearchQuery(e.target.value)}
+                  placeholder="Search jobs..."
+                  className="w-full pl-8 pr-7 py-1.5 text-xs bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-lg outline-none focus:ring-2 focus:ring-[#7A60F4]/40 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+                />
+                {jobSearchQuery && (
+                  <button onClick={() => setJobSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300 transition-colors">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex items-center px-4 py-3 bg-gray-50 dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800 text-[10px] font-bold text-gray-500 dark:text-neutral-500 uppercase tracking-widest shrink-0">
               <div className="flex-1">{t.listHeaders.name}</div>
               <div className="w-16 text-center">{t.listHeaders.status}</div>
