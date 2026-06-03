@@ -36,7 +36,15 @@ FETCH_JOB_URL_SCHEMA = {
 }
 
 
+def _strip_photo(resume_data: dict) -> dict:
+    pi = resume_data.get("personal_info")
+    if not pi or "photo" not in pi:
+        return resume_data
+    return {**resume_data, "personal_info": {k: v for k, v in pi.items() if k != "photo"}}
+
+
 def build_translate_resume_prompt(resume_data: dict, language_name: str) -> str:
+    resume_data = _strip_photo(resume_data)
     return f"""You are a professional CV/resume translator.
 
 Translate the following resume data JSON into {language_name}.
@@ -57,6 +65,7 @@ Resume JSON:
 
 
 def build_adapt_resume_prompt(resume_data: dict, job_description: str, language_name: str) -> str:
+    resume_data = _strip_photo(resume_data)
     return f"""You are an expert CV writer and career coach.
 
 Adapt the candidate's resume below to make it maximally suitable for the job description provided.
@@ -81,6 +90,7 @@ Candidate Resume JSON:
 
 
 def build_apply_improvements_prompt(resume_data: dict, improvements: list) -> str:
+    resume_data = _strip_photo(resume_data)
     improvements_text = "\n".join(f"{i + 1}. {imp}" for i, imp in enumerate(improvements))
     return f"""You are an expert CV editor. Apply each of the listed improvements to the resume JSON below.
 

@@ -5,6 +5,24 @@ import logging
 import re
 from typing import Any, Dict, List, Tuple
 
+
+def _sanitize_cv_text(text: str) -> str:
+    """Strip photo/image data from cv_text before it reaches the LLM."""
+    # If it looks like JSON, parse and remove personal_info.photo
+    stripped = text.strip()
+    if stripped.startswith("{"):
+        try:
+            data = json.loads(stripped)
+            pi = data.get("personal_info", {})
+            if "photo" in pi:
+                data = {**data, "personal_info": {k: v for k, v in pi.items() if k != "photo"}}
+            return json.dumps(data, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+    # Remove any data URI blobs (data:image/...;base64,<blob>)
+    text = re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+', '[photo removed]', text)
+    return text
+
 from backend.app.schemas import (
     ScreeningRequest, ScreeningResult, RequirementCheck,
     CandidateProfile, Skill, CVImprovementResult, RewrittenBullet,
@@ -122,6 +140,8 @@ def run_screening(request: ScreeningRequest) -> ScreeningResult:
 
 
 def run_cv_improvement(cv_text: str, job_description: str = "") -> CVImprovementResult:
+    cv_text = _sanitize_cv_text(cv_text)
+
     with open("backend/app/services/llm/improve_cv.md", "r", encoding="utf-8") as f:
         template = f.read()
 

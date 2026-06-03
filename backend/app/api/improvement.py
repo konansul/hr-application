@@ -148,13 +148,22 @@ async def improve_cv_existing(
 
     cv_text = ""
 
-    if resume.payload and len(resume.payload.strip()) > 10:
-        cv_text = str(resume.payload)
-
-    if not cv_text and resume.source_document_id:
+    # Prefer raw text from source document — it's clean PDF/DOCX text without embedded photo data
+    if resume.source_document_id:
         doc = db.query(Document).filter(Document.document_id == resume.source_document_id).first()
-        if doc and doc.raw_text:
+        if doc and doc.raw_text and len(doc.raw_text.strip()) > 10:
             cv_text = doc.raw_text
+
+    # Fall back to payload JSON, but strip the photo field before sending to AI
+    if not cv_text and resume.payload and len(resume.payload.strip()) > 10:
+        try:
+            data = json.loads(resume.payload)
+            pi = data.get("personal_info", {})
+            if "photo" in pi:
+                data = {**data, "personal_info": {k: v for k, v in pi.items() if k != "photo"}}
+            cv_text = json.dumps(data, ensure_ascii=False, indent=2)
+        except Exception:
+            cv_text = resume.payload
 
     if not cv_text or not cv_text.strip():
         raise HTTPException(status_code=400, detail="The resume content is empty and cannot be improved.")
