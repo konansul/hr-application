@@ -88,10 +88,6 @@ export function KanbanTab() {
     fetchData();
   }, [kanbanJobId, setGlobalJobStages]);
 
-  const handleJobChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setKanbanJobId(e.target.value);
-  };
-
   const handleDragStart = (e: DragEvent<HTMLDivElement>, id: string) => {
     e.dataTransfer.setData('text/plain', id);
     e.dataTransfer.effectAllowed = 'move';

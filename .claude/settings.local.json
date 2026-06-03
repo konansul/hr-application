@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "PowerShell(docker start cv_screening_postgres)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git *)"
     ]
   }
 }
