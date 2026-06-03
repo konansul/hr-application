@@ -2,6 +2,7 @@ import { useState, useEffect, type DragEvent } from 'react';
 import { screeningApi, jobsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
+import { SearchableJobSelect } from '../../shared/SearchableJobSelect';
 
 interface CandidateCard {
   id: string;
@@ -86,10 +87,6 @@ export function KanbanTab() {
 
     fetchData();
   }, [kanbanJobId, setGlobalJobStages]);
-
-  const handleJobChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setKanbanJobId(e.target.value);
-  };
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, id: string) => {
     e.dataTransfer.setData('text/plain', id);
@@ -186,16 +183,13 @@ export function KanbanTab() {
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{t.noJobSelected}</h3>
         <p className="text-sm text-[#c05020] dark:text-[#FF906D] mb-6">{t.noJobDesc}</p>
 
-        <select
-          onChange={handleJobChange}
-          value={kanbanJobId || ''}
-          className="w-full max-w-xs px-4 py-2.5 text-sm bg-white dark:bg-black border border-[#FF906D]/30 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none shadow-sm cursor-pointer transition-colors"
-        >
-          <option value="" disabled>{t.selectJob}</option>
-          {jobsList.map(job => (
-             <option key={job.id} value={job.id}>{job.title}</option>
-          ))}
-        </select>
+        <SearchableJobSelect
+          jobs={jobsList}
+          value={kanbanJobId}
+          onChange={id => setKanbanJobId(id)}
+          placeholder={t.selectJob}
+          className="w-full max-w-xs"
+        />
       </div>
     );
   }
@@ -254,24 +248,14 @@ export function KanbanTab() {
             </div>
           )}
 
-          {/* Job selector — label + select, chevron on the left */}
-          <div className="shrink-0">
-            <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">{t.activeJobBoard}</label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-neutral-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-              </div>
-              <select
-                value={kanbanJobId || ''}
-                onChange={handleJobChange}
-                className="appearance-none pl-9 pr-4 py-2.5 text-sm font-bold text-gray-900 dark:text-white bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none cursor-pointer shadow-sm transition-all min-w-[220px]"
-              >
-                {jobsList.map(job => (
-                  <option key={job.id} value={job.id}>{job.title}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          {/* Job selector — searchable */}
+          <SearchableJobSelect
+            jobs={jobsList}
+            value={kanbanJobId || ''}
+            onChange={id => setKanbanJobId(id)}
+            label={t.activeJobBoard}
+            className="min-w-[220px]"
+          />
         </div>
       </div>
 

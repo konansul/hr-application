@@ -3,6 +3,7 @@ import { documentsApi, authApi, resumesApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
 import { OnboardingWizard } from './OnboardingWizard';
+import { ProfileTour } from './ProfileTour';
 import { LoadingOverlay } from '../../shared/LoadingOverlay';
 
 const REQUIRED_PI_FIELDS: { key: string; label: string; isEnum: boolean }[] = [
@@ -94,6 +95,7 @@ export function ProfileTab() {
   });
 
   const [showWizard, setShowWizard] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   const [showUrlImportInput, setShowUrlImportInput] = useState(false);
   const [urlImportValue, setUrlImportValue] = useState('');
@@ -595,9 +597,20 @@ export function ProfileTab() {
 
   return (
     <div className="w-full max-w-none mx-auto animate-in fade-in duration-300 pb-32">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{t.title}</h2>
-        <p className="text-sm text-gray-500 dark:text-neutral-400">{t.desc}</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">{t.title}</h2>
+          <p className="text-sm text-gray-500 dark:text-neutral-400">{t.desc}</p>
+        </div>
+        <button
+          onClick={() => setShowTour(true)}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/30 dark:border-[#7A60F4]/40 rounded-xl hover:bg-[#7A60F4]/8 dark:hover:bg-[#7A60F4]/10 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          How it works
+        </button>
       </div>
 
       {message && (
@@ -760,7 +773,7 @@ export function ProfileTab() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+          <div id="profile-tour-experience" className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#92D8F2]"></div>
@@ -924,7 +937,7 @@ export function ProfileTab() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
+          <div id="profile-tour-skills" className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden transition-colors">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900 min-h-[64px]">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#FF906D]"></div>
@@ -1190,7 +1203,7 @@ export function ProfileTab() {
 
         <div className="lg:col-span-4 space-y-6">
 
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 flex flex-col items-center text-center transition-colors">
+          <div id="profile-tour-upload" className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 flex flex-col items-center text-center transition-colors">
             <div className="relative mb-4 group cursor-pointer" onClick={() => photoInputRef.current?.click()}>
               {profileData.personal_info.photo ? (
                 <img src={profileData.personal_info.photo} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-[#7A60F4]/20 shadow-sm" />
@@ -1437,6 +1450,7 @@ export function ProfileTab() {
       {showWizard && user?.user_id && (
         <OnboardingWizard userId={user.user_id} onComplete={() => { setShowWizard(false); loadProfile(user); }} />
       )}
+      {showTour && <ProfileTour onClose={() => setShowTour(false)} />}
     </div>
   );
 }

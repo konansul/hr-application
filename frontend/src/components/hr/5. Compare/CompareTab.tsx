@@ -2,6 +2,7 @@
 import { screeningApi, jobsApi } from '../../../api';
 import { useStore } from '../../../store';
 import { DICT } from '../../../internationalization.ts';
+import { SearchableJobSelect } from '../../shared/SearchableJobSelect';
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   RadialBarChart, RadialBar,
@@ -214,26 +215,14 @@ export function CompareTab({ batchResults: sessionResults }: CompareTabProps) {
         </div>
 
         <div className="w-full md:w-auto shrink-0 z-10">
-          <label className="block text-[10px] font-bold text-gray-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
-            Select Job to Compare
-          </label>
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-neutral-500">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-            </div>
-            <select
-              value={compareJobId}
-              onChange={(e) => setCompareJobId(e.target.value)}
-              className="w-full md:w-64 appearance-none pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-[#7A60F4]/50 outline-none transition-all cursor-pointer font-bold text-gray-900 dark:text-white shadow-sm"
-            >
-              {availableJobs.length === 0 && <option value="">Loading jobs...</option>}
-              {availableJobs.map(job => (
-                <option key={job.id} value={job.id}>
-                  {job.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SearchableJobSelect
+            jobs={availableJobs}
+            value={compareJobId}
+            onChange={setCompareJobId}
+            label="Select Job to Compare"
+            placeholder={availableJobs.length === 0 ? 'Loading jobs...' : 'Select job...'}
+            className="w-full md:w-64"
+          />
         </div>
       </div>
 

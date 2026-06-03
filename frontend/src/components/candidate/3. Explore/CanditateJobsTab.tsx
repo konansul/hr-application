@@ -192,7 +192,7 @@ function LocationCombobox({
         onClick={() => isOpen ? setIsOpen(false) : openDropdown()}
         className={`flex items-center gap-1.5 pl-3 pr-2.5 py-2 text-sm font-medium rounded-xl border transition-all ${
           isActive
-            ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60'
+            ? 'bg-[#7A60F4] hover:bg-[#6B52E8] text-white border-[#7A60F4]'
             : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
         }`}
       >
@@ -207,7 +207,7 @@ function LocationCombobox({
             tabIndex={0}
             onClick={(e) => { e.stopPropagation(); select('all'); }}
             onKeyDown={(e) => e.key === 'Enter' && (e.stopPropagation(), select('all'))}
-            className="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-200 transition-colors"
+            className="text-white/80 hover:text-white transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -561,7 +561,7 @@ export function JobsTab() {
             : selectedLocation;
         try {
             const result = await externalJobsApi.search({
-                q: smartPrompt.trim() || searchQuery,
+                q: searchQuery,
                 location_value: locValue,
                 employment_type: selectedType === 'all' ? '' : selectedType,
                 level: selectedLevelKey === 'all' ? '' : selectedLevelKey,
@@ -577,22 +577,16 @@ export function JobsTab() {
         } finally {
             setExternalLoading(false);
         }
-    }, [smartPrompt, searchQuery, selectedLocation, selectedType, selectedLevelKey]);
+    }, [searchQuery, selectedLocation, selectedType, selectedLevelKey]);
 
-    // Auto-search with debounce when in external mode � only when the user has
-    // set at least one filter, so opening the tab doesn't auto-load random jobs.
+    // Debounced search — fires when searchQuery or filters change, never while user is just typing
     useEffect(() => {
         if (searchMode !== 'external') return;
-        const hasFilters = smartPrompt.trim() !== '' || searchQuery.trim() !== '' || selectedLocation !== 'all' || selectedType !== 'all' || selectedLevelKey !== 'all';
-        if (!hasFilters) { setExternalJobs([]); setExternalTotal(0); return; }
-        const timer = setTimeout(() => {
-            fetchExternalJobs(1);
-        }, 600);
+        if (!searchQuery.trim()) { setExternalJobs([]); setExternalTotal(0); return; }
+        const timer = setTimeout(() => fetchExternalJobs(1), 600);
         return () => clearTimeout(timer);
     }, [searchMode, searchQuery, selectedLocation, selectedType, selectedLevelKey, fetchExternalJobs]);
 
-    // Apply smart prompt filters to whichever tab is currently active.
-    // On Job Market tab the auto-search useEffect fires because dependencies change.
     const applySmartAndSearch = () => {
         applySmartPrompt();
         setSearchQuery(smartPrompt.trim());
@@ -859,84 +853,47 @@ export function JobsTab() {
                     </div>
                 </div>
 
-                {/* Smart prompt bar */}
-                <div className="relative group/smartfilter">
-                {/* Tooltip */}
-                <div className="pointer-events-none absolute bottom-full left-0 mb-2 z-50 w-72 opacity-0 group-hover/smartfilter:opacity-100 transition-opacity duration-150">
-                    <div className="bg-[#9EA4FF] dark:bg-[#9EA4FF]/90 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
-                        {searchMode === 'internal'
-                            ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-white/80 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
-                            : <><span className="font-semibold">{tl.filterTooltipMarketTitle}</span> {tl.filterTooltipMarketBody}</>
-                        }
-                    </div>
-                    <div className="absolute top-full left-6 border-4 border-transparent border-t-[#9EA4FF] dark:border-t-[#9EA4FF]/90" />
-                </div>
-                <div
-                    className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 transition-all hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50">
-                    <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                              d="M5 3l1.5 1.5M12 2v2m7-1l-1.5 1.5M3 12H1m22 0h-2M5.5 18.5L4 20M19 4l-1 1M18.5 18.5L20 20M12 22v-2M7 12a5 5 0 1110 0 5 5 0 01-10 0z"/>
-                    </svg>
-                    <input
-                        type="text"
-                        value={smartPrompt}
-                        onChange={(e) => setSmartPrompt(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && applySmartAndSearch()}
-                        placeholder={tl.smartPromptPlaceholder || 'e.g. "Senior developer jobs in EU, full-time"'}
-                        className="btn-flat flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 outline-none"
-                    />
-                    {smartPrompt.trim() && (
-                        <button
-                            onClick={applySmartAndSearch}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-1 bg-[#7A60F4] text-white text-xs font-semibold rounded-lg hover:bg-[#6B52E8] transition-all"
-                        >
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                      d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            {tl.smartApply || 'Search Jobs'}
-                        </button>
-                    )}
-                </div>
-                </div>
-
-                {/* Filter row */}
-                <div className="flex flex-wrap items-center gap-2">
-                    {/* Search */}
-                    <div className="relative group/searchfilter">
-                        {/* Tooltip */}
-                        <div className="pointer-events-none absolute bottom-full left-0 mb-2 z-50 w-72 opacity-0 group-hover/searchfilter:opacity-100 transition-opacity duration-150">
-                            <div className="bg-[#9EA4FF] dark:bg-[#9EA4FF]/90 text-white text-xs rounded-xl shadow-lg px-3.5 py-2.5 leading-relaxed">
-                                {searchMode === 'internal'
-                                    ? <><span className="font-semibold">{tl.filterTooltipPlatformTitle}</span> {tl.filterTooltipPlatformBody} {(smartPrompt.trim() || searchQuery.trim()) ? <button onClick={() => setSearchMode('external')} className="pointer-events-auto underline underline-offset-2 text-white/80 hover:text-white font-medium">{tl.filterTooltipSwitchLink}</button> : tl.filterTooltipPlatformSwitch}</>
-                                    : <><span className="font-semibold">{tl.filterTooltipMarketTitle}</span> {tl.filterTooltipMarketBody}</>
-                                }
-                            </div>
-                            <div className="absolute top-full left-6 border-4 border-transparent border-t-[#9EA4FF] dark:border-t-[#9EA4FF]/90" />
-                        </div>
-                        <svg
-                            className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500 pointer-events-none"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                {searchMode === 'internal' ? (
+                    <div className="relative">
+                        <svg className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-neutral-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                         <input
                             type="text"
                             placeholder={t.searchPlaceholder}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' && searchMode === 'external') fetchExternalJobs(1); }}
-                            className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-xl text-sm outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 w-52 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50"
+                            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-white border border-gray-200 dark:border-neutral-700 rounded-2xl text-sm outline-none transition-all placeholder-gray-400 dark:placeholder-neutral-500 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 focus:border-[#7A60F4]/60 focus:ring-2 focus:ring-[#7A60F4]/20"
                         />
                     </div>
+                ) : (
+                    <div className="flex gap-2 items-center bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 transition-all hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50">
+                        <svg className="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3l1.5 1.5M12 2v2m7-1l-1.5 1.5M3 12H1m22 0h-2M5.5 18.5L4 20M19 4l-1 1M18.5 18.5L20 20M12 22v-2M7 12a5 5 0 1110 0 5 5 0 01-10 0z"/>
+                        </svg>
+                        <input
+                            type="text"
+                            value={smartPrompt}
+                            onChange={(e) => setSmartPrompt(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && applySmartAndSearch()}
+                            placeholder={tl.smartPromptPlaceholder || 'e.g. "Senior developer jobs in EU, full-time"'}
+                            className="btn-flat flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 outline-none"
+                        />
+                    </div>
+                )}
 
+                {/* Filter row */}
+                <div className="flex flex-wrap items-center gap-2">
                     {/* Level dropdown */}
                     <div className="relative">
                         <select
                             value={selectedLevelKey}
                             onChange={(e) => setSelectedLevelKey(e.target.value)}
-                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50"
+                            className={`appearance-none rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors border ${
+                                selectedLevelKey !== 'all'
+                                    ? 'bg-[#7A60F4] hover:bg-[#6B52E8] text-white border-[#7A60F4]'
+                                    : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
+                            }`}
                         >
                             <option value="all">{tl.allLevels || 'All Levels'}</option>
                             <option value="junior">{t.levels.junior}</option>
@@ -945,8 +902,7 @@ export function JobsTab() {
                             <option value="lead">{t.levels.lead}</option>
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor">
+                            <svg className={`w-3.5 h-3.5 ${selectedLevelKey !== 'all' ? 'text-white' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                             </svg>
                         </div>
@@ -957,7 +913,11 @@ export function JobsTab() {
                         <select
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value)}
-                            className="appearance-none bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border border-gray-200 dark:border-neutral-700 rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50"
+                            className={`appearance-none rounded-xl pl-3 pr-7 py-2 text-sm font-medium cursor-pointer transition-colors border ${
+                                selectedType !== 'all'
+                                    ? 'bg-[#7A60F4] hover:bg-[#6B52E8] text-white border-[#7A60F4]'
+                                    : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-neutral-200 border-gray-200 dark:border-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50'
+                            }`}
                         >
                             <option value="all">{tl.allTypes || 'All Types'}</option>
                             <option value="full-time">{tl.types?.fullTime || 'Full-time'}</option>
@@ -966,8 +926,7 @@ export function JobsTab() {
                             <option value="remote">{tl.types?.remote || 'Remote'}</option>
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor">
+                            <svg className={`w-3.5 h-3.5 ${selectedType !== 'all' ? 'text-white' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                             </svg>
                         </div>
@@ -981,56 +940,23 @@ export function JobsTab() {
                         allLabel={tl.allLocations || 'All Locations'}
                     />
 
-                    {/* Smart filter � always visible as a permanent filter tab */}
-                    <div
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${
-                            smartTags.length > 0
-                                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800/50'
-                                : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700'
-                        }`}>
-                        <svg
-                            className={`w-3.5 h-3.5 shrink-0 ${smartTags.length > 0 ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-400 dark:text-neutral-500'}`}
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                  d="M5 3l1.5 1.5M12 2v2m7-1l-1.5 1.5M3 12H1m22 0h-2M5.5 18.5L4 20M19 4l-1 1M18.5 18.5L20 20M12 22v-2M7 12a5 5 0 1110 0 5 5 0 01-10 0z"/>
-                        </svg>
-                        {smartTags.length > 0 ? (
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                                {smartTags.map(tag => (
-                                    <span key={tag}
-                                          className="inline-flex items-center px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold">
-                    {tag}
-                  </span>
-                                ))}
-                                <button
-                                    onClick={clearSmartFilters}
-                                    className="text-xs text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors ml-1"
-                                >
-                                    {tl.smartClear || 'Clear'}
-                                </button>
-                            </div>
-                        ) : (
-                            <span
-                                className="text-xs text-gray-400 dark:text-neutral-500">{tl.smartLabel || 'Smart Filter'}</span>
-                        )}
-                    </div>
-
-                    {/* Apply button */}
+                    {/* Search button */}
                     <button
-                        onClick={() => { if (searchMode === 'external') fetchExternalJobs(1); }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-xs font-semibold rounded-xl transition-all"
+                        onClick={() => { if (searchMode === 'external') applySmartAndSearch(); }}
+                        disabled={searchMode === 'external' && !smartPrompt.trim()}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#7A60F4] hover:bg-[#6B52E8] text-white text-sm font-medium rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                        {tl.smartApply ?? 'Apply'}
+                        {tl.search ?? 'Search'}
                     </button>
 
                     {/* Clear All button � only shown when filters are active */}
-                    {(smartPrompt !== '' || searchQuery !== '' || selectedLevelKey !== 'all' || selectedType !== 'all' || selectedLocation !== 'all' || smartTags.length > 0) && (
+                    {(searchQuery !== '' || smartPrompt !== '' || selectedLevelKey !== 'all' || selectedType !== 'all' || selectedLocation !== 'all') && (
                         <button
                             onClick={clearSmartFilters}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-800/50 text-xs font-semibold rounded-xl transition-all"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-neutral-700 hover:border-red-200 dark:hover:border-red-800/50 text-sm font-medium rounded-xl transition-all"
                         >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
@@ -1144,26 +1070,64 @@ export function JobsTab() {
                     </div>
 
                     {/* Pagination */}
-                    {externalTotal > 20 && (
-                        <div className="flex items-center justify-center gap-2 pt-2">
-                            <button
-                                onClick={() => fetchExternalJobs(externalPage - 1)}
-                                disabled={externalPage <= 1 || externalLoading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {tl.prevPage ?? '? Previous'}
-                            </button>
-                            <span
-                                className="text-sm text-gray-500 dark:text-neutral-400 px-2">{tl.pageLabel ?? 'Page'} {externalPage}</span>
-                            <button
-                                onClick={() => fetchExternalJobs(externalPage + 1)}
-                                disabled={externalPage * 20 >= externalTotal || externalLoading}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {tl.nextPage ?? 'Next ?'}
-                            </button>
-                        </div>
-                    )}
+                    {(() => {
+                        const totalExtPages = Math.ceil(externalTotal / 20);
+                        if (totalExtPages <= 1) return null;
+                        return (
+                            <div className="flex items-center justify-between pt-2 px-1">
+                                <button
+                                    onClick={() => fetchExternalJobs(externalPage - 1)}
+                                    disabled={externalPage <= 1 || externalLoading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+                                    Previous
+                                </button>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: Math.min(7, totalExtPages) }, (_, i) => {
+                                        let page: number;
+                                        if (totalExtPages <= 7) {
+                                            page = i + 1;
+                                        } else if (externalPage <= 4) {
+                                            page = i < 6 ? i + 1 : totalExtPages;
+                                        } else if (externalPage >= totalExtPages - 3) {
+                                            page = i === 0 ? 1 : totalExtPages - 6 + i;
+                                        } else {
+                                            const pages = [1, externalPage - 2, externalPage - 1, externalPage, externalPage + 1, externalPage + 2, totalExtPages];
+                                            page = pages[i];
+                                        }
+                                        const prevPage = i === 0 ? 0 : Array.from({ length: i }, (_, j) => {
+                                            if (totalExtPages <= 7) return j + 1;
+                                            if (externalPage <= 4) return j < 6 ? j + 1 : totalExtPages;
+                                            if (externalPage >= totalExtPages - 3) return j === 0 ? 1 : totalExtPages - 6 + j;
+                                            return [1, externalPage - 2, externalPage - 1, externalPage, externalPage + 1, externalPage + 2, totalExtPages][j];
+                                        })[i - 1];
+                                        const isEllipsis = i > 0 && page - prevPage > 1;
+                                        return (
+                                            <span key={i} className="flex items-center">
+                                                {isEllipsis && <span className="px-1 text-xs text-gray-300 dark:text-neutral-600">…</span>}
+                                                <button
+                                                    onClick={() => fetchExternalJobs(page)}
+                                                    disabled={externalLoading}
+                                                    className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors disabled:cursor-not-allowed ${externalPage === page ? 'bg-[#7A60F4] text-white' : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700'}`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => fetchExternalJobs(externalPage + 1)}
+                                    disabled={externalPage >= totalExtPages || externalLoading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 hover:border-[#7A60F4]/50 dark:hover:border-[#7A60F4]/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
 

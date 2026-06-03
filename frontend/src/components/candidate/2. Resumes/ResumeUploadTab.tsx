@@ -5,6 +5,7 @@ import { useStore } from '../../../store';
 import { LoadingOverlay } from '../../shared/LoadingOverlay';
 import { resumeToSlug, slugToResumeId } from '../../../utils/urlRouting';
 import { TEMPLATES, downloadResumePdf, generateResumePdfBlob, getPdfLabels, type TemplateId } from './ResumePdfTemplates';
+import { ResumesTour } from './ResumesTour';
 
 type ResumeSectionKey = 'personal_info' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications';
 
@@ -721,6 +722,7 @@ export function ResumeUploadTab() {
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editDraft, setEditDraft] = useState<ResumeVersion | null>(null);
   const [showDiff, setShowDiff] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
   const [manuallyEditedSections, setManuallyEditedSections] = useState<Set<string>>(new Set());
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -1316,6 +1318,15 @@ export function ResumeUploadTab() {
 
         <div className="flex items-center gap-1.5 w-full justify-end">
           <button
+            onClick={() => setShowTour(true)}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/30 dark:border-[#7A60F4]/40 rounded-lg hover:bg-[#7A60F4]/8 dark:hover:bg-[#7A60F4]/10 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            How it works
+          </button>
+          <button
             onClick={() => setShowBestPractices(true)}
             className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#6B52E8] transition-colors whitespace-nowrap bg-[#7A60F4] hover:bg-[#6B52E8] text-white"
           >
@@ -1329,7 +1340,7 @@ export function ResumeUploadTab() {
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             {(t as any).improveBtn ?? 'Improve CV'}
           </button>
-          <div className="relative" ref={createMenuRef}>
+          <div id="resumes-tour-create" className="relative" ref={createMenuRef}>
             <button
               onClick={() => setShowCreateMenu(v => !v)}
               disabled={isWorking}
@@ -1381,7 +1392,7 @@ export function ResumeUploadTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
 
-        <div className="space-y-3">
+        <div id="resumes-tour-list" className="space-y-3">
           <div className="relative mx-0.5">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-neutral-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
@@ -1557,7 +1568,7 @@ export function ResumeUploadTab() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm">
+              <div id="resumes-tour-toolbar" className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-sm">
                 {selectedResume.generated_document_id && (
                   <button
                     onClick={() => openOriginalPdf(selectedResume.generated_document_id!)}
@@ -1617,7 +1628,7 @@ export function ResumeUploadTab() {
             )
           )}
 
-          <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+          <div id="resumes-tour-content" className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
 
             <div className="p-6">
               {!selectedResume ? (
@@ -2873,6 +2884,7 @@ export function ResumeUploadTab() {
         );
       })()}
 
+      {showTour && <ResumesTour onClose={() => setShowTour(false)} />}
     </div>
   );
 }
