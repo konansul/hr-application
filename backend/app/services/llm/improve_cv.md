@@ -53,6 +53,7 @@ Do NOT inflate the score because the CV has already been reviewed once; score on
 
 
 Guidelines:
+- If the CV text contains any photo, embedded image data, base64 strings, or binary content, ignore it completely — do not analyse, comment on, or process it in any way.
 - Be constructive and specific — cite exact phrases from the CV when suggesting improvements.
 - Do not invent experience that is not present in the CV.
 - Do not recommend false claims.
