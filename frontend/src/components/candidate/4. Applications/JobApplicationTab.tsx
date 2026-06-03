@@ -190,8 +190,10 @@ export function JobApplicationTab() {
   const firstLoad = useRef(true);
   const [orgPopover, setOrgPopover] = useState<OrgPopover | null>(null);
   const orgCache = useRef<Record<string, OrgInfo>>({});
+  const orgCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleOrgMouseEnter = async (e: React.MouseEvent<HTMLDivElement>, jobId: string, orgId: string) => {
+    if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const top   = rect.bottom + window.scrollY + 6;
     const right = window.innerWidth - rect.right;
@@ -209,7 +211,17 @@ export function JobApplicationTab() {
     }
   };
 
-  const handleOrgMouseLeave = () => setOrgPopover(null);
+  const handleOrgMouseLeave = () => {
+    orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
+  };
+
+  const handlePopoverMouseEnter = () => {
+    if (orgCloseTimer.current) { clearTimeout(orgCloseTimer.current); orgCloseTimer.current = null; }
+  };
+
+  const handlePopoverMouseLeave = () => {
+    orgCloseTimer.current = setTimeout(() => setOrgPopover(null), 150);
+  };
 
   const fetchApplications = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -1100,8 +1112,10 @@ export function JobApplicationTab() {
       {/* Org popover — fixed so it's never clipped by card overflow */}
       {orgPopover && (
         <div
-          className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl pointer-events-none"
+          className="fixed z-[999] w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl"
           style={{ top: orgPopover.top, right: orgPopover.right }}
+          onMouseEnter={handlePopoverMouseEnter}
+          onMouseLeave={handlePopoverMouseLeave}
         >
           {orgPopover.loading ? (
             <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">
@@ -1145,10 +1159,15 @@ export function JobApplicationTab() {
                 </div>
               )}
               {orgPopover.data.website && (
-                <p className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                <a
+                  href={orgPopover.data.website.startsWith('http') ? orgPopover.data.website : `https://${orgPopover.data.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 hover:underline transition-colors"
+                >
                   <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                   {orgPopover.data.website}
-                </p>
+                </a>
               )}
               {!orgPopover.data.description && !orgPopover.data.website && !orgPopover.data.size && !orgPopover.data.location && (
                 <p className="text-xs text-gray-400 dark:text-neutral-500 italic">{t.orgNoDesc ?? 'No company description added yet.'}</p>

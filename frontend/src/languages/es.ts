@@ -57,7 +57,7 @@ export const es = {
     public: "Público",
     publicDesc: "Visible para todos los gerentes de RRHH registrados.",
     private: "Privado",
-    privateDesc: "Oculto en las búsquedas. Solo visible para las empresas a las que has aplicado.",
+    privateDesc: "No visible para nadie. Tu perfil está completamente oculto.",
     share: "Compartir Enlace del Perfil",
     createLink: "+ Crear enlace público único",
     copy: "Copiar",

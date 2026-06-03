@@ -57,7 +57,7 @@ export const en = {
     public: "Public",
     publicDesc: "Visible to all registered HR managers.",
     private: "Private",
-    privateDesc: "Hidden from search. Only visible to applied companies.",
+    privateDesc: "Not visible to anyone. Your profile is completely hidden.",
     share: "Share Profile Link",
     createLink: "+ Create unique public link",
     copy: "Copy",

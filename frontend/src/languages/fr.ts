@@ -57,7 +57,7 @@ export const fr = {
     public: "Public",
     publicDesc: "Visible par tous les responsables RH enregistrés.",
     private: "Privé",
-    privateDesc: "Masqué de la recherche. Visible uniquement par les entreprises auxquelles vous avez postulé.",
+    privateDesc: "Non visible pour personne. Votre profil est complètement masqué.",
     share: "Partager le lien du profil",
     createLink: "+ Créer un lien public unique",
     copy: "Copier",

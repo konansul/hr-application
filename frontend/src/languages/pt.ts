@@ -57,7 +57,7 @@ export const pt = {
     public: "Público",
     publicDesc: "Visível para todos os gerentes de RH registrados.",
     private: "Privado",
-    privateDesc: "Oculto da pesquisa. Visível apenas para as empresas às quais você se candidatou.",
+    privateDesc: "Não visível para ninguém. Seu perfil está completamente oculto.",
     share: "Compartilhar Link do Perfil",
     createLink: "+ Criar link público exclusivo",
     copy: "Copiar",

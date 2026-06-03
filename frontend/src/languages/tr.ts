@@ -57,7 +57,7 @@ export const tr = {
     public: "Herkese Açık",
     publicDesc: "Kayıtlı tüm İK yöneticilerine görünür.",
     private: "Gizli",
-    privateDesc: "Aramalardan gizlenir. Sadece başvurduğunuz şirketler görebilir.",
+    privateDesc: "Kimseye görünmez. Profiliniz tamamen gizlidir.",
     share: "Profil Bağlantısını Paylaş",
     createLink: "+ Benzersiz açık bağlantı oluştur",
     copy: "Kopyala",

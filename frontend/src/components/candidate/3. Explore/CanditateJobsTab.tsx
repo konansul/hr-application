@@ -354,6 +354,7 @@ export function JobsTab() {
     const [externalJobs, setExternalJobs] = useState<any[]>([]);
     const [externalTotal, setExternalTotal] = useState(0);
     const [externalPage, setExternalPage] = useState(1);
+    const searchIdRef = useRef(0); // incremented on every new search; stale responses are discarded
     const [externalLoading, setExternalLoading] = useState(false);
     const [externalError, setExternalError] = useState('');
     const [externalSource, setExternalSource] = useState('');
@@ -477,48 +478,26 @@ export function JobsTab() {
         const lower = smartPrompt.toLowerCase();
         const tags: string[] = [];
 
-        if (/\bjunior\b/.test(lower)) {
-            setSelectedLevelKey('junior');
-            tags.push('Junior');
-        } else if (/\bmiddle\b|\bmid[\s-]?level\b/.test(lower)) {
-            setSelectedLevelKey('middle');
-            tags.push('Middle');
-        } else if (/\bsenior\b/.test(lower)) {
-            setSelectedLevelKey('senior');
-            tags.push('Senior');
-        } else if (/\blead\b|\bprincipal\b/.test(lower)) {
-            setSelectedLevelKey('lead');
-            tags.push('Lead');
-        }
-
-        if (/\bremote\b/.test(lower)) {
-            setSelectedType('remote');
-            tags.push('Remote');
-        } else if (/\bpart[- ]time\b/.test(lower)) {
-            setSelectedType('part-time');
-            tags.push('Part-time');
-        } else if (/\bcontract\b|\bfreelance\b/.test(lower)) {
-            setSelectedType('contract');
-            tags.push('Contract');
-        } else if (/\bfull[- ]time\b/.test(lower)) {
-            setSelectedType('full-time');
-            tags.push('Full-time');
-        }
-
-        // Location: prefer specific country/city options over broad regional ones (e.g. 'portugal' over 'europe')
-        // First try non-aggregate options (not Quick Picks aggregates like 'europe', 'usa', 'uk', 'canada')
+        // Only extract location — level and type words are already inside the text query
+        // sent to the API, so setting them as separate parameters causes double-filtering
+        // (e.g. "marketing senior" finds nothing because the API filters by BOTH text AND level=senior).
+        // Users who want explicit level/type filtering can use the dropdowns directly.
+        const labelWordsMatch = (label: string, q: string) => {
+            const words = label.toLowerCase().split(' ').filter(w => w.length > 2);
+            return words.length > 0 && words.every(w => q.includes(w));
+        };
         const aggregateValues = new Set(['remote', 'europe', 'usa', 'uk', 'canada']);
         const specificMatch = LOCATION_OPTIONS.find(o =>
-                !aggregateValues.has(o.value) && (
-                    o.label.toLowerCase().split(' ').some(w => w.length > 2 && lower.includes(w)) ||
-                    o.keywords.some(kw => kw.length > 2 && lower.includes(kw))
-                )
+            !aggregateValues.has(o.value) && (
+                labelWordsMatch(o.label, lower) ||
+                o.keywords.some(kw => kw.length > 2 && lower.includes(kw))
+            )
         );
         const matchedLocOpt = specificMatch || LOCATION_OPTIONS.find(o =>
-                aggregateValues.has(o.value) && (
-                    o.label.toLowerCase().split(' ').some(w => w.length > 2 && lower.includes(w)) ||
-                    o.keywords.some(kw => kw.length > 2 && lower.includes(kw))
-                )
+            aggregateValues.has(o.value) && (
+                labelWordsMatch(o.label, lower) ||
+                o.keywords.some(kw => kw.length > 2 && lower.includes(kw))
+            )
         );
         if (matchedLocOpt) {
             setSelectedLocation(matchedLocOpt.value);
@@ -531,17 +510,11 @@ export function JobsTab() {
             }
         }
 
-        const roleKeywords = ['developer', 'engineer', 'designer', 'manager', 'analyst', 'data scientist', 'devops', 'qa', 'product manager', 'frontend', 'backend', 'fullstack'];
-        const foundRole = roleKeywords.find(kw => lower.includes(kw));
-        if (foundRole) {
-            setSearchQuery(foundRole);
-            tags.push(foundRole.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
-        }
-
         setSmartTags(tags);
     };
 
     const clearSmartFilters = () => {
+        searchIdRef.current++; // discard any in-flight request so it can't restore results
         setSmartTags([]);
         setSmartPrompt('');
         setSelectedLevelKey('all');
@@ -550,32 +523,46 @@ export function JobsTab() {
         setSearchQuery('');
         setExternalJobs([]);
         setExternalTotal(0);
+        setExternalPage(1);
+        setExternalLoading(false);
     };
 
     const fetchExternalJobs = useCallback(async (page: number) => {
+        const requestId = ++searchIdRef.current;
         setExternalLoading(true);
         setExternalError('');
-        // For custom free-text entries, strip the "custom:" prefix and send as location_value
         const locValue = selectedLocation.startsWith('custom:')
             ? selectedLocation.slice(7)
             : selectedLocation;
+        // Fold level and type into the text query instead of sending as separate parameters.
+        // External APIs treat text + level/type as AND-conditions which is too restrictive —
+        // combining them causes zero results. Appending to q lets the API handle them as context.
+        const qLower = searchQuery.toLowerCase();
+        const levelWord = selectedLevelKey !== 'all' ? selectedLevelKey : '';
+        const typeWord  = selectedType  !== 'all' ? selectedType.replace(/-/g, ' ') : '';
+        const qParts = [searchQuery];
+        if (levelWord && !qLower.includes(levelWord)) qParts.push(levelWord);
+        if (typeWord  && !qLower.includes(typeWord))  qParts.push(typeWord);
+        const q = qParts.filter(Boolean).join(' ');
         try {
             const result = await externalJobsApi.search({
-                q: searchQuery,
+                q,
                 location_value: locValue,
-                employment_type: selectedType === 'all' ? '' : selectedType,
-                level: selectedLevelKey === 'all' ? '' : selectedLevelKey,
+                employment_type: '',
+                level: '',
                 page,
             });
+            if (requestId !== searchIdRef.current) return; // stale — a newer request is in flight
             setExternalJobs(result.jobs ?? []);
             setExternalTotal(result.total ?? 0);
             setExternalPage(page);
             setExternalSource(result.source ?? '');
             if (result.error) setExternalError(result.source === 'unsupported' ? result.error : `Search error: ${result.error}`);
         } catch {
+            if (requestId !== searchIdRef.current) return;
             setExternalError('Could not reach the job search service. Please try again.');
         } finally {
-            setExternalLoading(false);
+            if (requestId === searchIdRef.current) setExternalLoading(false);
         }
     }, [searchQuery, selectedLocation, selectedType, selectedLevelKey]);
 

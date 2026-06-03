@@ -171,25 +171,45 @@ _CITY_TO_COUNTRY: dict[str, str] = {
 
 # Maps city/country keywords in query text → location_value key
 _QUERY_TO_LOC: dict[str, str] = {
-    "vienna": "austria",    "wien": "austria",      "austria": "austria",
-    "lisbon": "portugal",   "porto": "portugal",    "portugal": "portugal",
-    "dubai": "uae",         "abu dhabi": "uae",     "uae": "uae",
-    "stockholm": "sweden",  "sweden": "sweden",
-    "oslo": "norway",       "norway": "norway",
-    "copenhagen": "denmark","denmark": "denmark",
-    "helsinki": "finland",  "finland": "finland",
-    "dublin": "ireland",    "ireland": "ireland",
-    "prague": "czech",      "brno": "czech",        "czech": "czech",
-    "kyiv": "ukraine",      "kiev": "ukraine",      "ukraine": "ukraine",
-    "bucharest": "romania", "romania": "romania",
-    "athens": "greece",     "greece": "greece",
-    "budapest": "hungary",  "hungary": "hungary",
-    "riga": "latvia",       "latvia": "latvia",
-    "vilnius": "lithuania", "lithuania": "lithuania",
-    "tallinn": "estonia",   "estonia": "estonia",
-    "zagreb": "croatia",    "croatia": "croatia",
-    "tel aviv": "israel",   "israel": "israel",
-    "tokyo": "japan",       "osaka": "japan",       "japan": "japan",
+    "vienna": "austria",         "wien": "austria",         "austria": "austria",
+    "lisbon": "portugal",        "porto": "portugal",       "portugal": "portugal",
+    "dubai": "uae",              "abu dhabi": "uae",        "uae": "uae",
+    "stockholm": "sweden",       "sweden": "sweden",
+    "oslo": "norway",            "norway": "norway",
+    "copenhagen": "denmark",     "denmark": "denmark",
+    "helsinki": "finland",       "finland": "finland",
+    "dublin": "ireland",         "ireland": "ireland",
+    "prague": "czech",           "brno": "czech",           "czech": "czech",
+    "kyiv": "ukraine",           "kiev": "ukraine",         "ukraine": "ukraine",
+    "bucharest": "romania",      "romania": "romania",
+    "athens": "greece",          "greece": "greece",
+    "budapest": "hungary",       "hungary": "hungary",
+    "riga": "latvia",            "latvia": "latvia",
+    "vilnius": "lithuania",      "lithuania": "lithuania",
+    "tallinn": "estonia",        "estonia": "estonia",
+    "zagreb": "croatia",         "croatia": "croatia",
+    "tel aviv": "israel",        "israel": "israel",
+    "tokyo": "japan",            "osaka": "japan",          "japan": "japan",
+    # Country names / abbreviations not covered by the city table above
+    "united states": "usa",      "united states of america": "usa",
+    "usa": "usa",                "us": "usa",
+    "united kingdom": "uk",      "great britain": "uk",
+    "britain": "uk",             "england": "uk",
+    "uk": "uk",                  "gb": "uk",
+    "canada": "canada",
+    "germany": "germany",        "deutschland": "germany",
+    "france": "france",
+    "netherlands": "netherlands","holland": "netherlands",
+    "poland": "poland",
+    "spain": "spain",
+    "italy": "italy",
+    "switzerland": "switzerland",
+    "belgium": "belgium",
+    "australia": "australia",
+    "singapore": "singapore",
+    "india": "india",
+    "brazil": "brazil",
+    "mexico": "mexico",
 }
 
 
@@ -278,15 +298,20 @@ def _parse_query_regex(raw_query: str) -> dict:
     remote = any(sig in q_lower for sig in _REMOTE_SIGNALS)
 
     loc_key = ""
-    # Check multi-word city phrases first
+    matched_loc_phrase = ""
+    # Check multi-word phrases first (longest match wins)
     for keyword in sorted(_QUERY_TO_LOC, key=len, reverse=True):
         if keyword in q_lower:
             loc_key = _QUERY_TO_LOC[keyword]
+            matched_loc_phrase = keyword
             break
 
     # Strip location/stop words to get a clean title
     loc_entry = _JSEARCH_LOC.get(loc_key)
     strip_words = set((loc_entry[1] if loc_entry else "").split()) | _LOCATION_STOP_WORDS
+    # Also strip individual words from the matched location phrase (e.g. "united", "states")
+    if matched_loc_phrase:
+        strip_words |= set(matched_loc_phrase.split())
     title_words = [w for w in q.split() if w.lower() not in strip_words]
     title = " ".join(title_words).strip(" ,;-") or q
 
