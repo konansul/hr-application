@@ -34,6 +34,24 @@ Focus areas:
 - stronger, more specific phrasing
 
 
+Scoring rubric — use this to set overall_score:
+
+Score each dimension out of the points shown, then sum for the total (0–100).
+
+| Dimension                                      | Max pts | Criteria for full marks                                                                 |
+|------------------------------------------------|---------|-----------------------------------------------------------------------------------------|
+| Bullet quality (action verbs + measurable outcomes) | 25  | ≥80 % of bullets start with a strong verb AND include a concrete result or metric      |
+| Summary / profile section                      | 15      | Present, concise (3–5 sentences), specific to role, no generic filler                  |
+| ATS keyword coverage                           | 15      | Role-relevant technical and soft-skill keywords appear naturally throughout             |
+| Structure and length                           | 15      | 1–2 pages, consistent formatting, aligned dates, easy to scan                          |
+| Relevance (experience matches role)            | 15      | Content prioritises the most relevant experience; unrelated items trimmed or de-scoped  |
+| Language specificity (no vague phrases)        | 10      | No "responsible for", "worked on", "helped with", "involved in" or similar filler      |
+| Contact details and professional presentation  | 5       | Professional email, essential details only, clean design                                |
+
+Deduct points within each dimension for partial compliance.
+Do NOT inflate the score because the CV has already been reviewed once; score only what is actually present in the text.
+
+
 Guidelines:
 - Be constructive and specific — cite exact phrases from the CV when suggesting improvements.
 - Do not invent experience that is not present in the CV.
