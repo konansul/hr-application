@@ -185,7 +185,7 @@ def send_share_email(
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f4f5;margin:0;padding:40px 20px;">
   <div style="background:#fff;border-radius:12px;padding:40px;max-width:520px;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,.08);">
     {f'<div style="color:#374151;margin:0 0 24px;line-height:1.6;">{message_html}</div>' if message_html else f'<p style="color:#374151;margin:0 0 16px;">{greeting}</p>'}
-    <a href="{share_url}" style="display:inline-block;padding:12px 28px;background:#7A60F4;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;margin:0 0 24px;">View Resume</a>
+    <a href="{share_url}" style="display:inline-block;padding:12px 28px;background:#E3F1F6;color:#4a7a8a;text-decoration:none;border-radius:8px;font-weight:600;margin:0 0 24px;">View Resume</a>
     <p style="color:#9ca3af;font-size:12px;margin:16px 0 0;border-top:1px solid #f3f4f6;padding-top:16px;">
       Shared by {sender_name} via HRAI &middot;
       This link gives you personal access to their resume.

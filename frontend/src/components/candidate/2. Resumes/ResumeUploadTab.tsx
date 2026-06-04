@@ -1806,9 +1806,9 @@ export function ResumeUploadTab() {
                                         {isExpanded && (
                                           <div className="px-2 pb-2.5 pt-1.5 border-t border-gray-100 dark:border-neutral-700 space-y-2">
                                             <div className="p-2.5 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-100 dark:border-neutral-700 space-y-1.5">
-                                              <p className="text-[10px] text-gray-400 dark:text-neutral-500 font-semibold uppercase tracking-widest">Preview</p>
+                                              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#7A60F4' }}>Preview</p>
                                               <p className="text-[11px] text-gray-600 dark:text-neutral-300 leading-relaxed">{senderName2} has shared their CV with you.</p>
-                                              <div className="inline-block px-2.5 py-1 bg-[#7A60F4] text-white text-[10px] font-semibold rounded-md">View Resume →</div>
+                                              <div className="inline-block px-2.5 py-1 text-[10px] font-semibold rounded-md" style={{ background: '#E3F1F6', color: '#4a7a8a' }}>View Resume</div>
                                             </div>
                                             <button
                                               onClick={async () => {
