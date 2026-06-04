@@ -58,7 +58,7 @@ Guidelines:
 - Do not invent experience that is not present in the CV.
 - Do not recommend false claims.
 - Prefer actionable, role-specific advice over generic statements.
-- Improved summary must be concise (3–5 sentences), directly address the role's value proposition, and avoid generic filler.
+- Improved summary: write 3–5 sentences that sound like they were crafted by a skilled human HR professional — natural, confident, and specific to this candidate. Write in first person. Root every claim in the candidate's actual experience; do not invent facts. Avoid all AI-sounding buzzwords and filler: never use "results-driven", "dynamic", "passionate", "leverage", "synergise", "cutting-edge", "innovative", "proactive", "go-getter", "seasoned", "detail-oriented", "team player", or any phrase that could belong to any CV. The tone should feel personal and direct — like a human introducing themselves, not a template.
 - Flag any generic phrases (e.g. "responsible for", "worked on", "helped with") and suggest concrete replacements.
 
 

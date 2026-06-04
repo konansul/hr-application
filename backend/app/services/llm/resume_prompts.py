@@ -89,20 +89,20 @@ Candidate Resume JSON:
 """
 
 
-def build_apply_improvements_prompt(resume_data: dict, improvements: list) -> str:
+def build_apply_single_improvement_prompt(resume_data: dict, improvement: str, index: int, total: int) -> str:
     resume_data = _strip_photo(resume_data)
-    improvements_text = "\n".join(f"{i + 1}. {imp}" for i, imp in enumerate(improvements))
-    return f"""You are an expert CV editor. Apply each of the listed improvements to the resume JSON below.
+    return f"""You are an expert CV editor. Apply the following improvement to the resume JSON.
 
-IMPROVEMENTS TO APPLY:
-{improvements_text}
+IMPROVEMENT {index} OF {total}:
+{improvement}
 
 Rules:
-- If any field contains photo data, base64-encoded images, or binary content, copy it through unchanged — do not process or expand it.
-- Apply every listed improvement to the relevant section(s) of the resume.
+- Apply this improvement thoroughly to every relevant section of the resume — do not skip or partially apply it.
+- If any field contains photo data, base64-encoded images, or binary content, copy it through unchanged.
 - Bullet points must use "• " (bullet + space) at the start, one bullet per line, separated by a single \\n. No blank lines between bullets, no double newlines.
+- If you modify personal_info.summary: write in first person, natural human voice — as if a skilled HR professional ghost-wrote it for the candidate. Never use buzzwords or filler such as "results-driven", "dynamic", "passionate", "leverage", "innovative", "proactive", "seasoned", "detail-oriented", or "team player". Every claim must be grounded in the candidate's actual experience.
 - Do NOT add, remove, or rename any experience/education/certification entries.
-- Keep ALL factual data unchanged: company names, institution names, dates (including dates that appear to be in the future — they are valid, do not alter them), URLs, email, phone.
+- Keep ALL factual data unchanged: company names, institution names, dates (including future dates — they are valid), URLs, email, phone.
 - Keep all JSON field names unchanged (keys stay in English).
 - Keep ALL enum values unchanged: visa_status, work_preference, skill level, language level, boolean, null.
 - Output ONLY the modified JSON object. No markdown, no explanation.

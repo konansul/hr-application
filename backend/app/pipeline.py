@@ -37,7 +37,7 @@ from backend.app.services.llm.resume_prompts import (
     FETCH_JOB_URL_SCHEMA,
     build_translate_resume_prompt,
     build_adapt_resume_prompt,
-    build_apply_improvements_prompt,
+    build_apply_single_improvement_prompt,
     build_cv_parsing_prompt,
     build_extract_job_title_prompt,
     build_fetch_job_from_url_prompt,
@@ -306,15 +306,19 @@ def adapt_resume_for_job(
 
 
 def apply_improvements_to_resume(resume_data: dict, improvements: list) -> dict:
-    prompt = build_apply_improvements_prompt(resume_data, improvements)
-    return gemini.generate_free_json(
-        prompt,
-        system=(
-            "You are an expert CV editor. "
-            "Apply the requested improvements and respond ONLY with the modified JSON object. "
-            "No markdown, no explanation."
-        ),
-    )
+    current = resume_data
+    total = len(improvements)
+    for i, improvement in enumerate(improvements):
+        prompt = build_apply_single_improvement_prompt(current, improvement, i + 1, total)
+        current = gemini.generate_free_json(
+            prompt,
+            system=(
+                f"You are an expert CV editor. "
+                f"Apply improvement {i + 1} of {total} exactly as described and respond ONLY with the modified JSON object. "
+                f"No markdown, no explanation."
+            ),
+        )
+    return current
 
 
 def run_cv_parsing(cv_text: str) -> dict:
