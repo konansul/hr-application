@@ -1784,10 +1784,10 @@ export function ResumeUploadTab() {
                                           <p className="flex-1 min-w-0 text-[11px] font-medium text-gray-600 dark:text-neutral-300 truncate">{share.recipient_email}</p>
                                           <button
                                             onClick={() => setExpandedShareId(isExpanded ? null : share.share_id)}
-                                            className={`shrink-0 p-0.5 rounded transition-colors ${isExpanded ? 'text-[#7A60F4] dark:text-[#9EA4FF]' : 'text-gray-400 hover:text-[#7A60F4] dark:text-neutral-500 dark:hover:text-[#9EA4FF]'}`}
-                                            title="Send invitation email"
+                                            className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors ${isExpanded ? 'bg-[#7A60F4] text-white' : 'bg-[#EDE9FF] text-[#5B52C8] hover:bg-[#7A60F4] hover:text-white dark:bg-[#7A60F4]/20 dark:text-[#9EA4FF] dark:hover:bg-[#7A60F4] dark:hover:text-white'}`}
                                           >
-                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            Send
                                           </button>
                                           <button onClick={() => handleRemoveShare(share.share_id)} className="shrink-0 p-0.5 text-gray-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors" title="Remove">
                                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

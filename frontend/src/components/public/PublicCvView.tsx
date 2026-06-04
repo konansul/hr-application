@@ -3,17 +3,23 @@ import { resumesApi } from '../../api';
 import { generateResumePdfBlob } from '../candidate/2. Resumes/ResumePdfTemplates.tsx';
 import { HraiLogo } from '../shared/HraiLogo';
 
-const skillName = (s: any) => (typeof s === 'string' ? s : s?.name || '');
-const langName  = (l: any) => (typeof l === 'string' ? l : l?.name || l?.language || '');
-const certName  = (c: any) => (typeof c === 'string' ? c : c?.name || c?.title || '');
+const clean = (v: any): string => {
+  if (v === null || v === undefined) return '';
+  const s = String(v).trim();
+  return s.toUpperCase() === 'UNKNOWN' ? '' : s;
+};
+
+const skillName = (s: any) => clean(typeof s === 'string' ? s : s?.name);
+const langName  = (l: any) => clean(typeof l === 'string' ? l : (l?.name || l?.language));
+const certName  = (c: any) => clean(typeof c === 'string' ? c : (c?.name || c?.title));
 
 function initials(first?: string, last?: string) {
-  return [(first || '').charAt(0), (last || '').charAt(0)].filter(Boolean).join('').toUpperCase() || '?';
+  return [clean(first).charAt(0), clean(last).charAt(0)].filter(Boolean).join('').toUpperCase() || '?';
 }
 
 function dateRange(exp: any) {
-  const s = exp.start_date || '';
-  const e = exp.end_date || 'Present';
+  const s = clean(exp.start_date);
+  const e = clean(exp.end_date) || 'Present';
   return s ? `${s} – ${e}` : '';
 }
 
@@ -225,7 +231,7 @@ export function PublicCvView({ token }: { token: string }) {
   const languages: any[]  = d.languages        ?? [];
   const certs: any[]      = d.certifications   ?? [];
 
-  const fullName = [info.first_name, info.last_name].filter(Boolean).join(' ') || 'Resume';
+  const fullName = [clean(info.first_name), clean(info.last_name)].filter(Boolean).join(' ') || 'Resume';
   const hasPhoto = !!info.photo;
 
   const handleDownload = async () => {
@@ -244,12 +250,12 @@ export function PublicCvView({ token }: { token: string }) {
   };
 
   const navItems = [
-    { id: 'about',      label: 'About',      show: !!info.summary },
+    { id: 'about',      label: 'About',      show: !!clean(info.summary) },
     { id: 'experience', label: 'Experience',  show: experience.length > 0 },
     { id: 'education',  label: 'Education',   show: education.length > 0 },
-    { id: 'contact',    label: 'Contact',     show: !!(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) },
-    { id: 'skills',     label: 'Skills',      show: skills.length > 0 },
-    { id: 'languages',  label: 'Languages',   show: languages.length > 0 },
+    { id: 'contact',    label: 'Contact',     show: !!(clean(info.email) || clean(info.phone) || clean(info.linkedin_url) || clean(info.github_url) || clean(info.portfolio_url)) },
+    { id: 'skills',     label: 'Skills',      show: skills.filter((s: any) => !!skillName(s)).length > 0 },
+    { id: 'languages',  label: 'Languages',   show: languages.filter((l: any) => !!langName(l)).length > 0 },
   ].filter(n => n.show);
 
   return (
@@ -293,20 +299,20 @@ export function PublicCvView({ token }: { token: string }) {
               {fullName}
             </h1>
             <div className="flex flex-wrap gap-1.5">
-              {(info.city || info.country) && (
+              {(clean(info.city) || clean(info.country)) && (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563]">
                   <LocationIcon className="w-3.5 h-3.5 shrink-0" />
-                  {[info.city, info.country].filter(Boolean).join(', ')}
+                  {[clean(info.city), clean(info.country)].filter(Boolean).join(', ')}
                 </span>
               )}
-              {info.email && (
-                <a href={`mailto:${info.email}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
-                  <EmailIcon className="w-3.5 h-3.5 shrink-0" />{info.email}
+              {clean(info.email) && (
+                <a href={`mailto:${clean(info.email)}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
+                  <EmailIcon className="w-3.5 h-3.5 shrink-0" />{clean(info.email)}
                 </a>
               )}
-              {info.phone && (
-                <a href={`tel:${info.phone}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
-                  <PhoneIcon className="w-3.5 h-3.5 shrink-0" />{info.phone}
+              {clean(info.phone) && (
+                <a href={`tel:${clean(info.phone)}`} className="inline-flex items-center gap-1.5 text-xs font-medium bg-white border border-[#E5EAEE] px-2.5 py-1 rounded-full text-[#4B5563] hover:border-[#7A60F4] transition-colors">
+                  <PhoneIcon className="w-3.5 h-3.5 shrink-0" />{clean(info.phone)}
                 </a>
               )}
             </div>
@@ -325,25 +331,25 @@ export function PublicCvView({ token }: { token: string }) {
         >
           <span className="text-sm font-semibold text-[#2F2F2F]">Take this with you</span>
           <div className="flex items-center gap-1.5">
-            {info.linkedin_url && (
+            {clean(info.linkedin_url) && (
               <a
-                href={info.linkedin_url} target="_blank" rel="noreferrer"
+                href={clean(info.linkedin_url)} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
               >
                 <LinkedInIcon className="w-3.5 h-3.5" />LinkedIn
               </a>
             )}
-            {info.github_url && (
+            {clean(info.github_url) && (
               <a
-                href={info.github_url} target="_blank" rel="noreferrer"
+                href={clean(info.github_url)} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
               >
                 <GitHubIcon className="w-3.5 h-3.5" />GitHub
               </a>
             )}
-            {info.portfolio_url && (
+            {clean(info.portfolio_url) && (
               <a
-                href={info.portfolio_url} target="_blank" rel="noreferrer"
+                href={clean(info.portfolio_url)} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold px-3 py-2 rounded-[11px] border border-[#7A60F4] bg-[#7A60F4] text-white hover:bg-[#6B52E8] hover:border-[#6B52E8] transition-colors"
               >
                 <GlobeIcon className="w-3.5 h-3.5" />Portfolio
@@ -393,11 +399,11 @@ export function PublicCvView({ token }: { token: string }) {
           {/* LEFT: About + Experience + Education */}
           <div className="flex flex-col gap-4">
 
-            {info.summary && (
+            {clean(info.summary) && (
               <article id="about" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
                 <CardHead label="About" />
                 <div className="px-4 py-4 text-[15px] text-[#2F2F2F]">
-                  <ExpandableText text={info.summary} limit={420} multiLineAsBullets />
+                  <ExpandableText text={clean(info.summary)} limit={420} multiLineAsBullets />
                 </div>
               </article>
             )}
@@ -421,9 +427,9 @@ export function PublicCvView({ token }: { token: string }) {
                       <div className={`flex-1 min-w-0 pb-3 ${i < experience.length - 1 ? 'border-b border-[#EEF2F4]' : ''}`}>
                         <div className="flex justify-between items-start gap-3">
                           <div>
-                            <div className="text-sm font-bold text-[#2F2F2F]">{exp.title || 'Role'}</div>
+                            <div className="text-sm font-bold text-[#2F2F2F]">{clean(exp.title) || 'Role'}</div>
                             {/* company name — brand purple */}
-                            {exp.company && <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: '#7A60F4' }}>{exp.company}</div>}
+                            {clean(exp.company) && <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: '#7A60F4' }}>{clean(exp.company)}</div>}
                           </div>
                           {dateRange(exp) && (
                             <span
@@ -434,9 +440,9 @@ export function PublicCvView({ token }: { token: string }) {
                             </span>
                           )}
                         </div>
-                        {exp.description && (
+                        {clean(exp.description) && (
                           <div className="text-[13px] text-[#2F2F2F] mt-1.5">
-                            <ExpandableText text={exp.description} limit={260} multiLineAsBullets />
+                            <ExpandableText text={clean(exp.description)} limit={260} multiLineAsBullets />
                           </div>
                         )}
                       </div>
@@ -455,12 +461,12 @@ export function PublicCvView({ token }: { token: string }) {
                       <CapIcon className="w-3.5 h-3.5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-bold text-[#2F2F2F]">{edu.degree || 'Degree'}</div>
-                      {edu.institution && <div className="text-[11.5px] text-[#6B7785] mt-0.5">{edu.institution}</div>}
+                      <div className="text-[13px] font-bold text-[#2F2F2F]">{clean(edu.degree) || 'Degree'}</div>
+                      {clean(edu.institution) && <div className="text-[11.5px] text-[#6B7785] mt-0.5">{clean(edu.institution)}</div>}
                     </div>
-                    {(edu.start_date || edu.end_date) && (
+                    {(clean(edu.start_date) || clean(edu.end_date)) && (
                       <div className="text-[10.5px] text-[#6B7785] whitespace-nowrap shrink-0" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
-                        {[edu.start_date, edu.end_date].filter(Boolean).join(' – ')}
+                        {[clean(edu.start_date), clean(edu.end_date)].filter(Boolean).join(' – ')}
                       </div>
                     )}
                   </div>
@@ -473,43 +479,43 @@ export function PublicCvView({ token }: { token: string }) {
           {/* RIGHT: Contact + Skills + Languages + Certifications */}
           <div className="flex flex-col gap-4">
 
-            {(info.email || info.phone || info.linkedin_url || info.github_url || info.portfolio_url) && (
+            {(clean(info.email) || clean(info.phone) || clean(info.linkedin_url) || clean(info.github_url) || clean(info.portfolio_url)) && (
               <article id="contact" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
                 <CardHead label="Contact" />
-                {info.email && (
-                  <a href={`mailto:${info.email}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                {clean(info.email) && (
+                  <a href={`mailto:${clean(info.email)}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
                     <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <EmailIcon className="w-3.5 h-3.5" />
                     </div>
-                    {info.email}
+                    {clean(info.email)}
                   </a>
                 )}
-                {info.phone && (
-                  <a href={`tel:${info.phone}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                {clean(info.phone) && (
+                  <a href={`tel:${clean(info.phone)}`} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
                     <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <PhoneIcon className="w-3.5 h-3.5" />
                     </div>
-                    {info.phone}
+                    {clean(info.phone)}
                   </a>
                 )}
-                {info.linkedin_url && (
-                  <a href={info.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                {clean(info.linkedin_url) && (
+                  <a href={clean(info.linkedin_url)} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
                     <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <LinkedInIcon className="w-3.5 h-3.5" />
                     </div>
                     LinkedIn
                   </a>
                 )}
-                {info.github_url && (
-                  <a href={info.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                {clean(info.github_url) && (
+                  <a href={clean(info.github_url)} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
                     <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <GitHubIcon className="w-3.5 h-3.5" />
                     </div>
                     GitHub
                   </a>
                 )}
-                {info.portfolio_url && (
-                  <a href={info.portfolio_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
+                {clean(info.portfolio_url) && (
+                  <a href={clean(info.portfolio_url)} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4] text-[#2F2F2F] text-[12.5px] no-underline transition-colors">
                     <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
                       <GlobeIcon className="w-3.5 h-3.5" />
                     </div>
@@ -523,11 +529,15 @@ export function PublicCvView({ token }: { token: string }) {
               <article id="skills" className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm scroll-mt-20">
                 <CardHead label="Skills" pill={String(skills.length)} pillBg="#F3F6F8" pillFg="#6B7785" pillBorder="#E5EAEE" />
                 <div className="flex flex-wrap gap-1.5 px-4 py-3">
-                  {skills.map((s: any, i: number) => (
-                    <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
-                      {skillName(s)}
-                    </span>
-                  ))}
+                  {skills.map((s: any, i: number) => {
+                    const name = skillName(s);
+                    if (!name) return null;
+                    return (
+                      <span key={i} className="text-[11.5px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                        {name}
+                      </span>
+                    );
+                  })}
                 </div>
               </article>
             )}
@@ -547,8 +557,9 @@ export function PublicCvView({ token }: { token: string }) {
                     const raw = langName(l);
                     const parts = raw.split(' — ');
                     const langLabel = parts[0];
-                    const rawLevel = parts[1] || (typeof l === 'object' ? (l.level || l.proficiency || '') : '');
-                    const lvl = rawLevel ? (LEVEL_MAP[rawLevel.trim().toUpperCase()] ?? null) : null;
+                    if (!langLabel) return null;
+                    const rawLevel = parts[1] || (typeof l === 'object' ? clean(l.level || l.proficiency) : '');
+                    const lvl = rawLevel && rawLevel.toUpperCase() !== 'UNKNOWN' ? (LEVEL_MAP[rawLevel.trim().toUpperCase()] ?? null) : null;
                     return (
                       <div key={i} className="px-4 py-2.5 border-t border-[#EEF2F4]">
                         <div className="flex justify-between items-baseline mb-1.5">
@@ -568,14 +579,18 @@ export function PublicCvView({ token }: { token: string }) {
             {certs.length > 0 && (
               <article className="bg-white border border-[#E5EAEE] rounded-2xl overflow-hidden shadow-sm">
                 <CardHead label="Certifications" />
-                {certs.map((c: any, i: number) => (
-                  <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4]">
-                    <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
-                      <CertIcon className="w-3.5 h-3.5" />
+                {certs.map((c: any, i: number) => {
+                  const name = certName(c);
+                  if (!name) return null;
+                  return (
+                    <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-t border-[#EEF2F4]">
+                      <div className="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF' }}>
+                        <CertIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[12.5px] font-medium text-[#2F2F2F]">{name}</span>
                     </div>
-                    <span className="text-[12.5px] font-medium text-[#2F2F2F]">{certName(c)}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </article>
             )}
 
