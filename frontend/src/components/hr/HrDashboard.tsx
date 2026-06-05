@@ -8,6 +8,8 @@ import { CompareTab } from './5. Compare/CompareTab';
 import { KanbanTab } from './6. Board/KanbanTab';
 import { HistoryTab } from './7. History/HistoryTab';
 import { SettingsTab } from './8. Settings/SettingsTabHR';
+import { FeedbackWidget } from '../FeedbackWidget';
+import { feedbackApi } from '../../api/feedback';
 import { useStore } from '../../store';
 import { authApi } from '../../api';
 import { DICT } from '../../internationalization.ts';
@@ -34,6 +36,13 @@ export function HrDashboard() {
   const usesLeft = Math.max(0, aiQuota - aiUsed);
 
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(() => new Set([activeTab || 'job']));
+  const [hasAnalyticsAccess, setHasAnalyticsAccess] = useState(false);
+
+  useEffect(() => {
+    feedbackApi.getAll()
+      .then(() => setHasAnalyticsAccess(true))
+      .catch((err) => console.warn('[Analytics] access denied:', err?.response?.status, err?.response?.data));
+  }, []);
 
   useEffect(() => {
     const navState = hrPathToNavState(window.location.pathname);
@@ -174,6 +183,18 @@ export function HrDashboard() {
 
           <div className="mt-auto pt-2 border-t border-gray-200/50 dark:border-neutral-700/50 mx-3"></div>
 
+          {hasAnalyticsAccess && (
+            <button
+              onClick={() => window.open('/internal/feedback', '_blank')}
+              className="mt-2 mb-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/20 dark:border-[#9EA4FF]/20 hover:bg-[#7A60F4]/10 dark:hover:bg-[#9EA4FF]/10"
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="truncate">Analytics</span>
+            </button>
+          )}
+
             {/* eslint-disable-next-line react-hooks/static-components */}
           <NavItem id="settings" label={t.settings} icon={
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,8 +223,9 @@ export function HrDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF', letterSpacing: '0.08em' }}>BETA</span>
+            <FeedbackWidget />
           </div>
         </header>
 

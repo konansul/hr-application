@@ -5,6 +5,7 @@ import { CandidateDashboard } from './components/candidate/CandidateDashboard';
 import { PublicCvView } from './components/public/PublicCvView';
 import { PublicProfileView } from './components/public/PublicProfileView';
 import { PublicJobView } from './components/public/PublicJobView';
+import { FeedbackDashboard } from './components/internal/FeedbackDashboard';
 import { authApi } from './api';
 import { useStore } from './store';
 
@@ -36,11 +37,13 @@ const publicJobId = isPublicJob ? pathname.split('/')[3] : null;
 const isPublicProfile = pathname.startsWith('/p/') && !isPublicJob && !isPublicCv;
 const publicSlug = isPublicProfile ? pathname.split('/')[2] : null;
 
+const isInternalFeedback = pathname === '/internal/feedback';
+
 function App() {
   const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserId, setUserRole, setActiveTab, setAiLimits } = useStore();
 
   // cvToken is null here if we already redirected to /resumes/<id>
-  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob && !isPublicCv && !forceLogin && !hasResetToken);
+  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob && !isPublicCv && !forceLogin && !hasResetToken && !isInternalFeedback);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -52,7 +55,7 @@ function App() {
 
   useEffect(() => {
     // cvToken is null after the logged-in redirect, so we still run checkAuth
-    if (cvToken || isPublicProfile || isPublicJob || isPublicCv || forceLogin || hasResetToken) return;
+    if (cvToken || isPublicProfile || isPublicJob || isPublicCv || forceLogin || hasResetToken || isInternalFeedback) return;
 
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token');
@@ -81,6 +84,8 @@ function App() {
     };
     checkAuth();
   }, [setIsLoggedIn, setUserRole, setAiLimits]);
+
+  if (isInternalFeedback) return <FeedbackDashboard />;
 
   if (cvToken) return <PublicCvView token={cvToken} />;
 

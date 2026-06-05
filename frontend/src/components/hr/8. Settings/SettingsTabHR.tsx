@@ -334,9 +334,11 @@ export function SettingsTab() {
               </select>
             </div>
           </div>
+
         </div>
 
       </div>
+
     </div>
   );
 }

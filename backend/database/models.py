@@ -53,6 +53,7 @@ class User(Base):
     reactivation_token = Column(String(128), nullable=True, index=True)
     password_reset_token = Column(String(128), nullable=True, index=True)
     password_reset_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+    is_teammate = Column(Boolean, nullable=False, default=False, server_default='false')
 
     organization = relationship("Organization", back_populates="users")
     person_profile = relationship("Person", back_populates="user", uselist=False)
@@ -240,3 +241,17 @@ class Notification(Base):
     message = Column(String(512), nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class UserFeedback(Base):
+    __tablename__ = "user_feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    feedback_id = Column(String(64), unique=True, nullable=False, index=True)
+    user_id = Column(String(64), ForeignKey("users.user_id"), nullable=False, index=True)
+    stars = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    user = relationship("User")

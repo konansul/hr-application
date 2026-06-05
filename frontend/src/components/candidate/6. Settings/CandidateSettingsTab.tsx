@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { authApi } from '../../../api';
 import { useStore } from '../../../store';
 import { LANGUAGES, DICT } from '../../../internationalization.ts';
+import { FeedbackWidget } from '../../FeedbackWidget';
 
 export function CandidateSettingsTab() {
   const { theme, setTheme, language, setLanguage, logoutStore } = useStore();
@@ -206,8 +207,11 @@ export function CandidateSettingsTab() {
               {(t as any).deleteAccount?.btn ?? "Delete Account"}
             </button>
           </div>
+
         </div>
       </div>
+
+      <FeedbackWidget inline />
 
       {/* Delete confirmation modal */}
       {showDeleteModal && (
