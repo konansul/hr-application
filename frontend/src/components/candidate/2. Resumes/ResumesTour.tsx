@@ -12,7 +12,7 @@ const STEPS: Step[] = [
     targetId: 'resumes-tour-create',
     icon: '✨',
     title: 'Create a Resume Version',
-    body: 'Click here to create a new version. Choose "From Job Description" — paste any job posting and AI will tailor your resume to match it automatically.',
+    body: 'Click here to open 4 options:\n• Upload CV — import your existing PDF or Word file.\n• From Profile — generate a resume from your saved profile data.\n• Duplicate — copy an existing version as a starting point.\n• From Job Description — AI tailors your resume to a specific job posting in ~30 seconds.',
   },
   {
     targetId: 'resumes-tour-list',
@@ -95,9 +95,15 @@ export function ResumesTour({ onClose }: { onClose: () => void }) {
   }, [currentStep.targetId]);
 
   useEffect(() => {
-    if (!currentStep.targetId) { setHighlight(null); return; }
+    if (!currentStep.targetId) {
+      const t = setTimeout(() => setHighlight(null), 0);
+      return () => clearTimeout(t);
+    }
     const el = document.getElementById(currentStep.targetId);
-    if (!el) { setHighlight(null); return; }
+    if (!el) {
+      const t = setTimeout(() => setHighlight(null), 0);
+      return () => clearTimeout(t);
+    }
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const t = setTimeout(updateHighlight, 380);
     return () => clearTimeout(t);
@@ -191,7 +197,7 @@ export function ResumesTour({ onClose }: { onClose: () => void }) {
           <span className="text-2xl shrink-0 mt-0.5">{currentStep.icon}</span>
           <div>
             <p className="text-sm font-bold text-gray-900 dark:text-white mb-1.5">{currentStep.title}</p>
-            <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">{currentStep.body}</p>
+            <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed whitespace-pre-line">{currentStep.body}</p>
           </div>
         </div>
 
