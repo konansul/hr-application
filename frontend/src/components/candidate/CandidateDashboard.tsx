@@ -353,8 +353,8 @@ export function CandidateDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
+          <span className="px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border bg-[#7A60F4]/10 border-[#7A60F4]/20 text-[#5B52C8] dark:bg-[#7A60F4]/15 dark:border-[#7A60F4]/30 dark:text-[#9EA4FF]">Beta</span>
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF', letterSpacing: '0.08em' }}>BETA</span>
             <FeedbackWidget />
               {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />
@@ -366,7 +366,7 @@ export function CandidateDashboard() {
             <HraiLogo height={72} />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ background: '#EDE9FF', color: '#5B52C8', borderColor: '#C5BAFF', letterSpacing: '0.08em' }}>BETA</span>
+            <span className="px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border bg-[#7A60F4]/10 border-[#7A60F4]/20 text-[#5B52C8] dark:bg-[#7A60F4]/15 dark:border-[#7A60F4]/30 dark:text-[#9EA4FF]">Beta</span>
             <FeedbackWidget />
               {/* eslint-disable-next-line react-hooks/static-components */}
             <NotifBell />

@@ -174,10 +174,13 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative">
 
           {/* Logo */}
-          <div className="flex justify-start z-10">
+          <div className="flex justify-start items-center gap-2.5 z-10">
             <Link to="/" className="group">
               <HraiLogo height={72} />
             </Link>
+            <span className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border ${isDark ? 'bg-[#7A60F4]/15 border-[#7A60F4]/30 text-[#9EA4FF]' : 'bg-[#7A60F4]/10 border-[#7A60F4]/20 text-[#5B52C8]'}`}>
+              Beta
+            </span>
           </div>
 
           {/* Nav */}
@@ -206,10 +209,6 @@ export function LandingPage() {
               {isDark ? <SunIcon /> : <MoonIcon />}
             </button>
             <a href={APP_URL} target="_blank" rel="noopener noreferrer"
-              className={`hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${isDark ? 'text-slate-300 border-white/10 hover:border-white/20 hover:text-white bg-white/[0.04] hover:bg-white/[0.08]' : 'text-slate-600 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm'}`}>
-              Beta
-            </a>
-            <a href={APP_URL} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#7A60F4] hover:bg-[#6B52E8] text-white shadow-lg shadow-[#7A60F4]/25 hover:shadow-[#7A60F4]/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
               Get Started
               <ArrowRightIcon />
@@ -220,8 +219,18 @@ export function LandingPage() {
 
       <main className="relative z-10">
 
+        {/* ── Beta banner ── */}
+        <div className={`w-full mt-[108px] border-b py-2.5 ${isDark ? 'bg-[#7A60F4]/10 border-[#7A60F4]/20' : 'bg-[#7A60F4]/[0.07] border-[#7A60F4]/10'}`}>
+          <div className={`flex items-center justify-center gap-2 text-sm font-semibold ${isDark ? 'text-[#9EA4FF]' : 'text-[#5B52C8]'}`}>
+            <span className="w-2 h-2 rounded-full bg-[#7A60F4] shrink-0" />
+            <span className="font-bold">Beta Release</span>
+            <span className="mx-1">•</span>
+            <span>Currently accepting early users and collecting feedback</span>
+          </div>
+        </div>
+
         {/* ── Hero ── */}
-        <section id="overview" className="pt-36 pb-24 px-6 max-w-7xl mx-auto">
+        <section id="overview" className="pt-16 pb-24 px-6 max-w-7xl mx-auto">
           <div ref={heroSection.ref} className={`flex flex-col items-center text-center ${transitionClass(heroSection.visible)}`}>
 
             <a href={APP_URL} target="_blank" rel="noopener noreferrer"
@@ -246,20 +255,16 @@ export function LandingPage() {
               The unified AI platform for HR teams and talent alike. Screen thousands of candidates in seconds, compare top contenders instantly, and build world-class teams — without the guesswork.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mb-6">
               <a href={APP_URL} target="_blank" rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold bg-[#7A60F4] hover:bg-[#6B52E8] text-white shadow-xl shadow-[#7A60F4]/25 hover:shadow-[#7A60F4]/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                Launch Platform
+                Get Started for Free
                 <ArrowRightIcon />
               </a>
               <a href="#workflow"
                 className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold transition-all border ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
-                See how it works
+                See How It Works
               </a>
-              <Link to="/guide"
-                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold transition-all border ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
-                HR Guide
-              </Link>
             </div>
 
             <p className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>No credit card required &nbsp;·&nbsp; Free to get started</p>
@@ -599,10 +604,9 @@ export function LandingPage() {
                   Get Started for Free
                   <ArrowRightIcon />
                 </a>
-                <a href={APP_URL} target="_blank" rel="noopener noreferrer"
-                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-9 py-[1.125rem] rounded-2xl font-bold transition-all border text-sm ${isDark ? 'bg-white/[0.05] border-white/10 text-slate-300 hover:bg-white/[0.09] hover:text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
+                <span className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border ${isDark ? 'bg-[#7A60F4]/15 border-[#7A60F4]/30 text-[#9EA4FF]' : 'bg-[#7A60F4]/10 border-[#7A60F4]/20 text-[#5B52C8]'}`}>
                   Beta
-                </a>
+                </span>
               </div>
             </div>
           </div>

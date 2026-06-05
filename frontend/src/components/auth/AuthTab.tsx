@@ -78,7 +78,20 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#fafcff] dark:bg-[#08090c] transition-colors duration-500 overflow-hidden font-sans relative">
+    <div className="min-h-screen flex flex-col bg-[#fafcff] dark:bg-[#08090c] transition-colors duration-500 overflow-hidden font-sans relative">
+
+      {/* ── Beta banner ── */}
+      <div className={`w-full border-b py-2.5 z-50 relative shrink-0 ${theme === 'dark' ? 'bg-[#7A60F4]/10 border-[#7A60F4]/20' : 'bg-[#7A60F4]/[0.07] border-[#7A60F4]/10'}`}>
+        <div className={`flex items-center justify-center gap-2 text-sm font-semibold ${theme === 'dark' ? 'text-[#9EA4FF]' : 'text-[#5B52C8]'}`}>
+          <span className="w-2 h-2 rounded-full bg-[#7A60F4] shrink-0" />
+          <span className="font-bold">Beta Release</span>
+          <span className="mx-1">•</span>
+          <span>Currently accepting early users and collecting feedback</span>
+        </div>
+      </div>
+
+      {/* ── Main content (left + right panels) ── */}
+      <div className="flex-1 flex flex-col lg:flex-row relative">
 
       {/* ── Background blobs ── */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -120,12 +133,15 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
       </div>
 
       {/* ── Left hero panel ── */}
-      <div className="hidden lg:flex lg:w-5/12 bg-transparent p-16 flex-col justify-between relative overflow-hidden transition-colors z-10">
+      <div className="hidden lg:flex lg:w-5/12 bg-transparent px-16 pt-3 pb-16 flex-col justify-between relative overflow-hidden transition-colors z-10">
 
         <div className="relative z-10">
           {/* Logo + wordmark */}
-          <div className="mb-12">
+          <div className="mb-12 flex items-center gap-3">
             <HraiLogo height={96} />
+            <span className={`px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border ${theme === 'dark' ? 'bg-[#7A60F4]/15 border-[#7A60F4]/30 text-[#9EA4FF]' : 'bg-[#7A60F4]/10 border-[#7A60F4]/20 text-[#5B52C8]'}`}>
+              Beta
+            </span>
           </div>
 
           <h1 className="text-[2.75rem] font-black tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.15]">
@@ -509,6 +525,8 @@ export function AuthPage({ onLoginSuccess }: AuthPageProps) {
           </form>
         </div>
       </div>
+
+      </div>{/* end main content */}
     </div>
   );
 }
