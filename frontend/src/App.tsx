@@ -6,6 +6,7 @@ import { PublicCvView } from './components/public/PublicCvView';
 import { PublicProfileView } from './components/public/PublicProfileView';
 import { PublicJobView } from './components/public/PublicJobView';
 import { FeedbackDashboard } from './components/internal/FeedbackDashboard';
+import { AnalyticsDashboard } from './components/internal/AnalyticsDashboard';
 import { authApi } from './api';
 import { useStore } from './store';
 
@@ -38,12 +39,13 @@ const isPublicProfile = pathname.startsWith('/p/') && !isPublicJob && !isPublicC
 const publicSlug = isPublicProfile ? pathname.split('/')[2] : null;
 
 const isInternalFeedback = pathname === '/internal/feedback';
+const isInternalAnalytics = pathname === '/internal/analytics';
 
 function App() {
   const { isLoggedIn, userRole, theme, setIsLoggedIn, setUserId, setUserRole, setActiveTab, setAiLimits } = useStore();
 
   // cvToken is null here if we already redirected to /resumes/<id>
-  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob && !isPublicCv && !forceLogin && !hasResetToken && !isInternalFeedback);
+  const [isLoading, setIsLoading] = useState<boolean>(!cvToken && !isPublicProfile && !isPublicJob && !isPublicCv && !forceLogin && !hasResetToken && !isInternalFeedback && !isInternalAnalytics);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -55,7 +57,7 @@ function App() {
 
   useEffect(() => {
     // cvToken is null after the logged-in redirect, so we still run checkAuth
-    if (cvToken || isPublicProfile || isPublicJob || isPublicCv || forceLogin || hasResetToken || isInternalFeedback) return;
+    if (cvToken || isPublicProfile || isPublicJob || isPublicCv || forceLogin || hasResetToken || isInternalFeedback || isInternalAnalytics) return;
 
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token');
@@ -86,6 +88,7 @@ function App() {
   }, [setIsLoggedIn, setUserRole, setAiLimits]);
 
   if (isInternalFeedback) return <FeedbackDashboard />;
+  if (isInternalAnalytics) return <AnalyticsDashboard />;
 
   if (cvToken) return <PublicCvView token={cvToken} />;
 

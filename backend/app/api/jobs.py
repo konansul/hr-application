@@ -84,7 +84,8 @@ def create_job(
         status=getattr(job, "status", "active"),
         screening_questions_json=screening_questions_str,
         pipeline_stages_json=pipeline_stages_str,
-        requirements=job.requirements.model_dump() if getattr(job, "requirements", None) else None
+        requirements=job.requirements.model_dump() if getattr(job, "requirements", None) else None,
+        is_internal=getattr(job, "is_internal", False),
     )
 
     db.add(db_job)
@@ -130,6 +131,7 @@ def create_job(
         created_at=db_job.created_at,
         organization_name=db_job.organization.name if db_job.organization else None,
         org_id=db_job.org_id,
+        is_internal=db_job.is_internal,
     )
 
 
@@ -147,6 +149,8 @@ def list_jobs(
         query = query.filter(Job.org_id == current_user.org_id)
     else:
         query = query.filter(Job.org_id.isnot(None))
+        if not current_user.is_teammate:
+            query = query.filter(Job.is_internal == False)  # noqa: E712
 
     if level and level != 'All':
         query = query.filter(Job.level == level)
@@ -183,6 +187,7 @@ def list_jobs(
             created_at=job.created_at,
             organization_name=job.organization.name if job.organization else None,
             org_id=job.org_id,
+            is_internal=job.is_internal,
         ))
     return results
 
@@ -230,6 +235,7 @@ def get_job(
         created_at=job.created_at,
         organization_name=job.organization.name if job.organization else None,
         org_id=job.org_id,
+        is_internal=job.is_internal,
     )
 
 
@@ -301,6 +307,9 @@ def update_job(
     if "requirements" in update_data and update_data["requirements"] is not None:
         job.requirements = update_data["requirements"]
 
+    if "is_internal" in update_data and update_data["is_internal"] is not None:
+        job.is_internal = update_data["is_internal"]
+
     db.commit()
     db.refresh(job)
 
@@ -332,4 +341,5 @@ def update_job(
         created_at=job.created_at,
         organization_name=job.organization.name if job.organization else None,
         org_id=job.org_id,
+        is_internal=job.is_internal,
     )

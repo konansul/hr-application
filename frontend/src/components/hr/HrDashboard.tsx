@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { activityApi } from '../../api/activity';
 import { HraiLogo } from '../shared/HraiLogo';
 import { HrProfileTab } from './1. Profile/HrProfileTab';
 import { TalentPoolTab } from './2. Talent Pool/TalentPoolTab';
@@ -77,6 +78,7 @@ export function HrDashboard() {
     if (window.location.pathname !== path) {
       window.history.pushState({ tab }, '', path);
     }
+    activityApi.log(`hr:${tab}`);
   }, [setActiveTab]);
 
   const handleLogout = async () => {
@@ -185,7 +187,7 @@ export function HrDashboard() {
 
           {hasAnalyticsAccess && (
             <button
-              onClick={() => window.open('/internal/feedback', '_blank')}
+              onClick={() => { window.location.href = '/internal/analytics'; }}
               className="mt-2 mb-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#7A60F4] dark:text-[#9EA4FF] border border-[#7A60F4]/20 dark:border-[#9EA4FF]/20 hover:bg-[#7A60F4]/10 dark:hover:bg-[#9EA4FF]/10"
             >
               <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

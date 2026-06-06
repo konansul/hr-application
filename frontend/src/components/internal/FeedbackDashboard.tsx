@@ -139,13 +139,12 @@ export function FeedbackDashboard() {
   const hrEntries = allEntries?.filter(e => e.user_role === 'hr') ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="max-w-6xl mx-auto px-6 py-12">
+    <div className="min-h-full font-sans">
+      <div className="max-w-6xl mx-auto px-8 py-8">
 
-        <div className="mb-10">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Internal</p>
-          <h1 className="text-3xl font-bold text-gray-900">Feedback Analytics</h1>
-          <p className="text-sm text-gray-500 mt-1">Feedback from all users, split by portal.</p>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Feedback Analytics</h1>
+          <p className="text-1xl text-gray-400 dark:text-neutral-500 mt-1">Feedback from all users, split by portal.</p>
         </div>
 
         {loading && (
@@ -164,7 +163,7 @@ export function FeedbackDashboard() {
         )}
 
         {allEntries && (
-          <div className="grid grid-cols-2 gap-8 divide-x divide-gray-200">
+          <div className="grid grid-cols-2 gap-8">
             <FeedbackColumn
               title="Candidate Portal"
               accent="bg-[#7A60F4]"

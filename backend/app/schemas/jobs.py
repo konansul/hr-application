@@ -42,6 +42,7 @@ class JobCreate(BaseModel):
     status: Optional[Literal['draft', 'active', 'suspended', 'closed']] = "draft"
     pipeline_stages: Optional[List[str]] = None
     requirements: Optional[JobRequirementsBase] = None
+    is_internal: bool = False
 
 class JobUpdate(BaseModel):
     title: str
@@ -52,6 +53,7 @@ class JobUpdate(BaseModel):
     status: Optional[Literal['draft', 'active', 'suspended', 'closed']] = None
     pipeline_stages: Optional[List[str]] = None
     requirements: Optional[JobRequirementsBase] = None
+    is_internal: Optional[bool] = None
 
 class JobResponse(BaseModel):
     job_id: str
@@ -75,6 +77,7 @@ class JobOut(BaseModel):
     created_at: Optional[datetime] = None
     organization_name: Optional[str] = None
     org_id: Optional[str] = None
+    is_internal: bool = False
 
     class Config:
         from_attributes = True

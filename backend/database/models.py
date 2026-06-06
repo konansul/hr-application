@@ -144,6 +144,7 @@ class Job(Base):
     screening_questions_json = Column(Text, nullable=True)
     pipeline_stages_json = Column(Text, nullable=True)
     requirements = Column(JSON, nullable=True)
+    is_internal = Column(Boolean, nullable=False, default=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -241,6 +242,19 @@ class Notification(Base):
     message = Column(String(512), nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class UserActivityLog(Base):
+    __tablename__ = "user_activity_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    log_id = Column(String(64), unique=True, nullable=False, index=True)
+    user_id = Column(String(64), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    module = Column(String(64), nullable=False)
+    role = Column(String(32), nullable=True)
+    logged_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user = relationship("User")
 
 
 class UserFeedback(Base):
