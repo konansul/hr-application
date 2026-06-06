@@ -119,7 +119,17 @@ export function ProfileTab() {
     try {
       const savedProfile = await authApi.getProfile().catch(() => null);
       if (savedProfile && savedProfile.profile_data && Object.keys(savedProfile.profile_data).length > 0) {
-        setProfileData({ ...savedProfile.profile_data, references: savedProfile.profile_data.references || [] });
+        const pd = savedProfile.profile_data;
+        const toArr = (v: any): any[] => Array.isArray(v) ? v : [];
+        setProfileData({
+          ...pd,
+          experience:     toArr(pd.experience),
+          education:      toArr(pd.education),
+          skills:         toArr(pd.skills),
+          languages:      toArr(pd.languages),
+          certifications: toArr(pd.certifications),
+          references:     toArr(pd.references),
+        });
         if (savedProfile.primary_resume_id) setPrimaryResumeId(savedProfile.primary_resume_id);
       } else if (currentUser) {
         setProfileData((prev: any) => ({ ...prev, personal_info: { ...prev.personal_info, email: currentUser.email } }));
